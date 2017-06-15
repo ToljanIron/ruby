@@ -1,0 +1,131 @@
+<div class='questionnaire' ng-controller='questionnaireTabController' ng-init='init(<%= @curr_company.questionnaire_status %>)'>
+  
+  <div class='popup' ng-show='status === UNSENT'>
+    <div class='popup-content'>
+      <h3>Are you Sure you to start the questionnaire? </h3>
+      <button class='left btn btn-danger btn-lg' type='button' ng-click='rollbackStatus()'>No </button>
+      <button class='right btn btn-success btn-lg' type='button' ng-click='requestSendquestionnaire()'>Yes </button>
+    </div>
+  </div>
+
+  <div class='popup' ng-show='status === SEND_REQUEST'>
+    <div class='popup-content'>
+      <h3 style='color:red'>Are you Sure you to send the questionnare to all employees? </h3>
+      <button class='left btn btn-danger btn-lg' type='button' ng-click='rollbackStatus()'>No </button>
+      <div class='right'>
+        <table class='table'>
+          <tr>
+            <%= button_to('Yes, send Email to everyone', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'email'})  %>
+          </tr>
+          <tr>
+            <%= button_to('Yes, send SMS to everyone', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'sms'})  %>
+          </tr>
+        </table>
+        </div>
+    </div>
+  </div>
+
+ <!--  <div class='popup' ng-show='status === SEND_REQUEST && <%= @on_premise %>'>
+    <div class='popup-content'>
+      <h3 style='color:red'>Are you Sure you to send the questionnare to all employees? </h3>
+      <button class='left btn btn-danger btn-lg' type='button' ng-click='rollbackStatus()'>No </button>
+      <div class='right'>
+        <table class='table'>
+            <%= button_to('Yes, send Email to everyone DESKTOP', 'questionnaire/send_questionnaire_desktop', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'email'})  %>
+          </tr>
+        </table>
+        </div>
+    </div>
+  </div>   -->
+
+  <div class='popup' ng-show='status === RESEND_REQUEST'>
+    <div class='popup-content'>
+      <h3 style='color:red'>Are you Sure you to send questionnaire again? </h3>
+      <button class='left btn btn-danger btn-lg' type='button' ng-click='rollbackStatus()'>No </button>
+      <div class='right'>
+        <table class='table'>
+          <tr>
+            <%= button_to('Yes, send Email to everyone', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'email'})  %>
+          </tr>
+          <tr>
+            <%= button_to('Yes, send Email ONLY to unstarted employees', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: true, sender_type:'email'})  %>
+          </tr>
+          <tr>
+            <%= button_to('Yes, send SMS to everyone', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'sms'})  %>
+          </tr>
+          <tr>
+            <%= button_to('Yes, send  SMS ONLY to unstarted employees', 'questionnaire/send_questionnaire', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: true, sender_type:'sms'})  %>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!--   <div class='popup' ng-show='status === RESEND_REQUEST && <%= @on_premise %>'>
+    <div class='popup-content'>
+      <h3 style='color:red'>Are you Sure you to send questionnaire again? </h3>
+      <button class='left btn btn-danger btn-lg' type='button' ng-click='rollbackStatus()'>No </button>
+      <div class='right'>
+        <table class='table'>
+          <tr>
+            <%= button_to('Yes, send Email to everyone DESKTOP', 'questionnaire/send_questionnaire_desktop', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: false, sender_type:'email'})  %>
+          </tr>
+          <tr>
+            <%= button_to('Yes, send Email ONLY to unstarted employees DESKTOP', 'questionnaire/send_questionnaire_desktop', class: 'btn btn-success btn-lg', params: {questionnaire_id: questionnaire[:id], send_only_to_unstarted: true, sender_type:'email'})  %>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>   -->
+  <div class='container col-md-10 col-md-offset-1' ng-show='status === SENT'>
+    
+    <table class='table'>
+      <thead>
+        <tr>
+          <th data-field="id">Sent</th>
+          <th data-field="name">In progress</th>
+          <th data-field="price">Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <% if @current_questionnaire %>
+              <%= @questionnaire[:employees].select{ |e| e[:active] == true }.count %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @current_questionnaire %>
+              <%= @current_questionnaire.employees_in_process.count %><br><br>
+              <% @current_questionnaire.employees_in_process.each do |e| %>
+                <%= e.employee.first_name %> <%= e.employee.last_name %> <br>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @current_questionnaire %>
+              <%= @current_questionnaire.employees_completed.count %><br><br>
+              <%  @current_questionnaire.employees_completed.each do |e| %>
+                <%= e.employee.first_name %> <%= e.employee.last_name %> <br>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <%= button_to('Download Stats', 'questionnaire/download_csv', class: 'left btn btn-primary pull-right', params: {questionnaire_id: questionnaire[:id]})  %>
+    <button class='rigth btn btn-primary' type='button' ng-click='requestResendquestionnaire()'>Resend questionnaire</button>
+    <%if  @questionnaire[:questions].select{ |q| q[:active] == true}.count == 0  %>
+      <div class='alert alert-danger' style='margin-top: 18px; width: 315px;'> No questions selected for the questionnaire </div>
+    <% end %>
+
+  </div>
+
+</div>

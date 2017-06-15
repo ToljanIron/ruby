@@ -1,0 +1,61 @@
+<div class='backend'>
+
+  <div ng-include="'view_pin_editor'"></div>
+
+  <%= form_tag({action: :upload_csv_v2}, multipart: true, :class => 'cvs_loaders_container' ) do %>
+
+    <div class='csv-loader'>
+      <div>Date Format</div>
+      <% @formats = [OpenStruct.new({id: '1', name: 'yyyy-mm-dd'}), OpenStruct.new({id: '2', name: 'dd/mm/yyyy'})] %>
+      <%= select_tag 'date_format', options_from_collection_for_select(@formats, 'id', 'name', '2') %>
+    </div>
+
+    <div class='csv-loader'>
+      <div>Formal Strcture New</div>
+      <%= file_field_tag 'company_structure_new' %>
+    </div>
+
+    <div class='csv-loader'>
+      <div>Formal Strcture</div>
+      <%= file_field_tag 'company_structure' %>
+    </div>
+
+    <div class='csv-loader'>
+      <div>Employees</div>
+      <%= file_field_tag 'employees' %>
+    </div>
+
+    <div class='csv-loader'>
+      <div>Managment Relations</div>
+      <%= file_field_tag 'managment_relations' %>
+    </div>
+
+    <div class='csv-loader'>
+      <div>Images</div>
+      <%= file_field_tag 'images' %>
+    </div>
+
+    <div class='csv-loader submit'>
+      <%= submit_tag 'Submit' %>
+    </div>
+  <% end %>
+
+  <% if current_user.company_id == 6 %>
+    <%= form_tag({action: :precalculate}, :class => 'cvs_loaders_container') do %>
+      <div class='csv-loader submit'>
+        <%= submit_tag 'Precalculate' %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= form_tag({action: :upload_excel}, multipart: true, :class => 'cvs_loaders_container' ) do %>
+    <div class='excel-loader'>
+      <div>Import from Excel</div>
+      <%= file_field_tag 'spreadsheet' %>
+    </div>
+
+    <div class='csv-loader submit'>
+      <%= submit_tag 'Submit' %>
+    </div>
+  <% end %>
+</div>

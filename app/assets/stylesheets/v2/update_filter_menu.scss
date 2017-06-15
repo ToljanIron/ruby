@@ -1,0 +1,120 @@
+@import './colors';
+@import './common';
+
+.update_filter_menu {
+  z-index: 100;
+  position: fixed;
+  background: $workships-background-grey-v2;
+  box-shadow: 0px 3px 19px 0px rgba(0, 0, 0, 0.2);
+  width: 376px;
+  height: 267px;
+  left: 150px;
+  top: 123px;
+  padding: 15px 20px 20px 20px;
+  .add-selected {
+    margin-top: 13px;
+    font-size: 10px;
+    text-align: center;
+    width: 85px;
+    height: 20px;
+    line-height: 20px;
+    font-weight: 700;
+    position: relative;
+    .plus {
+      width: 8px;
+      height: 8px;
+      display: inline-block;
+      margin-right: 2px;
+    }
+    .count-circle {
+      position: absolute;
+      border-radius: 100%;
+      width: 11px;
+      height: 11px;
+      right: -5px;
+      top: -5px;
+      background-color: rgb(179, 179, 179);
+      color: white;
+      font-size: 7px;
+      line-height: 11px;
+    }
+    &.active {
+      background-color: #3399cc;
+      color: white;
+      .plus {
+        background: url(asset_path('plus_white.png')), no-repeat;
+      }
+    }
+    &.inactive {
+      background-color: rgb(179, 179, 179);
+      color: $workships-dark-grey-text;
+      .plus {
+        background-image: url(asset_path('plus_light.png'));
+      }
+    }
+  }
+  .arrow-box {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: -10px;
+    top: 11px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid $workships-background-grey-v2;
+  }
+  .menu-title {
+    height: 30px;
+    line-height: 30px;
+    border-bottom: 1px solid #3399cc;
+    .modal-name {
+      color: #3399cc;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .clear-all {
+      font-family: Lato;
+      color:  #333333;
+      font-size: 10px;
+      font-weight: 400;
+      text-decoration: underline;
+    }
+    .float-left-content {
+      float: left;
+    }
+    .float-right-content {
+      float: right;
+      margin-left: 15px;
+    }
+  }
+  .menu-content {
+    ul {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      list-style-type: none;
+      //min-height: 75px;
+      margin-bottom: 0;
+      padding: 0 0 0 0;
+      position: relative;
+      font-size: 12px;
+      line-height: 20px;
+      li {
+        list-style-type: none;
+        margin: 5px 0 7px 0;
+        .checkbox_directive {
+          .checkbox {
+            background-color: $workships-background-grey-v2;
+            img {
+              width: 11px;
+              height: 11px;
+            }
+          }
+          .checkbox_text {
+            text-transform: capitalize;
+          }
+        }
+      }
+    }
+  }
+}

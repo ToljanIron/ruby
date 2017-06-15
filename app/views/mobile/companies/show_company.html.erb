@@ -1,0 +1,34 @@
+<div ng-controller='companiesDataController' ng-init='init(<%= @questionnaire[:employees].count %>, 1, 1, <%= @show_tab %>, <%= @questionnaire[:employees].to_json %>, <%= @questionnaire[:questions].to_json %>, <%= @current_questionnaire.to_json %>) '>
+  <div ng-show='curr_tab === EMPLOYEES_TAB'>
+    <%= render partial: "partials/mobile/header", locals: {title: 'Company: ' + @curr_company.name + ' - ' +  @current_questionnaire.name + ' - Employees' }%>
+    </div>
+  <div ng-show='curr_tab === QUESTIONS_TAB'>
+    <%= render partial: "partials/mobile/header", locals: {title: 'Company: ' + @curr_company.name + ' - ' + @current_questionnaire.name +  ' - Questions'}%>
+  </div>
+  <div ng-show='curr_tab === QUESTIONIRE_TAB'>
+    <%= render partial: "partials/mobile/header", locals: {title: 'Company: ' + @curr_company.name + ' - ' + @current_questionnaire.name +  ' - Tests' }%>
+  </div>
+  
+  <div class="container col-md-12">
+    <div class="row">
+      <ul class="nav nav-pills">
+        <li ng-click='changeTab(EMPLOYEES_TAB)'><a>Employees</a></li>
+        <li ng-click='changeTab(QUESTIONS_TAB)'><a>Questions</a></li>
+        <li ng-click='changeTab(QUESTIONIRE_TAB)'><a>Questionnaire Status</a></li>
+      </ul>
+    </div>
+
+    <div class="row" ng-show='curr_tab === EMPLOYEES_TAB'>
+      <%= render partial: "partials/mobile/employees", locals: { questionnaire: @current_questionnaire, employees: @questionnaire[:employees] }%>
+    </div>
+
+    <div class="row" ng-show='curr_tab === QUESTIONS_TAB'>
+      <%= render partial: "partials/mobile/questions", locals: { questionnaire: @current_questionnaire, questions: @questionnaire[:questions] }%>
+    </div>
+
+    <div class="row" ng-show='curr_tab === QUESTIONIRE_TAB'>
+      <%= render partial: "partials/mobile/questionnaire", locals: { questionnaire: @current_questionnaire, questions: @questionnaire[:questions] }%>
+    </div>
+
+  </div>
+</div>

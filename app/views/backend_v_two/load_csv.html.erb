@@ -1,0 +1,122 @@
+<html>
+<head>
+	<title>Stepahead</title>
+	<%= stylesheet_link_tag  "v2", media: "all" %>
+	<%= csrf_meta_tags %>
+	<%= javascript_include_tag 'mobile'%>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script>
+		if (window.location.href.split("?").length > 1)
+		{
+			if (window.location.href.split("?")[2] === 'missing_network=1') {
+				alert('No network has been selected');
+			}
+		}
+		var selection = function () {
+			$( document ).ready(function() {
+				var network = document.getElementById('choose_network').value;
+				if (network === 'none') {
+					document.getElementById('error_message').innerHTML = 'no network selected';
+					return;
+				} else {
+					document.getElementById('error_message').innerHTML = '';
+				}
+				$('#' + network).click();
+			});
+		}
+		var validate = function () {
+			if( document.getElementById('choose_network').value === 'None') {
+				alert('No network has been selected');
+				return false;
+			}
+			return true;
+		}
+// var submit = function () {
+// 	$('.submit')[0].click();
+// }
+</script>
+</head>
+<body>
+	<div class='backend_v2' ng-controller='loadCsvController' ng-init='init()'> 
+		<% if current_user && current_user.company_id && Company.where(id: current_user.company_id).count > 0 %>
+    <div class="backend_title"> StepAhead Backend for <%= Company.find(current_user.company_id).name %>, ID: <%= current_user.company_id %>  </div><br/><br/>
+		<%else%>
+		<div class="company_error">this user is not associated with any company</div><br>
+		<% end %>
+		<div class="network-description"> Upload Network Snapshot From CSV: </div>
+		<%= form_tag({action: :upload_network_csv_v2}, multipart: true, :class => 'cvs_loaders_container') do %>
+		<div class="differnce">
+			Network:
+			<%= select_tag "selected_network",
+			options_from_collection_for_select(@network_names, :id, :name) %>
+		</div>
+		<br>
+		<div class='csv-loader' style='margin-left: 20px;'>
+      <%= file_field_tag 'csv_file' %>
+    </div>
+
+    <div class='csv-loader' style='margin-left: 20px; margin-bottom: 20px;'>
+      <%= check_box_tag 'use_latest_snapshot', '1', {:checked => "checked"} %>
+      Use Latest Snapshot:
+    </div>
+
+		<div class='csv-loader submit submit-btn'  style='margin-left: 20px; margin-top: 20px;'> <br>
+			<%= submit_tag 'Submit' %>
+		</div>
+		<% end %>
+
+    <div style='margin-left: 20px; margin-top: 30px;'> 
+      <div class='overlay-entity-conf' ng-repeat='overlay_entity in overlay_entity_configuration | orderBy: "name" '>
+        <div ng-click='onChangeEntityConf(overlay_entity)' style='cursor: pointer; margin-right:10px; '>
+          <!-- <input class='checkbox-bo' type='checkbox' ng-checked="overlay_entity.active" style='display: inline-block;'> -->
+          <!-- </input> -->
+          <input type='submit' class='overlay-entity-conf-name' style='display: inline-block;text-transform: capitalize;' value="{{overlay_entity.active ? 'disable' : 'enable'}} {{overlay_entity.name.replace('_', ' ')}}"/>
+        </div>
+      </div>
+    </div>
+
+    <div style='margin-left: 20px; margin-top: 20px;'>
+      <%= form_tag('/algorithms_test/company_reset', method: :get, :class => 'cvs_loaders_container') do %>
+      <%= hidden_field_tag 'cid', current_user.company_id.to_s %>
+			<%= submit_tag 'Delete All Networks' %>
+		  <% end %>
+    </div>
+
+    <div style='margin-left: 20px; margin-top: 10px;'>
+      <%= form_tag('/algorithms_test/company_structure_reset', method: :get, :class => 'cvs_loaders_container') do %>
+      <%= hidden_field_tag 'cid', current_user.company_id.to_s %>
+			<%= submit_tag 'Company Structure Reset' %>
+		  <% end %>
+    </div>
+
+    <div style='margin-left: 20px; margin-top: 10px;'>
+      <%= form_tag('/algorithms_test/precalculate', method: :get, :class => 'cvs_loaders_container') do %>
+      <%= hidden_field_tag 'cid', current_user.company_id.to_s %>
+			<%= submit_tag 'Precalculate' %>
+		  <% end %>
+    </div>
+
+    <div style='margin-left: 20px; margin-top: 10px;'>
+      <div onclick="window.location = 'API/download_gen_report';">Generic Download</div>
+    </div>
+
+		<br/>
+		<label id="error_message" class='error'></label>
+	</div>
+
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+
+	<h1 style='text-align: left;margin-left: 20px; font-size:20px; margin-bottom: 20px; margin-top: -40px;'> Questionnaire Management<h1>
+	<div class="row"  >
+    <%= render partial: "partials/mobile/questionnaire_backend", locals: { questionnaires: @curr_company.active_questions }%>
+  </div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<div class='floating-container'>
+  <div class='legend-container'>
+    <div class='legend-item'>
+      <div class='circle in'></div>
+      <div class='item-name'>{{bread_crumbs_list[bread_crumbs_list.length - 1].name}}</div>
+    </div>
+    <div style='clear: both;'></div>
+    <div class='legend-item'>
+      <div class='circle org'></div>
+      <div class='item-name'>Organization</div>
+    </div>
+    <div class='external-data-cls' ng-show='data_metric_list.length > 1'>
+      <div class='circle external-metric-line'></div>
+      <select ng-model="externalDataMetric" ng-change='updateExternalMetric(externalDataMetric)'ng-options="metric.metric_name for metric in data_metric_list">
+      </select>
+    </div>
+  </div>
+  <div class='network-tab' ng-repeat="(key,value) in network_group| orderBy:'key' " >
+    <div class='network-title'> {{key}} </div>
+    <div class='measure-details' ng-repeat='measure in value'>
+      <div ng-click="gotoAnchor($index + $parent.$index * 10)" class='name'>{{measure.graph_data.measure_name}}</div>
+      <red-green-triangle trend='measure.graph_data.trend' rotate='measure.graph_data.rotate' class='trend'></red-green-triangle>
+      <div class='number'>{{displayTwoDigitsAfterDecimal(measure.graph_data.avg)}}</div>
+    </div> 
+  </div>
+    <div class='network-title' ng-show='group_measures_data_list' > Group Metrics</div>
+  <div ng-show='selected.group_overoll_state === "group"' class='measure-details' ng-repeat='measure in group_measures_data_list'>
+    <div ng-click="gotoAnchor($index + 100)" class='name'>{{measure.graph_data.measure_name}}</div>
+    <red-green-triangle trend='measure.graph_data.trend' rotate='measure.graph_data.rotate' class='trend'></red-green-triangle>
+    <div class='number'>{{displayTwoDigitsAfterDecimal(measure.graph_data.avg)}}</div>
+  </div>
+</div>

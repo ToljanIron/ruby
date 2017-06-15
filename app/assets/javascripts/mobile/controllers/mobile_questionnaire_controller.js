@@ -1,0 +1,455 @@
+/*globals angular, unused, localStorage, _, $, document */
+'use strict';
+
+angular.module('workships-mobile')
+  .config(['$logProvider', function($logProvider){
+        $logProvider.debugEnabled(false);
+  }])
+  .controller('mobileQuestionnaireController', [
+    '$scope', 'ajaxService', '$q', 'mobileAppService', '$timeout', '$log',
+    function ($scope, ajaxService, $q, mobileAppService, $timeout, $log) {
+
+  var undo_stack = [];
+
+  function buildQuestionResponseStructs() {
+    $log.debug('In buildQuestionResponseStructs()');
+    $scope.responses = {};
+    var q = $scope.questions_to_answer;
+    $scope.responses[q.id] = {
+      question_id: q.id,
+      question: q.question,
+      question_title: q.question_title,
+
+      responses: _.map(q.employee_data, function (data) {
+        return {
+          employee_details_id: data.employee_details_id,
+          employee_id: data.e_id,
+          response: data.answer,
+        };
+      }),
+    };
+  }
+
+  function getSearchList() {
+    $log.debug('In getSearchList()');
+    return function () {
+      var res = [];
+      _.each($scope.employees, function (emp) {
+        if (!emp) { return; }
+        if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
+        var role = emp.role === undefined ? 'N/A' : emp.role;
+        res.push({
+          id: emp.id,
+          name: emp.name + ', ' + role,
+        });
+      });
+      return res;
+    };
+  }
+
+  function format_questions_to_answer(data) {
+    $log.debug('In format_questions_to_answer()');
+    var res = {};
+    res.id = data.q_id;
+    res.question = data.question;
+    res.question_title = data.question_title;
+    res.employee_data = [];
+    _.each(data.replies, function (r) {
+      res.employee_data.push({e_id: r.e_id, answer: r.answer, employee_details_id: r.employee_details_id});
+    });
+    return res;
+  }
+
+  $scope.clearSearch = function () {
+    $scope.search_input.text = '';
+  };
+
+  $scope.responsesForQuestion = function (question_id) {
+    $log.debug('In ponsesForQuestion()');
+    var r = $scope.responses[question_id];
+    if (!r) {
+      return;
+    }
+    return r.responses;
+  };
+
+  $scope.responseForQuestionAndEmployee = function (question_id, employee_id) {
+    $log.debug('In responseForQuestionAndEmployee()');
+    var r = $scope.responsesForQuestion(question_id);
+    var employee_response = _.where(r, {
+      employee_id: employee_id
+    });
+    if (employee_response.length !== 1) {
+      return;
+    }
+    return employee_response[0];
+  };
+
+  $scope.nextEmployeeIdWithoutResponseForQuestion = function (question_id, employee_id) {
+    $log.debug('In nextEmployeeIdWithoutResponseForQuestion()');
+    var r = $scope.responsesForQuestion(question_id);
+    var i, j;
+
+    for (i = 0; i < r.length; ++i) {
+      if (r[i].employee_id === employee_id) {
+        for (j = i; j < r.length; ++j) {
+          if (r[j].response === null) { return r[j].employee_id; }
+        }
+        for (j = i; j >= 0; --j) {
+          if (r[j].response === null) { return r[j].employee_id; }
+        }
+      }
+    }
+    return -1;
+  };
+
+  function resetQuestion() {
+    $scope.init(false, {reset_question: true});
+  }
+
+  function isLessAvailableEmployeesThanMinimum() {
+    if ($scope.numberOfEmployeesForQuestion($scope.r.question_id) - $scope.numberOfEmployeesAnsweredFalseForQuestion($scope.r.question_id) < mobileAppService.getMinMaxAmounts().min) {
+      $timeout(function () {
+        mobileAppService.displayOverlayBlocker(mobileAppService.getMinMaxAmounts().min, {unblock_on_click: true});
+        $scope.onUndo();
+      }, 0);
+    }
+  }
+
+  $scope.onUserResponse = function (question_id, employee_id, response, employee_details_id) {
+    $log.debug('In onUserResponse()');
+    $scope.state_saved[0] = false;
+    var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
+    if (!r) { return; }
+    var undo_step = {
+      question_id: question_id,
+      employee_details_id: employee_details_id,
+      employee_id: employee_id,
+      response: null,
+    };
+    //changes made here
+    undo_stack.push(undo_step);
+    r.response = response;
+    var emp = $scope.unselected_workers.splice(_.findIndex($scope.unselected_workers, {id: employee_id}), 1);
+    $scope.search_added_emps.splice($scope.search_added_emps.indexOf(employee_id), $scope.search_added_emps.indexOf(employee_id) + 1);
+    var added_employee = _.find($scope.employees, function (e) {
+      return e.qp_id === employee_id;
+    });
+    if (!_.any($scope.original_data.replies, function (reply) { return reply.e_id === employee_id; })) {
+      $scope.original_data.replies.splice(0, 0, { e_id: employee_id, employee_details_id: added_employee.id });
+    }
+    if (emp[0]) { $scope.undo_worker_stack.push(emp[0]); }
+    $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+    if ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === $scope.numberOfEmployeesForQuestion($scope.r.question_id)) {
+      $scope.clicked_on_next[0] = true; // force click on next
+    }
+    if (mobileAppService.isQuestionTypeMinMax()) { isLessAvailableEmployeesThanMinimum(); }
+  };
+
+  $scope.onUndo = function () {
+    if ($scope.isUndoDisabled()) { return; }
+    $scope.state_saved[0] = false;
+    if (!$scope.clicked_on_next[0]) {
+      var undo_step = undo_stack.pop();
+      if (!undo_step) {
+        resetQuestion();
+        return;
+      }
+      var r = $scope.responseForQuestionAndEmployee(undo_step.question_id, undo_step.employee_id);
+      $scope.unselected_workers.push($scope.undo_worker_stack.pop());
+      if (!r) { return; }
+      r.response = undo_step.response;
+      $scope.currentlyFocusedEmployeeId = undo_step.employee_id;
+    }
+    $scope.clicked_on_next[0] = false;
+  };
+
+  $scope.numberOfEmployeesForQuestion = function (question_id) {
+    if ($scope.isLoaded()) {
+      var r = $scope.responsesForQuestion(question_id);
+      if (!r) { return -1; }
+      return r.length;
+    }
+  };
+
+  $scope.numberOfEmployeesAnsweredForQuestion = function (question_id) {
+    if ($scope.isLoaded()) {
+      var responses = $scope.responsesForQuestion(question_id);
+      return _.filter(responses, function (r) {
+        return r.response !== null;
+      }).length;
+    }
+  };
+
+  $scope.numberOfEmployeesAnsweredTrueForQuestion = function (question_id) {
+    if ($scope.isLoaded()) {
+      var responses = $scope.responsesForQuestion(question_id);
+      return _.filter(responses, function (r) {
+        return r.response === true;
+      }).length;
+    }
+  };
+
+  $scope.numberOfEmployeesAnsweredFalseForQuestion = function (question_id) {
+    if ($scope.isLoaded()) {
+      var responses = $scope.responsesForQuestion(question_id);
+      return _.filter(responses, function (r) {
+        return r.response === false;
+      }).length;
+    }
+  };
+
+  $scope.numberOfQuestions = function () {
+    return _.keys($scope.responses).length;
+  };
+
+  $scope.employeeById = function (employee_id) {
+    var e =  _.find($scope.employees, {
+      id: employee_id
+    });
+    return e;
+  };
+
+  $scope.onForwardQuestion = function () {
+    $log.debug('In onForwardQuestion()');
+    var i = $scope.index_of_current_question - 1;
+    if (i >= $scope.numberOfQuestions()) {
+      return;
+    }
+    $scope.index_of_current_question = $scope.index_of_current_question + 1;
+    $scope.r = $scope.responses[_.keys($scope.responses)[$scope.index_of_current_question - 1]];
+  };
+
+  function updateScopeResponsesFromAnswers() {
+    $log.debug('In updateScopeResponsesFromAnswers()');
+    var responses = $scope.responses[_.keys($scope.responses)[0]].responses;
+    _.forEach($scope.original_data.replies, function (r, i) {
+      r.answer = responses[i].response;
+    });
+  }
+
+  $scope.employeeHasResponseForQuestion = function (question_id, employee_id) {
+    $log.debug('In employeeHasResponseForQuestion()');
+    var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
+    if (!r) {
+      return false;
+    }
+    return r.response !== null;
+  };
+
+  $scope.isAnsweredAllNessecearyQuestions = function () {
+    $log.debug('In isAnsweredAllNessecearyQuestions()');
+    if ($scope.isLoaded()) {
+      if (mobileAppService.isQuestionTypeClearScreen()) {
+        return $scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === $scope.numberOfEmployeesForQuestion($scope.r.question_id);
+      }
+      if (mobileAppService.isQuestionTypeMinMax()) {
+        return $scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) >= (mobileAppService.getMinMaxAmounts().min);
+      }
+    }
+  };
+
+  $scope.isUndoDisabled = function () {
+    if ($scope.isLoaded()) {
+      return $scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === 0;
+    }
+  };
+
+  $scope.isFinished = function () {
+    $log.debug('In isFinished()');
+    if ($scope.isLoaded()) {
+      if (mobileAppService.isQuestionTypeClearScreen()) {
+        return $scope.isAnsweredAllNessecearyQuestions();
+      }
+      if (mobileAppService.isQuestionTypeMinMax()) {
+        if ($scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) === (mobileAppService.getMinMaxAmounts().max)) { return true; }
+        if (($scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) >= (mobileAppService.getMinMaxAmounts().min)) && $scope.clicked_on_next[0]) {
+          return true;
+        }
+      }
+    }
+  };
+
+  $scope.isLoaded = function () {
+    return $scope.loaded[0];
+  };
+
+  $scope.employeeDoesNotHaveResponseForQuestion = function (question_id, employee_id) {
+    return !$scope.employeeHasResponseForQuestion(question_id, employee_id);
+  };
+
+  $scope.searchAdded = function (employee_id) {
+    return _.any($scope.search_added_emps, function (id) { return id === employee_id; });
+  };
+
+  $scope.displayMaxAmount = function () {
+    $log.debug('In displayMaxAmount()');
+    if (!$scope.isLoaded()) { return; }
+    if (mobileAppService.getMinMaxAmounts().max > $scope.numberOfEmployeesForQuestion($scope.r.question_id)) {
+      return $scope.numberOfEmployeesForQuestion($scope.r.question_id);
+    }
+    return mobileAppService.getMinMaxAmounts().max;
+  };
+
+  $scope.toggleFullQuestionView = function () {
+    $scope.show_full_question = !$scope.show_full_question;
+  };
+
+  function resetAllReplies(replies) {
+    _.each(replies, function (r) {
+      r.answer = null;
+    });
+    return replies;
+  }
+
+  function syncDataWithServer(params, options) {
+    $log.debug('In syncDataWithServer()');
+    if (options && options.continue_later) {
+      params.continue_later = true;
+    } else {
+      params.continue_later = false;
+    }
+    //params.token = $scope.token;
+    var p1 = ajaxService.get_employees(params);
+    var p2 = ajaxService.get_next_question(params);
+    var employee_ids_in_question;
+    if (options && options.reset) {
+      $q.all([
+        p1.then(function (response) {
+          $scope.employees = response.data;
+          _.each($scope.employees, function (e) {
+            e.id = +e.id;
+            e.qp_id = +e.qp_id;
+          });
+          $scope.search_list = getSearchList();
+        }),
+        p2.then(function (response) {
+          $scope.original_data = response.data;
+          employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
+          var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
+          $scope.workers = employees_for_question;
+          $scope.unselected_workers = $scope.workers;
+
+          if (options && options.reset_question) {
+            $scope.original_data.replies = resetAllReplies($scope.original_data.replies);
+            $scope.currentlyFocusedEmployeeId = -1;
+          }
+          mobileAppService.setIndexOfCurrentQuestion(response.data.current_question_position);
+
+          if (response.data.min === response.data.max) {
+            mobileAppService.setQuestionTypeClearScreen();
+          } else {
+            mobileAppService.setQuestionTypeMinMax(response.data.min, response.data.max);
+          }
+
+          $scope.questions_to_answer = format_questions_to_answer(response.data);
+
+          buildQuestionResponseStructs();
+        }),
+      ]).then(function () {
+        if ($scope.original_data.status === 'done') {
+          mobileAppService.setFinishView();
+        } else {
+          $scope.r = $scope.responses[_.keys($scope.responses)[0]];
+          $scope.tiny_array = $scope.r.responses.slice(0, 10);
+          if (!options.reset_question) {
+            $scope.show_full_question = true;
+          }
+          $scope.loaded[0] = true;
+        }
+      });
+    }
+  }
+
+  $scope.loadMore = function () {
+    $log.debug('In loadMore()');
+    var startIndex = $scope.tiny_array.length;
+    console.log('loadMore', startIndex);
+    $scope.tiny_array = _.union($scope.tiny_array, $scope.r.responses.slice(startIndex, startIndex + 10));
+  };
+
+  $scope.minMaxOnFinish = function () {
+    $log.debug('In minMaxOnFinish()');
+    if (!$scope.isFinished()) {
+      $scope.clicked_on_next[0] = true;
+    } else {
+      updateScopeResponsesFromAnswers();
+      $scope.init($scope.original_data);
+      $scope.currentlyFocusedEmployeeId = -1;
+    }
+  };
+
+  $scope.clearScreenOnFinish = function () {
+    if (!$scope.isAnsweredAllNessecearyQuestions()) { return; }
+    updateScopeResponsesFromAnswers();
+    $scope.init($scope.original_data);
+  };
+
+  $scope.continueLater = function () {
+    $log.debug('In continueLater()');
+    updateScopeResponsesFromAnswers();
+    $scope.state_saved[0] = true;
+    syncDataWithServer($scope.original_data, {continue_later: true, reset: false});
+  };
+
+  $scope.getEmployeeIdByName = function (name) {
+    return (_.find($scope.unselected_workers, { name: name })).id;
+  };
+
+  $scope.findOrLoadAndFind = function (id) {
+    $log.debug('In findOrLoadAndFind()');
+    var foundItem = _.find($scope.tiny_array, { 'employee_details_id': id });
+    if (!foundItem && $scope.tiny_array.length !== $scope.r.responses.length) {
+      $scope.loadMore();
+      return $scope.findOrLoadAndFind(id);
+    } return foundItem;
+  };
+
+  $scope.onSelect = function ($item) {
+    $log.debug('In onSelect()');
+    if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
+      var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
+      $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
+      // $scope.onUserResponse($scope.r.question_id, $scope.currentlyFocusedEmployeeId, true, $item.id);
+    } else {
+      var emp = _.find($scope.employees, { 'id': $item.id });
+      $scope.search_added_emps.push(emp.qp_id);
+      $scope.r.responses.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+      $scope.tiny_array.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+      $scope.currentlyFocusedEmployeeId = emp.qp_id;
+    }
+  };
+
+  $scope.matchString = function (pattern, str) {
+    if (pattern === undefined || pattern === null || pattern === "") { return true; }
+    return (str.toLowerCase().indexOf(pattern.toLowerCase()) >= 0);
+  };
+
+  $scope.init = function (next_question_params, options) {
+    $log.debug('In init() - next_question_params: ', next_question_params);
+    $scope._ = _;
+    $scope.search_added_emps = [];
+    options = options || {};
+    // $scope.token = token;
+    $scope.undo_worker_stack = [];
+    $scope.clicked_on_next = [false];
+    $scope.state_saved = [false];
+    $scope.loaded = [false];
+    setTimeout(function () {
+      $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;
+    }, 0);
+
+    $scope.swipe = {
+      right: false,
+      left: false,
+    };
+    $scope.params = next_question_params || { token: mobileAppService.getToken() };
+    syncDataWithServer($scope.params, {continue_later: !next_question_params, reset: true, reset_question: options.reset_question});
+    $scope.search_input = { text: ''};
+
+    $scope.workers = null;
+    $scope.unselected_workers = null;
+    $scope.names = {};
+    _.forEach($scope.workers, function (worker) { $scope.names[worker.id] = worker.name; });
+  };
+}]);

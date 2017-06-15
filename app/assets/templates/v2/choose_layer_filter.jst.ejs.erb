@@ -1,0 +1,39 @@
+<div class='choose-layer-filter' ng-controller='ChooseLayerFilterCtrl' ng-init='init()' ng-style='setStyleHeight()'>
+  <div class='menu-title'>
+    <div class='float-left-content modal-name'>Add {{selected.layer.title.replace('-', ' ').replace('_', ' ')}}</div>
+    <div class='float-right-content clear-all clickable' ng-click='clearAll()'>Clear All</div>
+    <div class='search-tab'>
+      <img ng-show='!search || search.length === 0' class='search-img' alt="find" src="<%= asset_path 'looking_glass.png' %>"/>
+      <img ng-show='search.length > 0' ng-click='clearSearch()' class='delete-img clickable' alt="find" src="<%= asset_path 'clear_search.png' %>"/>
+      <!-- ng-change='filterFilters()' -->
+      <input ng-model='search' typeahead="search_node.display_name for search_node in search_list() | nameStartWith:$viewValue:3 | limitTo:7"  typeahead-on-select='onChooseInSearch($item.name)' placeholder='Search'/>
+    </div>
+  </div>
+
+  <div class="menu-selected-entities">
+    <div ng-repeat='selected_entites in pillsToShow()'>
+      <pillbox name="selected_entites" on-remove='uncheckFilter(selected_entites)'></pillbox>
+    </div>
+  </div>
+  <div class='title-name'>Top {{selected.layer.title.replace('-', ' ').replace('_', ' ')}}<div>
+  <div class='menu-content'>
+    <ul>
+      <li ng-repeat='name in filtered_values | limitTo:24 track by $index'>
+        <checkbox class='criteria-checkbox' on-callback='checkFilter(name)' off-callback='uncheckFilter(name)' value='filterChecked(name)' src='<%= asset_path "black_check.png"%>' text='{{augmentText(name, selected.layer.title === "keywords")}}'></checkbox>
+      </li>
+      <li ng-show='selected.layer.title === "keywords"' filtered_values.length < 24' ng-repeat='word in keywords | limitTo:(24 - filtered_values.length) track by $index'>
+        <checkbox class='criteria-checkbox' on-callback='onChooseInSearch(word.name)' off-callback='uncheckFilter(word.name)' value='keywordChecked(word.name)' text='{{setTextDirection(word.name, word.num)}}' src='<%= asset_path "black_check.png"%>'></checkbox>
+      </li>
+    </ul>
+  </div>
+
+  <div class='info-container' ng-show='selected.layer.title === "keywords"'>
+    <img style='height: 11px; width: 11px; display: inline-block;' src="/assets/info.png">
+    <div class='info-container-text'>The number next to keywords signifies the number of occurrences in all snapshots</div>
+  </div>
+
+  <div class='clickable add-selected active' ng-click='addSelected()' >
+    <check-count count='{{howManyChecked()}}'></check-count>
+    <div><div class='plus'></div> Add Selected</div>
+  </div>
+</div>

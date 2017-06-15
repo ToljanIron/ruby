@@ -1,0 +1,72 @@
+<div ng-if="mobile_app_service.isLangRtl()" ng-controller="firstEnterController"  ng-init="init()" >
+  <div class='mobile-content' id="main_container" >
+    <div class='page_content'>
+      <div class="welcome-message" style='width: {{container_width}}; height: {{container_height}}' >
+        <h1 class='page_title' dir='rtl'><%= I18n.t('questionnaire.hi') %> {{mobile_app_service.getUserName()}},</h1>
+        <div class="text_rtl" dir='rtl'><%= I18n.t('questionnaire.how_to_answer_html') %></div>
+        <div class="gestures">
+          <div class="gesture-line">
+            <img class="gesture_img_left" src="<%= asset_path 'gestures_tap.png' %>" alt="tap" >
+            <div class="gesture_text_right_rtl tap" dir='rtl'>
+              <%= I18n.t('questionnaire.how_to_tap_html') %>
+              <br><br>
+              <b><%= I18n.t('questionnaire.or') %></b>
+            </div>
+          </div>
+          <div class="gesture-line">
+            <img class="gesture_img_right" src="<%= asset_path 'gestures_swipe.png' %>" alt="swipe">
+            <div class="gesture_text_left_rtl swipe" dir='rtl'> <%= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+          </div>
+          <div class="gesture-line">
+            <img class="gesture_img_left" src="<%= asset_path 'gestures_scroll.png' %>" alt="scroll">
+            <div class="gesture_text_right_rtl scroll_rtl" dir='rtl'>
+              <%= I18n.t('questionnaire.how_to_scroll_html') %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class='center-button' ng-click='mobile_app_service.setQuestionnaireView()'><%= I18n.t('questionnaire.continue_button') %> </div>
+    </div>
+  </div>
+</div>
+<div ng-if="!mobile_app_service.isLangRtl()" ng-controller="firstEnterController" ng-init="init()" >
+  <div class='mobile-content' id="main_container" >
+    <div class='page_content'>
+      <div class="welcome-message" style='width: {{container_width}}; height: {{container_height}}'>
+        <h1 class='page_title' ><%= I18n.t('questionnaire.hi') %> {{mobile_app_service.getUserName()}}</h1>
+        <div class="text" >
+           <%= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="gestures">
+          <div class="gesture-line">
+            <img class="gesture_img_left" src="<%= asset_path 'gestures_tap.png' %>" alt="tap">
+            <div class="gesture_text_right tap" >
+              <%= I18n.t('questionnaire.how_to_tap_html') %>
+              <br><br>
+              <b><%= I18n.t('questionnaire.or') %></b>
+            </div>
+          </div>
+          <div class="gesture-line">
+            <img class="gesture_img_right" src="<%= asset_path 'gestures_swipe.png' %>" alt="swipe">
+            <div class="gesture_text_left swipe"> <%= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+          </div>
+          <div class="gesture-line">
+            <img class="gesture_img_left" src="<%= asset_path 'gestures_scroll.png' %>" alt="scroll">
+            <div class="gesture_text_right scroll">
+              <%= I18n.t('questionnaire.how_to_scroll_html') %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class='center-button' ng-click='mobile_app_service.setQuestionnaireView()'><%= I18n.t('questionnaire.continue_button') %> </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,193 @@
+<div ng-if='!mobile_app_service.isLangRtl()' class="background" >
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  <div ng-if='mobile_app_service.inWelcomeBackView() || mobile_app_service.inFirstEnterView()' >
+    <div class="logo-medium"> <img src="<%= asset_path 'logo-medium.png' %>" height="63" width="257"> </div>
+    <div class="welcome-back" ng-show='mobile_app_service.inWelcomeBackView()' ><%= I18n.t('questionnaire.welcome_back') %>, {{getEmployee(current_emp_id).name}}</div>
+    <div class="welcome-back" ng-show='mobile_app_service.inFirstEnterView()'><%= I18n.t('questionnaire.welcome') %>, {{getEmployee(current_emp_id).name}}</div>
+    <div class="welcome-p" ><%= I18n.t('questionnaire.welcome_sentence') %></div>
+    <div class='start-button btn-continue' ng-click="mobile_app_service.setQuestionnaireView()"> 
+      <div class='title' ng-show='mobile_app_service.inWelcomeBackView()' ><%= I18n.t('questionnaire.resume') %></div>
+      <div class='title' ng-show='mobile_app_service.inFirstEnterView()' ><%= I18n.t('questionnaire.start') %></div>
+      <div class='right-arrow'></div>
+    </div>
+  </div>
+
+
+  <div>
+    <div ng-if='mobile_app_service.inFinishView()' >
+      <div class="background">
+        <div class="thank-you"><%= I18n.t('questionnaire.thank_you') %>, {{getEmployee(current_emp_id).name}}</div>
+        <div class="thank-you-p"><%= I18n.t('questionnaire.thank_you_note') %> </div>
+
+        <div class="logo-sm"> <img src="<%= asset_path 'logo-medium.png' %>" height="25" width="103"> </div>
+      </div>
+    </div>
+  </div>
+  <div class='questioneries-wrapper' ng-if='mobile_app_service.inQuestionnaireView()' >
+    <div class='carousel-wrapper'>
+      <div class='carousel-questions' ng-repeat="i in getNumber(total_questions) track by $index">
+        <div ng-show='$index + 1 <  question_number' class='q-image-warrper q_done'>
+          <div class='circle-content circle-done'></div>
+        </div>
+        <div class='q-image-warrper q_in_procces' ng-show='$index + 1 === question_number'>
+          <div class='circle-content current'>Q{{$index + 1}}</div>
+        </div>
+        <div class='q-image-warrper q_pending' ng-show='$index + 1 > question_number'>
+          <div class='circle-content pending'>Q{{$index + 1}}</div>
+        </div>
+        <div class='dots-wrapper' ng-show='$index < total_questions - 1'>
+          <div ng-repeat="dot in dot_list track by $index" class='dots'></div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class='question-num'> Question {{question_number}}</div> -->
+    <div class="question-num" ng-bind-html='question_title'></div>
+    <div class='question-p'> {{question}} </div>
+    <div class='questions-wrapper'>
+      <span ng-class="{'done-answering' : answeredAllQuestions()}">
+        <div class='question-out-of-questions'> {{approved_or_disapproved_workers.length}} </div>  
+        <div class='total-questions'>/{{dependent_maximum_required}} </div>
+      </span>
+      <div class="clear-btn" ng-click='clearDependentSelection()'><%= I18n.t('questionnaire.clear_selection') %></div>
+    </div>
+    <div class='q-button btn-continue' ng-click="sendDependentAnswers('<%= @name %>','<%= @token %>')"> 
+      <div class='title'><%= I18n.t('questionnaire.continue_button') %></div>
+      <div class='right-arrow'></div>
+    </div>
+
+
+    <div ng-show='(selected_less_then_minimum || dependent_maximum_required < approved_or_disapproved_workers.length) && !answeredAllQuestions() && !reset_messages' class='error-message'><%= I18n.t('questionnaire.error_answer_for_employees') %></div>
+    <div ng-show='answeredAllQuestions() ' class='done-message'><%= I18n.t('questionnaire.success_all_employees_answered') %></div>
+
+      <!-- Left Side Focused employee -->
+
+    <div class="answer-container">
+      <div class='selected-dependent-worker'>
+        <div class ='emp'>
+          <div class='img-warrper'>
+            <img class="emp-focused-img" ng-src='{{getEmployee(getSelectedWorker()).image_url}}'/>
+          </div>
+          <div class="name-role-container">
+            <div class='emp-focused-name'>{{getEmployee(getSelectedWorker()).name}}</div>
+            <div class='emp-focused-role'>{{getEmployee(getSelectedWorker()).role}}</div>
+          </div>
+          <div class="focused-employee-buttons">
+            <div ng-class="{'emp-focused-x-btn' : !isUnSelected(getSelectedWorker()) , 'emp-focused-x-btn-selected' : isUnSelected(getSelectedWorker())}" ng-click='disapprove_worker(getSelectedWorker()); continueAnsweringFlow()'></div>
+            <div ng-class="{'emp-focused-v-btn' : !isChecked(getSelectedWorker()) , 'emp-focused-v-btn-selected' : isChecked(getSelectedWorker())}" ng-click='approve_worker(getSelectedWorker()); continueAnsweringFlow()'></div>
+          </div>
+        </div>
+      </div>
+
+      <div class='select-workers-dependent' id="select-workers-section">
+        <div class ='emp' ng-repeat='worker in replies' ng-click='select_dependent_worker(worker.employee_details_id)' >
+          <div class='selected-border-image'> 
+            <img ng-show='isChecked(worker.employee_details_id)' src="<%= asset_path 'selected_worker.png' %>">
+            <img ng-show='isUnSelected(worker.employee_details_id)' src="<%= asset_path 'small_x.png' %>">
+          </div>
+          <div class='img-warrper' ng-class='{emp_img_checked: isSelectedWorker(worker.employee_details_id)}'>
+            <img class="emp-img" ng-src='{{getEmployee(worker.employee_details_id).image_url}}'/>
+          </div>
+          <div class='emp-name' title='{{getEmployee(worker.employee_details_id).name}}'>{{getEmployee(worker.employee_details_id).name}}</div>
+          <div class='emp-role'>{{getEmployee(worker.employee_details_id).role}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div ng-if='mobile_app_service.isLangRtl()' class="background" >
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  <div ng-if='mobile_app_service.inWelcomeBackView() || mobile_app_service.inFirstEnterView()' dir='rtl'>
+    <div class="logo-medium"> <img src="<%= asset_path 'logo-medium.png' %>" height="63" width="257"> </div>
+    <div class="welcome-back" ng-show='mobile_app_service.inWelcomeBackView()' ><%= I18n.t('questionnaire.welcome_back') %> {{getEmployee(current_emp_id).name}},</div>
+    <div class="welcome-back" ng-show='mobile_app_service.inFirstEnterView()'><%= I18n.t('questionnaire.welcome') %> {{getEmployee(current_emp_id).name}},</div>
+    <div class="welcome-p" ><%= I18n.t('questionnaire.welcome_sentence') %></div>
+    <div class='start-button btn-continue' ng-click="mobile_app_service.setQuestionnaireView()">
+      <div class='left-arrow'></div>
+      <div class='title' ng-show='mobile_app_service.inWelcomeBackView()' ><%= I18n.t('questionnaire.resume') %></div>
+      <div class='title' ng-show='mobile_app_service.inFirstEnterView()' ><%= I18n.t('questionnaire.start') %></div>
+    </div>
+  </div>
+
+  <div>
+    <div ng-if='mobile_app_service.inFinishView()' >
+      <div class="background">
+        <div class="thank-you"><%= I18n.t('questionnaire.thank_you') %>, {{getEmployee(current_emp_id).name}}</div>
+        <div class="thank-you-p"><%= I18n.t('questionnaire.thank_you_note') %> </div>
+        <div class="logo-sm"> <img src="<%= asset_path 'logo-medium.png' %>" height="25" width="103"> </div>
+      </div>
+    </div>
+  </div>
+  <div class='questioneries-wrapper' ng-if='mobile_app_service.inQuestionnaireView()' dir='rtl'>
+    <div class='carousel-wrapper'>
+      <div class='carousel-questions-rtl' dir='rtl' ng-repeat="i in getNumber(total_questions) track by $index">
+        <div ng-show='$index + 1 <  question_number' class='q-image-warrper q_done'>
+          <div class='circle-content-rtl circle-done'></div>
+        </div>
+        <div class='q-image-warrper q_in_procces' ng-show='$index + 1 === question_number'>
+          <div class='circle-content-rtl current'>{{$index + 1}}</div>
+        </div>
+        <div class='q-image-warrper q_pending' ng-show='$index + 1 > question_number'>
+          <div class='circle-content-rtl pending'>{{$index + 1}}</div>
+        </div>
+        <div class='dots-wrapper' ng-show='$index < total_questions - 1'>
+          <div ng-repeat="dot in dot_list track by $index" class='dots'></div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class='question-num'> Question {{question_number}}</div> -->
+    <div class="question-num-rtl" ng-bind-html='question_title'></div>
+    <div class='question-p-rtl'> {{question}} </div>
+    <div class='q-button-rtl btn-continue-rtl' ng-click="sendDependentAnswers('<%= @name %>','<%= @token %>')"> 
+      <div class='left-arrow'></div>
+      <div class='title'><%= I18n.t('questionnaire.continue_button') %></div>
+    </div>
+
+    <div class='questions-wrapper-rtl'>
+      <span ng-class="{'done-answering' : answeredAllQuestions()}">
+        <div class='total-questions'>{{dependent_maximum_required}}/</div>
+        <div class='question-out-of-questions'>{{approved_or_disapproved_workers.length}}</div>  
+      </span>
+    </div>
+
+    <div ng-show='(selected_less_then_minimum || dependent_maximum_required < approved_or_disapproved_workers.length) && !answeredAllQuestions() && !reset_messages' class='error-message-rtl'><%= I18n.t('questionnaire.error_answer_for_employees') %></div>
+    <div ng-show='answeredAllQuestions() ' class='done-message-rtl'><%= I18n.t('questionnaire.success_all_employees_answered') %></div>
+      <!-- Left Side Focused employee -->
+    <div class="answer-container-rtl" dir='rtl'>
+      <div class='select-workers-dependent-rtl' id="select-workers-section">
+        <div class ='emp' ng-repeat='worker in replies' ng-click='select_dependent_worker(worker.employee_details_id)' >
+          <div class='selected-border-image'> 
+            <img ng-show='isChecked(worker.employee_details_id)' src="<%= asset_path 'selected_worker.png' %>">
+            <img ng-show='isUnSelected(worker.employee_details_id)' src="<%= asset_path 'small_x.png' %>">
+          </div>
+          <div class='img-warrper' ng-class='{emp_img_checked: isSelectedWorker(worker.employee_details_id)}'>
+            <img class="emp-img" ng-src='{{getEmployee(worker.employee_details_id).image_url}}'/>
+          </div>
+          <div class='emp-name-rtl' title='{{getEmployee(worker.employee_details_id).name}}'>{{getEmployee(worker.employee_details_id).name}}</div>
+          <div class='emp-role-rtl'>{{getEmployee(worker.employee_details_id).role}}</div>
+        </div>
+      </div>
+      <div class='selected-dependent-worker-rtl'>
+        <div class ='emp'>
+          <div class='img-warrper'>
+            <img class="emp-focused-img" ng-src='{{getEmployee(getSelectedWorker()).image_url}}'/>
+          </div>
+          <div class="name-role-container">
+            <div class='emp-focused-name-rtl'>{{getEmployee(getSelectedWorker()).name}}</div>
+            <div class='emp-focused-role-rtl'>{{getEmployee(getSelectedWorker()).role}}</div>
+          </div>
+          <div class="focused-employee-buttons">
+            <div ng-class="{'emp-focused-x-btn-rtl' : !isUnSelected(getSelectedWorker()) , 'emp-focused-x-btn-rtl-selected' : isUnSelected(getSelectedWorker())}" ng-click='disapprove_worker(getSelectedWorker()); continueAnsweringFlow()'></div>
+            <div ng-class="{'emp-focused-v-btn-rtl' : !isChecked(getSelectedWorker()) , 'emp-focused-v-btn-rtl-selected' : isChecked(getSelectedWorker())}" ng-click='approve_worker(getSelectedWorker()); continueAnsweringFlow()'></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

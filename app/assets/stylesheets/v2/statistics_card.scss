@@ -1,0 +1,66 @@
+@import './colors';
+@import './common';
+
+.statistics_card_container{
+  animation-duration: 2s;
+  position: relative;
+  margin-bottom: 30px;
+  width: 212px;
+  height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: grey;
+  background-color: $workships-grey-v2;
+  text-align: center;
+  border-radius: 5px;
+  box-shadow: 0px 2px 8px 0px rgba(128,128,128, 0.5);
+  &.pointer_force{
+    cursor: pointer !important;
+  }
+
+  .tooltip_balloon {
+    position: absolute;
+    width: 176px;
+    top: 125px;
+    left: 15px;
+    background-color: #333333;
+    font-size: 12px;
+    font-weight: 400;
+    color: #ffffff;
+    padding: 7px;
+    z-index: 10;
+  }
+  .tooltip_balloon_triangle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 119px;
+    left: 102px;
+    border-style: solid;
+    border-width: 0 8px 7px 8px;
+    border-color:  transparent transparent #333333 transparent;
+    z-index: 10;
+  }
+  .stat_name{
+    width: 102%;
+    height: 30px;
+    color: white;
+    background-color: #3399cc;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 28px;
+    white-space: nowrap;
+    border-radius: 5px 5px 0px 0px;
+    box-shadow: 0px 2px 8px 0px rgba(128,128,128, 0.5);
+  }
+  .stat_img{
+    width: 40px;
+    margin-top: 6px;
+  }
+  .stat_data{
+    padding: 10px;
+    font-size: 36px;
+    font-weight: 700;
+  }
+}

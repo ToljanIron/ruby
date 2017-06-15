@@ -1,0 +1,349 @@
+@import './colors';
+@import './common';
+@import './sizes';
+.analyze_sidebar {
+  background-color: $workships-grey;
+  box-sizing: border-box;
+  float: left;
+  left: $workships-left-sidebar-width;
+  margin-left: -$workships-left-sidebar-width;
+  padding-bottom: 20px;
+  padding-left: $search-tab-sidbar-padding-left;
+  position: relative;
+  width: $workships-left-sidebar-width;
+  z-index: 50;
+  &.in-blocked-state {
+    z-index: 49;
+  }
+  .analyze-sidebar-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    cursor: pointer;
+    z-index: 51;
+  }
+  .tabs {
+    display: block;
+    height: 40px;
+    width: 100%;
+    .tab {
+      border: 1px solid $workships-sidebar-seperator-dark;
+      color: $workships-group-details;
+      cursor: pointer;
+      float: left;
+      height: 100%;
+      line-height: 40px;
+      text-align: center;
+      width: 35%;
+    }
+    .employee-counter {
+      float: left;
+      margin-left: 16px;
+      .employee-counter-img {
+        height: 16px;
+        width: 15px;
+        margin-top: 2px;
+      }
+      .employee-number {}
+    }
+    .selected {
+      background-color: #ccd7e9;
+      color: $workships-text-dark-blue;
+    }
+  }
+  .criteria-tab {
+    display: block;
+    position: relative;
+    .tab-btn {
+      background-color: #ccd7e9;
+      border-radius: 3px 0 0 3px;
+      margin-top: 5px;
+      position: relative;
+      width: 100%;
+      .title {
+        color: $workships-text-dark-blue;
+        cursor: pointer;
+        line-height: 40px;
+        padding-left: 35px;
+        
+      }
+      .text {
+        color: #262b3f;
+        @extend .title;
+        padding-left: 10px;
+      }
+      .checkbox {
+        position: absolute;
+        right: 5px;
+        top: 6px;
+      }
+      .symbol {
+        color: #8e919d;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 40px;
+        margin-left: 10px;
+        position: absolute;
+      }
+      .plus-symbol {
+        color: $workships-text-dark-blue;
+        font-size: 28px;
+      }
+    }
+    .light {
+      background: none;
+      border-bottom: 1px solid $workships-sidebar-seperator-dark;
+    }
+    .no_border_bottom {
+      border-bottom: none;
+    }
+    .criterias {
+      margin-bottom: 80px;
+      margin-top: 5px;
+      .criteria {
+        display: block;
+        height: 80px;
+        position: relative;
+        width: 100%;
+        .title {
+          color: $workships-text-dark-blue;
+          height: 35px;
+          line-height: 30px;
+          width: 100%;
+        }
+        table {
+          border: none;
+          border-collapse: collapse;
+          position: relative;
+          width: 97%;
+          tr.range-bar {
+            td.range-box {
+              border-bottom: 1px solid $workships-sidebar-seperator-dark;
+              border-top: 1px solid $workships-sidebar-seperator-dark;
+              cursor: pointer;
+              height: 20px;
+              position: relative;
+              .seperator {
+                background-color: $workships-sidebar-seperator-dark;
+                box-sizing: border-box;
+                display: inline-block;
+                height: 140%;
+                position: absolute;
+                top: -5px;
+                width: 1px;
+              }
+              .right {
+                right: 0;
+              }
+            }
+            .selected {
+              background-color: rgba(40, 87, 128, .7);
+            }
+            .range-text-box {
+              color: rgb(129, 141, 158);
+              font-size: 10px;
+              height: 20px;
+              max-width: 0;
+              text-align: center;
+            }
+            .range-text-box-text-left {
+              @extend .range-text-box;
+              left: -2.5%;
+              position: relative;
+              text-align: left;
+            }
+            .plus-sign {
+              position: absolute;
+              right: -7px;
+              top: 1px;
+            }
+          }
+        }
+        .half-size-table {
+          @extend table;
+          width: 50%;
+        }
+      }
+      .criteria-high {
+        @extend .criteria;
+        height: 120px;
+      }
+    }
+    .filter-menu {
+      z-index: 100;
+      margin-top: -10px;
+      position: absolute;
+      bottom: 10%;
+      top: 20px;
+      left: 130%;
+      .box {
+        background-color: white;
+        border: 2px solid rgb(211, 215, 220);
+        border-radius: 3px;
+        padding: 10px 10px 5px 10px;
+        width: 300px;
+        .box_title {
+          color: $workships-text-dark-blue;
+          font-size: 20px;
+          margin-bottom: 10px;
+        }
+        .title {
+          border-bottom: 1px solid #d9dee6;
+          color: $workships-text-dark-blue;
+          margin-bottom: 5px;
+        }
+        li {
+          list-style: none;
+        }
+        .text {
+          color: #8e919d;
+          line-height: 26px;
+        }
+        .update-filter {
+          background-color: rgb(237, 241, 247);
+          border: 1px solid #d9dee6;
+          color: #8e919d;
+          cursor: pointer;
+          height: 25px;
+          line-height: 25px;
+          margin: 10px 80px;
+          padding-left: 10px;
+          text-align: center;
+          .symbol {
+            font-size: 24px;
+            left: 100px;
+            position: absolute;
+          }
+          &.darker {
+            color: #003663;
+          }
+        }
+      }
+    }
+    .levles-filters {
+      clear: both;
+      height: 100px;
+      .title-container {
+        background-color: #ccd7e9;
+        color: $workships-text-dark-blue;
+        height: 40px;
+        line-height: 40px;
+        .symbol {
+          color: #8e919d;
+          float: left;
+          margin-left: 11px;
+          margin-right: 6px;
+          font-size: 20px;
+        }
+        .title {
+          float: left;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+          max-width: 65%;
+        }
+        .reset-btn {
+          float: right;
+          width: 18px;
+          margin-top: 10px;
+          margin-right: 10px;
+          height: 19px;
+        }
+      }
+      .level-container {
+        margin-top: 10px;
+        .label {
+          color: $workships-text-dark-blue;
+          float: left;
+          line-height: 25px;
+        }
+        .level {
+          float: left;
+          input {
+            color: $workships-text-dark-blue;
+            background-color: #eef1f8;
+            border: 1px solid #caced7;
+            float: left;
+            margin-left: 7px;
+            width: 48px;
+            height: 20px;
+            padding: 2px;
+          }
+        }
+      }
+      .from {
+        float: left;
+      }
+      .to {
+        float: right;
+        margin-right: 10px;
+      }
+    }
+  }
+  .workships_button {
+    background-color: rgba(198, 206, 218, .2);
+    border: 1px solid #d9dee6;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 .00px #aabbd1;
+    color: $workships-text-dark-blue;
+    cursor: pointer;
+    height: 25px;
+    line-height: 25px;
+    margin: 10px 5px 0 0;
+    text-align: center;
+    width: 46%;
+    .symbol {
+      float: left;
+      font-size: 20px;
+      line-height: 27px;
+      padding-left: 5px;
+    }
+  }
+  .workships_button_right {
+    @extend .workships_button;
+    float: right;
+  }
+  .workships_button_left {
+    @extend .workships_button;
+    float: left;
+  }
+  .groups-tab {
+    display: block;
+    position: relative;
+    .formal-pins-accordion {
+      .accordion-item {
+        background-color: #ccd7e9;
+        clear: both;
+        margin-bottom: 2px;
+        padding-bottom: 11px;
+        padding-top: 11px;
+        .item-name {
+          color: #2c4466;
+        }
+        .arrow {
+          float: left;
+          height: 7px;
+          margin-left: 8px;
+          margin-right: 6px;
+          position: relative;
+          top: 8px;
+          width: 12px;
+        }
+        .closed {
+          height: 10px;
+          margin-right: 10px;
+          top: 5px;
+          width: 9px;
+        }
+        .pins-container {
+          margin-top: 11px;
+        }
+      }
+      .removed-bottom-padding {
+        padding-bottom: 0;
+      }
+    }
+  }
+}

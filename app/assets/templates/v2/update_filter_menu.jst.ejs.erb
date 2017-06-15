@@ -1,0 +1,18 @@
+<div class='update_filter_menu' ng-controller='AddCriteriaCtrl' ng-init='init()'>
+  <div class='arrow-box'></div>
+  <div class='menu-title'>
+    <div class='float-left-content modal-name'>Add Criteria</div>
+    <div class='float-right-content clear-all clickable' ng-click='clearAll()'>Clear All</div>
+  </div>
+  <div class='menu-content'>
+    <ul>
+      <li ng-repeat='filter in selected.criteria_list'>
+        <checkbox class='criteria-checkbox' on-callback='checkFilter(filter)' off-callback='uncheckFilter(filter)' value='filterChecked(filter)' src='<%= asset_path "black_check.png"%>' text='{{getFilterTitle(filter)}}'></checkbox>
+      </li>
+    </ul>
+  </div>
+  <div class='clickable add-selected {{anyChecked() ? "active" : "inactive"}}' ng-click='addSelected()'>
+    <check-count count='{{howManyChecked()}}'></check-count>
+    <div><div class='plus'></div> Add Selected</div>
+  </div>
+</div>

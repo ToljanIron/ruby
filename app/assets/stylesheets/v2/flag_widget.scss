@@ -1,0 +1,151 @@
+@import 'colors';
+@import 'common';
+.flag-widget-container {
+  clear: both;
+  padding-bottom: 20px;
+  .flag-title{
+    color:  #003663;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    padding-top: 21px;
+    margin-left: 29px;
+    .view-bredcrumbs {
+      display: inline-block;
+      .space {
+        display: inline-block;
+        border-top-width: 6px;
+        border-right-width: 1px;
+        margin-left: 5px;
+        margin-right: 3px;
+        margin-bottom: -2px;
+        color: #71a8d9;
+      }
+      .bread-crumbs {
+        display: inline-block;
+        .crumb {
+          display: inline-block;
+        }
+        .last {
+          font-weight: bold;
+        }
+        .space-crumb {
+            color: #71a8d9;
+            margin-right: 3px;
+        }
+      } 
+    }
+  }
+  .flagged-emp-box {
+    margin-left: 20px;
+    margin-top: 4px;
+    margin-bottom: 20px;
+    background-color: #edf1f7;
+    border-top: 1px solid #71a8d9;
+    height: 134px;
+    box-sizing: border-box;
+    .flagged-emp-inner-box {
+      float: left;
+      overflow: hidden;
+      height: 124px;
+      width: 93%;
+    }
+    .flagged-emp-element {
+      background-color: #edf1f7;
+      float: left;
+      width: 117px;
+      border-right: 0;
+      box-sizing: border-box;
+      .flagged-emp-img {
+        //border: 1px solid white;
+        box-sizing: border-box;
+        height: 84px;
+        margin-left: 18px;
+        margin-top: 13px;
+        width: 84px;
+      }
+      .flag-number {
+        background-color: white;
+        border-radius: 25px;
+        box-shadow: 0 0 1px 1px #dde0e7;
+        box-sizing: border-box;
+        color: #003663;
+        font-weight: 500;
+        height: 20px;
+        margin-left: 10px;
+        margin-top: -17px;
+        position: relative;
+        text-align: center;
+        width: 21px;
+        z-index: 1;
+      }
+      .flagged-emp-name {
+        color: #71a8d9;
+        font-size: 11px;
+        font-weight: 500;
+        margin-top: 6px;
+        text-align: center;
+        text-transform: capitalize;
+        white-space: nowrap;
+        .flagged-group-name {
+          max-width: 80px;
+          display: inline-block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;  
+        }
+        .flagged-employee-number {
+          display: inline-block;
+          vertical-align: 5px;
+          font-weight: bold;
+        }
+      }
+      .emp-card-link:hover {
+        text-decoration: underline;
+      }
+    }
+    .slide-left
+    {
+      float: left;
+      font-size: 22px;
+      font-weight: 500;
+      height: 90px;
+      line-height: 90px;
+      text-align: center;
+      text-align: center;
+      margin-top: 18px;
+      width: 3%;
+      color: #71a8d9;
+    }
+    .slide-right
+    {
+      float: right;
+      font-size: 22px;
+      font-weight: 500;
+      height: 90px;
+      line-height: 90px;
+      text-align: center;
+      text-align: center;
+      margin-top: 18px;
+      width: 3%;
+      color: #71a8d9;
+    }
+    .empty-box-title {
+      margin-top: 24px;
+      font-size: 12pt;
+      font-weight: 600;
+      color: #001B4E;
+      text-align: center;
+    }
+    .empty-box-content {
+      text-align: center;
+      margin-top: 4px;
+      line-height: 1.5;
+      color: #0E406C;
+    }
+
+  }
+
+}
+
+

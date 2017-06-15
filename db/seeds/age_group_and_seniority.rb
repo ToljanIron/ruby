@@ -1,0 +1,13 @@
+AgeGroup.create(id: 1, name: '15-24', color_id: 1)
+AgeGroup.create(id: 2, name: '25-34', color_id: 2)
+AgeGroup.create(id: 3, name: '35-44', color_id: 3)
+AgeGroup.create(id: 4, name: '45-54', color_id: 4)
+AgeGroup.create(id: 5, name: '55-64', color_id: 5)
+AgeGroup.create(id: 6, name: '65+', color_id: 6)
+
+Seniority.create(id: 1, name: '0', color_id: 1)
+Seniority.create(id: 2, name: '1Y', color_id: 2)
+Seniority.create(id: 3, name: '2Y', color_id: 3)
+Seniority.create(id: 4, name: '3Y', color_id: 4)
+Seniority.create(id: 5, name: '4Y', color_id: 5)
+Seniority.create(id: 6, name: '5Y+', color_id: 6)

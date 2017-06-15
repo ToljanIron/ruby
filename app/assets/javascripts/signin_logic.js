@@ -1,0 +1,12 @@
+//= require angular
+//= require bindonce
+//= require angular-scroll
+//= require stop-angular-overrides
+//= require ui-bootstrap-tpls-0.11.2.min
+//= require state_router
+//= require lodash
+//= require ng-google-chart
+//= require shared_modules/shared_modules
+//= require_tree ./shared_modules
+//= require signin_logic/signin_logic_main
+//= require_tree ./signin_logic

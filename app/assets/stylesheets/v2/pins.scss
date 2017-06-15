@@ -1,0 +1,135 @@
+
+
+.content-part
+{
+  bottom: 50px;
+  left: 0;
+  margin: 0 auto;
+  /*background-color: brown;*/
+  position: absolute;
+  right: 0;
+  top: 40px;
+  width: 70%;
+}
+
+.left-part
+{
+  border: 1px solid black;
+  height: 742px;
+  left: 0;
+  position: absolute;
+  top: 40px;
+  width: 521px;
+}
+
+
+.right-part
+{
+  border: 1px solid black;
+  height: 747px;
+  left: 521px;
+  position: absolute;
+  top: 40px;
+  width: 1217px;
+}
+
+.headline
+{
+  border: 1px solid black;
+  height: 40px;
+  left: 0;
+  margin: 0 auto;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+.upper-right
+{
+  border: 1px solid black;
+  height: 299px;
+  overflow: scroll;
+  position: absolute;
+  top: 0;
+  width: 1217px;
+}
+.lower-right
+{
+  border: 1px solid black;
+  height: 373px;
+  position: absolute;
+  top: 299px;
+  width: 1217px;
+}
+.button-area
+{
+  background-color: blue;
+  height: 75px;
+  position: absolute;
+  top: 90%;
+  width: 1217px;
+  .input-button
+  {
+    height: 30px;
+    position: absolute;
+    top: 10px;
+    width: 70px;
+  }
+  .cancel-position
+  {
+    position: absolute;
+    right: 30px;
+    top: 10px;
+  }
+  .save-position
+  {
+    position: absolute;
+    right: 100px;
+    top: 10px;
+  }
+}
+
+.add-def-button
+{
+  border: 1px solid black;
+  cursor: pointer;
+  display: inline-block;
+  height: 36px;
+  width: 50px;
+}
+.remove-cond-button
+{
+  border: 1px solid black;
+  cursor: pointer;
+  display: inline-block;
+  height: 36px;
+  width: 50px;
+}
+
+.worker-square
+{
+  float: left;
+  height: 40px;
+  margin: 10px 10px;
+  width: 180px;
+}
+
+.condition-row
+{
+  height: 70px;
+  left: 0;
+  margin: 0 auto;
+  position: relative;
+  right: 0;
+  width: 1012px;
+  select,
+  option
+  {
+    height: 30px;
+    width: 100px;
+  }
+}
+/* .selected
+{
+  background-color: yellow;
+} */

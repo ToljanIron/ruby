@@ -1,0 +1,16 @@
+/* layout */
+$workships-canvas-width: 1280px;
+$workships-header-width: 1229px;
+$workships-header-heigth: 70px;
+$workships-main-area-width: 1042px;
+
+/* left sidebar */
+$workships-left-sidebar-width: 238px;
+$left-sidebar-search-tab-width: 204px;
+$left-sidebar-search-tab-heigth: 32px;
+
+$search-tab-sidbar-width-diff: $workships-left-sidebar-width - $left-sidebar-search-tab-width;
+$search-tab-sidbar-padding-left: $search-tab-sidbar-width-diff *(2/3);
+$search-tab-sidbar-padding-right: $search-tab-sidbar-width-diff *(1/3);
+
+$search-tab-sidbar-content-width: $workships-left-sidebar-width - $search-tab-sidbar-width-diff;

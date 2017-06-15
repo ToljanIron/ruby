@@ -1,0 +1,28 @@
+@import './colors';
+.pillbox {
+  display: inline-block;
+  color: white;
+  float: left;
+  margin-right: 5px;
+  font-size: 12px;
+  line-height: 17px;
+  padding: 3px 10px 0px 10px;
+  border-radius: 14px;
+  background-color: #262B3F;
+  margin-bottom: 4px;
+  .name {
+    display: inline-block;
+    max-width: 80px;
+    line-height: 16px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .remove-btn {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 3px;
+  }
+
+}

@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Key:</strong>
+  <%= @company_configuration_table.key %>
+</p>
+
+<p>
+  <strong>Value:</strong>
+  <%= @company_configuration_table.value %>
+</p>
+
+<p>
+  <strong>Comp:</strong>
+  <%= @company_configuration_table.comp_id %>
+</p>
+
+<%= link_to 'Edit', edit_company_configuration_table_path(@company_configuration_table) %> |
+<%= link_to 'Back', company_configuration_tables_path %>

@@ -1,0 +1,30 @@
+@import './colors';
+@import './common';
+.statistic-info {
+  width: 130px;
+  position: relative;
+  text-align: center;
+  display: inline-block;
+  .info-name {
+    text-transform: uppercase;
+    margin-top: 7px;
+    color: #262b3f;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: center;
+  }
+  .info-percentage {
+    font-weight: 700;
+    font-size: 25px;
+    width: 88px;
+    margin: auto;
+    margin-top: 11px;
+  }
+  .sperate {
+    position: absolute;
+    right: 0px;
+    width: 2px;
+    top: 13px;
+    height: 37px;
+  }
+}

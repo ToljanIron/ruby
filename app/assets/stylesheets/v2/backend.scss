@@ -1,0 +1,32 @@
+@import './colors';
+@import './common';
+
+.backend
+{
+  .cvs_loaders_container
+  {
+    background: white;
+    border: 1px solid black;
+    left: 50%;
+    margin-left: -450px;
+    position: relative;
+    width: 900px;
+    padding-top :15px;
+    padding-bottom :50px;
+  }
+  .csv-loader
+  {
+    clear: both;
+    margin-left: 20px;
+    *
+    {
+      float: left;
+      margin-top: 10px;
+      min-width: 150px;
+    }
+    .submit
+    {
+      height: 30px;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+<div ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='welcome-back-page-warper' ng-controller="welcomeBackController" ng-init="init()" >
+  <div class='mobile-content' id="main_container">
+    <div class='page_content welcome'>
+      <h1 class='page_title'><%= I18n.t('questionnaire.welcome_back') %> {{mobile_app_service.getUserName()}},</h1>
+      <div class='text'>
+        <%= I18n.t('questionnaire.you_are_in_html') %> {{mobile_app_service.getIndexOfCurrentQuestion()}}</b>. <br><br>
+        <%= I18n.t('questionnaire.click_the_continue')  %>.
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class="center-button-wide" ng-click="mobile_app_service.setQuestionnaireView()"><%= I18n.t('questionnaire.continue_saved_session_button') %></div>
+    </div>
+  </div>
+</div>
+<div ng-if="!mobile_app_service.isLangRtl()" class='welcome-back-page-warper' ng-controller="welcomeBackController" ng-init="init()" >
+  <div class='mobile-content' id="main_container">
+    <div class='page_content welcome'>
+      <h1 class='page_title'><%= I18n.t('questionnaire.welcome_back') %> {{mobile_app_service.getUserName()}},</h1>
+      <div class='text'>
+        <%= I18n.t('questionnaire.you_are_in_html') %> {{mobile_app_service.getIndexOfCurrentQuestion()}}</b>. <br><br>
+        <%= I18n.t('questionnaire.click_the_continue')  %>.
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class="center-button-wide" ng-click="mobile_app_service.setQuestionnaireView()"><%= I18n.t('questionnaire.continue_saved_session_button') %></div>
+    </div>
+  </div>
+</div>

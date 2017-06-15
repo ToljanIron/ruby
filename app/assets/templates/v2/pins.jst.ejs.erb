@@ -1,0 +1,57 @@
+<div ng-init="init()"  dir = "ltr" >
+	<div class = "content-part">
+		<div class =  "headline" style = "border-color:black; width: 1717px;" >
+			<div style = "float:left;">
+				PIN name 
+			</div>
+			<div style = "float:left">
+				<input type = "text" ng-model = "pin_name"  style = "border-color:yellow">
+
+			</input>
+		</div>
+
+	</div>
+	<div  class = "left-part">
+		<pin-list pins = "pin_list" viewed-pin = "edited_pin" in-view-mode = "in_edit_mode"   >
+		</pin-list>
+	</div>
+
+	<div  class = "right-part">
+		<div class = "upper-right" >
+			<div class = "add-def-button" ng-click = "addConditionToList()">
+					+
+			</div>
+
+					{{cond}}
+			<div class = "condition-row" ng-repeat = "row in cond"> 
+				<select ng-model = "row.param"    ng-options = "cat for cat in cat_names"  ng-change = "onChangeCat($index)" ng-disabled = "in_edit_mode">
+				</select> 
+
+				<select  ng-model = "row.oper" ng-options = "operation for operation in op" ng-disabled = "in_edit_mode" >
+				</select> 
+
+				<select multiple ng-multiple = "true"  ng-model = "row.vals" ng-options = "cat_val.value as cat_val.name for cat_val in getCatValuesByCat(row.param)"  ng-disabled = "in_edit_mode">
+				</select> 
+				<div class = "add-def-button" ng-click = "deleteConditionFromList($index)" ng-hide = "in_edit_mode">
+						X
+				</div>
+			</div>
+		</div>
+		<div class = "lower-right" > 
+			<ul ng-repeat = "worker in employees.employees" class = "worker-square" >
+				<li ng-click = "toggle(worker.email)" ng-class="{'selected': emp_selection.indexOf(worker.email) != -1}"> {{worker.email}} </li>
+			</ul>
+		</div>
+		<div class = "button-area">
+			<button class = "input-button cancel-position">
+				cancel
+			</button>
+			<button class = "input-button save-position" ng-click =  "saveToDB()">
+				save
+			</button>
+
+		</div>
+	</div>
+</div>
+</div>
+

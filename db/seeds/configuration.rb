@@ -1,0 +1,1 @@
+Configuration.find_or_create_by(name: 'number_of_keywords', value: 500)

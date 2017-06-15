@@ -1,0 +1,132 @@
+.user-card-warp {
+  @mixin right-side {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .user-card-head {
+    border-bottom: 1px solid rgb(223, 223, 223);
+    height: 34px;
+    background-color: #edf1f7;
+  }
+  .user-card-head-left {
+    line-height: 36px;
+    padding-left: 12px;
+    color: #262b3f;
+  }
+  .user-card-head-right {
+    @include right-side;
+    opacity: 0;
+    .checkbox_directive {
+      height: 18px;
+      width: 16px;
+      padding: 8px;
+      position: relative;
+      float: right;
+      padding-left: 10px;
+      border-left: 1px solid #dfdfdf;
+      .checkbox {
+        margin-top: 0;
+      }
+    }
+    .vert-line {
+      height: 16px;
+    }
+  }
+  img.mini-icon-border{
+    height: 20px;
+    width: 20px;
+    padding: 7px;
+    border-right: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+  }
+  .user-id-warp{
+    position: relative;
+    margin-top: 15px;
+    padding-left: 11px;
+    .user-image {
+      height: 82px;
+      width: 82px;
+      border: 1px solid rgb(223, 223, 223);
+      float:left;
+    }
+  }
+  .office  {
+    margin-right: 23px;
+  }
+  .gender   {
+    margin-right: 19px;
+  }
+  .user-id-job-titles {
+    font-size: 13.5px;
+    max-width: 16em;
+    margin-left: 10px;
+    position: relative;
+    left: 10px;
+    color: #003663;
+  }
+  .job-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    line-height: 25px;
+    width: 50px;
+    &.group-title{
+      line-height: 17px;
+      padding-bottom: 7px;
+    }
+  }
+  .division {
+    height: 18px;
+  }
+  .job-location {
+    color: #8f9fb8;
+    font-weight: bold;
+    line-height: 25px;
+  }
+  .user-card-content-warp {
+    padding-top: 3px;
+  }
+  .filter-color-title {
+    color: #8f9fb8;
+  }
+  .filter-color-content {
+    color: #8f9fb8;
+  }
+  .selected-card {
+    font-weight: 800;
+    color: #262b3f;
+  }
+  .filter-img {
+    opacity: 0.5;
+  }
+  .group-image {
+    height: 82px;
+    width: 82px;
+    float: left;
+  }
+}
+
+.job_title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 108px;
+}
+
+.office {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 108px;
+}
+
+.employee_group_name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 108px;
+}
+
+/*#id {}*/

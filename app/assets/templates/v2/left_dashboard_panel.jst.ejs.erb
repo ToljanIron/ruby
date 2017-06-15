@@ -1,0 +1,19 @@
+<div id="scroller" ng-controller='dashboardSidebarController' ng-init='init()' ng-class="{'sidebar-container other-sidebar-show' : showMenu , 'hide-me' : !showMenu }" ng-style="setHeightForLeftPnl()">
+  <div id="subscroller">
+    <div class='accordion-item' ng-class="{'removed-bottom-padding': show_formal_structure}">
+      <div ng-click='toggleShowFormalStructure()'> 
+        <img ng-show='show_formal_structure' class='arrow clickable' alt="arrow-down" src="<%= asset_path 'arrow_open.png' %>"/>
+        <img ng-show='!show_formal_structure' class='arrow closed clickable' alt="arrow-colsed" src="<%= asset_path 'arrow_closed.png' %>"/>
+        <div class='item-name clickable'> 
+          <div ng-show='showMenu' class='contact-arrow'>
+            <img ng-src='{{arrow_img}}' width='3' height='3'> 
+          </div>
+          Organizational Structure 
+          <div class="structure-headline"></div>
+        </div>
+
+      </div>
+      <div ng-show='show_formal_structure' ng-include src="'groups_widget'"></div>
+    </div>
+  </div>
+</div>

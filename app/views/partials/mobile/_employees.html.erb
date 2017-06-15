@@ -1,0 +1,32 @@
+<div class='container col-md-12 employees-container'>
+  <div class='row' ng-show='isQuestionnaireSent()'>
+    <button class='rigth btn btn-primary btn-save-actives' type='button' ng-click='updateActiveEmployees(<%=@current_questionnaire.id%>)'>Save Selected Employees</button>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr class='row'>
+        <th class='col-md-1' ng-show='isQuestionnaireSent()'></th>
+        <th class='col-md-1'>Number</th>
+        <th class='col-md-1'>First Name</th>
+        <th class='col-md-1'>Last Name</th>
+        <th class='col-md-1'>Email</th>
+        <th class='col-md-1'>Phone Number</th>
+        <th class='col-md-1'>Role Type</th>
+        <th class='col-md-2' ng-show='!isQuestionnaireSent()'>Active</th>
+      </tr>
+    </thead>
+
+    <tbody>
+        <tr class='row'>
+          <td class='col-md-1' ng-show='isQuestionnaireSent()' > <div class="checkbox"></td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-1'>A</td>
+          <td class='col-md-2'>A</td>
+        </tr>
+    </tbody>
+  </table>
+</div>

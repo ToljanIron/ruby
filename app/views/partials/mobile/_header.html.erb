@@ -1,0 +1,12 @@
+<nav class='navbar navbar-default' role='navigtion'>
+  <div class='container-fluid'>
+    <div class='navbar-brand  '><%= title %></div>
+    <div class='nav-header navbar-right'>
+      <ul class='nav navbar-nav'>
+        <li><%= link_to "Home",root_path %></li>
+        <li onclick="goBack()" ><%= link_to "Back",'' %></li>
+        <li><%= link_to "Signout",signout_path %></li>
+      </ul>
+    </div>
+  </div>
+</nav>

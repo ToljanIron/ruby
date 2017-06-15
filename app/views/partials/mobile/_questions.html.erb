@@ -1,0 +1,53 @@
+<div class='container col-md-12'>
+  <table class="table table-striped ">
+    <thead>
+      <tr class='row'>
+        <th class='col-md-1'>Active</th>
+        <th class='col-md-1'>order</th>
+        <th class='col-md-1'>Question Summary</th>
+        <th class='col-md-3'>Question</th>
+        <th class='col-md-1'>Depends on</th>
+        <th class='col-md-1'>Min</th>
+        <th class='col-md-1'>Max</th>
+        <th class='col-md-1'>Network</th>
+        <th class='col-md-1'></th>
+        <th class='col-md-1'></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @questionnaire_questions.each_with_index do |q, i| %>
+        <tr class='row' ng-show='!question_in_edit_state[<%= i %>]'>
+          <td class='col-md-1'> <%= if q[:active] then 'active' else 'inactive' end %></td>
+          <td class='col-md-1'> <%= q[:order] %></td>
+          <td class='col-md-1'> <%= q[:title] %></td>
+          <td class='col-md-3'> <%= q[:body] %></td>
+          <td class='col-md-1'> <%= q[:depends_on_question] %></td>
+          <td class='col-md-1'> <%= q[:min] || '--' %></td>
+          <td class='col-md-1'> <%= q[:max] || '--' %></td>
+          <td class='col-md-1'> <%= q[:network_name] %></td>
+          <td class='col-md-1' ng-show='isQuestionnaireSent()' ><button class='btn btn-primary' ng-click='toggleQuestionEditState(<%= i %>)'>Edit</button></td>
+
+        </tr>
+        <tr class='row' ng-show='question_in_edit_state[<%= i %>]'>
+          <%= form_for(:question, url:'questionnaire_questions/update') do |f|%>
+            <td class='col-md-1'> <%= f.check_box :active, checked: q[:active] %></td>
+            <td class='col-md-1'><%= f.text_field :order, value: q[:order] %></td>
+            <td class='col-md-1'><%= f.text_field :title, value: q[:title] %></td>
+            <td class='col-md-3'><%= f.text_field :body, value: q[:body] %></td>
+            <td class='col-md-1'><%= f.text_field :depends_on_question, value: q[:depends_on_question]%></td>
+            <td class='col-md-1'> <%= f.text_field :min, value: q[:min] %></td>
+            <td class='col-md-1'> <%= f.text_field :max, value: q[:max] %></td>
+            <td class='col-md-1'> <%= f.select :network_id, options_for_select(NetworkName.where(company_id: @current_user.company_id).collect{ |u| [u.name, u.id] }), :include_blank => true
+            %></td>
+            <td>
+              <%= f.hidden_field :questionnaire_id, value: q[:questionnaire_id] %>
+              <%= f.hidden_field :id, value: q[:questionnaire_question_id] %>
+              <%= f.submit 'Done', class: "btn btn-success"%>
+            </td>
+            <td class='col-md-1'></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

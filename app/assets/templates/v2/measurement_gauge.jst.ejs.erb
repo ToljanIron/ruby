@@ -1,0 +1,16 @@
+<div class='measurmnet-gauge'  ng-style="getifNaN()">
+  <!-- ng-style="getifNaN()" -->
+  <div class='title'> {{titleName}}</div>
+  <div class="wrap-gauge" ng-style="{ 'height': radius + 'px', 'width': 2 * radius + 'px', 'cursor': getCursorType()}" ng-click="goToTab(titleName)">
+    <svg ng-attr-width="{{radius * 2 }}" ng-attr-height="{{radius * 2}}" class="chart" ng-class="{ 'chart-background': chart_background}">
+      <circle ng-attr-r="{{radius}}" ng-attr-cx="{{radius}}" ng-attr-cy="{{radius}}" class="pie" ng-style="{'fill':  backgroundColor, 'stroke': wantedAreaColor, 'stroke-dasharray': getAreaSize(), 'transform' : getRectangleSize(), '-ms-transform' : 'rotate(180deg)', 'stroke-width': radius * 2}" />
+    </svg>
+  </div>
+  <div class='min-range-title' ng-hide='isEmptyGauge()'> Low</div>
+  <img ng-src="<%= asset_path 'gauge_hand.svg' %>" class='grauge-hand-img' ng-style="getStyleDiel()">
+  <div class='max-range-title' ng-hide='isEmptyGauge()'> High</div>
+  <!-- <div  ng-style='getStyleOfWanted(alpha.angle, "min")'>{{minRangeWanted}}</div> -->
+  <!-- <div  ng-style='getStyleOfWanted(beta.angle, "max")'>{{maxRangeWanted}}</div> -->
+  <!-- <div ng-style='getPrectengeStyle()' class='rate-in-prectenge'>{{getRateInPrectenge()}}</div> -->
+</div>
+<!-- {{returnTextInsteadOf()}} -->

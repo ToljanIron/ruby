@@ -1,0 +1,18 @@
+<div class='blood-test-container' href="#name" >
+  <div class='title'> {{name}} </div>
+  <div class='test-warper'>
+    <div class='test-area' ng-style='getTextAreaStyle(color)'>
+      <div class='indicator' ng-style='getValuePosition(value, validColor)'></div>
+      <div class='valid-area' ng-style='getValidSize(validColor, minvalidValue, maxvalidValue)'> </div>
+    </div>
+    <div class='min-size-number '>Low</div>
+    <div class='max-size-number '>High</div>
+  </div>
+  <div class='value' ng-style="{'color': validColor}"></div>
+  <div class='info-warper' ng-show='text.length > 0' ng-mouseenter='showBloodTestToolTip = true' ng-mouseleave='showBloodTestToolTip = false'>
+    <div class='info'></div>
+    <div class="tool_tip_background" ng-show='showBloodTestToolTip'></div>
+    <div class='arrow-info' ng-show='showBloodTestToolTip'></div>
+    <div class='info-content' ng-show='showBloodTestToolTip'>{{text}}</div>
+  </div>
+</div>

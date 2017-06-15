@@ -1,0 +1,113 @@
+<div ng-controller="mobileQuestionnaireController" ng-init="init()">
+  <div ng-if="mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()' dir='rtl'>
+    <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
+    <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
+  </div>
+
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()'>
+    <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
+    <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
+  </div>
+
+  <div class='mobile-content' id="main_container">
+    <div class='question-instruction-tooltip' ng-click='toggleFullQuestionView()'>
+      <div class='full-question-blocker-show' ng-class="!show_full_question && 'full-question-blocker-hide'"></div>
+      <div class='question-container' ng-class="show_full_question && 'question-container-display'">
+        <div ng-if="mobile_app_service.isLangRtl()" ng-bind-html='r.question' class='question' dir='rtl'></div>
+        <div ng-if="!mobile_app_service.isLangRtl()" ng-bind-html='r.question' class='question'></div>
+        <div class='close-btn'><%= I18n.t('questionnaire.close_button') %></div>
+      </div>
+    </div>
+    <div ng-show='!isFinished() && isLoaded()'>
+      <div class="mobile_search_container">
+        <div class='mobile_search_tab'>
+          <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='onSelect($item); search_input.text=""'/>        
+          <div class="mobile_search_img_container" ng-click='clearSearch()'>
+            <img class='mobile_search_img' alt="clear" src="<%= asset_path 'x.png' %>"/>
+          </div>
+          <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='onSelect($item); search_input.text=""'/>
+        </div>
+      </div>
+      <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
+        <div ng-repeat="employee_response in tiny_array" value='{{employee_response.employee_id}}' class='slot-machine' ng-if='employeeDoesNotHaveResponseForQuestion(r.question_id, employee_response.employee_id) || searchAdded(employee_response.employee_id)'>
+          <div class="employee-item">
+            <img class="mobile-avatars" ng-src='{{employeeById(employee_response.employee_details_id).image_url}}'>
+            <div class="mobile-dislike-btn" prevent-zoom ng-show="employee_response.employee_id == currentlyFocusedEmployeeId" ng-click='onUserResponse(r.question_id, employee_response.employee_id, false, r.employee_details_id)'>
+              <div class='x-icon'></div>
+            </div>
+            <div class="mobile-like-btn" prevent-zoom ng-show="employee_response.employee_id == currentlyFocusedEmployeeId" ng-click='onUserResponse(r.question_id, employee_response.employee_id, true, r.employee_details_id)'>
+              <div class='v-icon'></div>
+            </div>
+            <div class='mobile-employee-text' ng-show="employee_response.employee_id == currentlyFocusedEmployeeId">
+              <div class="name">{{employeeById(employee_response.employee_details_id).name}}</div>
+              <div class="rank">{{employeeById(employee_response.employee_details_id).role}}</div>
+            </div>
+          </div>
+        </div>
+      </slot-machine-directive>
+    </div>
+
+    <div ng-if="mobile_app_service.isLangRtl()" dir='rtl' ng-show='isFinished() && isLoaded()' >
+      <div class='page_content finish-task' style='margin-top: 150px;' >
+        <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
+        <div class="options">
+          <div class="option"><i class="fa fa-share rtl" ng-click= "onUndo()"></i><div class="button-text-rtl"><%=I18n.t('questionnaire.revise_selection') %></div></div>
+          <div class="spacer-rtl"><%=I18n.t('questionnaire.or') %></div>
+          <div class="option">
+            <i class="fa fa-chevron-left rtl" ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'></i><div class="button-text-rtl"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
+            <i class="fa fa-chevron-left rtl" ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen()'></i><div class="button-text-rtl"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="!mobile_app_service.isLangRtl()" ng-show='isFinished() && isLoaded()' >
+      <div class='page_content finish-task' style='margin-top: 150px;' >
+        <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
+        <div class="options">
+          <div class="option"><i class="fa fa-reply" ng-click= "onUndo()"></i><div class="button-text"><%=I18n.t('questionnaire.revise_selection') %></div></div>
+          <div class="spacer"><%=I18n.t('questionnaire.or') %></div>
+          <div class="option">
+            <i class="fa fa-chevron-right" ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'></i><div class="button-text"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
+            <i class="fa fa-chevron-right" ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen()'></i><div class="button-text"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
+    <div class="mobile-btns-container">
+      <div class="right-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
+        <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
+        <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
+      </div>
+      <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div>
+      <div class="left-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
+        <i class="fa fa-chevron-left" ng-show='isAnsweredAllNessecearyQuestions()'></i>
+        <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} / {{displayMaxAmount()}}</span>
+      </div>
+      <div class="left-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen() && isLoaded()'>
+        <i class="fa fa-chevron-left" ng-show='isFinished()'></i>
+        {{numberOfEmployeesAnsweredForQuestion(r.question_id)}} / {{numberOfEmployeesForQuestion(r.question_id)}}
+      </div>
+    </div>
+  </div>
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-footer">
+    <div class="mobile-btns-container">
+      <div class="left-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
+        <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
+        <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
+      </div>
+      <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div>
+      <div class="right-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen() && isLoaded()'>
+        {{numberOfEmployeesAnsweredForQuestion(r.question_id)}} of {{numberOfEmployeesForQuestion(r.question_id)}}
+        <i class="fa fa-chevron-right" ng-show='isFinished()'></i>
+      </div>
+      <div class="right-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
+        <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} of {{displayMaxAmount()}}</span>
+        <i class="fa fa-chevron-right" ng-show='isAnsweredAllNessecearyQuestions()'></i>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class='admin-page-view' ng-controller='adminController' ng-init='init()'>
+  <div ng-show='curr_tab === COMPANY_TAB'>
+    <%= render partial: "partials/header" , locals: {title: 'COMPANIES' }%>
+  </div>
+  <div ng-show='curr_tab === PERMISSIONS_TAB'>
+    <%= render partial: "partials/header",  locals: {title: 'PERMISSIONS' }%>
+  </div>
+  <div ng-show='curr_tab === CREATE_COMPANY_TAB'>
+    <%= render partial: "partials/header", locals: {title: 'CREATE_COMPANY'} %>
+  </div>
+
+  <div class="container col-md-12">
+    <div class="row">
+      <ul class="nav nav-pills">
+        <li class='clickable' ng-class='{selected :curr_tab === COMPANY_TAB}' ng-click='changeTab(COMPANY_TAB);'><a>COMPANIES</a></li>
+        <li class='clickable' ng-class='{selected :curr_tab === PERMISSIONS_TAB}' ng-click='changeTab(PERMISSIONS_TAB);'><a>PERMISSIONS</a></li>
+        <li class='clickable create-company' ng-class='{selected :curr_tab === CREATE_COMPANY_TAB}' ng-click='changeTab(CREATE_COMPANY_TAB);'><a>CREATE COMPANY</a></li>
+      </ul>
+    </div>
+    <div class="row" ng-show='curr_tab === COMPANY_TAB'>
+      <%= render partial: "partials/companies", locals: { companies: Company.all.order(:name) } %>
+    </div>
+    <div class="row" ng-show='curr_tab === CREATE_COMPANY_TAB'>
+      <%= render partial: "partials/create_company" %>
+    </div>
+  </div>
+</div>

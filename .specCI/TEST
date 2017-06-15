@@ -1,0 +1,16 @@
+#!/bin/bash
+db_user=workships
+db_pwd=workships
+env=development
+log_file=../log/TEST.log
+
+#run postgres container
+DBC=$(docker run -d -e POSTGRES_USER=$db_user -e POSTGRES_PASSWORD=$db_pwd postgres)
+
+# build images app. database.yml should state postgress as the user, no password.
+# docker build -t spectory/workships .
+
+# or run the app for tests, link with DBC as postgres alias
+docker run -t -e PASSENGER_APP_ENV=$env -e POSTGRES_USER=$db_user -e POSTGRES_PASSWORD=$db_pwd --link $DBC:postgres spectory/workships /bin/bash
+
+# docker run -t -e PASSENGER_APP_ENV=development -e POSTGRES_USER=workships -e POSTGRES_PASSWORD=workships --link 9bff72f23f62:postgres spectory/workships /bin/bash

@@ -1,0 +1,34 @@
+.create-company-page {
+  .input-label {
+    width: 55px;
+    display: inline-block;
+  }
+  .domain-wrapper {
+    margin-top: 10px;
+    .service-label {
+      width: 90px;
+      margin-left: 5px;
+      display: inline-block;
+    }
+  }
+  .domain-button {
+    margin: 10px 0 10px 0;
+    height: 30px;
+    width: 100px;
+    line-height: 30px;
+    border: 1px solid grey;
+    text-align: center;
+  }
+  .remove-domain {
+    display: inline-block;
+    margin-left: 5px;
+    width: 15px;
+    height: 15px;
+    vertical-align: middle;
+    line-height: 10px;
+  }
+  input[type="submit"] {
+    margin-top: 20px;
+    height: 30px;
+  }
+}

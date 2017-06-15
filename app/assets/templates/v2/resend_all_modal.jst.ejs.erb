@@ -1,0 +1,9 @@
+<div class='resend_all_modal'>
+  <img class='modal_x clickable' ng-click='overlay_blocker_service.unblock()' src="<%= asset_path 'modal_x.png' %>"/>
+  <div class='title'> {{title}}</div>
+  <div class='modal-contnet'> {{content}} </div>
+  <div class='option-cls'>
+    <div class='cancel-btn clickable' ng-click='overlay_blocker_service.unblock()'>Cancel</div>
+    <div class='resend-all-btn clickable' ng-click='onSubmit()'>OK</div>
+  </div>
+</div>

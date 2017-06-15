@@ -1,0 +1,68 @@
+<script>
+  document.Error = document.Error = {};
+  document.Error = {
+    flash: <%= raw flash.to_json %> 
+  }
+</script>
+<div class='sign-in-container'>
+  <div class='log-in-container'>
+  <div class='left-background-container'>
+    <div class='left-background'> </div>
+  </div>
+  <div class='login-layout' ng-controller='signInController' ng-init="init()">
+      <div class='login-layout-center'>
+        <div class='login-title'> <p> Login </p></div>
+          <form>
+            <div class='user-name'  > Username 
+            <input 
+              class='email signin force_style' 
+              ng-model='user.name'
+              ng-class="{'submitted': !isEmailValid() || isAuthFailed()}"
+              ng-change='cancelErrors()'>
+            </div>
+            <div class='user-name' >Password 
+              <input
+               type='password' 
+               class='reset_password_field signin force_style' 
+               ng-model='user.password'
+               ng-class="{'submitted': isAuthFailed()}">
+             </div>
+             <div class='remember-me'> 
+                <div class='forgot-label' ng-click='linkToForgotPassword($event)' tabindex=4 > Forgot Password? 
+                </div>
+                <label >
+                  <input type="checkbox"
+                    ng-model='user.remember_me'
+                  >
+                  <div class='rememeber-checkbox'>
+                    Rememeber me 
+                  </div>
+                </label>
+             </div>
+            <div class='sign-in'>
+              <input type='submit' class='submit' ng-click='submit($event)' value="Login"/>
+            </div>
+          </form>
+          <div ng-show='isAuthFailed()'>
+            <div class='invalid-username'>Incorrect username/password </div>
+          </div> 
+          <div ng-hide='isEmailValid()'>
+            <div class='invalid-username'>Invalid email input</div>
+          </div> 
+          <% if flash[:token] %>
+            <div ng-show="showTokenExpired" class="invalid-username"><%= flash[:token] %></div>
+          <% end %>
+          <% if flash[:password] %>
+            <div class="email-sent" ng-show='isEmailValid() && !isAuthFailed()'><%= flash[:password] %></div>
+          <% end %>
+          <% if flash[:password_error] %>
+            <div class="password-change-error"><%= flash[:password_error] %></div>
+          <% end %>
+      <div class='spectory-logo-container'>
+        <div class='dev-log-container'>
+          <div class='developed-by-p'> Developed by</div>
+          <div class='spectory-logo'><a href="https://www.spectory.com/" target="_blank"><img  src=<%= asset_path 'Spectory_Logo.png' %> ></a></div>
+        </div>
+      </div>
+  </div>
+</div>

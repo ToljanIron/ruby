@@ -1,0 +1,50 @@
+@import 'colors';
+@import 'common';
+.view-tip-container
+{
+  background-color: #ffffed;
+  border-color: #d9dee6;
+  border-style: solid;
+  border-width: 1px 1px 1px 1px;
+  color: #afb7c4;
+  margin-top: 20px;
+  min-height: 90px;
+  .slide-left
+  {
+    cursor: pointer;
+    float: left;
+    font-size: 22px;
+    font-weight: 500;
+    height: 90px;
+    line-height: 90px;
+    text-align: center;
+    width: 10%;
+  }
+  .content-cls
+  {
+    float: left;
+    height: 90px;
+    margin-top: 10px;
+    width: 80%;
+    .title
+    {
+      font-size: 13pt;
+    }
+    .details
+    {
+      margin-top: 8px;
+      transform: scale(1,1.1);
+    }
+  }
+  .slide-right
+  {
+    float: left;
+    font-size: 22px;
+    font-weight: 500;
+    height: 90px;
+    line-height: 90px;
+    text-align: center;
+    text-align: center;
+    width: 8%;
+  }
+}

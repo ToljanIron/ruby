@@ -1,0 +1,58 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+
+ka:
+  questionnaire:
+    hi: 'გამარჯობა'
+    how_to_answer_1_html: 'შეკითხვაზე პასუხის გასაცემად, გთხოვთ <b>დააჭირეთ</b> ან <b>ამოძრავეთ</b> ქვემოთ მოცემული ინსტრუქციის მიხედვით'
+    how_to_answer_html: ''
+    how_to_tap_html: 'დადებითი ან უარყოფითი პასუხის გასაცემად <b>დააჭირეთ</b> შესაბამის ღილაკს'
+    or2: 'ან'
+    or: ''
+    how_to_swipe_html: "დადებითი პასუხის<br> გასაცემად <b>გაწიეთ</b><br>მარჯვნივ, ხოლო<br>უარყოფითის გასაცემად <br>მარცხნივ"
+    how_to_scroll_html: 'შემდეგ პიროვნებაზე გადასასვლელად <b>ამოძრავეთ</b> გვერდი ზემოთ ან ქვემოთ'
+    continue_button: 'გაგრძელება'
+    continue_later_button: 'დამახსოვრება'
+    close_button: 'დახურვა'
+    search: 'ძებნა'
+    question_completion_note_html: 'თქვენ დაასრულეთ დავალება. გთხვოთ, აირჩიეთ ერთ-ერთი'
+    revise_selection: 'გადახედეთ თქვენს არჩევანს'
+    continue_to_next_question: 'გადადით შემდეგ შეკითხვაზე'
+    thank_you: 'გმადლობთ'
+    thank_you_note: 'რომ დაუთმეთ დრო ამ კითხვარს!'
+    questionnaire_completion_note_html: 'კითხვარის დასასრულებლად, გთხოვთ შეავსოთ შემდეგი ფორმა'
+    welcome_back: 'კეთილი იყოს თქვენი დაბრუნება'
+    you_are_in_html: 'თქვენ პასუხობთ შეკითხვას'
+    click_the_continue: 'გთხოვთ, დააჭირეთ გაგრძელების ღილაკს, რომ დაუბრუნდეთ თქვენს შენახულ სესიას'
+    continue_saved_session_button: 'შენახული სესიის გაგრძელება'
+    saved: 'დამახსოვრებულია'
+    welcome: 'კეთილი იყოს თქვენი მობრძანება'
+    start: 'დაწყება'
+    welcome_sentence: 'კეთილი იყოს თქვენი მობრძანება, გთხოვთ უპასუხეთ შემდეგ შეკითხვებს'
+    clear_selection: 'შერჩეულების წაშლა'
+    error_answer_for_employees: 'სავალდებულოა  უპასუხოთ შეკითხვას სიაში მოცემულ ყველა თანამშრომელზე'
+    success_all_employees_answered: 'თქვენ უპასუხეთ შეკითხვას ყველა თანამშრომლისათვის'
+    resume: 'გაგრძელება'
+    must_select: 'გთხოვთ აირჩიეთ'
+    people_to_continue: 'კოლეგა გასაგრძელებლად'
+    find_employees: 'თანამშრომლის ძიება'
+    selected: 'შერჩეულები'
+    connection_lost: 'კავშირი დაკარგულია. გთხოვთ გადაამოწმოთ ინტერნეტთან წვდომა'

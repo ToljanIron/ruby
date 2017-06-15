@@ -1,0 +1,175 @@
+@import "./colors";
+@import "./common";
+
+
+.header {
+  position: fixed;
+  background-color: #4e4d4d;
+  height: 79px;
+  min-width: 781px;
+  width: 100%;
+  z-index: 3;
+  border-top: solid 8px #E6E6E6;
+  &.mini-header-sticky{
+    // position: fixed;
+  }
+    .step_logo {
+      position: absolute;
+      width: 154px;
+      margin-left: 19px;
+      padding-right: 19px;
+      vertical-align: top;
+      padding-top: 17px;
+      display: inline-block;
+      &.mini_step_logo {
+        padding-top: 10px;
+        width: 115px;
+      }
+      .step-logo-img {
+        cursor: pointer;
+      }
+    }
+    .tabs_container{
+      position: absolute;
+      left: 200px;
+      display: inline-block;
+      width: 648px;
+      .carusel_arrow_left {
+        cursor: pointer;
+        width: 10px;
+        height: 17px;
+        display: inline-block;
+        position: absolute;
+        padding-right: 19px;
+        padding-top: 35px;
+        padding-left: 16px;
+        padding-bottom: 27px;
+        &.mini_carusel_arrow_left {
+          padding-top: 18px;
+          padding-bottom: 16px;
+        }
+      }
+      .tab_slider_window {
+        width: 648px;
+        height: 79px;
+        display: inline-block;
+        margin-left: 45px;
+        overflow: hidden;
+        .tabs_bar {
+          display: inline-flex;
+          display: -ms-flexbox;
+          text-align: center;
+          min-width: 432px;
+          max-width: 648px;
+          .tab_box {
+            cursor: pointer;
+            border-top: 4px solid;
+            width: 85px;
+            height: 75px;
+            background-color: #333333;
+          }
+          .tab_box_inactive {
+            cursor: pointer;
+            border-top: 4px solid;
+            width: 85px;
+            height: 75px;
+            background-color:lightslategray;
+          }
+          .dashboard_tab {
+            border-color: #3599cc;
+          }
+          .dashboard_tab_selected {
+            background-color: #1F5D75;
+          }
+          .workflow_tab {
+            border-color: #f79739;
+          }
+          .workflow_tab_selected {
+            background-color: #9E5E25;
+          }
+          .top_talent_tab {
+            border-color: #7dc247;
+          }
+          .top_talent_tab_selected {
+            background-color: #4B7228;
+          }
+          .productivity_tab {
+            border-color: #ea1f7a;
+          }
+          .productivity_tab_selected {
+            background-color: #751040;
+          }
+          .collaboration_tab {
+            border-color: #7c60a9;
+          }
+          .collaboration_tab_selected {
+            background-color: #341D56;
+          }
+          .explore_tab {
+            border-color: #ebc51c;
+          }
+          .explore_tab_selected {
+            background-color: #7F6805;
+          }
+          .directory_tab {
+            border-color: #00A99D;
+          }
+          .directory_tab_selected {
+            background-color: #005B52;
+          }
+          .settings_tab {
+            border-color: #4A55E5;
+          }
+          .settings_tab_selected {
+            background-color: #242D6D;
+          }
+        }
+      }
+      .carusel_arrow_right {
+        cursor: pointer;
+        width: 10px;
+        height: 17px;
+        display: inline-block;
+        position: absolute;
+        padding-right: 19px;
+        padding-top: 35px;
+        padding-left: 16px;
+        padding-bottom: 27px;
+        &.mini_carusel_arrow_right {
+          padding-top: 18px;
+          padding-bottom: 16px;
+        }
+      }
+    }
+    .tab_selected_arrow {
+      width: 0;
+      height: 0;
+      border-left: 8.25px solid transparent;
+      border-right: 8.25px solid transparent;
+      border-bottom: 7.55px solid;
+      border-bottom-color: inherit;
+      display: inline-block;
+      margin-bottom: 5px;
+      &.mini_arrow {
+        margin-bottom: -1px !important;
+      }
+    }
+
+    .icon_container {
+      margin: auto;
+      width: 48px;
+      height: 33px;
+      padding-top: 5px;
+    }
+
+    .icon_name {
+      padding-top: 9px;
+      color:  #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      &.mini_icon_name {
+        padding-top: 14px;
+        margin-bottom: -2px;
+      }
+    }
+}

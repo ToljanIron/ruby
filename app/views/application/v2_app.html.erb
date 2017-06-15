@@ -1,0 +1,117 @@
+<link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+<div class='workships-canvas' ng-cloak="">
+  <div ng-controller='layoutController' ng-init='init()' class='layout_wrapper'>
+    <please-wait></please-wait>
+    <div class='app-overlay-blocker' ng-class="{'overlay-blocker-grey' : (viewNameIsntAnalyzeOrDirectory() || reportModalIsDisplayed()) || presetModalIsDisplayed()}" ng-if='isBlocked()' ng-click='unblock()'></div>
+    <div class="layout">
+      <div ng-include src="'header'"></div>
+      <div class="title_wrapper" ng-class="{'mini-sticky': tabService.showMiniHeader}">
+        <div class="page_title" ng-style="{'background-color' : tabService.current_tab_color }" >
+          <div class="menu_toggle" ng-init="showMenu=true;" ng-click="open_left_panel()" ng-show="tabService.current_tab !== 'Dashboard' && !(tabService.current_tab === 'Settings' && StateService.get('settings_tab') === 1)" >
+            <img class="left-toggle-img" src="<%= asset_path 'Dashboard icon.png' %>">
+          </div>
+          <div class='title-name' ng-class="{'when-no-hamburger': tabService.current_tab === 'Dashboard' || (tabService.current_tab === 'Settings' && StateService.get('settings_tab') === 1) }">{{tabService.current_tab}}</div>
+          <div class="contact-container" ng-style="contactContainerStyle(tabService.current_tab)" >
+            <div ng-show="tabService.current_tab === 'Explore'" ng-class="{'explore_setting_btn' : tabService.current_tab === 'Explore' }" ng-init="tabService.showExploreSettings=false" ng-click="tabService.showExploreSettings = !tabService.showExploreSettings; tabService.closeExploreDropDown()">
+              <img src="<%= asset_path 'settings_icon_v2.png' %>"/>
+              <div class="setting_text">Settings</div>
+            </div>
+            <div class='contact_wrapper' ng-click='showLogoutMenu()'>
+              <div class="contact-avatar"></div>
+              <div class='title-user'>{{data.currentUser.email}}</div>
+              <!-- <div class='title-company'>{{current_company_name}}</div> -->
+              <div class='contact-arrow'> </div>
+            </div>
+          </div>
+          <div ng-class="{'notification_bell': tabService.current_tab !== 'Directory' && tabService.current_tab !== 'Settings'}" ng-style="tabService.current_tab === 'Explore' && {'right':'58px'}" ng-click="tabService.showNotifications=!tabService.showNotifications">
+          </div>
+          <div class="black-arrow" ng-show="obs.isElemDisplayed('logout-menu-admin') || obs.isElemDisplayed('logout-menu-hr')" ng-style="tabService.current_tab === 'Explore' && {'right':'105px'}"> </div>
+        </div>
+
+      </div>
+      <div class="notification_triangle" ng-class="{'mini-sticky': tabService.showMiniHeader}" ng-style="tabService.current_tab === 'Explore' && {'right':'60px'}" ng-show="tabService.showNotifications"></div>
+      <div class="notification_container" ng-class="{'mini-sticky': tabService.showMiniHeader}" ng-style="tabService.current_tab === 'Explore' && {'right':'50px'}" ng-show="tabService.showNotifications">
+        <!-- <div class="triangle_container">
+        </div> -->
+        <div class="notification_area">
+          <div ng-if="tabService.current_tab === 'Dashboard'" class="notification_title">NOTIFICATIONS</div>
+          <div ng-if="tabService.current_tab !== 'Dashboard'" class="notification_title">{{tabService.current_tab}} NOTIFICATIONS</div>
+          <div class="seperate_line"></div>
+          <div class="notification_items"><i>You have no new notifications.</i></div>
+        </div>
+      </div>
+          <div class='logout-menu' ng-show="obs.isElemDisplayed('logout-menu-hr')" ng-class="{'mini-sticky': tabService.showMiniHeader, 'logout-menu-without-bottom-view': !inTabsWithFalgs()}">
+
+            <div class='drop-down-tab logout-menu-download' ng-show='inTabsWithFalgs()' ng-click='downloadInteractReport()'>
+              <div class='title'>Download Report</div>
+              <div class='separator'></div>
+            </div>
+
+            <div ng-click='changeGroupView()' ng-show='inTabsWithFalgs()' class="drop-down-tab logout-menu-show-department" >
+              <div class='v-cls'>
+                <img ng-show="bottom_up_view == 'true' || bottom_up_view === true" src="<%= asset_path 'check_on.png' %>">
+                <img ng-hide="bottom_up_view == 'true' || bottom_up_view === true" src="<%= asset_path 'check_off.png' %>">
+              </div>
+              <div class='title'>Bottom Up View</div>
+              <div class='separator'></div>
+            </div>
+
+            <div > <a class="drop-down-tab logout-menu-signout" ng-class="{'logout-menu-signout-without-bottom-view':  !inTabsWithFalgs()}" href="/signout">Sign Out</a> </div>
+          </div>
+          <div class='logout-menu-for-admin' ng-show="obs.isElemDisplayed('logout-menu-admin')" ng-class="{'mini-sticky': tabService.showMiniHeader, 'logout-menu-without-bottom-view': !inTabsWithFalgs()}" ng-style="tabService.current_tab === 'Explore' && {'right':'91px'}">
+            <div> <a class="drop-down-tab logout-menu-admin"  ng-class="{'bottom-view-off': !inTabsWithFalgs()}" href="/admin_page"> Select Company </a> </div>
+            <div ng-click='changeGroupView()' ng-show='inTabsWithFalgs()' class="drop-down-tab logout-menu-show-department" >
+              <div class='v-cls'>
+                <div class='v-symbol'>
+                  <img ng-show="bottom_up_view == 'true' || bottom_up_view === true" src="<%= asset_path 'check_on.png' %>">
+                  <img ng-hide="bottom_up_view == 'true' || bottom_up_view === true" src="<%= asset_path 'check_off.png' %>">
+                </div>
+              </div>
+              <div class='title'>Bottom Up View</div>
+               <div class='separator'></div>
+            </div>
+            <div> <a class="drop-down-tab logout-menu-signout"  ng-class="{'logout-menu-signout-without-bottom-view':  !inTabsWithFalgs()}" href="/signout">Sign Out</a> </div>
+          </div>
+
+
+
+      <div class="content_container" ng-click="tabService.showNotifications=false">
+        <div ng-if="isCurrentView('Explore') && obs.isElemDisplayed('update_filter_menu')" ng-include src="'update_filter_menu'"></div>
+        <div ng-if="isCurrentView('Explore') && obs.isElemDisplayed('choose_layer_filter')" ng-include src="'choose_layer_filter'"></div>
+       <!--  <div ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')" ng-include src="'resend_all_modal'">
+        </div> -->
+        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('submit_results_modal')" type='SUBMIT_RESULT' ></questionnaire-modal>
+        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')" type='RESEND_ALL'></questionnaire-modal>
+        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_emp_modal')" type='RESEND_EMP'></questionnaire-modal>
+        <include-directive awesome-if="!isCurrentView('Explore')" template="v2/left_dashboard_panel"></include-directive>
+        <include-directive awesome-if="isCurrentView('Explore')" template="v2/left_explore_panel"></include-directive>
+        <div class="content" ng-class="{'content_without_menu' : !showMenu , 'content_with_left': !isCurrentView('Explore'), explore: isCurrentView('Explore')}">
+          <!-- <include-directive awesome-if="showExploreSettings" template="v2/explore_setting"> </include-directive> -->
+          <include-directive awesome-if="isCurrentView('Dashboard')" template="v2/dashboard_main"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Workflow')" template="v2/workflow"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Top Talent')" template="v2/top_talent"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Productivity')" template="v2/productivity"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Collaboration')" template="v2/collaboration"> </include-directive>
+          <include-directive ng-if="isCurrentView('Explore')" template="v2/explore"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Directory')" template="v2/directory_main"> </include-directive>
+          <include-directive awesome-if="isCurrentView('Settings')" template="v2/settings"> </include-directive>
+        </div>
+
+      </div>
+      <!-- </div> -->
+    </div>
+  </div>
+</div>
+
+  <% if policy(:application).admin? %>
+      <% add_company %>
+      <% else add_company_for_hr %>
+  <% end %>
+  <script>
+  window.__workships_bootstrap__ = {
+        currentUser: <%= @current_user.to_json.html_safe %>,
+        companies: <%= @comapnies.to_json.html_safe %>,
+        displayEmails: <%= display_emails? %>,
+      };
+  </script>

@@ -1,0 +1,169 @@
+<div class="group-widget-class" ng-init='hover = []'>
+
+  <!-- level 1 -->
+
+      <!-- color: #3599cc; -->
+  <div class='child-group-wrapper' ng-repeat='group_stub_1 in formal_structure'>
+    <div class='group-child-1' ng-mouseleave="org.leaveHover(hover, group_stub_1)" ng-mouseover='org.inHover(hover, group_stub_1)' ng-hide="org.showCheckbox(!showCheckbox(group_stub_1.group_id), page)" ng-class="{'selected-group': org.isSelected(selected, group_stub_1, page),'selected-explore': org.isExploreSelected(selected, group_stub_1, page) }">
+      <div class='checkbox-img-wrapper'>
+        <div class='clickable' ng-hide='group_stub_1.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_1.group_id)'>
+          <img ng-hide='show[group_stub_1.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+          <img ng-hide='!show[group_stub_1.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+        </div>
+<!--         <div checkbox ng-show='showCheckbox(group_stub_1.group_id)' value='groupChecked(group_stub_1.group_id)' on-callback='onClickAddGroupId(group_stub_1.group_id)' off-callback='onClickRemoveGroupId(group_stub_1.group_id)' src='<%= asset_path "check_mark.png" %>'></div> -->
+      </div>
+      <group-directive  selected-in-explore="org.isExploreSelected(selected, group_stub_1, page)" group='dic[group_stub_1.group_id]'  class='group-details-cls clickable' ng-click='selectGroup(group_stub_1.group_id)' ></group-directive>
+    </div>
+
+    <!-- level 2 -->
+    <div ng-repeat='group_stub_2 in group_stub_1.child_groups' ng-show='show[group_stub_1.group_id]'>
+      <div class='group-child-2' ng-mouseleave="org.leaveHover(hover, group_stub_2)" ng-mouseover='org.inHover(hover, group_stub_2)' ng-hide="org.showCheckbox(!showCheckbox(group_stub_2.group_id), page)" ng-class="{'selected-group': org.isSelected(selected, group_stub_2, page), 'selected-explore': org.isExploreSelected(selected, group_stub_2, page)}">
+        <div class='checkbox-img-wrapper'>
+          <div class='clickable' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-hide='group_stub_2.child_groups.length === 0' ng-click='toggleShow(group_stub_2.group_id)'>
+            <img  ng-hide='show[group_stub_2.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+            <img  ng-hide='!show[group_stub_2.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+          </div>
+          <div checkbox ng-show='showCheckbox(group_stub_2.group_id)' value='groupChecked(group_stub_2.group_id)' on-callback='onClickAddGroupId(group_stub_2.group_id)' off-callback='onClickRemoveGroupId(group_stub_2.group_id)' src='<%= asset_path "check_mark.png" %>'>
+          </div>
+        </div>
+        <group-directive selected-in-explore="org.isExploreSelected(selected, group_stub_2, page)" group='dic[group_stub_2.group_id]' stylecolor='{{set_color(group_stub_2.group_id)}}' ng-click='selectGroup(group_stub_2.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_2.group_id)}" class='group-details-cls clickable'></group-directive>
+        <div class='drill-down-warrper clickable' ng-class="{'drill-down': org.displayDrillDown(hover, group_stub_2, selected)}" ng-click='selectGroupDrillDown(group_stub_2.group_id)' ng-show='showCheckbox(group_stub_2.group_id)'></div>
+      </div>
+      <div class='bottom-seperator'></div>
+
+      <!-- level 3 -->
+      <div ng-repeat='group_stub_3 in group_stub_2.child_groups' ng-show='show[group_stub_2.group_id]'>
+        <div class='group-child-3' ng-mouseleave="org.leaveHover(hover, group_stub_3)" ng-mouseover='org.inHover(hover, group_stub_3)' ng-hide="org.showCheckbox(!showCheckbox(group_stub_3.group_id), page)" ng-class="{'selected-group': org.isSelected(selected, group_stub_3, page), 'selected-explore': org.isExploreSelected(selected, group_stub_3, page)}">
+          <div class='checkbox-img-wrapper'>
+            <div class='clickable' ng-hide='group_stub_3.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_3.group_id)'>
+              <img  ng-hide='show[group_stub_3.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+              <img  ng-hide='!show[group_stub_3.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+            </div>
+            <div checkbox ng-show='showCheckbox(group_stub_3.group_id)' value='groupChecked(group_stub_3.group_id)' on-callback='onClickAddGroupId(group_stub_3.group_id)' off-callback='onClickRemoveGroupId(group_stub_3.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+          </div>
+          <group-directive selected-in-explore="org.isExploreSelected(selected, group_stub_3, page)" group='dic[group_stub_3.group_id]' stylecolor='{{set_color(group_stub_3.group_id)}}' ng-click='selectGroup(group_stub_3.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_3.group_id)}" class='group-details-cls clickable'></group-directive>
+          <div class='drill-down-warrper clickable' ng-class="{'drill-down': org.displayDrillDown(hover, group_stub_3, selected)}"  ng-click='selectGroupDrillDown(group_stub_3.group_id)' ng-show='showCheckbox(group_stub_3.group_id)'></div>
+        </div>
+        <div class='bottom-seperator'></div>
+
+        <!-- level 4 -->
+        <div ng-repeat='group_stub_4 in group_stub_3.child_groups' ng-show='show[group_stub_3.group_id]'>
+          <div class='group-child-4' ng-class="{'selected-group': org.isSelected(selected, group_stub_4, page) ,'selected-explore': org.isExploreSelected(selected, group_stub_4, page)}" ng-hide="org.showCheckbox(!showCheckbox(group_stub_4.group_id), page)" ng-mouseleave="org.leaveHover(hover, group_stub_4)" ng-mouseover='org.inHover(hover, group_stub_4)'>
+            <div class='checkbox-img-wrapper'>
+              <div class='clickable' ng-hide='group_stub_4.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_4.group_id)'>
+                <img  ng-hide='show[group_stub_4.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                <img  ng-hide='!show[group_stub_4.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+              </div>
+              <div checkbox ng-show='showCheckbox(group_stub_4.group_id)' value='groupChecked(group_stub_4.group_id)' on-callback='onClickAddGroupId(group_stub_4.group_id)' off-callback='onClickRemoveGroupId(group_stub_4.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+            </div>
+            <group-directive selected-in-explore="org.isExploreSelected(selected, group_stub_4, page)"  group='dic[group_stub_4.group_id]' stylecolor='{{set_color(group_stub_4.group_id)}}' ng-click='selectGroup(group_stub_4.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_4.group_id)}" class='group-details-cls clickable'></group-directive>
+            <div  class='drill-down-warrper clickable' ng-class="{'drill-down': org.displayDrillDown(hover, group_stub_4, selected)}"  ng-click='selectGroupDrillDown(group_stub_4.group_id)' ng-show='showCheckbox(group_stub_4.group_id)'></div>
+          </div>
+          <div class='bottom-seperator'></div>
+
+          <!-- level 5 -->
+          <div ng-repeat='group_stub_5 in group_stub_4.child_groups' ng-show='show[group_stub_4.group_id]'>
+            <div class='group-child-5' ng-hide="org.showCheckbox(!showCheckbox(group_stub_5.group_id), page)" ng-class="{'selected-group': org.isSelected(selected, group_stub_5, page) ,'selected-explore': org.isExploreSelected(selected, group_stub_5, page) }" ng-mouseover='org.inHover(hover, group_stub_5)' ng-mouseleave="org.leaveHover(hover, group_stub_5)">
+              <div class='checkbox-img-wrapper'>
+                <div class='clickable' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-hide='group_stub_5.child_groups.length === 0' ng-click='toggleShow(group_stub_5.group_id)'>
+                  <img  ng-hide='show[group_stub_5.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                  <img  ng-hide='!show[group_stub_5.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                </div>
+                <div checkbox ng-show='showCheckbox(group_stub_5.group_id)' value='groupChecked(group_stub_5.group_id)' on-callback='onClickAddGroupId(group_stub_5.group_id)' off-callback='onClickRemoveGroupId(group_stub_5.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+              </div>
+              <group-directive selected-in-explore="org.isExploreSelected(selected, group_stub_5, page)"  group='dic[group_stub_5.group_id]' stylecolor='{{set_color(group_stub_5.group_id)}}' ng-click='selectGroup(group_stub_5.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_5.group_id)}" class='group-details-cls clickable'></group-directive>
+               <div class='drill-down-warrper clickable' ng-class="{'drill-down': org.displayDrillDown(hover,group_stub_5, selected)}" ng-click='selectGroupDrillDown(group_stub_4.group_id)' ng-show='showCheckbox(group_stub_5.group_id)'></div>
+            </div>
+            <div class='bottom-seperator'></div>
+
+            <!-- level 6 -->
+            <div ng-repeat='group_stub_6 in group_stub_5.child_groups' ng-show='show[group_stub_5.group_id]'>
+              <div class='group-child-6' ng-hide="org.showCheckbox(!showCheckbox(group_stub_6.group_id), page)" ng-class="{'selected-group': org.isSelected(selected, group_stub_6, page) ,'selected-explore': org.isExploreSelected(selected, group_stub_6, page) }" ng-mouseover='org.inHover(hover, group_stub_6)' ng-mouseleave="org.leaveHover(hover, group_stub_6)" >
+                <div class='checkbox-img-wrapper'>
+                  <div class='clickable' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-hide='group_stub_6.child_groups.length === 0' ng-click='toggleShow(group_stub_6.group_id)'>
+                    <img  ng-hide='show[group_stub_6.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                    <img  ng-hide='!show[group_stub_6.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                  </div>
+                  <div checkbox ng-show='showCheckbox(group_stub_6.group_id)' value='groupChecked(group_stub_6.group_id)' on-callback='onClickAddGroupId(group_stub_6.group_id)' off-callback='onClickRemoveGroupId(group_stub_6.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+                </div>
+                <group-directive  selected-in-explore="org.isExploreSelected(selected, group_stub_6, page)" group='dic[group_stub_6.group_id]' stylecolor='{{set_color(group_stub_6.group_id)}}' ng-click='selectGroup(group_stub_6.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_6.group_id)}" class='group-details-cls clickable'></group-directive>
+                <div class='drill-down-warrper clickable' ng-class="{'drill-down': org.displayDrillDown(hover,group_stub_6, selected)}" ng-click='selectGroupDrillDown(group_stub_6.group_id)' ng-show='showCheckbox(group_stub_6.group_id)'></div>
+              </div>
+              <div class='bottom-seperator'></div>
+
+              <!-- level 7 -->
+              <div ng-repeat='group_stub_7 in group_stub_6.child_groups' ng-show='show[group_stub_6.group_id]'>
+                <div class='group-child-7'  ng-class="{selected: group_stub_7.group_id === selected.id && selected.type === 'group' }" ng-mouseover='org.inHover(hover, group_stub_7)'>
+                  <div class='checkbox-img-wrapper'>
+                    <div class='clickable' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-hide='group_stub_7.child_groups.length === 0' ng-click='toggleShow(group_stub_7.group_id)'>
+                      <img  ng-hide='show[group_stub_7.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                      <img  ng-hide='!show[group_stub_7.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                    </div>
+                    <div checkbox ng-show='showCheckbox(group_stub_7.group_id)' value='groupChecked(group_stub_7.group_id)' on-callback='onClickAddGroupId(group_stub_7.group_id)' off-callback='onClickRemoveGroupId(group_stub_7.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+                  </div>
+                  <group-directive  group='dic[group_stub_7.group_id]' stylecolor='{{set_color(group_stub_7.group_id)}}' ng-click='selectGroup(group_stub_7.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_7.group_id)}" class='group-details-cls clickable'></group-directive>
+                </div>
+                <div class='bottom-seperator'></div>
+
+                <!-- level 8 -->
+                <div ng-repeat='group_stub_8 in group_stub_7.child_groups' ng-show='show[group_stub_7.group_id]'>
+                  <div class='group-child-8' ng-class="{selected: group_stub_8.group_id === selected.id   &&  selected.type === 'group'}">
+                    <div class='checkbox-img-wrapper'>
+                      <div class='clickable' ng-hide='group_stub_8.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_8.group_id)'>
+                        <img  ng-hide='show[group_stub_8.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                        <img  ng-hide='!show[group_stub_8.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                      </div>
+                      <div checkbox ng-show='showCheckbox(group_stub_8.group_id)' value='groupChecked(group_stub_8.group_id)' on-callback='onClickAddGroupId(group_stub_8.group_id)' off-callback='onClickRemoveGroupId(group_stub_8.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+                    </div>
+                    <group-directive  group='dic[group_stub_8.group_id]' stylecolor='{{set_color(group_stub_8.group_id)}}' ng-click='selectGroup(group_stub_8.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_8.group_id)}" class='group-details-cls clickable'></group-directive>
+                  </div>
+                  <div class='bottom-seperator'></div>
+                  ​
+                  <!-- level 9 -->
+                  <div ng-repeat='group_stub_9 in group_stub_8.child_groups' ng-show='show[group_stub_8.group_id]'>
+                    <div class='group-child-9' ng-class="{selected: group_stub_9.group_id === selected.id   &&  selected.type === 'group'}">
+                      <div class='checkbox-img-wrapper'>
+                        <div class='clickable' ng-hide='group_stub_9.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_9.group_id)'>
+                          <img  ng-hide='show[group_stub_9.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                          <img  ng-hide='!show[group_stub_9.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                        </div>
+                        <div checkbox ng-show='showCheckbox(group_stub_9.group_id)' value='groupChecked(group_stub_9.group_id)' on-callback='onClickAddGroupId(group_stub_9.group_id)' off-callback='onClickRemoveGroupId(group_stub_9.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+                      </div>
+                      <group-directive  group='dic[group_stub_9.group_id]' stylecolor='{{set_color(group_stub_9.group_id)}}' ng-click='selectGroup(group_stub_9.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_9.group_id)}" class='group-details-cls clickable'></group-directive>
+                    </div>
+                    <div class='bottom-seperator'></div>
+
+                    <!-- level 10 -->
+                    <div ng-repeat='group_stub_10 in group_stub_9.child_groups' ng-show='show[group_stub_9.group_id]'>
+                      <div class='group-child-10' ng-class="{selected: group_stub_10.group_id === selected.id   &&  selected.type === 'group' }">
+                        <div class='checkbox-img-wrapper'>
+                          <div class='clickable' ng-hide='group_stub_10.child_groups.length === 0' ng-class="{'img-wrapper': !moveExpandToLeft, 'img-wrapper-with-scroll': moveExpandToLeft}" ng-click='toggleShow(group_stub_10.group_id)'>
+                            <img  ng-hide='show[group_stub_10.group_id]' class='plus-img' alt="plus" src="<%=asset_path 'plus.png' %>">
+                            <img  ng-hide='!show[group_stub_10.group_id]' class='minus-img' alt="plus" src="<%=asset_path 'grey-.png' %>">
+                          </div>
+                          <div checkbox ng-show='showCheckbox(group_stub_10.group_id)' value='groupChecked(group_stub_10.group_id)' on-callback='onClickAddGroupId(group_stub_10.group_id)' off-callback='onClickRemoveGroupId(group_stub_10.group_id)' src='<%= asset_path "check_mark.png" %>'></div>
+                        </div>
+                        <group-directive  group='dic[group_stub_10.group_id]' stylecolor='{{set_color(group_stub_10.group_id)}}' ng-click='selectGroup(group_stub_10.group_id)' ng-class="{ 'group-with-checkbox' :showCheckbox(group_stub_10.group_id)}" class='group-details-cls clickable'></group-directive>
+                      </div>
+                      <div class='bottom-seperator'></div>
+                    </div>
+                    <!-- level 10 -->
+                  </div>
+                  <!-- level 9 -->
+                </div>
+                <!-- level 8 -->
+              </div>
+              <!-- level 7 -->
+            </div>
+            <!-- level 6 -->
+          </div>
+          <!-- level 5 -->
+        </div>
+        <!-- level 4 -->
+      </div>
+      <!-- level 4 -->
+    </div>
+    <!-- level 2 -->
+  </div>
+  <!-- level 1 -->
+</div>

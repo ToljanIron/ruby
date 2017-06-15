@@ -1,0 +1,44 @@
+@import './colors';
+
+.checkbox_directive {
+  .checkbox {
+    float: left;
+    margin: 0 0 0 0;
+    width: 11px;
+    height: 11px;
+    position: relative;
+    cursor: pointer;
+    text-align: center;
+    line-height: 11px;
+    list-style: none;
+    color: $workships-text-dark-blue;
+    background-color: white;
+    border: 1px solid $workships-dark-grey-text;
+    border-radius: 3px;
+    &.disabled {
+      background-color: #e8e8e8;
+      img {
+        -webkit-filter: grayscale(100%);
+        filter: grayscale(100%);
+      }
+    }
+    img {
+      width: 10px;
+      height: 8px;
+      margin-bottom: 1px;
+    }
+  }
+  .checkbox_text {
+    font-size: 12px;
+    line-height: 11px;
+    color: black;
+    margin-left: 8px;
+    float: left;
+    list-style: none;
+    position: relative;
+    display: inline-block;
+    &.disabled {
+      color: #8b8b8b;
+    }
+  }
+}

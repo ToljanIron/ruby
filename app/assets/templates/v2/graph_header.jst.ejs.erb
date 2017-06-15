@@ -1,0 +1,105 @@
+  <div class="top-bar">
+    <div class="sub-header">
+      <div class="top-bar-drop-down">
+        <div class='search-tab keylines-search'>
+          <img ng-show='!search_input || search_input.length === 0' class='search-img' alt="find" src="<%= asset_path 'search_icon.png' %>"/>
+          <img ng-show='search_input.length > 0' ng-click='clearSearch()' class='delete-img' alt="find" src="<%= asset_path 'delete_icon.png' %>"/>
+          <input type='text' placeholder='Search in Network' ng-model='search_input' typeahead-on-select='setSearch($item)' typeahead='node.name for node in fetchNodeNames() | nameStartWith:$viewValue' typeahead-editable='false'>
+        </div>
+        <div class="top-bar-left">
+        </div>
+        <div class="top-bar-right">
+          <div class='bar-element clickable warrper-full-screen' ng-click="fullScreen()">
+            <img class='full-screen' alt="ungroup_all" src="<%= asset_path 'maximize_unfocus.png' %>">
+          </div>
+          <div class='date-bar-element clickable' ng-click='toggleSnapshotMenu()'>{{snapshot_id.time}}</div>
+          <div class='seperator'></div>
+          <div class='bar-element clickable' ng-click='toggleLayoutMenu()'>Layout</div>
+
+
+          <div class='menu-modal layout' ng-show='overlay_blocker_service.isElemDisplayed("layout-menu")'>
+            <div class='menu layout'>
+              <div class='arrow-box'></div>
+              <div class='left-layout' ng-click='setLayout("radial")'>
+                <img ng-hide='graphService.layout_name === "radial"' src='<%= asset_path "radial_off.png" %>'>
+                <img ng-show='graphService.layout_name === "radial"' src='<%= asset_path "radial_on.png" %>'>
+
+                <div class='layout-label'>Radial</div>
+              </div>
+              <div class='layout-line'></div>
+              <div class='right-layout' ng-click='setLayout("standard")'>
+                <img ng-hide='graphService.layout_name === "standard"' src='<%= asset_path "structure_off.png" %>'>
+                <img ng-show='graphService.layout_name === "standard"' src='<%= asset_path "structure_on.png" %>'>
+
+                <div class='layout-label'>Standard</div>
+              </div>
+            </div>
+          </div>
+
+          <div class='menu-modal snapshot' ng-show='overlay_blocker_service.isElemDisplayed("snapshot-menu")'>
+            <div class='menu snapshot'>
+              <div class='arrow-box left'></div>
+              <div class='clickable snapshot-list' ng-repeat='snapshot in snapshot_list' ng-click='changeSnapshot(snapshot)' ng-class="{ 'select': snapshot.sid ===  snapshot_id.sid }">
+                {{snapshot.time}}
+              </div>
+            </div>
+          </div>
+
+          <div class='seperator'></div>
+          <div class='bar-element'>Click to Isolate</div>
+          <div class='bar-element checkbox cheack-mark' checkbox value='click_to_isolate' on-callback='toggleClickToIsolate()' off-callback='toggleClickToIsolate()' src='<%= asset_path "check_mark.png" %>'></div>
+          <div class='bar-element'>Zoom Impact</div>
+          <div class='bar-element checkbox' ng-click='addArrange()' checkbox value='checkbox' src='<%= asset_path "check_mark.png" %>'>
+          </div>
+          <div class='seperator'></div>
+          <img ng-src="<%= asset_path 'settings_icon.png' %>" alt="">
+          <img ng-src="<%= asset_path 'print_icon.png' %>" alt="">
+          <img ng-src="<%= asset_path 'save_icon.png' %>" alt="">
+        </div>
+      </div>
+      <div class="top-bar-warp-line"></div>
+    </div>
+  </div>
+  <div class="alpha-beta-menu-warp">
+    <div class="alpha-beta-menu">
+      <div class="alpha-beta-menu-left">
+        <div class='analyze-select'>
+          <div class='title'>Network data</div>
+          <select ng-model='network' ng-options='network.name for network in analyze_data.networks' ng-change='updateData()'></select>
+          <select ng-model='measure' ng-options='measure.measure_name for measure in analyze_data.metrics | filter:metricsByNetwork()' ng-change='updateData()'></select>
+        </div>
+        <div class='seperator'></div>
+        <div class='analyze-select width'>
+          <div class='title'>Group by</div>
+          <select class='bar-element' ng-model='group_by' ng-options='group_by.display for group_by in group_by_list' ng-change='updateData()'></select>
+          <div ng-disabled='can_expend_all.value' ng-click="graphService.groupAll()">
+            <img class='icon-btn bar-element clickable' alt="group_all" src="<%= asset_path 'group_all.png' %>">
+          </div>
+          <div ng-disabled='can_expend_all.value' ng-click="graphService.ungroupAll()">
+            <img class='icon-btn bar-element clickable' alt="ungroup_all" src="<%= asset_path 'ungroup_all.png' %>">
+          </div>
+        </div>
+        <div class='seperator'></div>
+        <div class='analyze-select edge-size-menu width'>
+          <div class='title-container'>
+            <div class='title'>Filter Edges</div>
+          </div>
+          <div class='level-container from'>
+            <div class='label'>From</div>
+            <div class='level'>
+              <input type='number' ng-model='edge_sizes_range.from' min='0' max='{{edge_sizes_range.to}}' ng-change='setEdgeFilter()'/>
+            </div>
+          </div>
+          <div class='level-container to'>
+            <div class='label'>To</div>
+            <div class='level'>
+              <input type='number' ng-model='edge_sizes_range.to' min='{{edge_sizes_range.from}}' max='6' ng-change='setEdgeFilter()'/>
+            </div>
+          </div>
+        </div>
+      <div class="alpha-beta-menu-right">
+       <!--  <img class='bar-element-left clickable' ng-click='createPlay()' alt="ungroup_all" src="<%= asset_path 'play.png' %>">
+        <div class='bar-element-left stop-play clickable' ng-click='stopPlay()'> X </div>  -->
+      </div>
+    </div>
+  </div>

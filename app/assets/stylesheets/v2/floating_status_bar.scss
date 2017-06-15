@@ -1,0 +1,96 @@
+@import 'colors';
+@import 'common';
+.floating-container {
+  color: #6a788d;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 30px;
+  margin-left: 31px;
+  margin-top: 46px;
+  .legend-container {
+    height: 35px;
+    margin-bottom: 20px;
+    width: inherit;
+    .legend-item {
+    }
+    .item-name {
+      float: left;
+      /*color: #013d61;*/
+      color: black;
+      line-height: 20px;
+      width: 100px;
+    }
+    .circle {
+      float: left;
+      border-radius: 50%;
+      height: 8px;
+      margin-right: 8px;
+      position: relative;
+      top: 7px;
+      width: 8px;
+    }
+    .in {
+      background-color: #b39bd9;
+    }
+    .org {
+      background-color: #34c4cf;
+    }
+    .external-metric-line {
+      top: 10px;
+      background-color: #FCAB5B;
+    }
+  }
+  .measure-details {
+    clear: both;
+    .name {
+      cursor: pointer;
+      float: left;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 115px;
+    }
+    .number {
+      color: #003663;
+      float: left;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 26px;
+      margin-left: 12px;
+    }
+    .trend {
+      margin-top: 4px;
+      float: left;
+      position: relative;
+    }
+  }
+  .external-data-cls {
+    border-top: 1px solid #d9dee6;
+    clear: both;
+    width: 190px;
+    padding-top: 9px;
+    margin-top: 10px;
+    float: left;
+    select {
+      width: 174px;
+      min-height: 25px;
+      background: none;
+      border-radius: 3px;
+      border: solid 1px #c2c4c7;
+      color: #285780;
+      position: relative;
+      background-color: white;
+    }
+  }
+  .network-title {
+    color: #262b3f;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 12px;
+    float: left;
+    width: 190px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #d9dee6;
+
+  }
+}

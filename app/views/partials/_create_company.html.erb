@@ -1,0 +1,22 @@
+<div class='container col-md-12 create-company-page'>
+  <form ng-submit='createCompany()'>
+    <div class='company-name'>
+      <div class='input-label'>Name:</div>
+      <input type='text' ng-model='new_company.name'/>
+    </div>
+    <div class='domain-wrapper' ng-repeat='domain in new_company.domains'>
+      <div class='input-label'>Domain:</div>
+      <input type='text' ng-model='domain.name'/>
+      <div class='service-label'>Email service:</div>
+      <select ng-model='domain.service'>
+        <option value=''>None</option>
+        <option value='gmail'>Gmail</option>
+        <option value='exchange'>Exchange</option>
+        <option value='office'>Office365</option>
+      </select>
+      <div class='clickable domain-button remove-domain' ng-click='removeCompanyDomain(domain)' ng-show='showRemoveButton(domain)'>x</div>
+    </div>
+    <div class='clickable domain-button' ng-click='addCompanyDomain()'>Add domain</div>
+    <input type='submit' value='Create Company'/>
+  </form>
+</div>

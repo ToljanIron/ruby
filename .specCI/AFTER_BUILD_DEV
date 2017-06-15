@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+# overrides 'heroku-dev' branch with current branch, and pushes it to heroku.
+require 'English'
+require 'byebug'
+
+def run
+  create_remote_if_not_exist
+  reset_heroku_branch
+  merge_heroku_branch_with_remote
+  push_to_heroku
+  return_to_orig_branch
+  exit 0
+end
+
+def create_remote_if_not_exist
+  msg 'create_remote_if_not_exist'
+  return nil if `git remote`.split.include? REMOTE_NAME
+  `git remote add #{REMOTE_NAME} #{GIT_URL}`
+  exit 1 unless $CHILD_STATUS.success?
+end
+
+def reset_heroku_branch
+  msg 'reset_heroku_branch'
+  if `git branch -r`.split.include? "origin/#{HEROKU_BRANCH}"
+    `git push --delete origin #{HEROKU_BRANCH}`
+    exit_if_error
+  end
+  if `git branch `.split.include? HEROKU_BRANCH
+    `git branch -D #{HEROKU_BRANCH}`
+    exit_if_error
+  end
+  return
+end
+
+def merge_heroku_branch_with_remote
+  msg 'merge_heroku_branch_with_remote'
+  `git checkout -b #{HEROKU_BRANCH}` && exit_if_error
+  `git pull #{REMOTE_NAME} master` && exit_if_error
+end
+
+def push_to_heroku
+  msg 'push_to_heroku'
+  `git push #{REMOTE_NAME} #{HEROKU_BRANCH}:master` && exit_if_error
+  `heroku run rake db:migrate --app workships-dev` && exit_if_error
+end
+
+def return_to_orig_branch
+  msg 'return_to_orig_branch'
+  `git checkout #{ORIGINAL_BRANCH}` && exit_if_error
+end
+
+def current_branch
+  return File.read('.git/HEAD')[1..-2].split('/').last
+end
+
+def exit_if_error
+  exit 1 unless $CHILD_STATUS.success?
+end
+
+def msg(str)
+  puts ['<' * 20, ' ', str, ' ', '>' * 20].join
+end
+
+GIT_URL = 'git@heroku.com:workships-dev.git'
+REMOTE_NAME = 'workships-dev'
+HEROKU_BRANCH = 'heroku-dev'
+ORIGINAL_BRANCH = current_branch
+
+run

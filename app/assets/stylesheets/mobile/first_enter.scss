@@ -1,0 +1,124 @@
+@import 'colors';
+@import 'common';
+
+.mobile-wrapper {
+  .mobile-container {
+    .first-enter {
+      .mobile-content {
+        .page_content {
+          /*height: 90%;*/
+          margin-top: 10px;
+          .welcome-message {
+            /*overflow: auto;*/
+            line-height: 45px;
+            .page_title {
+              top: 50px;
+            }
+            .text {
+              margin-top: 0px;
+              top: 80px;
+            }
+            .gestures {
+              position: relative;
+              /*top: 110px;*/
+              .gesture-line {
+                position: relative;
+                height: 320px;
+                width: 800px;
+                .gesture_img {
+                  height: 400px;
+                  position: absolute;
+                  top: -10px;
+                  
+                }
+                .gesture_img_left {
+                  @extend .gesture_img;
+                  left: 0;
+                }
+                .gesture_img_right {
+                  @extend .gesture_img;
+                  right: 0;
+                }
+                .gesture_text {
+                  position: absolute;
+                  font-size: 45px;
+                }
+                .gesture_text_right {
+                  @extend .gesture_text;
+                  left: 295px;
+                }
+                .gesture_text_right_rtl {
+                  @extend .gesture_text;
+                  left: 250px;
+                  right: 60px;
+                }
+                .gesture_text_left {
+                  @extend .gesture_text;
+                  left: 30px;
+                }
+                .gesture_text_left_rtl {
+                  @extend .gesture_text;
+                  right: 290px;
+                  left: 45px;                  
+                }
+                .tap {
+                  top: 29px;
+                }
+                .swipe {
+                  top: 50px;
+                }
+                .scroll_rtl {
+                  top: 150px;
+                }
+                .scroll {
+                  top: 22px;
+                }
+              }
+            }
+            .promo {
+              position: absolute;
+              width: 100%;
+              bottom: 0;
+              left: 0;
+              height: 300px;
+              background-color: rgb(14, 180, 185);
+              color: white;
+              font-size: 60px;
+              padding: 50px 80px 0 80px;
+              line-height: 60px;
+            }
+          }
+        }
+      }
+      .mobile-footer {
+        .mobile-btns-container {
+          .center-button {
+            line-height: 83px;
+          }
+        }
+      }
+    }
+  }
+}
+.v-icon {
+  background-image: image-url('like.png');
+  background-size: 75px;
+  background-repeat: no-repeat;
+  height: 80px;
+  width: 80px;
+  position: relative;
+  top: 40px;
+  transform: scale(0.9, 0.9);
+  display: inline-block;
+}
+.x-icon {
+  background-image: image-url('dislike.png');
+  background-size: 75px;
+  background-repeat: no-repeat;
+  height: 80px;
+  width: 80px;
+  position: relative;
+  top: 40px;
+  transform: scale(0.9, 0.9);
+  display: inline-block;
+}

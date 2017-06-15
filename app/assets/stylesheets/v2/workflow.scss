@@ -1,0 +1,29 @@
+@import './colors';
+@import './common_tabs';
+.workflow-container {
+  min-width: 1024px;
+  padding-left: 15px;
+  padding-right: 16px;
+  .workflow-title {
+    color: grey;
+    height: 50px;
+    line-height: 50px;
+    margin-top: 16px;
+    margin-bottom: 15px;
+    width: calc(100% - 5px);
+    padding-left: 5px;
+    float: right;
+    display: inline-block;
+    background-color: #edecec;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    .title-name {
+      color: $workships-text-dark-blue;
+    }
+  }
+  .tabs-level-wrapper {
+    float: left;
+    width: 110%;
+  }
+}

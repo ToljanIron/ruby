@@ -1,0 +1,19 @@
+<div class='login-layout'  ng-controller="forgotPassword" ng-init= "init()" >
+	<div class='login-layout-center'>
+		
+		<img class='logo-img' src= '<%= asset_path 'login-logo.png' %>'alt="logo" />
+		
+		<div class='login-title'> 
+      <a ng-click='linkToSignin()' ><img  class='rounded-rectangle' src= '<%= asset_path 'Rounded Rectangle.png' %>'alt="Rounded Rectangle" /></a>
+      FORGOT PASSWORD
+    </div>
+
+	  <div class='login-form forgot-password-form'>
+      <div class='error-message email-send-message'>
+        <div class='check-mark-symbol exsist-img'> </div>
+        <div class='content'>Password has been send, Please check your inbox</div>
+      </div>
+    </div>
+	  
+	</div>
+</div>

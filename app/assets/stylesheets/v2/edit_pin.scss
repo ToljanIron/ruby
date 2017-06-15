@@ -1,0 +1,80 @@
+@import './colors';
+@import './common';
+.pin-container {
+  .saved-pin-wrapper {
+    background-color: #edf1f7;
+    border-bottom: 1px solid #dce1e9;
+    height: 40px;
+    line-height: 40px;
+    .pin-view {
+      .pin-area-select {
+        float: left;
+        height: 40px;
+        width: 165px;
+        .saved-group-name {
+          color: $workships-group-name;
+          overflow: hidden;
+          width: 125px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          float: left;
+          font-size: 13px;
+          font-weight: 400;
+        }
+        .saved-group-icon {
+          float: left;
+          height: 14px;
+          padding-left: 7px;
+          padding-right: 7px;
+          position: relative;
+          top: 14px;
+          width: 18px;
+        }
+      }
+      .edit-group-button {
+        float: left;
+        height: 25px;
+        margin-top: 7px;
+        width: 25px;
+      }
+      .delete-button {
+        margin-right: 2px;
+        margin-top: 7px;
+        float: left;
+        height: 25px;
+        width: 25px;
+      }
+    }
+    .edit-group {
+      height: 40px;
+      .edit-group-name {
+        border: 0;
+        border-radius: 4px;
+        box-shadow: inset 1px 1px 2px #9d9494;
+        float: left;
+        height: 28px;
+        margin-left: 5px;
+        margin-top: 5px;
+        outline: none;
+        padding-left: 10px;
+        width: 157px;
+      }
+      .delete-button {
+        float: left;
+        height: 25px;
+        margin-right: 25px;
+        margin-top: 7px;
+        width: 25px;
+      }
+    }
+  }
+  .on-hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .selected {
+    background-color: white;
+  }
+  .edit-mode {
+    background-color: #edf1f7;
+  }
+}

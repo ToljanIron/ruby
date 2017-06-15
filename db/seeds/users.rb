@@ -1,0 +1,28 @@
+User.create!(email: 'guy@spectory.com',    password: 'qwe123qwe',  password_confirmation: 'qwe123qwe',  role: 'admin')
+User.create!(email: 'raz@spectory.com',    password: '123123',     password_confirmation: '123123',     role: 'admin')
+User.create!(email: 'danny@spectory.com',  password: 'qwe123',     password_confirmation: 'qwe123',     role: 'admin')
+User.create!(email: 'danny2@spectory.com', password: 'qwe123',     password_confirmation: 'qwe123',     role: 'admin')
+User.create!(email: 'itaiey@spectory.com', password: 'Asd123!!',   password_confirmation: 'Asd123!!',   role: 'admin')
+User.create!(email: 'yael@spectory.com',   password: '123123',     password_confirmation: '123123',     role: 'admin')
+User.create!(email: 'chen@spectory.com',   password: '123123',     password_confirmation: '123123',     role: 'admin')
+User.create!(email: 'itai@spectory.com',   password: 'itai121!',   password_confirmation: 'itai121!',   role: 'admin')
+User.create!(email: 'zvi@spectory.com',    password: 'qwe123',     password_confirmation: 'qwe123',     role: 'admin')
+User.create!(email: 'ido@spectory.com',    password: 'Abc1234567',     password_confirmation: 'Abc1234567',     role: 'admin')
+
+User.create!(email: 'avi@dualia.co.il',    password: 'aviD121!',   password_confirmation: 'aviD121!',   role: 'admin')
+User.create!(email: 'avi@step-ahead.com',    password: 'aviD121!',   password_confirmation: 'aviD121!',   role: 'admin')
+User.create!(email: 'sharon@gome.co.il',   password: 'sharon121!', password_confirmation: 'sharon121!', role: 'admin')
+User.create!(email: 'sharon@step-ahead.com',   password: 'sharon121!', password_confirmation: 'sharon121!', role: 'admin')
+User.create!(email: 'idit@dualia.co.il',   password: 'iditD121!',  password_confirmation: 'iditD121!',  role: 'admin')
+User.create!(email: 'yuvalk@post.tau.ac.il',   password: 'yuval123!', password_confirmation: 'yuval123!', role: 'admin')
+User.create!(email: 'shiri@step-ahead.com',   password: 'shiri121!', password_confirmation: 'shiri121!', role: 'admin')
+User.create!(email: 'gabi@step-ahead.com',   password: 'gabiS121!', password_confirmation: 'gabiS121!', role: 'admin')
+
+User.create!(email: 'reut_admin@spectory.com',  password: 'yonjimon', password_confirmation: 'yonjimon', role: 'admin')
+User.create!(email: 'reut_hr@spectory.com',     password: 'yonjimon', password_confirmation: 'yonjimon', role: 'hr')
+User.create!(email: 'reut_emp@spectory.com',    password: 'yonjimon', password_confirmation: 'yonjimon', role: 'emp')
+
+User.create!(email: 'lila@spectory.com',    password: 'miaomiao', password_confirmation: 'miaomiao', role: 'admin')
+User.create!(email: 'yaniv@spectory.com',   password: 'A123456!', password_confirmation: 'A123456!', role: 'admin')
+
+User.create!(email: 'admin@tnuva.com',    password: 'wP7mYa', password_confirmation: 'wP7mYa', role: 'admin')

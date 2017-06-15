@@ -1,0 +1,122 @@
+  input::-ms-clear {
+    display: none !important;;
+    width: 0 !important;;
+    height: 0 !important;;
+}
+  input::-ms-reveal {
+    display: none !important;
+    width: 0 !important;;
+    height: 0 !important;;
+}
+.search-tab {
+  margin-left: 15px;
+  background-color: #ffffff;
+  border: 1px solid #d6dee8;
+  width: 168px;
+  height: 28px;
+  padding-left: 8px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  &.search-tab-directory {
+    margin: 0;
+    position: relative;
+    top: -2px;
+    input{
+      width:154px;
+    }
+  .search-tab::-ms-clear {
+    display: none;
+    width: 0;
+    height: 0;
+}
+  .search-tab::-ms-reveal {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+  input::-ms-clear {
+    display: none !important;;
+    width: 0 !important;;
+    height: 0 !important;;
+}
+  input::-ms-reveal {
+    display: none !important;
+    width: 0 !important;;
+    height: 0 !important;;
+}
+  }
+  input {
+    background-color: inherit;
+    border: 0;
+    padding-top: 3px;
+    width: 137px;
+  }
+  input:focus {
+    font-style: normal;
+    outline: 0;
+  }
+  .search-img {
+    float: right;
+    height: 15px;
+    width: 15px;
+    cursor: pointer;
+    margin-top: 6px;
+    margin-right: 6px;
+  }
+  .search-img-rtl {
+    float: left;
+    height: 15px;
+    width: 15px;
+    cursor: pointer;
+    margin-top: 6px;
+    margin-left: 6px;
+  }
+  .delete-img {
+    float: right;
+    height: 20px;
+    margin-right: 4px;
+    margin-top: 8px;
+    width: 20px;
+  }
+  .dropdown-menu {
+    background-color: #fefeff;
+    font-size: 14px;
+    left: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 25px;
+    list-style-type: none;
+    margin-left: -4px;
+    margin-top: 4px;
+    opacity: 0.99;
+    padding-bottom: 9px;
+    padding-left: 4px;
+    padding-top: 8px;
+    position: absolute;
+    top: 2px;
+    width: 169px;
+    z-index: 2;
+    .active {
+      background-color: #6892B7;
+      margin-right: 6px;
+      color: white;
+      background-color: white;
+      a {
+        background-color: #6892B7;
+        padding: 10px 20px;
+        color: white;
+      }
+      a:hover, a:focus, a:active {
+        background-color: #6892B7;
+      } 
+    }
+    a {
+      color: #8b97a7;
+    }
+  }
+}
+.dropdown-menu > li > a {
+  padding: 10px 20px !important;
+}

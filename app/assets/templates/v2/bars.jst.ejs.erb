@@ -1,0 +1,10 @@
+<div class='bars-continer' ng-controller='barsController' ng-init='init()'>
+  <div class='bar-to-attr' ng-repeat='attr in employeesByAttributes' ng-show='$index >= empIndex -3 && $index <= empIndex + 3'>
+      <div title='{{attr.name}}' class='emp-attr-name'>
+       <div ng-show='$index === empIndex'> {{attr.name !== 'unknown'? attr.name:'NA' }}</div>
+      </div>
+      <div class='bars-view'>
+        <div class='bar' ng-style="{ 'height': attr.size + '%' }" ng-class="{'select-color': $index === empIndex }"></div>  
+      </div>
+  </div>
+</div>

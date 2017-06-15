@@ -1,0 +1,46 @@
+AllCops:
+  TargetRubyVersion: 2.3
+  Exclude:
+    - Guardfile
+    - clear_large_files_from_git_history.rb
+    - config/**/*
+    - db/schema.rb
+    - node_modules/**/**/
+
+Rails:
+  Enabled: true
+
+Documentation:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  CountComments: false  # count full line comments?
+  Max: 40
+
+
+Metrics/AbcSize:
+  Max: 40
+
+Style/SpaceBeforeFirstArg:
+  Enabled: false
+
+Style/RedundantReturn:
+  Enabled: false
+
+Style/AccessorMethodName:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 10
+
+Metrics/ClassLength:
+  Max: 500
+
+Metrics/ModuleLength:
+  Max: 500

@@ -1,0 +1,70 @@
+@import './colors';
+@import './common';
+@import './sizes';
+
+.dashboard_sidebar
+{
+  background-color: $workships-grey;
+  box-sizing: border-box;
+  float: left;
+  left: $workships-left-sidebar-width;
+  margin-left: -$workships-left-sidebar-width;
+  padding-bottom: 20px;
+  padding-left: $search-tab-sidbar-padding-left;
+  position: relative;
+  width: $workships-left-sidebar-width;
+  z-index: 49;
+
+  .dashboard-sidebar-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    cursor: pointer;
+    z-index: 51;
+    background-color: rgba(0, 0, 15, 0.5);
+  }
+  /* factored out the search css into sidebar_common.css.scss becuse it is used also in analyze sidebar */
+
+  .formal-pins-accordion
+  {
+    .accordion-item
+    {
+      background-color: #ccd7e9;
+      clear: both;
+      margin-bottom: 2px;
+      padding-bottom: 11px;
+      padding-top: 11px;
+      .item-name
+      {
+        color: #2c4466;
+      }
+      .arrow
+      {
+        float: left;
+        height: 7px;
+        margin-left: 8px;
+        margin-right: 6px;
+        position: relative;
+        top: 8px;
+        width: 12px;
+      }
+      .closed
+      {
+        height: 10px;
+        top: 5px;
+        margin-right: 10px;
+        width: 9px;
+      }
+      .pins-container
+      {
+        margin-top: 11px;
+      }
+    }
+    .removed-bottom-padding
+    {
+      padding-bottom: 0;
+    }
+  }
+}

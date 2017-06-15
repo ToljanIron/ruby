@@ -1,0 +1,11 @@
+<%= render partial: "partials/header" , locals: { title: 'DOMAINS' }%>
+<div class='domains-list-view col-md-12'>
+  <h3>Choose domain to connect</h3>
+  <% Domain.where(company_id: current_user.company_id).each do |d| %>
+    <% email_service = EmailService.where(domain_id: d.id).last %>
+    <% next if email_service.nil? || email_service[:name] != 'gmail' || !email_service[:refresh_token].nil? %>
+    <div class='list-item'>
+      <a href='<%= url_for controller: "clients", action: :request_google_access, domain_id: d.id %>'><%= d[:domain] %></a>
+    </div>
+  <% end %>
+</div>

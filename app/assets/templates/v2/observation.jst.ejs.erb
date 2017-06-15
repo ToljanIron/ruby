@@ -1,0 +1,9 @@
+<div ng-repeat="str in text.split('*')" ng-show="text!== ''">
+  <div class="observation_container">
+    <div class="star_box" ng-style="{'background-color': color}">
+      <img class="star_img" ng-src="{{picPath}}">
+    </div>
+    <div class="observation_text">{{str}}</div>
+  </div>
+
+</div>

@@ -1,0 +1,57 @@
+<div class="edit-preset-container" ng-controller='presetEditorController' ng-init='init(id)'>
+  <div class='preset-headline'>
+    <div class='edit-title'>Create Preset</div>
+    <div class='seperator'></div>
+    <input class='input' ng-model='preset.name' placeholder='Preset Name'/>
+    <div class='headline-right-side'>
+      <div class='delete-button clickable' ng-click='preset.onClickDelete()'> </div>
+      <div class='save-draft clickable' ng-show='preset.isInNewOrDraftMode()' ng-click='preset.OnClicksSaveDraft()'></div>
+      <div class='save-draft off' ng-show= '!preset.isInNewOrDraftMode()'></div>
+      <div class='generate-preset clickable' ng-click='preset.OnClickGeneratePin()'></div>
+    </div>
+  </div>
+  <div class='preset-setting'>
+    <div class='line-separator'></div>
+    <div class='selected-option-header'>
+      <div class='check-button clickable' ng-click='preset.selectAll()'>Select all</div>
+      <div class='check-button clickable' ng-click='preset.unselectAll()'>Unselect all</div>
+      <div class='selected-account'>Selected ({{preset.getNumberOfAllEmployeesChecked()}} / {{getAllEmpsNumber()}})</div>
+    </div>
+    <div  ng-show='preset.isCheckboxExsists() > 0'>
+      <table class='setting-table header-table'>
+        <thead>
+          <tr class='setting-table-headline'>
+            <th class='headline-creatria'> Criteria/Filter </th>
+            <th class='headline-groups'> Groups </th>
+            <th class='headline-employees'> Employees </th>
+          </tr>
+        </thead>
+      </table>
+      <div class='table-main'>
+        <table class='setting-table'>
+          <tbody>
+            <th class='filter-content'>
+              <div ng-repeat='cond in preset.getCretriaToPreset()'>
+                <div class='preset-checkbox' checkbox value='preset.isFilterChecked(cond)' on-callback='preset.onClickFilterChecbox(cond)' off-callback='preset.onRemoveFilterChecbox(cond)' src='<%= asset_path "check_mark.png" %>'>
+                </div>
+                <div class='checkbox-name filter-name'>{{ getFilterName(cond)}}</div>
+              </div>
+            </th>
+            <th class='groups-content'>
+              <div ng-repeat='group in preset.getGroupsToPreset()'>
+                <div class='preset-checkbox' checkbox value='preset.isGroupChecked(group)' on-callback='preset.onClickFilterGroupChecbox(group)' off-callback='preset.onRemoveFilterGroupChecbox(group)' src='<%= asset_path "check_mark.png" %>'></div>
+                <div class='checkbox-name'>{{ getGroupName(group)}}</div>
+              </div>
+            </th>
+            <th class='employess-content'>
+              <div class='employee-in-preset' ng-repeat='emp in preset.getEmployeesToPreset()'>
+                <div class='preset-checkbox employees-checbox' checkbox value='preset.isEmployeeChecked(emp)' on-callback='preset.onClickAddEmployee(emp)' off-callback='preset.onClickRemoveEmployee(emp)' src='<%= asset_path "check_mark.png" %>'></div>
+                <div class='checkbox-name'>{{getEmployeeName(emp)}}</div>
+              </div>
+            </th>
+          </tbody>
+        </table>
+      </div>
+    </div>    
+  </div>
+</div>

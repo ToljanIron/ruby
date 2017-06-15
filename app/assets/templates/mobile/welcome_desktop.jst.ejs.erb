@@ -1,0 +1,12 @@
+<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<div class="background" ng-controller='desktopClientController' ng-init="init('<%= @name %>','<%= @token %>')">
+  <div class="logo-medium"> <img src="<%= asset_path 'logo-medium.png' %>" height="63" width="257"> </div>
+  <div class="welcome-back" ng-show='mobile_app_service.inWelcomeBackView()' >Welcome Back</div>
+  <div class="welcome-back" ng-show='mobile_app_service.inFirstEnterView()'>Welcome</div>
+  <div class="welcome-p" >Welcome to StepAhead Questinair, please answer the following questions</div>
+  <div class="start-button" ng-click="mobile_app_service.setQuestionnaireView()">
+    <div class="resume-p" ng-show='mobile_app_service.inWelcomeBackView()'>Resume </div>
+    <div class="start-p" ng-show='mobile_app_service.inFirstEnterView()'>Start </div>
+    <img src="<%= asset_path 'right-arrow.png' %>" height="26" width="25" style="float:right;padding-top:11px;padding-right:16px;">
+</div>
+</div>

@@ -1,0 +1,62 @@
+.toggle-wrapper {
+  position: relative;
+  .white-blocker {
+    position: absolute;
+    background-color: #fff;
+    height: 14px;
+    width: 13px;
+    top: -2px;
+    z-index: 50;
+    display: inline-block;
+    &.left {
+      left: -13px;
+    }
+    &.right {
+      right: -22px;
+      width: 22px;
+    }
+  }
+  .toggle-box {
+    display: inline-block;
+    position: relative;
+    height: 12px;
+    width: 35px;
+    border: 1px solid gray;
+    margin-top: -2px;
+    .toggle-text {
+      position: absolute;
+      left: 35px;
+      padding-left: 4px;
+      padding-top: 1px;
+      background-color: #E8E8E8;
+      width: 19px;
+      height: 11px;
+      transition: left 0.2s;
+      z-index: 0;
+      &.show {
+        left: 12px;
+      }
+      &.on {
+        background-color: #3599cc;
+        left: -13px;
+        &.show {
+          left: 0px;
+        }
+      }
+    }
+    .toggle-flipper {
+      position: absolute;
+      top: 0;
+      height: 12px;
+      width: 12px;
+      border-left: 1px solid gray;
+      border-right: 1px solid gray;
+      margin-left: -1px;
+      transition: margin-left 0.2s;
+      background-color: white;
+      &.on {
+        margin-left: 22px;
+      }
+    }
+  }
+}

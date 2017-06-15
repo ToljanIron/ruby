@@ -1,0 +1,43 @@
+<div class="user-card">
+  <div class="user-card-head-warp">
+    <div class="user-card-head">
+      <div class="user-card-head-left clickable"  ng-class="{'filter-color-title': isFilteredOut(employee), 'selected-card': employeeChecked(employee)}" ng-click='showEmployeePersonalCard(employee, true)'>{{employee.first_name+' '+employee.last_name}}</div>
+      <div class="user-card-head-right">
+        <div checkbox value='employeeChecked(employee)' on-callback='checkEmployee(employee)' off-callback='uncheckEmployee(employee)' src='<%= asset_path "check_mark.png" %>'></div>
+        <img class='clickable mini-icon-border' ng-hide='modalOn()' ng-src="<%= asset_path 'compare_on_card_off.png' %>" alt=""/>
+      </div>
+    </div>
+  </div>
+  <div class="user-card-content-warp">
+    <div class="user-card-content">
+      <div class="user-top-info-warp">
+        <div class="user-top-info">
+          <div class="age left">
+            Age:
+            <div class="val">{{ employee.age != undefined || employee.age != null ? employee.age:'N/A'}}</div>
+          </div>
+          <div class="gender left">
+            Gender:
+            <div class="val">{{employee.gender == 'male'? 'm' : 'f'}}</div>
+          </div>
+          <div class="seniority  left">
+            Seniority:
+            <div class="val">{{employee.seniority != undefined || employee.seniority != null ?employee.seniority:'N/A'}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="clear"></div>
+      <div class="user-id-warp">
+        <div class="user-id">
+          <div class="user-image border" ng-class="{'filter-img': isFilteredOut(employee) && !employeeChecked(employee)}"><img ng-src="{{employee.img_url}}" alt=""/></div>
+          <div class="user-id-job-titles" ng-class="{'filter-color-content': isFilteredOut(employee) && !employeeChecked(employee)}">
+            <div title="{{employee.job_title}}"class="job-title">{{employee.job_title}}</div>
+            <div class="division">{{getDivision(employee.group_id)}}</div>
+            <div class="dept">{{employee.group_name}}</div>
+            <div class="job-location">N/A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

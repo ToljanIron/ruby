@@ -1,0 +1,11 @@
+<div class="network_data_select" ng-click='showPanel = !showPanel; tabService.activePanel = true'>
+  <div class="chosen_attribute">{{selected[displayKey]}}</div>
+  <div class="network_data_panel_arrow">
+    <img ng-src="{{showPanel && 'assets/exploreSettings_imgs/Arrow_up.png' || 'assets/exploreSettings_imgs/Arrow_down.png'}}">
+  </div>
+  <div class="other_attributes" ng-show='showPanel'>
+    <ul class="my_ul">
+      <li class="item_in_select" ng-repeat="item in list track by $index" ng-if='item[displayKey] !== selected[displayKey]' ng-click='update_selected(item)'>{{item[displayKey]}}</li>
+    </ul>
+  </div>
+</div>

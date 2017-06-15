@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stepahead</title>
+  <meta charset=utf-8 />
+  <meta lang=en />
+  <script src="/assets/keylines.js" type='text/javascript'></script>
+  <%= stylesheet_link_tag    "v1", media: "all" %>
+  <%= javascript_include_tag "v1" %>
+  <%= csrf_meta_tags %>
+  <% if request.fullpath === "/admin_page" || request.fullpath === "/domains_list" %> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <% end %>
+</head>
+<body ng-controller='appController' ng-init='init()' ng-class='{ modalOverflow: isBlocked() }'>
+  <%= yield %>
+</body>
+</html>

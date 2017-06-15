@@ -1,0 +1,8 @@
+<div ng-if ="product_type!=='questionnaire_only'" class='tabs-level-container'>
+  <div class='levels-warrper'>
+    <div ng-repeat='level in list' class='tab' ng-style=" level.id === selected.id && getSelectedStyle()" ng-class="{'selected-tab': level.id === selected.id}" ng-click='onClickFunc(level)'>
+    {{level.name}}
+    </div>
+  </div>
+  <div class='separator' ng-style='getSeperatorWidth()'></div>
+</div>

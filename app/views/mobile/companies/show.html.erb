@@ -1,0 +1,49 @@
+<div class='companies' ng-controller='companiesController' ng-init='init(<%= @companies.count %>)'>
+  <%= render partial: "partials/mobile/header", locals: {title: 'Home' }%>
+  <div class='main-conatiner col-md-10 col-sm-offset-1'>
+    <table class="table table-striped ">
+      <thead >
+        <tr>
+          <th class='col-md-1'>id</th>
+          <th class='col-md-3'>Company Name</th>
+          <th class='col-md-1'></th>
+          <th class='col-md-1'></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @companies.each_with_index do |c, i| %>
+            <tr ng-show='!company_in_edit_state[<%= i %>]'>
+              <td class='col-md-1'><%= c.id %></td>
+              <td class='col-md-3'><%= link_to c.name ,select_company_path(id: c.id, tab: 1) %></td>
+              <td class='col-md-1'>
+
+              <td class='col-md-1'>
+              <div class='popup' ng-show='company_in_delete_state[<%= i %>]'>
+                <div class='popup-content'>
+                  <h3>Are you Sure you to delete: <%= c.name %>? </h3>
+                </div>
+              </div>
+              </td>
+
+            </tr>
+
+            <tr ng-show='company_in_edit_state[<%= i %>]'>
+              <td class='col-md-1'><%= c.id %></td>
+              <%= form_for(:company, url:'company/update') do |f|%>
+                 <td class='col-md-3'>
+                  <%= f.text_field :name, value: c.name %>
+                 </td>
+                 <td class='col-md-1'>
+                  <%= f.hidden_field :id, value: c.id %>
+                  <%= f.submit 'Done', class: "btn btn-success"%>
+                 </td>
+              <% end %>
+              <td></td>
+            </tr>
+        <% end %>
+        <tr>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+ <% flash.each do |key, value| %>
+  <div class="alert alert-danger" style="text-align: center;">
+    <strong>Error!</strong> <%= value %>
+  </div>
+<% end %>
+<div class='companies' ng-controller='backendQuestionnaireController' ng-init='init(<%= @curr_company.questionnaire_status %>)'>
+  <div class='main-conatiner col-md-10 col-sm-offset-1'>
+    <table class="table table-striped ">
+      <thead >
+        <tr>
+          <th class='col-md-1'>id</th>
+          <th class='col-md-2'>Name</th>
+          <th class='col-md-1'> State</th>
+          <th class='col-md-1'>Start Date</th>
+          <th class='col-md-1'> Created At</th>
+          <th class='col-md-1'>Link To</th>
+          <th class='col-md-1'>Language</th>
+          <th class='col-md-1'>Sms Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @curr_company.questionnaire.to_a.each_with_index do |c, i| %>
+            <tr ng-show='!company_in_edit_state[<%= i %>]'>
+              <td class='col-md-1'><%= c.id %></td>
+              <td class='col-md-2'><%= c.name %></td>
+              <td class='col-md-1'><%= c.state %></td>
+              <td class='col-md-1'><%= c.sent_date %></td>
+              <td class='col-md-1'><%= c.created_at.strftime('%Y-%m-%d') %></td>
+              <td class='col-md-1'><%= link_to 'admin..' ,select_company_path(tab: 1, questionnaire_id: c.id) %></td>
+              <td class='col-md-1'><%= c.language[:name] %></td>
+              <td class='col-md-1'><%= c.sms_text %></td>
+              <td class='col-md-1'>
+                <button class='btn btn-primary' ng-click='toggleEditState(<%= i %>)'>Edit</button>
+              </td>
+
+            </tr>
+
+            <tr ng-show='company_in_edit_state[<%= i %>]'>
+              <td class='col-md-1'><%= c.id %></td>
+              <%= form_for(:mobile, url:'mobile_questionnaire/update') do |f|%>
+                <td class='col-md-3'>
+                  <%= f.text_field :name, value: c.name %>
+                </td>
+                <td class='col-md-1'></td>
+                <td class='col-md-1'></td>
+                <td class='col-md-1'></td>
+                <td class='col-md-1'></td>
+                <td class='col-md-1'>
+                  <%= f.select(:language_id, Language.all.collect {|l| [ l.name, l.id ] }) %>
+                </td>
+                <td class='col-md-1'>
+                  <%= f.text_area :sms_text, value: c.sms_text %>
+                </td>
+                <td class='col-md-1'>
+                  <%= f.hidden_field :questionnaire_id, value: c.id %>
+                  <%= f.submit 'Done', class: "btn btn-success"%>
+                </td>
+              <% end %>
+              <td></td>
+            </tr>
+        <% end %>
+        <tr>
+          <td class='col-md-1'>#</td>
+          <%= form_for(:mobile, url:'mobile_questionnaire/create') do |f|%>
+            <td class='col-md-2'>
+              <%= f.text_field :name %>
+            </td>
+            <td class='col-md-1'></td>
+            <td class='col-md-1'></td>
+            <td class='col-md-1'></td>
+            <td class='col-md-1'></td>
+            <td class='col-md-1'>
+              <%= f.select(:language_id, Language.all.collect {|l| [ l.name, l.id ] }) %>
+            </td>
+            <td class='col-md-1'>
+              <%= f.text_area :sms_text %>
+            </td>
+            <td class='col-md-1'>
+             <%= f.submit 'Create', class: "btn btn-primary"%>
+           </td>
+          <% end %>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

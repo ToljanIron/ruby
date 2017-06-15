@@ -1,0 +1,17 @@
+.footer {
+  color: white;
+  font-size: 11px;
+  .link {
+    float: left;
+    margin-left: 25px;
+    cursor: pointer;
+  }
+  .ws-version {
+    float: right;
+    margin-right: 25px;
+  }
+  .copyright {
+    float: right;
+    margin-right: 25px;
+  }
+}

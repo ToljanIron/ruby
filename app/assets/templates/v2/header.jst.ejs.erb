@@ -1,0 +1,39 @@
+<div class="header" ng-controller="headerController"  ng-init="init()" ng-class="{'mini-header-sticky': tabService.showMiniHeader}" >
+    <window-size screen-size='screen_size'></window-size>
+    <div class="step_logo" ng-class="{'mini_step_logo': tabService.showMiniHeader}">
+      <img class="step-logo-img" ng-src="{{tabService.showMiniHeader && 'assets/header_imgs/Mini_logo.png' || 'assets/header_imgs/Logo_Big.png'}}" ng-click="goToDefaultTab()">
+    </div>
+    <div class="tabs_container" ng-style='tabDims.getTabWidth' ng-click="tabService.showNotifications=false">
+      <div class="carusel_arrow_left" ng-class="{'mini_carusel_arrow_left': tabService.showMiniHeader}" ng-click="moveSliderLeft()">
+        <img class="tabs_bar_arrow_left" ng-show="currTabCount < 6" ng-src= "{{!canGoLeft() && 'assets/header_imgs/Arrow_L_idle.png' || 'assets/header_imgs/Arrow_L_selected.png'}}">
+      </div>
+      <div class="tab_slider_window" ng-style="tabDims.getTabWindowWidth">
+        <div class="tabs_bar" ng-style="{'transition': '1s', 'transform':'translateX('+ (-85 * tabDims.leftSeenTab) + 'px)'}">
+            <div class='title-user'></div>
+
+          <div ng-if ="data.companies.product_type==='questionnaire_only'" ng-repeat="tab in tabService.tab_list">
+            <div ng-if="tab.name!=='Dashboard' && tab.name!=='Workflow' && tab.name!=='Top Talent' && tab.name!=='Productivity'" class="tab_box {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
+              <mini-header ng-show='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></mini-header>
+              <header-tab ng-hide='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></header-tab>
+            </div>
+            <div ng-if="tab.name==='Dashboard' || tab.name==='Workflow' || tab.name==='Top Talent' || tab.name==='Productivity'" class="tab_box_inactive {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
+              <mini-header ng-show='tabService.showMiniHeader' atab='tab' ></mini-header>
+              <header-tab ng-hide='tabService.showMiniHeader' atab='tab' ></header-tab>
+            </div>
+          </div>
+
+          <div ng-if ="data.companies.product_type!=='questionnaire_only'" ng-repeat="tab in tabService.tab_list">
+            <div class="tab_box {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
+              <mini-header ng-show='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></mini-header>
+              <header-tab ng-hide='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></header-tab>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="carusel_arrow_right" ng-class="{'mini_carusel_arrow_right': tabService.showMiniHeader}" ng-click="moveSliderRight()">
+        <img class="tabs_bar_arrow_left" ng-show="currTabCount < 7" ng-src= "{{!canGoRight() && 'assets/header_imgs/Arrow_R_idle.png' || 'assets/header_imgs/Arrow_R_selected.png'}}">
+      </div>
+    </div>
+  </div>
+</div>

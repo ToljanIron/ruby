@@ -1,0 +1,23 @@
+<div class='mobile-wrapper' ng-controller="mobileClientController" ng-init="init('<%= @name %>','<%= @token %>')">
+  <div class='overlay-blocker' ng-show='mobile_app_service.isOverlayBlockerDisplayed()' ng-click='mobile_app_service.onClickOverlayBlocker()'>
+    <div class="overlay-message-box">
+      <div class='text'>
+      You must select <b>at least {{mobile_app_service.getOverlayBlockerMessage()}}</b> people. Use the undo button or search bar to select more people.</div>
+      <div class="close-btn">Close</div>
+    </div>
+  </div>
+  <div class='overlay-blocker' ng-show='mobile_app_service.isConnectionLostOverlayBlockerDisplayed()'>
+    <div class="overlay-internet-connection-box">
+      <div class='text'>
+        <b style='line-height: 1.5;'><%= I18n.t('questionnaire.connection_lost') %></b>
+
+      </div>
+    </div>
+  </div>
+  <div class='mobile-container'>
+    <div ng-include='"questionnaire"' ng-if='mobile_app_service.inQuestionnaireView()' class='questionnaire'></div>
+    <div ng-include='"finish"' ng-if='mobile_app_service.inFinishView()' class='finish'></div>
+    <div ng-include='"welcome_back"' ng-if='mobile_app_service.inWelcomeBackView()' class='welcome-back'></div>
+    <div ng-include='"first_enter"' ng-if='mobile_app_service.inFirstEnterView()' class='first-enter'></div>
+  </div>
+</div>

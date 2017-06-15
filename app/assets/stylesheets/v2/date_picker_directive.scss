@@ -1,0 +1,15 @@
+.date-picker-container {
+  .form-control {
+    display: block;
+  }
+}
+.dropdown-menu {
+  position: absolute;
+  right: 10px;
+  .glyphicon-chevron-left:before {
+    content: "\e079";
+  }
+  .glyphicon-chevron-right:before {
+    content: "\e079";
+  }
+}

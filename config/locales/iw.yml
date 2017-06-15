@@ -1,0 +1,59 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+
+iw:
+  questionnaire:
+    hi: 'שלום'
+    how_to_answer_html: 'לפניך שאלון אינטראקטיבי קצר.<br><b>הקש/י</b> או <b>החלק/י</b> על המסך לפי ההוראות על מנת לענות על השאלון'    
+    how_to_tap_html: '<b>הקש/י</b> על <p class=x-icon></p> או <p class=v-icon></p><br> על מנת לענות על השאלה' 
+    or: 'או'
+    how_to_swipe_html: '<b>החלק/י</b> ימינה על מנת לענות כן <br> <b>החלק/י</b> שמאלה על מנת לענות לא'
+    how_to_scroll_html: '<b>גלול/גללי</b> מטה או מעלה על מנת לעבור לעובד הבא ברשימה'
+    continue_button: 'המשך'
+    continue_later_button: 'המשך אחר כך'
+    close_button: 'סגור'
+    search: 'חפש'
+    question_completion_note_html: 'סיימת לענות על השאלה<br><br> להמשך בחר/י אחת מהאפשרויות הבאות בסרגל בתחתית המסך:'
+    revise_selection: 'חזור/חזרי לשאלה ושנה את בחירותיך'
+    continue_to_next_question: 'המשך'
+    thank_you: 'השאלון הסתיים'
+    thank_you_note: 'תודה רבה על השתתפותך'
+    questionnaire_completion_note: 'To complete the questionnaire, please continue to the following form'
+    welcome_back: 'שלום'
+    you_are_in_html: 'את/ה נמצא/ת ב<b>שאלה מספר</b>'
+    click_the_continue: 'הקש/י על הכפתור מטה על מנת להמשיך את השאלון'
+    continue_saved_session_button: 'המשכ/י לענות על השאלון'
+    saved: 'נשמר'
+    welcome: 'שלום'
+    start: 'התחל'
+    welcome_sentence: 'ברוך הבא לשאלון של StepAhead, לחץ "התחל" וענה על השאלות בדפים הבאים'
+    clear_selection: 'נקה בחירה'
+    error_answer_for_employees: 'סמן V או X עבור כל האנשים ברשימה על מנת להמשיך'
+    success_all_employees_answered: 'ענית על השאלה עבור כל האנשים ברשימה , ניתן להמשיך לשאלה הבאה'
+    resume: 'המשך'
+    must_select: 'עליך לבחור לפחות'
+    people_to_continue: 'אנשים על מנת להמשיך'
+    find_employees: 'חפש'
+    selected: 'עובדים שנבחרו'
+    connection_lost: 'Connection is lost please check your internet connection'
+  sms:
+    success: 'ברוכ/ה הבא/ה לשאלון הערכת עובדים מטעם חברת Stepahead. לחצ/י על הקישור כדי להתחיל את השאלון'
+    fail: 'ברוכ/ה הבא/ה לשאלון הערכת עובדים מטעם חברת Stepahead. מספר תעודת הזהות ששלחת אינו מופיע במערכת שלח/י שנית או פנה/י לתמיכה.'

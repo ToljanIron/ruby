@@ -1,0 +1,55 @@
+<div class='workships-canvas' ng-cloak="">
+  <div ng-controller='layoutController' ng-init='init()' class='layout_wrapper'>
+
+    <div action-after-scroll top='70' offset='22' action='move' class='collapse-sidebar-btn' ng-class="{'in-blocked-state': isBlocked()}" ng-style='getSidebarCollapseBtnStyle()' ng-show='!sidebar.show_personal_card'>
+      <img ng-if='sidebar.should_show_sidebar' src="<%= asset_path 'open_panel.png' %>" ng-click='onClickCollapseSidebarBtn()'>
+      <img ng-if='!sidebar.should_show_sidebar' src="<%= asset_path 'open_panel_reversed.png' %>"  ng-click='onClickCollapseSidebarBtn()'>
+    </div>
+
+    <div class='app-overlay-blocker' ng-class="{'overlay-blocker-grey' : (viewNameIsntAnalyzeOrDirectory() || reportModalIsDisplayed()) || presetModalIsDisplayed()}" ng-if='isBlocked()' ng-click='unblock()'></div>
+    <table class='layout'>
+      <tr class='header'>
+        <td colspan=2>
+          <div ng-include src="'header'"></div>
+        </td>
+      </tr>
+      <tr class='content'>
+        <td ng-show='sidebar.should_show_sidebar || show_setting_page' class='sidebar-container'>
+          <!-- <div ng-include src=" viewName + '_sidebar'"></div> -->
+          <include-directive awesome-if="isCurrentView('dashboard')" template="v1/dashboard_sidebar"> </include-directive>
+          <include-directive awesome-if="isCurrentView('analyze')" template="v1/analyze_sidebar"> </include-directive>
+          <include-directive awesome-if="isCurrentView('directory')" template="v1/directory_sidebar"> </include-directive> 
+          <include-directive awesome-if="isCurrentView('new_graph')" template="v1/new_graph_sidebar"> </include-directive>
+        </td>
+        <td class='main-container'>
+          <!-- <div ng-include src=" viewName + '_main'"></div> -->
+          <include-directive awesome-if="isCurrentView('setting')" template="v1/setting_main"> </include-directive>
+          <include-directive awesome-if="isCurrentView('dashboard')" template="v1/dashboard_main"> </include-directive>
+          <include-directive awesome-if="isCurrentView('analyze')" template="v1/graph"> </include-directive>
+          <include-directive awesome-if="isCurrentView('directory')" template="v1/directory_main"> </include-directive>
+          <include-directive awesome-if="isCurrentView('new_graph')" template="v1/new_graph_main"> </include-directive>
+        </td>
+      </tr>
+      <tr class='footer'>
+        <td colspan=2>
+          <div ng-include src="'footer'"></div>
+        </td>
+      </tr>
+    </table>
+    <div action-after-scroll top='200' action='show' class='back-to-top-btn clickable' ng-click='gotoTop();'>
+      <img src="<%= asset_path 'take_up_btn.png' %>"/>
+    </div>
+  </div>
+
+
+  <% if policy(:application).admin? %>
+  <% add_company %>
+  <% end %>
+  <script>
+    window.__workships_bootstrap__ = {
+      currentUser: <%= @current_user.to_json.html_safe %>,
+      companies: <%= @comapnies.to_json.html_safe %>
+    };
+  </script>
+</div>
+

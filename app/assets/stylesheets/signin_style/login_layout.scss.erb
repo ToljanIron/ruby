@@ -1,0 +1,610 @@
+@import url(//fonts.googleapis.com/css?family=Lato:300,400,700,900);
+.log-in-container { 
+    margin-left: auto;
+    margin-right: auto;
+    height: 450px;
+    margin-top: auto;
+    width: 880px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    margin: auto;
+.force_style.input:focus { 
+  outline: none;
+  border: 1px solid rgb(51, 153, 204);
+}
+input{
+  border: 1px #d6e3e8 solid;
+}
+.left-background {
+  
+  background: url(<%= asset_path 'sign-in-back-left-2.png' %>), url(<%= asset_path 'StepAhead-sign-in-logo.png' %>) no-repeat;
+  background-position: top 167px center;
+  width: 280px;
+  height: 450px;
+  position: absolute;  
+}
+
+.left-background-container {
+  background-color:  rgb(51, 153, 204);
+  width: 280px;
+  height: 450px;
+  float:left;
+
+}
+
+.login-layout
+{ 
+  background-color: #FFFFFF;
+  .login-layout-center
+  {
+    float:right;
+    width: 600px;
+    height: 450px;
+    float:right;
+    background-color:  #d6e3e8;
+
+    .login-title
+    {
+      padding-top: 65px;
+      font-weight: 400;
+      font-size: 37px;
+      font-family: 'Lato', sans-serif;
+      color:  #1f5d75;
+      height: 100px;
+      text-align: center;
+
+      p {
+        font-family: 'Lato', sans-serif;
+        color:  #1f5d75;
+        font-size: 37px;
+        font-weight: 400;
+        text-align: center;
+        margin-bottom: 15px;
+      }  
+      .login-second-title {
+        font-size: 14px;
+        font-weight: 500;
+        height: 150px;
+      }
+
+      .login-forgot-password {
+        height: 150px;
+      }
+    }
+
+   .login-form-forgotten {
+      margin-left: auto;
+      margin-right: 68px;
+      display: inline-block;
+      margin-top: 28px;
+      .email-for-forgotten {
+        width: 267px;
+        margin-top: 17px;
+        border-radius: 6px;
+        background-color: #ffffff;
+        text-align: left;
+        padding-left: 5px;
+        height: 35px;
+        box-sizing: border-box; 
+      }
+    }
+    .user-name
+    {
+      font-family: 'Lato', sans-serif;
+      padding-top: 2%;
+      color: #333333;
+      font-size: 12px;
+      margin-left: 96px;
+      font-weight: 400;
+      margin-right: 28px;
+      line-height: 27px;
+    }
+    .user-name-forgotten
+    {
+      display: inline-block;
+      font-family: 'Lato', sans-serif;
+      padding-top: 2%;
+      color: #333333;
+      font-size: 12px;
+      margin-right: 14px;
+      font-weight: 400;
+      line-height: 27px;
+    }
+    .user-name-reset-password
+    {
+      font-family: 'Lato', sans-serif;
+      padding-top: 2%;
+      color: #333333;
+      font-size: 12px;
+      margin-left: 101px;
+      font-weight: 400;
+      margin-right: 28px;
+      line-height: 27px;
+    }  
+    .user-name-reset-password-confirm
+    {
+      font-family: 'Lato', sans-serif;
+      padding-top: 2%;
+      color: #333333;
+      font-size: 12px;
+      margin-left: 57px;
+      font-weight: 400;
+      margin-right: 28px;
+      line-height: 27px;
+    }      
+   
+   
+    .email {
+      box-sizing: border-box;
+      border-radius: 6px;
+      background-color: #ffffff;
+      width: 267px;
+      padding-left: 5px;
+      height: 35px;
+      margin-left: 10px;
+      margin-right: 63px;
+      &.signin {
+        margin-left: 15px;
+      }
+      &.focus {
+        outline: none;
+        &.submitted {
+          border: 1px red solid;
+          outline: none  ;
+        }
+      }
+      &.submitted {
+        border: 1px red solid;
+        outline: none;
+      }
+    }
+    .password_field {
+      box-sizing: border-box;
+      margin-left: 18px;
+      margin-right: 60px;
+      border: none;
+      border-radius: 6px;
+      background-color:  #ffffff;
+      width: 267px;
+      padding-left: 5px;
+      height: 35px;
+
+      &.focus {
+        border: none ;
+        outline: none ;
+        margin-top: 0px;
+        border-radius: 10px;
+        margin-left: 52px;
+        background-color: red;
+         &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+      }
+      &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+    }      
+    .reset_password_field {
+      box-sizing: border-box;
+      margin-left: 13px;
+      border-radius: 6px;
+      background-color:  #ffffff;
+      width: 267px;
+      padding-left: 5px;
+      height: 35px;
+      &.signin {
+        margin-left: 18px;
+      }
+      &.focus {
+        border: none ;
+        outline: none ;
+        margin-top: 0px;
+        border-radius: 10px;
+        margin-left: 52px;
+        background-color: red;
+         &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+      }
+      &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+    }            
+    .login-form
+    {
+      height: 320px;
+      top: 100px;
+      .input-form
+      {
+        display: inline-flex;
+        margin-left: 55px;
+        .input
+        {
+          padding-left: 10px;
+        }
+        .email::-webkit-input-placeholder
+        {
+          color: gray;
+          padding-left: 9px;
+        }
+        .user-status-img
+        {
+          display: inline-block;
+          margin-left: -30px;
+        }
+      }
+      .password-form
+      {
+        padding-top: 22px;
+        .password-status-img
+        {
+          display: inline-block;
+          margin-left: -30px;
+        }
+      }
+      .email-status-img {
+        display: inline-block;
+        margin-left: -29px;
+      }
+      .empty-img
+      {
+        background:url(<%= asset_path 'empty.png' %>);
+        height: 15px;
+        width: 15px;
+      }
+      .exsist-img
+      {
+        background:url(<%= asset_path 'check_mark.png' %>);
+        height: 16px;
+        width: 17px;
+      }
+
+      .forgot-buttom
+      {
+        
+        margin-left: 163px;
+        margin-top: 90px;
+        .forgot-password-buttom
+        {
+          cursor: pointer;
+          background:url(<%= asset_path 'resend_password_buttom.png' %>);
+          height: 35px;
+          border: 0px;
+          padding: 0px;
+          width: 172px;
+        }
+      }
+
+      .remember-forgot-container {
+        padding-right: 28%;
+        padding-left: 7%;
+      }
+      .email-send-message {
+        position: relative;
+        top: 60px;
+      }
+      .error-message
+      {
+        background-color: #f7fafc;
+        color: #6a788d;
+        float: left;
+        font-size: 13pt;
+        font-weight: 600;
+        height: 60px;
+        line-height: 60px;
+        margin-top: 14px;
+        text-align: center;
+        width: 100%;
+        .exclamation-symbol-in-forgot-page {
+          margin-left: 44px;
+        }
+
+        .check-mark-symbol {
+          float: left;
+          margin-left: 59px;
+          margin-top: 22px;
+        } 
+        .content
+        {
+          float: left;
+          margin-left: 8px;
+        }
+      }
+    }
+    .forgot-password-form
+    {
+      height: 278px;
+    }
+    .alert, .danger {
+      position: absolute;
+      width: 200px;
+      text-align: center;
+      left: 50%;
+      margin-left: -100px;
+      top: 580px;
+      color: red;
+    }
+    .error {
+      display: none;
+    }
+  }
+  .invalid-username {
+    font-family: 'Lato', sans-serif;
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    padding-top: 33px;
+  }
+  .back-to-sign-in {
+
+    margin-top: 13px;
+    color:  #1f5d75;
+    .back-to-login-p {
+      font-family: 'Lato', sans-serif;
+      cursor: pointer;
+      border-width: thin;
+      border-bottom-style: groove;
+      text-align: center;
+      width: 63px;
+      font-size: 11px;
+      margin: 0 auto;
+      outline: none;
+
+    }
+  }
+}
+
+  .sign-in
+  {
+    margin-left: auto;
+    color: #333;
+    font-size: 9pt;
+    margin-right: auto;
+
+
+    .submit
+    {
+      outline: none;
+      cursor: pointer;
+      display: inline-block;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      font-family: 'Lato', sans-serif;
+      border-radius: 10px;
+      width: 267px;
+      height: 37px;
+      color: white;
+      margin-left: 166px;
+      background: orange;
+      p {
+        margin-top: 7px;
+      }
+      &:hover {
+        background: #EF9B00;
+      }
+      .forgot-submit {
+        margin-top: 45px;
+      }
+    }
+  }
+
+  .remember-me
+    {
+      font-family: 'Lato', sans-serif;
+      color: #333333;
+      font-size: 10px;
+      font-weight: 400;
+      line-height: 10px;
+      height: 35px;
+      margin-left: 164px;
+      width: 267px;
+      margin-top: 17px;
+      .remember-label
+      {
+        float: left;
+        margin-right: 5px;
+      }
+      .remember-check
+      {
+        background: transparent url(<%= asset_path 'sign-in-checkbox.png' %>) no-repeat 0 50%;
+        display: block;
+        clear: left;
+        float: left;
+        width: 13px;
+        height: 13px;
+        margin-left: 31%;
+        float: left;
+        padding-top: 1%;
+      }
+    }
+      .forgot-label
+      {
+        margin-top: 5px;
+        text-align: right;
+        font-family: 'Lato', sans-serif;
+        color:  #333333;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 10px;
+        text-align: center;
+        border-width: thin;
+        border-bottom-style: groove;
+        float: right;
+        cursor: pointer;
+        text-decoration: none;
+        top: -9px;
+        outline: none;
+      }
+
+    .submitted {
+        border: 1px red solid;
+        outline: none;
+      }
+    .email-sent-input{
+      border: 1px #7AC943 solid;
+      outline: none;      
+    }
+
+.rememeber-checkbox {
+    display: inline;
+    position: relative;
+    top: -2px;
+    font-size: 11px;
+  }
+.email-and-input-container {
+  margin-left: -67px;
+   .p {
+      font-family: 'Lato', sans-serif;
+      padding-top: 2%;
+      color: #333333;
+      font-size: 12px;
+      margin-left: 102px;
+      font-weight: 400;
+      margin-right: 28px;
+      line-height: 27px;
+         
+  }
+}
+.email-sent {
+  font-family: 'Lato', sans-serif;
+  color: #7AC943;
+  text-align: center;
+  font-size: 14px;
+  padding-top: 33px;  
+}
+
+.password-change-error {
+  font-family: 'Lato', sans-serif;
+  color: red;
+  text-align: center;
+  font-size: 14px;
+  padding-top: 33px;  
+}
+
+.confirm_password_field {
+      box-sizing: border-box;
+    border-radius: 6px;
+    background-color: #ffffff;
+    width: 267px;
+    padding-left: 5px;
+    height: 35px;
+    margin-left: 13px;
+    margin-right: 105px;
+    margin-bottom: 30px;
+    
+      &.focus {
+        outline: none;
+         &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+        }
+
+      &.submitted {
+        border: 1px red solid;
+          outline: none  ;
+       }
+      }
+
+.confirm_password_error_message {
+    font-family: 'Lato', sans-serif;
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    padding-top: 33px;
+      .exclamation-symbol-in-forgot-page {
+        margin-left: 44px;
+      }         
+    }
+.padder-div {
+  height: 22px;
+}
+.invalid-forgot-password {
+    font-family: 'Lato', sans-serif;
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    padding-top: 7px;  
+}
+.email-sent-forgot-password {
+  font-family: 'Lato', sans-serif;
+  color: #7AC943;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  padding-top: 13px;
+}
+      .sign-in-forgotten {
+        display: inline-block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 53px;
+        .submit-forgotten
+        {
+          outline: none;
+          cursor: pointer;
+          font-size: 18px;
+          font-weight: 700;
+          text-align: center;
+          border: none;
+          font-family: 'Lato', sans-serif;
+          border-radius: 10px;
+          width: 267px;
+          height: 37px;
+          color: white;
+          background: orange;
+          &:hover {
+          background: #EF9B00;
+          }
+        }
+      }
+
+
+.spectory-logo-container {
+  position: absolute;
+  top: 408px;
+  width: 600px;
+  display: inline;
+  .dev-log-container {
+    width: 126px;
+    display: inline-block;
+    margin: auto 0;
+    align: middle;
+    margin-bottom: 30px;
+    float: right;
+    margin-right: 10px;
+    .developed-by-p {
+      font-family: 'Lato', sans-serif;
+      color: #333333;
+      font-size: 10px;
+      font-weight: 400;
+      position: relative;
+      text-align: center;
+      float: left;
+      top: 17px;
+    }
+    .spectory-logo {
+      height: 20px;
+      width: 60px;
+      margin-top: 1px;
+      margin-left: 50%;
+      float: right;
+      img {
+        margin-top: 3px;
+        height: 78%;
+        width: 98%;
+      }
+    }
+  }
+}
+}

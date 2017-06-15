@@ -1,0 +1,28 @@
+<div  ng-class="{'fadeInLeft' : show_sidebar, 'fadeOutLeft': !show_sidebar }" class='dashboard_sidebar animated' ng-controller='dashboardSidebarController' ng-init='init(1)'> 
+
+<!--   <div class='dashboard-sidebar-overlay' ng-click='overlay_blocker_service.unblock()' ng-if='overlay_blocker_service.isBlocked()'></div> -->
+  <div class='search-tab'>
+     <img class='search-img' alt="find" src="<%= asset_path 'search_icon.png' %>"/>
+     <input type='text' placeholder="Find" ng-model="search_input" typeahead="search_node.name for search_node in search_list() | filter:$viewValue"  typeahead-on-select='onSelect($item)'/>
+  </div>
+  <div class='formal-pins-accordion'>
+    
+    <div class='accordion-item' ng-class="{'removed-bottom-padding': show_pins}">
+      <div ng-click='toggleShowPins()'>
+        <img ng-show='show_pins' class='arrow clickable' alt="arrow-down" src="<%= asset_path 'arrow_open.png' %>"/>
+        <img ng-show='!show_pins' class='arrow closed clickable' alt='arrow-colsed' src="<%= asset_path 'arrow_closed.png' %>"/>
+        <div class='item-name clickable' >Presets</div>
+      </div>
+      <div ng-include src="'presets_widget'"></div>
+    </div>
+   
+    <div class='accordion-item' ng-class="{'removed-bottom-padding': show_formal_structure}">
+      <div ng-click='toggleShowFormalStructure()'> 
+        <img ng-show='show_formal_structure' class='arrow clickable' ng-cloak alt="arrow-down" src="<%= asset_path 'arrow_open.png' %>"/>
+        <img ng-show='!show_formal_structure' class='arrow closed clickable' ng-cloak alt="arrow-colsed" src="<%= asset_path 'arrow_closed.png' %>"/>
+        <div class='item-name clickable'>Structure</div>
+      </div>
+      <div ng-show='show_formal_structure' ng-include src="'groups_widget'" ng-cloak></div>
+    </div>
+  </div>
+</div>

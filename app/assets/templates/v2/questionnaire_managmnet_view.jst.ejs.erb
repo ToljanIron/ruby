@@ -1,0 +1,18 @@
+<scrolling-panel reduce='247' min='true'>
+  <div class='questionnaire_managmnet-container'>
+    <div class='questionnaire-statistic-warper'>
+      <div class='questionnaire-statistic-state-percentage'>
+        <questionnaire-statistic-info heading-name="'Total'" value="questionnaire_participant.questionnaire_statistics.total" value-color="'#4d4d4d'" seperate-color="'  rgba(179,179,179,.3)'" seprate="true" ></questionnaire-statistic-info>
+        <questionnaire-statistic-info heading-name="'Completed'" value="questionnaire_participant.questionnaire_statistics.completed" value-color="'#22b573'" seperate-color="'  rgba(179,179,179,.3)'" seprate="true" ></questionnaire-statistic-info>
+        <questionnaire-statistic-info heading-name="'In Progress'" value="questionnaire_participant.questionnaire_statistics.in_progress" value-color="'#ffce00'" seperate-color="'  rgba(179,179,179,.3)'" seprate="true" ></questionnaire-statistic-info>
+        <questionnaire-statistic-info heading-name="not_started" value="questionnaire_participant.questionnaire_statistics.havent_started" value-color="'#ff0000'" seperate-color="'  rgba(179,179,179,.3)'" seprate="false" ></questionnaire-statistic-info>
+      </div>
+      <div class='questionnaire-statistic-time-data'>
+        <questionnaire-statistic-info heading-name="'created at'" value="q.created_at" value-color="'#4a55e5'" seperate-color="'rgba(74, 85, 229, 0.3)'" seprate="true" ></questionnaire-statistic-info>
+        <questionnaire-statistic-info heading-name="'last sent at'" value="q.sent_date" value-color="'#4a55e5'" seperate-color="'rgba(74, 85, 229, 0.3)'" seprate="true" ></questionnaire-statistic-info>
+        <questionnaire-statistic-info heading-name="'last submitted'" value="q.last_submitted" value-color="'#4a55e5'" seperate-color="'rgba(74, 85, 229, 0.3)'" seprate="false" ></questionnaire-statistic-info>
+      </div>
+    </div>
+    <filter-employee-table employees='questionnaire_participant.participants_employees' freeze-state='freezeState' resend='openResendModal(q_id, qp)' resend-all='openResendModal(q_id)' freeze='freezeQuestionnaire()' q-id='questionnaire_participant.q_id'></filter-employee-table>
+  </div>
+</scrolling-panel>

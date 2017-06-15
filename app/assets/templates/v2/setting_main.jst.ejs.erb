@@ -1,0 +1,25 @@
+<div class='setting-container' ng-controller='settingController' ng-init='init()'>
+  <div class='title'> Setting</div>
+  <div class='add-external-metric clickable' ng-click='addExternalMetric()'>
+    ADD External Metric
+  </div>
+  <div class='external-metric' ng-repeat='metric_data in external_data_list'>
+    <form name='Metric'>
+      <div class='remove-external-metric clickable' ng-click='removeExternalMetric(metric_data, $index)'>Remove Metric</div>
+      <div class='metric-title'>
+        Metric name:
+        <input type='text' name='metricName' ng-model='metric_data.metric_name' required>
+      </div>
+      <div class='error'> <div class='blank-error' ng-show='!Metric.metricName.$valid'> Metric can't be blank </div> </div>
+      <div class='add-snapshot-score clickable' ng-click='addSnapshotScore(metric_data.score_list)'>Add Snapshot + </div>
+      <div name='SnapshotList' class='snapshot-cls' ng-repeat='snapshot_data in metric_data.score_list'> 
+        <select ng-model='snapshot_data.snapshot_id' ng-options='snapshot.sid as snapshot.time for snapshot in snapshot_list'></select>
+          Score:
+        <input class='input-number' name='score' type='number'  ng-pattern="/^\d{0,9}(\.\d{1,9})?$/" ng-model="snapshot_data.score" required>
+        <div class='remove-score clickable' ng-click='removeScore(metric_data.score_list, $index)'> X </div>
+      </div>
+    </form>
+  </div>
+  <div class='error-submit' ng-show='submit_error'> {{ submit_error_messeage}}</div>
+  <div class='submit clickable' ng-click='submit()'>Submit</div>
+</div>
