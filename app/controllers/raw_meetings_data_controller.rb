@@ -11,9 +11,11 @@ class RawMeetingsDataController < ApiController
         process_meetings_request JSON.parse(request.body.read)
         render json: 'ok', status: 200
       rescue => e
-        puts 'import_meetings: Error! Failed to process raw-meetings-data from client', e.to_s
+        puts 'import_meetings: Error! Failed to process raw-meetings-data from client'
+        message = e.message[0...1000]
+        puts message
         puts e.backtrace.join("\n")
-        render json: e.to_s, status: 500
+        render json: message, status: 500
         raise ActiveRecord::Rollback
       end
     end
