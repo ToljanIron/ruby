@@ -239,11 +239,12 @@ angular.module('workships').controller('layoutController', function ($scope, $ti
     $scope.obs = overlayBlockerService;
     $scope.StateService = StateService;
     $scope.tabService = tabService;
+
     switch(window.__workships_bootstrap__.companies.product_type) {
       case 'questionnaire_only':
         $scope.tabService.selectTab('Collaboration');
         $scope.viewName = "Collaboration";
-        break
+        break;
       default:
         $scope.tabService.selectTab('Dashboard');
         $scope.viewName = "Dashboard";
@@ -259,5 +260,4 @@ angular.module('workships').controller('layoutController', function ($scope, $ti
     $scope.show_higligthed = false;
     $scope.show_left_on_explore = true;
   };
-
 });

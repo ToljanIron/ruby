@@ -17,6 +17,7 @@ module InteractAlgorithmsHelper
                   nsd.from_employee_id IN (#{emps.join(',')}) AND
                   nsd.to_employee_id   IN (#{emps.join(',')})
                   ) AS nsdjoin ON nsdjoin.from_employee_id = emp.id
+       WHERE emp.id IN (#{emps.join(',')})
        GROUP BY emp.id"
     indeg = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     indeg
@@ -38,6 +39,7 @@ module InteractAlgorithmsHelper
                   nsd.from_employee_id IN (#{emps.join(',')}) AND
                   nsd.to_employee_id   IN (#{emps.join(',')})
                   ) AS nsdjoin ON nsdjoin.to_employee_id = emp.id
+       WHERE emp.id IN (#{emps.join(',')})
        GROUP BY emp.id"
     outdeg = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     outdeg

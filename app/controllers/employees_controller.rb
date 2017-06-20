@@ -32,7 +32,6 @@ class EmployeesController < ApplicationController
       end
       cache_write(cache_key, res)
     end
-    pp res
     render json: { employees: res }, status: 200
   end
 

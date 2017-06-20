@@ -26,6 +26,8 @@ class Employee < ActiveRecord::Base
     self.email       = email.strip.downcase
     self.first_name  = safe_titleize(first_name.strip)
     self.last_name   = safe_titleize(last_name.strip)
+    sid = Snapshot.last_snapshot_of_company(company_id)
+    self.snapshot_id = !sid.nil? ? -1 : sid
   end
 
   validates :email, presence:   true, format:     { with: UtilHelper::VALID_EMAIL_REGEX }, uniqueness: { case_sensitive: false }
@@ -226,4 +228,29 @@ class Employee < ActiveRecord::Base
     }
   end
 
+  def self.create_snapshot(prev_sid, sid)
+   return if Employee.where(snapshot_id: sid).count > 0
+   prev_sid = -1 if Employee.where(snapshot_id: prev_sid).count == 0
+
+   ActiveRecord::Base.connection.execute(
+      "INSERT INTO employees
+         (company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
+         home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
+         role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
+         age_group_id, seniority_id, formal_level, active, phone_number, id_number, snapshot_id)
+         SELECT company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
+                home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
+                role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
+                age_group_id, seniority_id, formal_level, active, phone_number, id_number, #{sid}
+         FROM employees
+         WHERE snapshot_id = #{prev_sid}"
+    )
+  end
+
+  def set_default_snapshot
+    cid = Company.find(company_id).id
+    sid = Snapshot.last_snapshot_of_company(cid)
+    update(snapshot_id: sid)
+    return sid
+  end
 end

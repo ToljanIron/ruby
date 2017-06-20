@@ -249,4 +249,39 @@ describe Employee, type: :model do
     end
   end
 
+  describe 'create_snapshot in employee' do
+    before do
+      FactoryGirl.create(:employee, role_id: 10)
+    end
+
+    it 'create without speciving a snapshot should create employee with snapshot_id -1' do
+      expect(Employee.first.role_id).to eq(10)
+      expect(Employee.first.snapshot_id).to eq(-1)
+    end
+
+    it 'should create a new snapshot 100 from snapshot -1' do
+      Employee.create_snapshot(-1, 100)
+      expect(Employee.count).to eq(2)
+      expect(Employee.last.snapshot_id).to eq(100)
+    end
+
+    it 'should do nothing if employees already exists in this snapshot' do
+      Employee.create_snapshot(-1, 100)
+      Employee.create_snapshot(-1, 100)
+      expect(Employee.count).to eq(2)
+      expect(Employee.first.snapshot_id).to eq(-1)
+      expect(Employee.last.snapshot_id).to eq(100)
+    end
+
+    it 'should create a new snapshot 101 from snapshot 100 with the change in role_id' do
+      Employee.create_snapshot(-1, 100)
+      Employee.where(snapshot_id: 100).update_all(role_id: 11)
+      Employee.create_snapshot(100, 101)
+      expect(Employee.count).to eq(3)
+      expect(Employee.last.snapshot_id).to eq(101)
+      expect(Employee.last.role_id).to eq(11)
+    end
+
+  end
+
 end

@@ -36,11 +36,13 @@ module SessionsHelper
   end
 
   def add_company
-    @comapnies = Company.all
+    @companies = Company.all
   end
 
   def add_company_for_hr
-    @comapnies = Company.find(current_user.company_id)
+    company = Company.find(current_user.company_id)
+    @companies = "{produt_type: '#{company.product_type}'}"
+    return  @Companies
   end
 
   def logged_in?
@@ -64,6 +66,10 @@ module SessionsHelper
 
   def display_emails?
     @should_display_emails = CompanyConfigurationTable::is_investigation_mode?
+  end
+
+  def get_company_type
+    return Company.find(current_user.company_id).product_type
   end
 end
 

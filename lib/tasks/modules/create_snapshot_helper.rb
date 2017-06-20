@@ -26,11 +26,17 @@ module CreateSnapshotHelper
     duplicate_network_snapshot_data_for_weekly_snapshots(company_id, sid.id)
     puts "In calc_meaningfull_emails"
     EmailSnapshotDataHelper.calc_meaningfull_emails(sid.id)
-    puts "Done create_company_snapshot_by_weeks"
     if CompanyConfigurationTable.find_by(comp_id: company_id, key: 'process_meetings').try(:value) == 'true'
       start_date = end_date - get_period_of_weeks(company_id).to_i.week
       MeetingsHelper.create_meetings_for_snapshot(sid.id, start_date, end_date)
     end
+    puts "Creating employees snapshot"
+    Employee.create_snapshot(cid, sid)
+
+    puts "Creating groups snapshot"
+    Group.create_snapshot(cid, sid)
+
+    puts "Done create_company_snapshot_by_weeks"
     return sid
   end
 
@@ -278,13 +284,14 @@ module CreateSnapshotHelper
 
   def duplicate_network_snapshot_data_for_weekly_snapshots(company_id, sid)
     return true if (Snapshot.where(company_id: company_id).count == 1)
+    emails_network_id = NetworkName.get_emails_network(company_id)
     previous_sid = Snapshot.find(sid).get_the_snapshot_before_the_last_one.id
     ActiveRecord::Base.connection.execute(
       "insert into network_snapshot_data
          (snapshot_id, network_id, company_id, from_employee_id, to_employee_id, value, original_snapshot_id)
          select #{sid}, network_id, #{company_id}, from_employee_id, to_employee_id, value, #{previous_sid}
            from network_snapshot_data
-           where snapshot_id = #{previous_sid}"
+           where snapshot_id = #{previous_sid} and network_id <> #{emails_network_id}"
     )
 
     return true

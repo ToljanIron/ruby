@@ -255,7 +255,7 @@ class MeasuresController < ApplicationController
 
   def find_company_metrics(cid)
     if Company.find(cid).questionnaire_only?
-      company_metrics = CompanyMetric.where(algorithm_type_id: 8)
+      company_metrics = CompanyMetric.where(algorithm_type_id: 8, company_id: cid)
     else
       measure_comapny_metrics_ids_with_analyze = CompanyMetric.where(company_id: cid, algorithm_type_id: [MEASURE, FLAG, GAUGE]).where.not(analyze_company_metric_id: nil).pluck(:id)
       measure_comapny_metrics_ids_in_ui_level = measure_comapny_metrics_ids_with_analyze.select { |mid| !UiLevelConfiguration.find_by(company_metric_id: mid).nil? }
