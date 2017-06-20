@@ -162,5 +162,12 @@ describe Group, type: :model do
       expect(Group.last.snapshot_id).to eq(101)
       expect(Group.last.parent_group_id).to eq(11)
     end
+
+    it 'should not copy over inactive groups to new snapshot' do
+      Group.last.update(active: false)
+      Group.create_snapshot(-1, 100)
+      expect(Group.count).to eq(3)
+      expect(Group.where(snapshot_id: 100).first.name).to eq('group_1')
+    end
   end
 end

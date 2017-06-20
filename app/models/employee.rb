@@ -243,7 +243,7 @@ class Employee < ActiveRecord::Base
                 role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
                 age_group_id, seniority_id, formal_level, active, phone_number, id_number, #{sid}
          FROM employees
-         WHERE snapshot_id = #{prev_sid}"
+         WHERE snapshot_id = #{prev_sid} and active is true"
     )
   end
 

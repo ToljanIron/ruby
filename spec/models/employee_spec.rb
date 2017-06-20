@@ -7,6 +7,7 @@ describe Employee, type: :model do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
+    FactoryGirl.reload
   end
 
   subject { @employee }
@@ -280,6 +281,14 @@ describe Employee, type: :model do
       expect(Employee.count).to eq(3)
       expect(Employee.last.snapshot_id).to eq(101)
       expect(Employee.last.role_id).to eq(11)
+    end
+
+    it 'should not copy over inactive employees to new snapshot' do
+      FactoryGirl.create(:employee, role_id: 10)
+      Employee.last.update(active: false)
+      Employee.create_snapshot(-1, 100)
+      expect(Employee.count).to eq(3)
+      expect(Employee.where(snapshot_id: 100).first.email).to eq('employee2@domain.com')
     end
   end
 end
