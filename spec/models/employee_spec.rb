@@ -254,7 +254,7 @@ describe Employee, type: :model do
       FactoryGirl.create(:employee, role_id: 10)
     end
 
-    it 'create without speciving a snapshot should create employee with snapshot_id -1' do
+    it 'create without specifying a snapshot should create employee with snapshot_id -1' do
       expect(Employee.first.role_id).to eq(10)
       expect(Employee.first.snapshot_id).to eq(-1)
     end
@@ -281,7 +281,5 @@ describe Employee, type: :model do
       expect(Employee.last.snapshot_id).to eq(101)
       expect(Employee.last.role_id).to eq(11)
     end
-
   end
-
 end
