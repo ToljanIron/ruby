@@ -11,6 +11,11 @@ class Group < ActiveRecord::Base
 
   scope :by_company_id, ->(company_id) { Group.where(company_id: company_id) }
 
+  before_save do
+    sid = Snapshot.last_snapshot_of_company(company_id)
+    self.snapshot_id = !sid.nil? ? -1 : sid
+  end
+
   def sibling_groups
     Group.where(parent_group_id: parent_group_id).where.not(id: id)
   end
@@ -25,7 +30,7 @@ class Group < ActiveRecord::Base
     res
   end
 
-#Returns all managers in group and sub-groups
+  #Returns all managers in group and sub-groups
   def get_managers
     res = extract_employees
     hash = {}
@@ -99,5 +104,18 @@ class Group < ActiveRecord::Base
     parents = get_all_parent_groups(parents)
     parents.push(nil) unless parents.empty?
     parents
+  end
+
+  def self.create_snapshot(prev_sid, sid)
+   return if Group.where(snapshot_id: sid).count > 0
+   prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
+
+   ActiveRecord::Base.connection.execute(
+      "INSERT INTO groups
+         (name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, snapshot_id)
+         SELECT name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, #{sid}
+         FROM groups
+         WHERE snapshot_id = #{prev_sid}"
+    )
   end
 end
