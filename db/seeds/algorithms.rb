@@ -11,7 +11,8 @@ Algorithm.find_or_create_by!(id: 144, name: 'no_of_emails_sent_for_explore', alg
 Algorithm.find_or_create_by!(id: 149, name: 'avg_subject_length', algorithm_type_id: 5, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 150, name: 'avg_subject_length_to_explore', algorithm_type_id: 5, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 154, name: 'political_power_flag', algorithm_type_id: 2, algorithm_flow_id: 1)
-Algorithm.find_or_create_by!(id: 600, name: 'spammers_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 700, name: 'spammers_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 701, name: 'blitzed_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 100, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)

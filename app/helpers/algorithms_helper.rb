@@ -1422,6 +1422,10 @@ module AlgorithmsHelper
     return calc_outdegree_for_to_matrix(sid, gid, pid)
   end
 
+  def blitzed_measure(sid, gid, pid)
+    return calc_indegree_for_to_matrix(sid, gid, pid)
+  end  
+
   ##################### V3 formatting utilities ###################################################
   #
   def result_zero_padding(empids, scores)
@@ -1479,14 +1483,16 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
+  # 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
+  # 
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
   end
-
+  
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
@@ -1671,16 +1677,25 @@ module AlgorithmsHelper
     res = []
     inner_select = get_inner_select_as_arr(cid, pid, gid)
     current_snapshot_nodes = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid)
+    
+    puts "*****************"
+
     if matrix_name == 4
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select).select("#{direction} as id, count(id) as total_sum").group(direction)
     else
+      puts "1"
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select, to_type: matrix_name).select("#{direction} as id, count(id) as total_sum").group(direction)
     end
+    
+    puts "current_snapshot_nodes?\n #{current_snapshot_nodes}"
+    
     current_snapshot_nodes.each do |emp|
+      puts "emp ? #{emp}"
       res << { id: emp.id, measure: emp.total_sum }
     end
+    puts "*****************"
 
     return result_zero_padding(inner_select, res)
   end

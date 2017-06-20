@@ -2,7 +2,8 @@
 require 'date'
 require './app/helpers/algorithms_helper.rb'
 require './app/helpers/email_snapshot_data_helper.rb'
-require './app/helpers/email_traffic_helper.rb'
+# require './app/helpers/email_traffic_helper.rb'
+require './app/helpers/email_traffic_helper_OLD.rb'
 require './app/helpers/calculate_measure_for_custom_data_system_helper.rb'
 
 module CalculateMeasureForCustomDataSystemHelper
