@@ -300,9 +300,6 @@ module CalculateMeasureForCustomDataSystemHelper
         res[uil_id] = data if !data.nil? && !data[:degree_list].empty?
       end
     end
-    puts "++++++++++++++++"
-    ap res
-    puts "++++++++++++++++"
     return res
   end
 
@@ -481,8 +478,8 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def number_of_employees(cid, pid, gid)
     return Group.find(gid).try(:extract_employees).try(:count) if pid == NO_PIN && gid != NO_GROUP
-    return EmployeesPin.where(pin_id: pid).try(:count) if pid != NO_PIN && gid == NO_GROUP
-    return Employee.where(company_id: cid).try(:count)
+    return EmployeesPin.where(pin_id: pid).try(:count, active: true) if pid != NO_PIN && gid == NO_GROUP
+    return Employee.where(company_id: cid, active: true).try(:count)
   end
 
   def self.normalize(arr, max)
