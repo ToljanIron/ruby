@@ -26,8 +26,10 @@ class Employee < ActiveRecord::Base
     self.email       = email.strip.downcase
     self.first_name  = safe_titleize(first_name.strip)
     self.last_name   = safe_titleize(last_name.strip)
-    sid = Snapshot.last_snapshot_of_company(company_id)
-    self.snapshot_id = !sid.nil? ? -1 : sid
+    if snapshot_id.nil?
+      sid = Snapshot.last_snapshot_of_company(company_id)
+      self.snapshot_id = sid.nil? ? -1 : sid
+    end
   end
 
   validates :email, presence:   true, format:     { with: UtilHelper::VALID_EMAIL_REGEX }, uniqueness: { case_sensitive: false }

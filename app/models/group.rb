@@ -10,11 +10,20 @@ class Group < ActiveRecord::Base
   validates :name, presence: true, length: { maximum: 150 }
   validates :company_id, presence: true
 
-  scope :by_company_id, ->(company_id) { Group.where(company_id: company_id) }
+  scope :by_snapshot, ->(sid) {
+    raise 'snapshot_id cant be nil' if sid.nil?
+    Group.where(snapshot_id: sid)
+  }
 
-  before_save do
-    sid = Snapshot.last_snapshot_of_company(company_id)
-    self.snapshot_id = !sid.nil? ? -1 : sid
+  before_save      do
+    if snapshot_id.nil?
+      sid = Snapshot.last_snapshot_of_company(company_id)
+      self.snapshot_id = sid.nil? ? -1 : sid
+    end
+  end
+
+  def self.testfunc
+    return session.to_hash
   end
 
   def sibling_groups
@@ -118,5 +127,14 @@ class Group < ActiveRecord::Base
          FROM groups
          WHERE snapshot_id = #{prev_sid} and active is true"
     )
+  end
+
+  private
+
+  def set_default_snapshot
+    cid = Company.find(company_id).id
+    sid = Snapshot.last_snapshot_of_company(cid)
+    update(snapshot_id: sid)
+    return sid
   end
 end

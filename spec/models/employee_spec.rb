@@ -257,25 +257,25 @@ describe Employee, type: :model do
 
     it 'create without specifying a snapshot should create employee with snapshot_id -1' do
       expect(Employee.first.role_id).to eq(10)
-      expect(Employee.first.snapshot_id).to eq(-1)
+      expect(Employee.first.snapshot_id).to eq(1)
     end
 
-    it 'should create a new snapshot 100 from snapshot -1' do
-      Employee.create_snapshot(-1, 100)
+    it 'should create a new snapshot 100 from snapshot 1' do
+      Employee.create_snapshot(1, 100)
       expect(Employee.count).to eq(2)
       expect(Employee.last.snapshot_id).to eq(100)
     end
 
     it 'should do nothing if employees already exists in this snapshot' do
-      Employee.create_snapshot(-1, 100)
-      Employee.create_snapshot(-1, 100)
+      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 100)
       expect(Employee.count).to eq(2)
-      expect(Employee.first.snapshot_id).to eq(-1)
+      expect(Employee.first.snapshot_id).to eq(1)
       expect(Employee.last.snapshot_id).to eq(100)
     end
 
     it 'should create a new snapshot 101 from snapshot 100 with the change in role_id' do
-      Employee.create_snapshot(-1, 100)
+      Employee.create_snapshot(1, 100)
       Employee.where(snapshot_id: 100).update_all(role_id: 11)
       Employee.create_snapshot(100, 101)
       expect(Employee.count).to eq(3)
@@ -286,7 +286,7 @@ describe Employee, type: :model do
     it 'should not copy over inactive employees to new snapshot' do
       FactoryGirl.create(:employee, role_id: 10)
       Employee.last.update(active: false)
-      Employee.create_snapshot(-1, 100)
+      Employee.create_snapshot(1, 100)
       expect(Employee.count).to eq(3)
       expect(Employee.where(snapshot_id: 100).first.email).to eq('employee2@domain.com')
     end
