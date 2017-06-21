@@ -24,6 +24,14 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.relays_measure(args)
+    key = "relays_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.relays_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
   ########################## v2 and V1 algorithms #######################
 
   def self.most_isolated_to_args(args)

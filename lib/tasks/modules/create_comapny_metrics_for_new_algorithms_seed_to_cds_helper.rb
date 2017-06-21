@@ -11,7 +11,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     bottleneck_id            = MetricName.find_or_create_by(name: 'Bottleneck', company_id: cid).id
     spammers_id              = MetricName.find_or_create_by(name: 'Spammers', company_id: cid).id
     blitzed_id               = MetricName.find_or_create_by(name: 'Blitzed', company_id: cid).id
-
+    relays_id               = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
+    
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2)
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: communication_network_id, company_id: cid, algorithm_id: 16, algorithm_type_id: 1)
@@ -20,6 +21,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
 
     CompanyMetric.find_or_create_by(metric_id: spammers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 700, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: blitzed_id, network_id: communication_network_id, company_id: cid, algorithm_id: 701, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: relays_id, network_id: communication_network_id, company_id: cid, algorithm_id: 702, algorithm_type_id: 1)
   end
 
   def create_new_seed_for_sinks(cid)
