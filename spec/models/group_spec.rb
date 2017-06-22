@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Group, type: :model do
   def create_groups
     Company.create!(id: 0, name: 'comp')
-    @parent_group = FactoryGirl.create(:group, name: 'parent', company_id: 0)
-    @child_group =  FactoryGirl.create(:group, name: 'child', company_id: 0, parent_group_id: @parent_group.id)
+    @parent_group = FactoryGirl.create(:group, name: 'parent', company_id: 0, snapshot_id: 1)
+    @child_group =  FactoryGirl.create(:group, name: 'child', company_id: 0, parent_group_id: @parent_group.id, snapshot_id: 1)
     @child_group_employees_ids = []
     @parent_group_employees_ids = []
     @total_employess = rand(100) + 2
@@ -12,7 +12,7 @@ describe Group, type: :model do
 
   def create_employees
     (1..@total_employess).each do
-      e = FactoryGirl.create(:employee)
+      e = FactoryGirl.create(:employee, snapshot_id: 1)
       if rand(100) > 50
         e.group = @parent_group
         @parent_group_employees_ids.push e.id
@@ -48,7 +48,8 @@ describe Group, type: :model do
       FactoryGirl.create(:group, name: "name_#{i}", company_id: id)
       counter += 1 if company_id == id
     end
-    expect((Group.by_company_id company_id).count).to eq(counter)
+    sid = Group.where(company_id: company_id).first
+    expect((Group.by_snapshot(sid)).count).to eq(counter)
   end
 
   describe ', with invalid data should be invalid' do
@@ -78,11 +79,13 @@ describe Group, type: :model do
       res = @parent_group.extract_employees.count
       expect(res).to eq(@total_employess)
     end
+
     it ', parent_group should contain the set of all employees' do
       res = @parent_group.extract_employees | @child_group.extract_employees
       expected = @parent_group_employees_ids | @child_group_employees_ids
       expect(res.sort).to eq(expected.sort)
     end
+
     it ', child_group should be a subset of parent_group' do
       res = @child_group.extract_employees
       expect(res.sort).to eq(@child_group_employees_ids.sort)

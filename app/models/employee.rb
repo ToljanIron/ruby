@@ -44,6 +44,11 @@ class Employee < ActiveRecord::Base
   scope :aliases, ->(id) { EmployeeAliasEmail.where(employee_id: id) }
   scope :by_company_id, ->(company_id) { Employee.where(company_id: company_id) }
   scope :size, ->() { Employee.count }
+  scope :by_snapshot, ->(sid) {
+    raise 'snapshot_id cant be nil' if sid.nil?
+    Employee.where(snapshot_id: sid)
+  }
+
   enum gender: [:male, :female]
 
   def self.job_title_by_company_id(company_id)
