@@ -1424,6 +1424,7 @@ module AlgorithmsHelper
 
   def blitzed_measure(sid, gid, pid)
     return calc_indegree_for_to_matrix(sid, gid, pid)
+    return calc_degree_for_specified_matrix()
   end
 
   def relays_measure(sid, gid, pid)
@@ -1431,7 +1432,7 @@ module AlgorithmsHelper
   end
 
   ##################### V3 formatting utilities ###################################################
-  #
+  
   def result_zero_padding(empids, scores)
     res = []
     empids.each do |eid|
@@ -1487,21 +1488,18 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
-  # 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+    # calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+    calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, group_id, pin_id)
   end
-  # 
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
   end
   
-  # 
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
-  # 
 
   def calc_outdegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
@@ -1713,7 +1711,7 @@ module AlgorithmsHelper
 
     fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, to_type: 1, 
       from_type: 3, to_employee_id: inner_select, from_employee_id: inner_select).
-    select("#{EMAIL_OUT} as id, count(id) as total_sum").group(EMAIL_OUT)
+    select("#{EMAILS_OUT} as id, count(id) as total_sum").group(EMAILS_OUT)
 
     fwded_emails.each do |emp_fwd|
       total_to_measure.each do |emp|

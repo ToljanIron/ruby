@@ -145,9 +145,9 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e5.id, @e3.id, FWD, TO, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e3.id, FWD, TO, @s.id, 0, @n1.id)
         
-        # because of floats - any number below the threshold should be considered as zero
+        # Because of floats - any number below the threshold should be considered as zero
         # value set arbitrarily and can be higher/lower
-        @zero_threshold = 0.05
+        @zero_threshold = 0.01
 
         @fwd_res = calc_relative_fwd(@s.id)
         @fwd_res.each {|m| puts "#{m}\n"}

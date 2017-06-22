@@ -15,7 +15,7 @@ class ApiClient < ActiveRecord::Base
     ApiClient.create(client_name: client_name, token: SecureRandom.hex(30), expires_on: DateTime.now + TOKEN_LIFE)
   end
 
-  def self.authenticate_client(token)
+  def self.authenticate_client(token)    
     client = ApiClient.where(token: token).first
     return if client.nil?
     client.update_last_contact

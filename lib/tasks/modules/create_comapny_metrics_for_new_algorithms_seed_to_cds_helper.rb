@@ -11,7 +11,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     bottleneck_id            = MetricName.find_or_create_by(name: 'Bottleneck', company_id: cid).id
     spammers_id              = MetricName.find_or_create_by(name: 'Spammers', company_id: cid).id
     blitzed_id               = MetricName.find_or_create_by(name: 'Blitzed', company_id: cid).id
-    relays_id               = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
+    relays_id                = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
     
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2)
