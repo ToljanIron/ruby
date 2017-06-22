@@ -63,6 +63,14 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.emails_volume_measure(args)
+    key = "emails_volume_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.emails_volume_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
   ########################## v2 and V1 algorithms #######################
 
   def self.most_isolated_to_args(args)

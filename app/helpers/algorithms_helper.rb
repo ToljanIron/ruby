@@ -1446,6 +1446,10 @@ module AlgorithmsHelper
     return calc_indegree_for_bcc_matrix(sid, gid, pid)
   end
 
+  def emails_volume_measure(sid, gid, pid)
+    calc_emails_volume(sid, gid, pid)
+  end
+
   ##################### V3 formatting utilities ###################################################
   
   def result_zero_padding(empids, scores)
@@ -1642,21 +1646,32 @@ module AlgorithmsHelper
     res = []
     emp_list = []
     if direction == EMAILS_IN
-      to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      # 22.6.17 - replaced method calls from EmailTrafficHelper - Michael K. 
+      # to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+      # cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
+      # bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      to_degree = calc_indegree_for_to_matrix(snapshot_id, group_id, pin_id)
+      cc_degree = calc_indegree_for_cc_matrix(snapshot_id, group_id, pin_id)
+      bcc_degree = calc_indegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
     else
-      to_degree = calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      cc_degree = calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      bcc_degree = calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      # to_degree = calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+      # cc_degree = calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
+      # bcc_degree = calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      to_degree = calc_outdegree_for_to_matrix(snapshot_id, group_id, pin_id)
+      cc_degree = calc_outdegree_for_cc_matrix(snapshot_id, group_id, pin_id)
+      bcc_degree = calc_outdegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
     end
+
     union = to_degree + cc_degree + bcc_degree
-    union.each do |entry|
-      res[entry[:id]] = 0 if res[entry[:id]].nil?
-      res[entry[:id]] += entry[:measure]
-    end
-    res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
-    emp_list
+
+    # 22.6.17 - replaced with method sum_and_minimize_array_of_hashes_by_key_field - Michael K.
+    # union.each do |entry|
+    #   res[entry[:id]] = 0 if res[entry[:id]].nil?
+    #   res[entry[:id]] += entry[:measure]
+    # end
+    # res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
+    # emp_list
+    return sum_and_minimize_array_of_hashes_by_key_field(union, 'id', 'measure')
   end
 
   def calc_normalized_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1719,7 +1734,6 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-
   def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
     
     cid = find_company_by_snapshot(sid)
@@ -1741,6 +1755,13 @@ module AlgorithmsHelper
       end
     end
     return result_zero_padding(inner_select, res)
+  end
+
+  def calc_emails_volume(sid, group_id = NO_GROUP, pin_id = NO_PIN)
+    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, group_id, pin_id)
+    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, group_id, pin_id)
+    union = in_result + out_result
+    return sum_and_minimize_array_of_hashes_by_key_field(union, 'id', 'measure')
   end
 
   def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1825,6 +1846,7 @@ module AlgorithmsHelper
   end
 
   ################ Utilities ###########################################
+
   def self.get_members_in_group(pinid, gid, company_id)
     return Group.find(gid).extract_employees if pinid == NO_PIN && gid != NO_GROUP
     return CdsPinsHelper.get_inner_select_by_pin_as_arr(pinid) if pinid != NO_PIN && gid == NO_GROUP
@@ -1834,6 +1856,39 @@ module AlgorithmsHelper
     return nil
   end
 
+  # Utility function to add numbers by same index in different hashes in the array
+  # 
+  # +array+:: array to add and  minimize
+  # +key+:: key by which to minimize values
+  # +value+:: value to sum
+  # 
+  # Example: calling the method like this: 
+  # sum_and_minimize_array_of_hashes_by_key_field(array, 'id', 'num') where the
+  # array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
+  # will return: [{id: 1, num: 5},{id: 2, num: 18}]
+  # 
+  # Notice that the addition for the 1st and 3rd hash was: 2+3, and the addition for
+  # the 2nd and 4th was 10+8. They were added like that, because the  
+  def sum_and_minimize_array_of_hashes_by_key_field(array, key, value)
+    temp = []
+    result = []
+    stringified_array = []
+
+    # stringify hashes
+    array.each do |entry|
+      stringified_array << entry.stringify_keys
+    end
+
+    stringified_array.each do |entry|
+      temp[entry[key]] = 0 if temp[entry[key]].nil?
+      temp[entry[key]] += entry[value]
+    end    
+    temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
+    puts "**********************"
+    puts "result?\n#{result}"
+    puts "**********************"
+    return result
+  end
 end
 
 def find_company_by_snapshot(snapshot_id)
