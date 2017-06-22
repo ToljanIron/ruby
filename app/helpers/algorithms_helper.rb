@@ -1664,14 +1664,14 @@ module AlgorithmsHelper
 
     union = to_degree + cc_degree + bcc_degree
 
-    # 22.6.17 - replaced with method sum_and_minimize_array_of_hashes_by_key_field - Michael K.
+    # 22.6.17 - replaced with method sum_and_minimize_array_of_hashes_by_key - Michael K.
     # union.each do |entry|
     #   res[entry[:id]] = 0 if res[entry[:id]].nil?
     #   res[entry[:id]] += entry[:measure]
     # end
     # res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
     # emp_list
-    return sum_and_minimize_array_of_hashes_by_key_field(union, 'id', 'measure')
+    return sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
   end
 
   def calc_normalized_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1761,7 +1761,7 @@ module AlgorithmsHelper
     in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, group_id, pin_id)
     out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, group_id, pin_id)
     union = in_result + out_result
-    return sum_and_minimize_array_of_hashes_by_key_field(union, 'id', 'measure')
+    return sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
   end
 
   def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1863,13 +1863,13 @@ module AlgorithmsHelper
   # +value+:: value to sum
   # 
   # Example: calling the method like this: 
-  # sum_and_minimize_array_of_hashes_by_key_field(array, 'id', 'num') where the
+  # sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') where the
   # array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]
   # 
   # Notice that the addition for the 1st and 3rd hash was: 2+3, and the addition for
   # the 2nd and 4th was 10+8. They were added like that, because the  
-  def sum_and_minimize_array_of_hashes_by_key_field(array, key, value)
+  def sum_and_minimize_array_of_hashes_by_key(array, key, value)
     temp = []
     result = []
     stringified_array = []
