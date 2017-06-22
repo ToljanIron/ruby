@@ -14,6 +14,10 @@ Algorithm.find_or_create_by!(id: 154, name: 'political_power_flag', algorithm_ty
 Algorithm.find_or_create_by!(id: 700, name: 'spammers_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 701, name: 'blitzed_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 702, name: 'relays_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 703, name: 'ccers_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 704, name: 'cced_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 705, name: 'undercover_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 706, name: 'politicos_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 100, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)

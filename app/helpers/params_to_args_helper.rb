@@ -31,6 +31,37 @@ module ParamsToArgsHelper
       return AlgorithmsHelper.relays_measure(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
+  def self.ccers_measure(args)
+    key = "ccers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.ccers_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.cced_measure(args)
+    key = "cced_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.cced_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.undercover_measure(args)
+    key = "undercover_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.undercover_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.politicos_measure(args)
+    key = "politicos_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.politicos_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
 
   ########################## v2 and V1 algorithms #######################
 

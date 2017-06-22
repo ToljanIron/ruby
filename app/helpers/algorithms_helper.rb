@@ -1424,11 +1424,26 @@ module AlgorithmsHelper
 
   def blitzed_measure(sid, gid, pid)
     return calc_indegree_for_to_matrix(sid, gid, pid)
-    return calc_degree_for_specified_matrix()
   end
 
   def relays_measure(sid, gid, pid)
     return calc_relative_fwd(sid, gid, pid)
+  end
+
+  def ccers_measure(sid, gid, pid)
+    return calc_outdegree_for_cc_matrix(sid, gid, pid)
+  end
+
+  def cced_measure(sid, gid, pid)
+    return calc_indegree_for_cc_matrix(sid, gid, pid)
+  end
+
+  def undercover_measure(sid, gid, pid)
+    return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+  end
+
+  def politicos_measure(sid, gid, pid)
+    return calc_indegree_for_bcc_matrix(sid, gid, pid)
   end
 
   ##################### V3 formatting utilities ###################################################
@@ -1493,8 +1508,13 @@ module AlgorithmsHelper
     calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, group_id, pin_id)
   end
 
+  def calc_indegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_degree_for_specified_matrix(snapshot_id, CC_MATRIX, EMAILS_IN, group_id, pin_id)
+  end
+
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+    # calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+    calc_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_IN, group_id, pin_id)
   end
   
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
