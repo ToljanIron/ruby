@@ -236,22 +236,25 @@ class Employee < ActiveRecord::Base
   end
 
   def self.create_snapshot(prev_sid, sid)
-   return if Employee.where(snapshot_id: sid).count > 0
-   prev_sid = -1 if Employee.where(snapshot_id: prev_sid).count == 0
+    return if Employee.where(snapshot_id: sid).count > 0
+    prev_sid = -1 if Employee.where(snapshot_id: prev_sid).count == 0
+    raise 'Groups have to be bumped into new snapshot before employees' if (Group.by_snapshot(sid).count == 0)
 
-   ActiveRecord::Base.connection.execute(
+    ActiveRecord::Base.connection.execute(
       "INSERT INTO employees
          (company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
          home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
          role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
          age_group_id, seniority_id, formal_level, active, phone_number, id_number, snapshot_id)
-         SELECT company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
-                home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
-                role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
-                age_group_id, seniority_id, formal_level, active, phone_number, id_number, #{sid}
-         FROM employees
-         WHERE snapshot_id = #{prev_sid} and active is true"
-    )
+         SELECT emps.company_id, email, emps.external_id, first_name, last_name, date_of_birth, employment, gender,
+                new_group.id, home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
+                role_id, office_id, work_start_date, img_url, img_url_last_updated, emps.color_id, emps.created_at, emps.updated_at,
+                age_group_id, seniority_id, formal_level, emps.active, phone_number, id_number, #{sid}
+         FROM employees as emps
+         JOIN groups AS orig_group ON orig_group.id = emps.group_id
+         JOIN groups AS new_group ON new_group.external_id = orig_group.external_id and new_group.snapshot_id = #{sid}
+         WHERE emps.snapshot_id = #{prev_sid} and emps.active is true"
+     )
   end
 
   def set_default_snapshot

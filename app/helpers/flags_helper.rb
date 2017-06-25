@@ -1,8 +1,5 @@
-require './app/helpers/advise_helper.rb'
 require './app/helpers/employee_management_relation_helper.rb'
 module FlagsHelper
-  include FriendshipsHelper
-  include AdviseHelper
   include PinsHelper
   include EmployeeManagementRelationHelper
   include SelectionHelper

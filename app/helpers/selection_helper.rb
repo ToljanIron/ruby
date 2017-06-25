@@ -1,6 +1,5 @@
 module SelectionHelper
   include PinsHelper
-  include GroupsHelper
   NO_PIN ||= -1
   NO_GROUP ||= -1
 

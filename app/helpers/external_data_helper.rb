@@ -1,6 +1,4 @@
-require './app/helpers/calculate_measure_helper.rb'
 module ExternalDataHelper
-  include CalculateMeasureHelper
   def get_external_data(company_id)
     res = []
     metric_list = ExternalDataMetric.where(company_id: company_id)

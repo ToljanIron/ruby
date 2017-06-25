@@ -379,7 +379,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def cds_get_group_measure_data(cid, gid, cm)
     algorithm_id = cm.algorithm_id
     result = { snapshots: {}, graph_data: { data: { values: [] } } }
-    gid = Group.where(company_id: cid, parent_group_id: nil).pluck(:id) if gid.nil?
+    gid = Group.get_parent_group(cid).pluck(:id) if gid.nil?
     subgroups = Group.where(parent_group_id: gid).pluck(:id)
     return nil if subgroups.empty?
     data = CdsMetricScore.where(algorithm_id: algorithm_id, company_id: cid, subgroup_id: subgroups.to_a).order('score DESC')

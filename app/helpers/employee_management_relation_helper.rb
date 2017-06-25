@@ -1,7 +1,5 @@
 module EmployeeManagementRelationHelper
   include PinsHelper
-  include GroupsHelper
-  include AdviseHelper
   include UtilHelper
   include SelectionHelper
 
@@ -116,17 +114,10 @@ module EmployeeManagementRelationHelper
     return "select id from employees where company_id = #{company_id}"
   end
 
-  # def get_relations_arr(_pid, _gid, snapshot) DEAD CODE ASAF BYEBUG
-  #   return "select employee_id, friend_id from friendships_snapshots where friend_flag = 1
-  #   AND snapshot_id = #{snapshot} "
-  # end
-
   def get_all_emps(cid, pid, gid)
     if pid == NO_PIN && gid != NO_GROUP
       gid = gid.class == Fixnum ? gid : gid.id
-      group = Group.find(gid)
-      empsarr = group.extract_employees
-      return empsarr
+      return Group.find(gid).extract_employees
     end
     if pid != NO_PIN && gid == NO_GROUP
       return EmployeesPin.where(pin_id: pid).pluck(:employee_id)

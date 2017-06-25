@@ -253,6 +253,8 @@ describe Employee, type: :model do
   describe 'create_snapshot in employee' do
     before do
       FactoryGirl.create(:employee, role_id: 10)
+      FactoryGirl.create(:group, external_id: 'group-1',snapshot_id: 100)
+      FactoryGirl.create(:group, external_id: 'group-1',snapshot_id: 101)
     end
 
     it 'create without specifying a snapshot should create employee with snapshot_id -1' do
@@ -289,6 +291,16 @@ describe Employee, type: :model do
       Employee.create_snapshot(1, 100)
       expect(Employee.count).to eq(3)
       expect(Employee.where(snapshot_id: 100).first.email).to eq('employee2@domain.com')
+    end
+
+    it 'should be assigned to the correct group' do
+      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 101)
+      expect(Employee.last.group_id).to eq(Group.last.id)
+    end
+
+    it 'should throw an exception if creating a snapshot which dont have groups yet' do
+      expect{ Employee.create_snapshot(1, 102) }.to raise_error(RuntimeError, 'Groups have to be bumped into new snapshot before employees')
     end
   end
 end
