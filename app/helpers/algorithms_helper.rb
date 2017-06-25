@@ -145,14 +145,14 @@ module AlgorithmsHelper
     result
   end
 
-  def self.no_of_emails_sent(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: snapshot_id).first.company_id
+  def self.no_of_emails_sent(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, cid)
     network = NetworkSnapshotData.emails(cid)
     sqlstr = "SELECT from_employee_id, COUNT(DISTINCT(message_id)) AS emails_sum
               FROM network_snapshot_data
               WHERE from_employee_id IN (#{emps.join(',')})
-              AND snapshot_id           = #{snapshot_id}
+              AND snapshot_id           = #{sid}
               AND network_id            = #{network}
               GROUP BY from_employee_id"
     sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -166,14 +166,14 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: 0.to_f }]
   end
 
-  def self.no_of_emails_received(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: snapshot_id).first.company_id
+  def self.no_of_emails_received(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, cid)
     network = NetworkSnapshotData.emails(cid)
     sqlstr = "SELECT to_employee_id, COUNT(DISTINCT(message_id)) AS emails_sum
               FROM network_snapshot_data
               WHERE to_employee_id IN (#{emps.join(',')})
-              AND snapshot_id         = #{snapshot_id}
+              AND snapshot_id         = #{sid}
               AND network_id          = #{network}
               GROUP BY to_employee_id"
     sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -187,9 +187,9 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: 0.to_f }]
   end
 
-# Gets a snapshot and a group number, returns the average number of attendees from said group in meetings related to it
-  def self.average_no_of_attendees(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: snapshot_id).first.company_id
+  # Gets a snapshot and a group number, returns the average number of attendees from said group in meetings related to it
+  def self.average_no_of_attendees(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, cid)
     groups = get_group_and_all_its_descendants(gid)
     groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
@@ -198,7 +198,7 @@ module AlgorithmsHelper
                     JOIN meeting_attendees  AS mee_att    ON mee_att.meeting_id = mee.id
                     JOIN employees          AS emp        ON emp.id             = mee_att.attendee_id
                     WHERE emp.group_id IN   (#{groups.join(',')})
-                    AND   mee.snapshot_id   =#{snapshot_id}"
+                    AND   mee.snapshot_id   =#{sid}"
     denominator = ActiveRecord::Base.connection.select_all(sqlstrdenom).to_hash
     denominator = denominator[0]["count"].to_f
     return [{ group_id: gid, measure: 0.to_f }] if denominator == 0
@@ -207,15 +207,15 @@ module AlgorithmsHelper
                     JOIN meetings           AS mee    ON mee_att.meeting_id = mee.id
                     JOIN employees          AS emp    ON emp.id             = mee_att.attendee_id
                     WHERE emp.group_id IN   (#{groups.join(',')})
-                    AND   mee.snapshot_id   =#{snapshot_id}"
+                    AND   mee.snapshot_id   =#{sid}"
     numerator = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
     numerator = numerator[0]["count"].to_f
     return [{ group_id: gid, measure: (numerator/denominator).to_f}]
   end
 
-# Gets a snapshot and a group number, returns the time spent in meetings in proportion of the group's size
-  def self.proportion_time_spent_on_meetings(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: snapshot_id).first.company_id
+  # Gets a snapshot and a group number, returns the time spent in meetings in proportion of the group's size
+  def self.proportion_time_spent_on_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, cid)
     groups = get_group_and_all_its_descendants(gid)
     groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
@@ -225,7 +225,7 @@ module AlgorithmsHelper
                   JOIN meeting_attendees  AS mee_att  ON mee_att.meeting_id = mee.id
                   JOIN employees          AS emp      ON emp.id             = mee_att.attendee_id
                   WHERE emp.group_id IN (#{groups.join(',')})
-                  AND   snapshot_id     =#{snapshot_id}"
+                  AND   snapshot_id     =#{sid}"
     numerator = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
     numerator = numerator[0]["sum"].to_f
     return [{ group_id: gid, measure: 0.to_f }] if numerator == 0
@@ -246,7 +246,6 @@ module AlgorithmsHelper
 
   def manager_never_in_meetings_flag(sid, pid, gid)
     res = read_or_calculate_and_write("manager_never_in_meetings_flag-#{sid}-#{pid}-#{gid}") do
-      # cid = find_company_by_snapshot(sid)
       group = Group.find(gid)
       inner_select = group.get_managers
       weeklyWorkHours = 50
@@ -790,25 +789,25 @@ module AlgorithmsHelper
     return arra
   end
 
-  def self.volume_for_group(snapshot_id, company, pid, gid)
-    all_metrix_and_employees_in_group = calculate_inn_degree_email(snapshot_id, nil, company, pid, gid)
+  def self.volume_for_group(sid, company, pid, gid)
+    all_metrix_and_employees_in_group = calculate_inn_degree_email(sid, nil, company, pid, gid)
     all_metrix = all_metrix_and_employees_in_group[0]
     emp_arr = all_metrix_and_employees_in_group[1]
-    all_metrix_and_employees_off_group = calculate_outn_degree_email(snapshot_id, nil, company, pid, gid)
+    all_metrix_and_employees_off_group = calculate_outn_degree_email(sid, nil, company, pid, gid)
     v_email_degs = sum_up_in_and_out_emails_for_company(all_metrix_and_employees_off_group, all_metrix, emp_arr)
     return v_email_degs
   end
 
-  def self.volume_of_emails(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    v_email_degs = volume_for_group(snapshot_id, company, pid, gid)
-    v_email_degs = grade_all_groups(company, v_email_degs)
+  def self.volume_of_emails(sid, pid = NO_PIN, gid = NO_GROUP)
+    company = Snapshot.find(sid).company_id
+    v_email_degs = volume_for_group(sid, company, pid, gid)
+    v_email_degs = grade_all_groups(company, sid, v_email_degs)
     v_email_degs = sort_results(v_email_degs)
     return v_email_degs
   end
 
-  def self.volume_of_emails_for_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
+  def self.volume_of_emails_for_explore(sid, pid = NO_PIN, gid = NO_GROUP)
+    company = Snapshot.find(sid).company_id
     emp_arr = get_members_in_group(pid, gid, company)
     arr = []
     emp_arr.each do |emp_one|
@@ -946,8 +945,8 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: 0 }] if emps.count == 0
   end
 
-  def self.no_of_isolates_for_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
+  def self.no_of_isolates_for_explore(sid, pid = NO_PIN, gid = NO_GROUP)
+    company = Snapshot.find(sid).company_id
     emp_arr = get_members_in_group(pid, gid, company)
     arr = []
     emp_arr.each do |emp_one|
@@ -956,9 +955,9 @@ module AlgorithmsHelper
     return arr
   end
 
-  def self.grade_all_groups(company, v_email_degs)
+  def self.grade_all_groups(company, sid, v_email_degs)
     group_degrees = []
-    Group.where(company_id: company).each do |grp|
+    Group.by_snapshot(sid).where(company_id: company).each do |grp|
       emp_arr = get_members_in_group(NO_PIN, grp.id, company)
       grades_for_employee = 0
       emp_arr.each do |employee|
