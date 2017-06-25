@@ -11,7 +11,13 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     bottleneck_id            = MetricName.find_or_create_by(name: 'Bottleneck', company_id: cid).id
     spammers_id              = MetricName.find_or_create_by(name: 'Spammers', company_id: cid).id
     blitzed_id               = MetricName.find_or_create_by(name: 'Blitzed', company_id: cid).id
-    relays_id               = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
+    relays_id                = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
+    ccers_id                 = MetricName.find_or_create_by(name: 'Ccers', company_id: cid).id
+    cced_id                  = MetricName.find_or_create_by(name: 'Cced', company_id: cid).id
+    undercover_id            = MetricName.find_or_create_by(name: 'Undercover', company_id: cid).id
+    politicos_id             = MetricName.find_or_create_by(name: 'Politicos', company_id: cid).id   
+    emails_volume_id         = MetricName.find_or_create_by(name: 'Emails Volume', company_id: cid).id   
+    deadends_id         = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id   
     
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2)
@@ -22,6 +28,12 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: spammers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 700, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: blitzed_id, network_id: communication_network_id, company_id: cid, algorithm_id: 701, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: relays_id, network_id: communication_network_id, company_id: cid, algorithm_id: 702, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: ccers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 703, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: cced_id, network_id: communication_network_id, company_id: cid, algorithm_id: 704, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: undercover_id, network_id: communication_network_id, company_id: cid, algorithm_id: 705, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: politicos_id, network_id: communication_network_id, company_id: cid, algorithm_id: 706, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: emails_volume_id, network_id: communication_network_id, company_id: cid, algorithm_id: 707, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: deadends_id, network_id: communication_network_id, company_id: cid, algorithm_id: 708, algorithm_type_id: 1)
   end
 
   def create_new_seed_for_sinks(cid)

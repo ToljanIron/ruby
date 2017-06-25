@@ -31,6 +31,13 @@ module AlgorithmsHelper
   BCC_MATRIX ||= 3
   ALL_MATRIX ||= 4
 
+  # From type - init, fwd or reply
+  INIT  ||= 1
+  FWD  ||= 2
+  REPLY  ||= 3
+
+  TO ||=1
+
   BOSS         ||= 10
   ADVICEE_BOSS ||= 11
 
@@ -818,98 +825,59 @@ module AlgorithmsHelper
     return arr
   end
 
-  def self.find_sinks(array, limit)
-    result = []
-    array.each do |possible_sink|
-      result.push(id: possible_sink['empid'].to_i, measure: 1) if possible_sink['emails_sum'].to_f > limit.to_f
-      result.push(id: possible_sink['empid'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
-    end
-    result
-  end
+  # def self.find_sinks(array, limit)
+  #   result = []
+  #   array.each do |possible_sink|
+  #     result.push(id: possible_sink['empid'].to_i, measure: 1) if possible_sink['emails_sum'].to_f > limit.to_f
+  #     result.push(id: possible_sink['empid'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
+  #   end
+  #   result
+  # end
 
-  def self.find_sinks_to_explore(array, limit)
-    result = []
-    array.each do |possible_sink|
-      result.push(id: possible_sink['to_employee_id'].to_i, measure: possible_sink['emails_sum'].to_f) if possible_sink['emails_sum'].to_f > limit.to_f
-      result.push(id: possible_sink['to_employee_id'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
-    end
-    result
-  end
+  # def self.find_sinks_to_explore(array, limit)
+  #   result = []
+  #   array.each do |possible_sink|
+  #     result.push(id: possible_sink['to_employee_id'].to_i, measure: possible_sink['emails_sum'].to_f) if possible_sink['emails_sum'].to_f > limit.to_f
+  #     result.push(id: possible_sink['to_employee_id'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
+  #   end
+  #   result
+  # end
 
-  def self.sinks(sid, pid = NO_PIN, gid = NO_GROUP, cid, emps)
-    emps = get_members_in_group(pid, gid, cid)
-    nid  = NetworkSnapshotData.emails(cid)
+  # def self.flag_sinks(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
+  #   cid = Snapshot.find(snapshot_id).company.id
+  #   emps = get_members_in_group(pid, gid, cid)
+  #   if NetworkSnapshotData.where(snapshot_id: snapshot_id, network_id: NetworkSnapshotData.emails(cid)).empty?
+  #     ratios = []
+  #     emps.each do |ratio|
+  #       ratios.push(id: ratio.to_i, measure: 0)
+  #     end
+  #     return ratios
+  #   end
+  #   ratios = sinks(snapshot_id, pid, gid, cid, emps)
 
-    sqlstr =
-      "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
-      FROM employees AS emps
-      LEFT JOIN (SELECT tonsd.to_employee_id AS toempid, count(*) AS toempcount
-            FROM network_snapshot_data AS tonsd
-            WHERE
-            network_id = #{nid} AND
-            snapshot_id = #{sid}
-            GROUP BY tonsd.to_employee_id) AS toemps ON toemps.toempid = emps.id
-      LEFT JOIN (SELECT fromnsd.from_employee_id AS fromempid, count(*) AS fromempcount
-            FROM network_snapshot_data AS fromnsd
-            WHERE
-            network_id = #{nid} AND
-            snapshot_id = #{sid}
-            GROUP BY fromnsd.from_employee_id) AS fromemps ON fromemps.fromempid = emps.id
-      WHERE emps.id in (#{emps.join(',')})
-      ORDER BY emps.id"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+  #   q_one = find_q1_max(json_to_array_sinks(ratios))
+  #   q_three = find_q3_min(json_to_array_sinks(ratios))
+  #   iqr = q_three - q_one
+  #   sinks = find_sinks(ratios, q_three + 1.5 * iqr)
+  #   return sinks
+  # end
 
-    ratios = []
-    sqlres.each do |e|
-      toempcount   = e['toempcount']
-      fromempcount = e['fromempcount']
-      next if toempcount.nil?
-
-      elm = {}
-      elm['empid'] = e['empid']
-      elm['emails_sum'] = 100 if (!toempcount.nil? && fromempcount.nil?)
-      elm['emails_sum'] = toempcount.to_f / fromempcount.to_f if (!toempcount.nil? && !fromempcount.nil?)
-
-      ratios << elm
-    end
-    ratios = ratios.sort { |a,b| a['emails_sum'] <=> b['emails_sum'] }
-    return ratios
-  end
-
-  def self.flag_sinks(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.find(snapshot_id).company.id
-    emps = get_members_in_group(pid, gid, cid)
-    if NetworkSnapshotData.where(snapshot_id: snapshot_id, network_id: NetworkSnapshotData.emails(cid)).empty?
-      ratios = []
-      emps.each do |ratio|
-        ratios.push(id: ratio.to_i, measure: 0)
-      end
-      return ratios
-    end
-    ratios = sinks(snapshot_id, pid, gid, cid, emps)
-    q_one = find_q1_max(json_to_array_sinks(ratios))
-    q_three = find_q3_min(json_to_array_sinks(ratios))
-    iqr = q_three - q_one
-    sinks = find_sinks(ratios, q_three + 1.5 * iqr)
-    return sinks
-  end
-
-  def self.flag_sinks_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    emps = get_members_in_group(pid, gid, company)
-    if NetworkSnapshotData.emails(cid).where(snapshot_id: snapshot_id).empty?
-      ratios = []
-      emps.each do |ratio|
-        ratios.push(id: ratio.to_i, measure: 0)
-      end
-      return ratios
-    end
-    ratios = sinks(snapshot_id, pid, gid, company, emps)
-    q_one = find_q1_max(json_to_array_sinks(ratios))
-    q_three = find_q3_min(json_to_array_sinks(ratios))
-    iqr = q_three - q_one
-    return find_sinks_to_explore(ratios, q_three + 1.5 * iqr)
-  end
+  # def self.flag_sinks_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
+  #   company = Snapshot.find(snapshot_id).company_id
+  #   emps = get_members_in_group(pid, gid, company)
+  #   if NetworkSnapshotData.emails(cid).where(snapshot_id: snapshot_id).empty?
+  #     ratios = []
+  #     emps.each do |ratio|
+  #       ratios.push(id: ratio.to_i, measure: 0)
+  #     end
+  #     return ratios
+  #   end
+  #   ratios = calc_sinks(snapshot_id, pid, gid, company, emps)
+  #   q_one = find_q1_max(json_to_array_sinks(ratios))
+  #   q_three = find_q3_min(json_to_array_sinks(ratios))
+  #   iqr = q_three - q_one
+  #   return find_sinks_to_explore(ratios, q_three + 1.5 * iqr)
+  # end
 
   def self.no_of_isolates(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
     company = Snapshot.find(snapshot_id).company_id
@@ -1430,8 +1398,32 @@ module AlgorithmsHelper
     return calc_relative_fwd(sid, gid, pid)
   end
 
+  def ccers_measure(sid, gid, pid)
+    return calc_outdegree_for_cc_matrix(sid, gid, pid)
+  end
+
+  def cced_measure(sid, gid, pid)
+    return calc_indegree_for_cc_matrix(sid, gid, pid)
+  end
+
+  def undercover_measure(sid, gid, pid)
+    return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+  end
+
+  def politicos_measure(sid, gid, pid)
+    return calc_indegree_for_bcc_matrix(sid, gid, pid)
+  end
+
+  def emails_volume_measure(sid, gid, pid)
+    return calc_emails_volume(sid, gid, pid)
+  end
+
+  def deadends_measure(sid, gid, pid)
+    return calc_deadends(sid, gid, pid)
+  end
+
   ##################### V3 formatting utilities ###################################################
-  #
+  
   def result_zero_padding(empids, scores)
     res = []
     empids.each do |eid|
@@ -1487,21 +1479,23 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
-  # 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+    # calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+    calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, group_id, pin_id)
   end
-  # 
+
+  def calc_indegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_degree_for_specified_matrix(snapshot_id, CC_MATRIX, EMAILS_IN, group_id, pin_id)
+  end
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+    # calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+    calc_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_IN, group_id, pin_id)
   end
   
-  # 
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
-  # 
 
   def calc_outdegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
@@ -1624,21 +1618,32 @@ module AlgorithmsHelper
     res = []
     emp_list = []
     if direction == EMAILS_IN
-      to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      # 22.6.17 - replaced method calls from EmailTrafficHelper - Michael K. 
+      # to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+      # cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
+      # bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      to_degree = calc_indegree_for_to_matrix(snapshot_id, group_id, pin_id)
+      cc_degree = calc_indegree_for_cc_matrix(snapshot_id, group_id, pin_id)
+      bcc_degree = calc_indegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
     else
-      to_degree = calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      cc_degree = calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      bcc_degree = calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      # to_degree = calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+      # cc_degree = calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
+      # bcc_degree = calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+      to_degree = calc_outdegree_for_to_matrix(snapshot_id, group_id, pin_id)
+      cc_degree = calc_outdegree_for_cc_matrix(snapshot_id, group_id, pin_id)
+      bcc_degree = calc_outdegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
     end
+
     union = to_degree + cc_degree + bcc_degree
-    union.each do |entry|
-      res[entry[:id]] = 0 if res[entry[:id]].nil?
-      res[entry[:id]] += entry[:measure]
-    end
-    res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
-    emp_list
+
+    # 22.6.17 - replaced with method sum_and_minimize_array_of_hashes_by_key - Michael K.
+    # union.each do |entry|
+    #   res[entry[:id]] = 0 if res[entry[:id]].nil?
+    #   res[entry[:id]] += entry[:measure]
+    # end
+    # res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
+    # emp_list
+    return sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
   end
 
   def calc_normalized_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1689,6 +1694,9 @@ module AlgorithmsHelper
     if matrix_name == 4
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select).select("#{direction} as id, count(id) as total_sum").group(direction)
+    elsif matrix_name == 3
+      current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
+      inner_select, to_type: matrix_name).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction)
     else
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select, to_type: matrix_name).select("#{direction} as id, count(id) as total_sum").group(direction)
@@ -1701,7 +1709,6 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-
   def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
     
     cid = find_company_by_snapshot(sid)
@@ -1711,9 +1718,9 @@ module AlgorithmsHelper
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
 
-    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, to_type: 1, 
-      from_type: 3, to_employee_id: inner_select, from_employee_id: inner_select).
-    select("#{EMAIL_OUT} as id, count(id) as total_sum").group(EMAIL_OUT)
+    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD, 
+      to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
+    select("#{EMAILS_OUT} as id, count(id) as total_sum").group(EMAILS_OUT)
 
     fwded_emails.each do |emp_fwd|
       total_to_measure.each do |emp|
@@ -1722,7 +1729,106 @@ module AlgorithmsHelper
         end
       end
     end
-    return result_zero_padding(inner_select, res)
+    result = result_zero_padding(inner_select, res)
+    return result
+  end
+
+  def calc_emails_volume(sid, group_id = NO_GROUP, pin_id = NO_PIN)
+    res = []
+
+    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, group_id, pin_id)
+    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, group_id, pin_id)
+    union = in_result + out_result
+
+    temp = sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
+    temp.each {|entry| res << entry.symbolize_keys}
+    
+    return res
+  end
+  
+  def calc_deadends(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+
+    # emps = get_members_in_group(pid, gid, cid)
+    
+    emps = get_inner_select_as_arr(cid, pid, gid)
+
+    sqlstr =
+      "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
+      FROM employees AS emps
+      LEFT JOIN (SELECT tonsd.to_employee_id AS toempid, count(*) AS toempcount 
+            FROM network_snapshot_data AS tonsd
+            WHERE
+            network_id = #{nid} AND
+            snapshot_id = #{sid}
+            GROUP BY tonsd.to_employee_id) AS toemps ON toemps.toempid = emps.id
+      LEFT JOIN (SELECT fromnsd.from_employee_id AS fromempid, count(*) AS fromempcount
+            FROM network_snapshot_data AS fromnsd
+            WHERE
+            network_id = #{nid} AND
+            snapshot_id = #{sid} AND
+            from_type = #{REPLY}
+            GROUP BY fromnsd.from_employee_id) AS fromemps ON fromemps.fromempid = emps.id
+      WHERE emps.id in (#{emps.join(',')})
+      ORDER BY emps.id"
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    ratios = []
+    
+    missing_to_and_from = -1
+    missing_from = -2
+
+    sqlres.each do |e|
+      toempcount   = e['toempcount']
+      fromempcount = e['fromempcount']
+
+      # next if toempcount.nil?
+
+      elm = {}
+      elm[:id] = e['empid']
+      # elm['emails_sum'] = 100 if (!toempcount.nil? && fromempcount.nil?)
+      # elm['emails_sum'] = toempcount.to_f / fromempcount.to_f if (!toempcount.nil? && !fromempcount.nil?)
+
+      if fromempcount.nil?
+        if toempcount.nil?
+          elm[:measure] = missing_to_and_from
+        else
+          elm[:measure] = missing_from
+        end
+      end
+      elm[:measure] = toempcount.to_f / fromempcount.to_f if (!toempcount.nil? && !fromempcount.nil?)
+      
+      ratios << elm
+    end
+    
+    # Find max measure for sink/deadend. Then, use it to populate employees with
+    # missing reply - because we can't divide be zero, and we can't guess the max
+    # measure in advance. Employees with no reply are automatically at the max
+    # sink/deadend measure - because they never reply.
+    
+    max_deadend_measure = 0
+    
+    ratios.each do |r|
+      max_deadend_measure = r[:measure] if r[:measure] > max_deadend_measure
+    end
+
+    # In the case that there is no reply and no max measure - set all max to some 
+    # arbitrary high value    
+    # max_deadend_measure = 111 if max_deadend_measure == 0
+    
+    ratios.each do |r|
+      r[:measure] = max_deadend_measure if r[:measure] == missing_from
+    end
+    
+    ratios = ratios.sort { |a,b| a[:measure] <=> b[:measure] }
+
+    ratios.each do |r|
+      res << { id: r[:id].to_i, measure: r[:measure].to_i }
+    end
+    return res
   end
 
   def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1754,6 +1860,7 @@ module AlgorithmsHelper
   end
 
   #################################  AVERAGES #######################################################
+  
   def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
     result_vector = nil
     if (direction == EMAILS_IN)
@@ -1778,6 +1885,7 @@ module AlgorithmsHelper
   end
 
   #################################  MAXIMA FUNCTIONS ################################################
+  
   def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
     res = nil
     if (direction == EMAILS_IN)
@@ -1807,6 +1915,7 @@ module AlgorithmsHelper
   end
 
   ################ Utilities ###########################################
+
   def self.get_members_in_group(pinid, gid, company_id)
     return Group.find(gid).extract_employees if pinid == NO_PIN && gid != NO_GROUP
     return CdsPinsHelper.get_inner_select_by_pin_as_arr(pinid) if pinid != NO_PIN && gid == NO_GROUP
@@ -1816,6 +1925,35 @@ module AlgorithmsHelper
     return nil
   end
 
+  # Utility function to add numbers by same index in different hashes in the array
+  # 
+  # +array+:: array to add and  minimize
+  # +key+:: key by which to minimize values
+  # +value+:: value to sum
+  # 
+  # Example: calling the method like this: 
+  # sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') where the
+  # array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
+  # will return: [{id: 1, num: 5},{id: 2, num: 18}]
+  # 
+  # Notice that the addition for the 1st and 3rd hash was: 2+3, and the addition for
+  # the 2nd and 4th was 10+8. They were added like that, because the  
+  def sum_and_minimize_array_of_hashes_by_key(array, key, value)
+    temp = []
+    result = []
+    stringified_array = []
+
+    # stringify hashes
+    array.each{|entry| stringified_array << entry.stringify_keys}
+
+    stringified_array.each do |entry|
+      temp[entry[key]] = 0 if temp[entry[key]].nil?
+      temp[entry[key]] += entry[value]
+    end    
+    temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
+    
+    return result
+  end
 end
 
 def find_company_by_snapshot(snapshot_id)
