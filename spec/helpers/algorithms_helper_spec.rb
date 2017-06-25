@@ -636,7 +636,6 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-
   describe 'test proportion of emails' do
     it 'test proportion' do
       NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
@@ -683,10 +682,7 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-
-
   ######################################### tests for advise ####################################
-
 
   describe 'network density' do
     it 'regular' do
@@ -715,6 +711,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   ############################################## FLAGS HELPER tests ################################
+  
   describe 'most promising flag' do
     before(:each) do
       NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 0)

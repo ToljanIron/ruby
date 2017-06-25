@@ -16,7 +16,7 @@ namespace :db do
       begin
         CreateSnapshotHelper::create_company_snapshot_by_weeks(cid.to_i, date, true)
       rescue => e
-        error = e.message
+        error = e.message[0..1000]
         puts "got exception: #{error}"
         puts e.backtrace
         raise ActiveRecord::Rollback

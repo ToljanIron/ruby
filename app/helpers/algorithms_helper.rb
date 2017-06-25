@@ -1422,6 +1422,14 @@ module AlgorithmsHelper
     return calc_outdegree_for_to_matrix(sid, gid, pid)
   end
 
+  def blitzed_measure(sid, gid, pid)
+    return calc_indegree_for_to_matrix(sid, gid, pid)
+  end
+
+  def relays_measure(sid, gid, pid)
+    return calc_relative_fwd(sid, gid, pid)
+  end
+
   ##################### V3 formatting utilities ###################################################
   #
   def result_zero_padding(empids, scores)
@@ -1479,17 +1487,21 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
+  # 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
+  # 
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
   end
-
+  
+  # 
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
+  # 
 
   def calc_outdegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
@@ -1666,11 +1678,14 @@ module AlgorithmsHelper
   end
 
   def calc_degree_for_specified_matrix(sid, matrix_name, direction, gid = NO_GROUP, pid = NO_PIN)
+    
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     res = []
     inner_select = get_inner_select_as_arr(cid, pid, gid)
+
     current_snapshot_nodes = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid)
+
     if matrix_name == 4
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select).select("#{direction} as id, count(id) as total_sum").group(direction)
@@ -1678,10 +1693,35 @@ module AlgorithmsHelper
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select, to_type: matrix_name).select("#{direction} as id, count(id) as total_sum").group(direction)
     end
+    
     current_snapshot_nodes.each do |emp|
       res << { id: emp.id, measure: emp.total_sum }
     end
 
+    return result_zero_padding(inner_select, res)
+  end
+
+
+  def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    res = []
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
+
+    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, to_type: 1, 
+      from_type: 3, to_employee_id: inner_select, from_employee_id: inner_select).
+    select("#{EMAIL_OUT} as id, count(id) as total_sum").group(EMAIL_OUT)
+
+    fwded_emails.each do |emp_fwd|
+      total_to_measure.each do |emp|
+        if(emp[:id] == emp_fwd.id)
+          res << { id: emp[:id], measure: emp[:measure] != 0 ? (emp_fwd.total_sum.to_f/emp[:measure]).round(2) : 0 }
+        end
+      end
+    end
     return result_zero_padding(inner_select, res)
   end
 

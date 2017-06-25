@@ -9,6 +9,11 @@ FactoryGirl.define do
   end
 end
 
+def create_email_connection(from_id, to_id, from_type, to_type, sid, cid, nid, value=1)
+  NetworkSnapshotData.create(from_employee_id: from_id, to_employee_id: to_id, from_type: from_type, 
+    to_type: to_type, snapshot_id: @s.id, company_id: cid, network_id: nid, value: value)
+end
+
 ############################################################
 ##
 ## create empsnum x empsnum matrix of email traffic.
