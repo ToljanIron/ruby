@@ -1,4 +1,3 @@
-
 require './lib/tasks/modules/create_snapshot_helper.rb'
 include CreateSnapshotHelper
 module LineProcessingContextClasses
@@ -57,88 +56,43 @@ module LineProcessingContextClasses
     end
 
     def create_if_not_existing
-      fail unless @attrs[:company_id] && !Company.where(id: @attrs[:company_id]).empty?
-      g = Group.find_or_create_by(company_id: @attrs[:company_id], name: @attrs[:name])
-      return if g.persisted?
-    rescue => e
-      @error_log << "unable to create group named #{@attrs[:name]}. #{e}, #{log_suffix}"
-    end
-
-    def connect
-      begin
-        unless @parent_name
-          child = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:name])
-          child.color_id = choose_random_color
-          child.save
-          return
-        end
-        parent = Group.find_by(company_id: @attrs[:company_id], name: @parent_name)
-        child  = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:name])
-        if parent && child
-          child.parent_group_id = parent.id
-          child.color_id = choose_random_color
-          child.save!
-        end
-      rescue => ex
-        puts "EXCEPTION: #{ex.message}"
-        puts ex.backtrace
-        @error_log << ex.message + " - unable to connect group #{@attrs[:name]} with parent group #{@parent_name}, #{log_suffix}"
-        return
-      end
-      return
-    end
-
-    def delete
-      return unless @attrs[:delete]
-      higest_group = Group.find_by(company_id: @attrs[:company_id], parent_group_id: nil)
-      g = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:name])
-      if higest_group && g
-        g.update(parent_group_id: higest_group.id)
-      else
-        @error_log << "unable to disconnect group #{@attrs[:name]} with parent group #{@parent_name}, #{log_suffix}"
-      end
-    end
-  end
-
-  ########################################## GroupLineProcessingContextNew ##########################################
-  class GroupLineProcessingContextNew < LineProcessingContext
-    def initialize(original_line, original_line_number, company_id, parent_name = nil)
-      super(original_line, original_line_number, company_id)
-      @parent_name = parent_name
-    end
-
-    def create_if_not_existing
-      fail unless @attrs[:company_id] && !Company.where(id: @attrs[:company_id]).empty?
+      cid = @attrs[:company_id]
+      fail unless cid && !Company.where(id: cid).empty?
+      sid = Snapshot.last_snapshot_of_company(cid)
       g = Group.find_or_create_by(
-        company_id: @attrs[:company_id],
-        external_id: @attrs[:external_id]
+        company_id: cid,
+        external_id: @attrs[:external_id],
+        snapshot_id: sid
       )
-    
+
       g.name = @attrs[:name]
       g.english_name =  @attrs[:english_name]
       g.save!
       return if g.persisted?
     rescue => e
-      @error_log << "unable to create group with external_id #{@attrs[:external_id]}. #{e}, #{log_suffix}"
+      @error_log << "unable to create group with external_id #{@attrs[:external_id]} in snapshot: #{sid}. #{e}, #{log_suffix}"
     end
 
     def connect
       begin
-        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        cid = @attrs[:company_id]
+        sid = Snapshot.last_snapshot_of_company(cid)
+
+        g = Group.find_by(company_id: cid, external_id: @attrs[:external_id], snapshot_id: sid)
         g.update(name: @attrs[:name]) unless (@attrs[:name] && !g.nil? && g.name == @attrs[:name])
         g.update(color_id: choose_random_color) unless g.color_id
 
-        parent = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:parent_external_id])
+        parent = Group.find_by(company_id: cid, external_id: @attrs[:parent_external_id], snapshot_id: sid)
 
         ## Do this because in some cases parent groups may be specified in terms of their names
         if parent.nil?
-          parent = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:parent_external_id])
+          parent = Group.find_by(company_id: cid, name: @attrs[:parent_external_id], snapshot_id: sid)
         end
         g.update( parent_group_id: parent.id) if !parent.nil?
       rescue => ex
         puts "EXCEPTION: #{ex.message}"
         puts ex.backtrace
-        @error_log << ex.message + " - unable to connect group #{@attrs[:name]} with parent group #{@parent_name}, #{log_suffix}"
+        @error_log << ex.message + " - unable to connect group #{@attrs[:name]} with parent group #{@parent_name} in snapshot: #{sid}, #{log_suffix}"
         return
       end
       return
@@ -147,8 +101,11 @@ module LineProcessingContextClasses
     def delete
       return unless @attrs[:delete]
       begin
-        higest_group = Group.find_by(company_id: @attrs[:company_id], parent_group_id: nil)
-        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        cid = @attrs[:company_id]
+        sid = Snapshot.last_snapshot_of_company(cid)
+
+        higest_group = Group.find_by(company_id: cid, snapshot_id: sid, parent_group_id: nil, )
+        g = Group.find_by(company_id: cid, snapshot_id: sid, external_id: @attrs[:external_id])
         child_groups = Group.where(parent_group_id: g.id)
         child_groups.each do |cg|
           cg.update(parent_group_id: higest_group.id)
@@ -156,7 +113,7 @@ module LineProcessingContextClasses
       rescue => ex
         puts "EXCEPTION: #{ex.message}"
         puts ex.backtrace
-        @error_log << ex.message + " - unable to delete group #{@attrs[:name]} , #{log_suffix}"
+        @error_log << ex.message + " - unable to delete group #{@attrs[:name]} in snapshot: #{sid} , #{log_suffix}"
       end
     end
   end
@@ -387,41 +344,6 @@ module LineProcessingContextClasses
           value: value.to_i,
           questionnaire_question_id: -1,
           original_snapshot_id: sid
-        )
-      end
-      if @attrs[:version] == 'v1'
-        t = TrustsSnapshot.find_or_create_by(employee_id: e1.id, trusted_id: e2.id, snapshot_id: sid)
-        t.update(trust_flag: trust_flag)
-      end
-    rescue => e
-      @error_log << "unable to create NetworkSnapshotData relation. #{e}, #{@attrs}"
-      puts "EXCEPTIO: #{e.message[0..1000]}"
-      puts e.backtrace
-    end
-  end
-
-  class EmailNetworkLineProcessingContext < LineProcessingContext
-    def create_if_not_existing
-      fail if @attrs[:company_id].nil? || @attrs[:csv_type].nil? || Company.where(id: @attrs[:company_id]).empty?
-      use_latest_snapshot = @attrs[:use_latest_snapshot].nil? ? false : @attrs[:use_latest_snapshot]
-      e1 = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:from_employee_id])
-      e2 = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:to_employee_id])
-      snapshot_time = @attrs.delete(:snapshot)
-      fail if e1[:company_id] != e2[:company_id]
-      sid = use_latest_snapshot ? Snapshot.last_snapshot_of_company(e1[:company_id]) : find_or_create_snapshot(e1[:company_id], snapshot_time)
-      # temp = EmailPropertiesTranslator.process_email(ra)
-      if @attrs[:version] == 'v2'
-        NetworkSnapshotData.find_or_create_by(
-          snapshot_id: sid,
-          from_employee_id: e1.id,
-          to_employee_id: e2.id,
-          company_id: @attrs[:company_id].to_i,
-          # network_id: network_name.id,  ASAF BYEBUG
-          message_id: @attrs[:message_id],
-          multiplicity: @attrs[:multiplicity].to_i,
-          from_type: @attrs[:from_type].to_i,
-          to_type: @attrs[:to_type].to_i,
-          communication_date: @attrs[:communication_date],
         )
       end
       if @attrs[:version] == 'v1'

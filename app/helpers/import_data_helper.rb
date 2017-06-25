@@ -12,33 +12,30 @@ module ImportDataHelper
   # returns an array of string error messages
   #
   EMPLOYEES_CSV  = 1
-  GROUPS_CSV     = 2
   MANAGMENT_RELATION_CSV = 3
   NETWORK        = 4
   EMAILS         = 5
-  GROUPS_CSV_NEW = 6
+  GROUPS_CSV     = 6
 
   CSV_NAMES = [
     'NA',
     'Employees',
-    'Groups',
+    'NA',
     'Management',
     'Network',
     'Emails',
-    'Groups New'
+    'Groups'
   ]
 
   CSV_TYPES = {
     employee_csv: EMPLOYEES_CSV,
-    groups_csv: GROUPS_CSV,
     managment_relation_csv: MANAGMENT_RELATION_CSV,
     trust: NETWORK,
     emails: EMAILS,
-    groups_csv_new: GROUPS_CSV_NEW
+    groups_csv: GROUPS_CSV
   }
 
-  VALID_GROUP_CSV_LINE_SIZE      = 3
-  VALID_GROUP_CSV_NEW_LINE_SIZE  = 5
+  VALID_GROUP_CSV_LINE_SIZE      = 5
   VALID_MANAGMENT_RELATION_CSV_LINE_SIZE = 4
   VALID_EMPLOYEE_CSV_LINE_SIZE   = 20
   VALID_NETWORK_CSV_LINE_SIZE    = 4
@@ -53,7 +50,8 @@ module ImportDataHelper
   end
 
   def import_data_from_csv_to_db(company_id, csv, network, csv_type, use_latest_snapshot=false, date_format)
-    return 'import_company_data_from_csv: unknown csv type' if ![1,2,3,4,5,6].include?(csv_type)
+    raise 'csv_types 2 (old groups) and 5 (emails) are no longer supported' if [2,5].include?(csv_type)
+    return 'import_company_data_from_csv: unknown csv type' if ![1,3,4,6].include?(csv_type)
     csv_headline = csv.split("\n")[0]
     csv_headline = csv_headline.strip
     line_size_res = check_line_size(csv_headline, csv_type)
@@ -214,7 +212,7 @@ module ImportDataHelper
     date = date.strftime('%Y-%m-%d')
     name = safe_titleize(parsed[1].strip)
     english_name = safe_titleize(parsed[5].strip)
-    group_context = GroupLineProcessingContextNew.new(csv_line, csv_line_number, company_id)
+    group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
     group_context.attrs.merge!(
       company_id: company_id,
       external_id: parsed[0].nil? ? name : parsed[0], ## If external_id is not provided then default to the name
@@ -261,16 +259,12 @@ module ImportDataHelper
               'gender', 'marital_status', 'work_start_date', 'qualifications', 'home_address',
               'office_address', 'position_scope', 'group_name', 'id_number', 'delete'
               ]
-    when GROUPS_CSV #2
-      return ["parent_group_name", "child_group_name", "delete"]
     when MANAGMENT_RELATION_CSV #3
       return ["manager_external_id", "employee_external_id", "relation_type", "delete"]
     when NETWORK  #ASAF BYEBUG just add here?
       return ["from_employee_id", "to_employee_id", "value", "snapshot"]
-    when GROUPS_CSV_NEW
+    when GROUPS_CSV
       return ['exteral_id','group_name','parent_group_external_id','delete','group_update_date']
-     #when EMAILS
-     #  return ["employee_from_id", "employee_to_id", "n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9", "n10", "n11", "n12", "n13", "n14", "n15", "n16", "n17", "n18"]
     end
   end
 
@@ -287,14 +281,10 @@ module ImportDataHelper
         return VALID_EMPLOYEE_CSV_LINE_SIZE
       when GROUPS_CSV
         return VALID_GROUP_CSV_LINE_SIZE
-      when GROUPS_CSV_NEW
-        return VALID_GROUP_CSV_NEW_LINE_SIZE
       when MANAGMENT_RELATION_CSV
         return VALID_MANAGMENT_RELATION_CSV_LINE_SIZE
       when NETWORK
         return VALID_NETWORK_CSV_LINE_SIZE
-      when EMAILS
-        return VALID_EMAILS_CSV_LINE_SIZE
     end
   end
 
@@ -309,44 +299,6 @@ module ImportDataHelper
     return !parsed[18].empty?
   end
 
-  def process_employee(parsed, company_id, csv_line, csv_line_number, date_format_id = nil)
-    puts "ERROR: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, will proceed anyway." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
-
-    employee_context = EmployeeLineProcessingContext.new(csv_line, csv_line_number, company_id)
-    email = parsed[4].strip.downcase
-
-    if (email == '')
-      error = ErrorLineProcessingContext.new(csv_line, csv_line_number, company_id)
-      error.error_log = "Empty email in line number: #{csv_line_number}"
-      return [error]
-    end
-
-    employee_context.attrs.merge!(
-      company_id:       company_id,
-      external_id:      parsed[0].strip,
-      first_name:       safe_titleize(parsed[1].strip),
-      middle_name:      safe_titleize(parsed[2].strip),
-      last_name:        safe_titleize(parsed[3].strip),
-      email:            email,
-      alias_emails:     parsed[5].strip.downcase,
-      role:             parsed[6].strip.downcase,
-      rank:             parsed[7].strip.downcase,
-      job_title:        parsed[8].strip.downcase,
-      date_of_birth:    date_formatter(parsed[9].strip, date_format_id),
-      gender:           parsed[10].strip.downcase,
-      marital_status:   parsed[11].strip.downcase,
-      work_start_date:  date_formatter(parsed[12].strip, date_format_id),
-      qualifications:   parsed[13].strip,
-      home_address:     parsed[14].strip.downcase,
-      office_address:   parsed[15].strip.downcase,
-      position_scope:   parsed[16].strip,
-      group_name:       safe_titleize(parsed[17].strip),
-      id_number:        parsed[18].strip,
-      delete:           is_delete?(parsed[19])
-    )
-    return [employee_context]
-  end
-
   def safe_titleize(str)
     return nil if str.nil?
     return str.titleize if !str.match(/^[a-zA-Z \-]*$/).nil?
@@ -354,25 +306,6 @@ module ImportDataHelper
   end
 
   def process_groups(parsed, company_id, csv_line, csv_line_number)
-    deleted_missing = parsed.length == (VALID_GROUP_CSV_LINE_SIZE - 1)
-    correct_length  = parsed.length == VALID_GROUP_CSV_LINE_SIZE
-    if (!deleted_missing && !correct_length)
-      return [ErrorLineProcessingContext.new(csv_line, csv_line_number, company_id)] unless parsed.length == VALID_GROUP_CSV_LINE_SIZE
-    end
-    delete = parsed[2].nil? ? false : !parsed[2].empty?
-    above_group_name = safe_titleize(parsed[0].strip)
-
-    above_group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
-    above_group_context.attrs.merge!(company_id: company_id, name: above_group_name)
-
-    below_group_name = safe_titleize(parsed[1].strip)
-    below_group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id, above_group_name)
-    below_group_context.attrs.merge!(company_id: company_id, name: below_group_name, delete: delete, version: 'v1')
-
-    return [above_group_context, below_group_context]
-  end
-
-  def process_groups_new(parsed, company_id, csv_line, csv_line_number)
     date = Time.now.strftime('%Y-%m-%d')
     if parsed[4].nil?
       date_formatter(parsed[4].strip, date_format_id)
@@ -417,37 +350,6 @@ module ImportDataHelper
     return [csv_network_context]
   end
 
-  # def process_csv_email_network(parsed, company_id, csv_line, csv_line_number, csv_type, use_latest_snapshot=false)
-  #   return [ErrorLineProcessingContext.new(csv_line, csv_line_number, company_id, csv_type)] unless parsed.length == VALID_EMAILS_CSV_LINE_SIZE
-  #   csv_network_context = EmailNetworkLineProcessingContext.new(csv_line, csv_line_number, company_id, csv_type, use_latest_snapshot)
-  #   csv_network_context.attrs.merge!(
-  #     employee_from_id:    parsed[0].strip,
-  #     employee_to_id:      parsed[1].strip,
-  #     n1:                  parsed[2].strip,
-  #     n2:                  parsed[3].strip,
-  #     n3:                  parsed[4].strip,
-  #     n4:                  parsed[5].strip,
-  #     n5:                  parsed[6].strip,
-  #     n6:                  parsed[7].strip,
-  #     n7:                  parsed[8].strip,
-  #     n8:                  parsed[9].strip,
-  #     n9:                  parsed[10].strip,
-  #     n10:                 parsed[11].strip,
-  #     n11:                 parsed[12].strip,
-  #     n12:                 parsed[13].strip,
-  #     n13:                 parsed[14].strip,
-  #     n14:                 parsed[15].strip,
-  #     n15:                 parsed[16].strip,
-  #     n16:                 parsed[17].strip,
-  #     n17:                 parsed[18].strip,
-  #     n18:                 parsed[19].strip,
-  #     csv_type:            csv_type.name,
-  #     version:             'v2',
-  #     use_latest_snapshot: use_latest_snapshot
-  #   )
-  #   return [csv_network_context]
-  # end
-
   ########################################## lift Methods ##########################################
 
   def lift_csv_to_context_list(company_id, csv, network, csv_type, use_latest_snapshot=false, date_format = nil)
@@ -458,7 +360,6 @@ module ImportDataHelper
   end
 
   def lift_csv_line_to_context_list(company_id, csv_line, csv_line_number, network, csv_type, use_latest_snapshot, date_format)
-    #line = csv_line.gsub(160.chr, ' ')
     csv_line.force_encoding('UTF-8')
     line = csv_line.gsub("'", "\"")
 
@@ -467,7 +368,6 @@ module ImportDataHelper
 
     return process_employee(parsed, company_id, csv_line, csv_line_number, date_format)                           if (csv_type == EMPLOYEES_CSV)
     return process_groups(parsed, company_id, csv_line, csv_line_number)                                          if (csv_type == GROUPS_CSV)
-    return process_groups_new(parsed, company_id, csv_line, csv_line_number)                                      if (csv_type == GROUPS_CSV_NEW)
     return process_employee_relation(parsed, company_id, csv_line, csv_line_number)                               if (csv_type == MANAGMENT_RELATION_CSV)
     return process_csv_email_network(parsed, company_id, csv_line, csv_line_number, network, use_latest_snapshot) if (csv_type == EMAILS)
     return process_csv_network(parsed, company_id, csv_line, csv_line_number, network, use_latest_snapshot)       if (csv_type == NETWORK)

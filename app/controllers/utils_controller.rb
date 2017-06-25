@@ -78,16 +78,14 @@ class UtilsController < ApplicationController
     errors = []
     cid = current_user.company_id
     employees =             params[:employees]
-    company_structure =     params[:company_structure]
-    company_structure_new = params[:company_structure_new]
+    company_structure =     params[:company_structure_new]
     managment_relations =   params[:managment_relations]
     date_format =           params[:date_format]
     images =                params[:images]
 
-    push_errors(errors, cid, company_structure,     nil, ImportDataHelper::GROUPS_CSV) if company_structure
-    push_errors(errors, cid, company_structure_new, nil, ImportDataHelper::GROUPS_CSV_NEW) if company_structure_new
-    push_errors(errors, cid, employees,             nil, ImportDataHelper::EMPLOYEES_CSV, false, date_format) if employees
-    push_errors(errors, cid, managment_relations,   nil, ImportDataHelper::MANAGMENT_RELATION_CSV) if managment_relations
+    push_errors(errors, cid, company_structure,  nil, ImportDataHelper::GROUPS_CSV) if company_structure
+    push_errors(errors, cid, employees,          nil, ImportDataHelper::EMPLOYEES_CSV, false, date_format) if employees
+    push_errors(errors, cid, managment_relations,nil, ImportDataHelper::MANAGMENT_RELATION_CSV) if managment_relations
 
     upload_images(cid, images) if images
 
