@@ -20,24 +20,25 @@ describe AlgorithmsHelper, type: :helper do
   end
   
   before(:all) do
-      @s = FactoryGirl.create(:snapshot, name: 's3', company_id: 1)
-      
-      em1 = 'p11@email.com'
-      em2 = 'p22@email.com'
-      em3 = 'p33@email.com'
-      em4 = 'p44@email.com'
-      em5 = 'p55@email.com'
+    cid = 1
+    gid = 3
+    @s = FactoryGirl.create(:snapshot, name: 's3', company_id: cid)
+    
+    em1 = 'p11@email.com'
+    em2 = 'p22@email.com'
+    em3 = 'p33@email.com'
+    em4 = 'p44@email.com'
+    em5 = 'p55@email.com'
+    em6 = 'p66@email.com'
 
-      cid = 1
-      gid = 3
+    @e1 = FactoryGirl.create(:employee, email: em1, group_id: gid)
+    @e2 = FactoryGirl.create(:employee, email: em2, group_id: gid)
+    @e3 = FactoryGirl.create(:employee, email: em3, group_id: gid)
+    @e4 = FactoryGirl.create(:employee, email: em4, group_id: gid)
+    @e5 = FactoryGirl.create(:employee, email: em5, group_id: gid)
+    @e6 = FactoryGirl.create(:employee, email: em6, group_id: gid)
 
-      @e1 = FactoryGirl.create(:employee, email: em1, group_id: gid)
-      @e2 = FactoryGirl.create(:employee, email: em2, group_id: gid)
-      @e3 = FactoryGirl.create(:employee, email: em3, group_id: gid)
-      @e4 = FactoryGirl.create(:employee, email: em4, group_id: gid)
-      @e5 = FactoryGirl.create(:employee, email: em5, group_id: gid)
-
-      @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: cid)
+    @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: cid)
   end
 
   describe 'TO field' do
@@ -45,7 +46,7 @@ describe AlgorithmsHelper, type: :helper do
       NetworkSnapshotData.delete_all
     end
 
-    describe 'Algorithm type: measure | to out degree | name: spammers' do
+    describe 'Algorithm name: spammers | to out degree | type: measure' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -57,17 +58,16 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e4.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        # @out_res = calc_outdeg_for_specified_matrix(@s.id, TO_MATRIX, -1, -1)
         @out_res = calc_outdegree_for_to_matrix(@s.id)
-         # @out_res.each {|m| puts "#{m}\n"}
+        # @out_res.each {|m| puts "#{m}\n"}
       end
 
       it 'should test higher "to outdegree"' do
         higher_emp = 1
         lower_emp = 5
-        higher_indegree = @out_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @out_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @out_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @out_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to outdegree"' do
@@ -77,7 +77,7 @@ describe AlgorithmsHelper, type: :helper do
       end
     end
 
-    describe 'Algorithm type: measure | to in degree | name: blitzed' do
+    describe 'Algorithm name: blitzed | to in degree | type: measure' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -90,7 +90,6 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        # @in_res = calc_indeg_for_specified_matrix(@s.id, TO_MATRIX, -1, -1)
         @in_res = calc_indegree_for_to_matrix(@s.id)
         # @in_res.each {|m| puts "#{m}\n"}
       end
@@ -98,9 +97,9 @@ describe AlgorithmsHelper, type: :helper do
       it 'should test higher "to indegree"' do
         higher_emp = 5
         lower_emp = 2
-        higher_indegree = @in_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @in_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @in_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @in_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to indegree"' do
@@ -116,7 +115,7 @@ describe AlgorithmsHelper, type: :helper do
       NetworkSnapshotData.delete_all
     end
 
-    describe 'Algorithm type: measure | cc out degree | name: CC_TYPEers' do
+    describe 'Algorithm name: ccers | cc out degree | type: measure ' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -139,9 +138,9 @@ describe AlgorithmsHelper, type: :helper do
       it 'should test higher "to outdegree"' do
         higher_emp = 2
         lower_emp = 1
-        higher_indegree = @out_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @out_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @out_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @out_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to outdegree"' do
@@ -151,7 +150,7 @@ describe AlgorithmsHelper, type: :helper do
       end
     end
 
-    describe 'Algorithm type: measure | cc in degree | name: CC_TYPEed' do
+    describe 'Algorithm name: cced | type: measure | cc in degree' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -173,9 +172,9 @@ describe AlgorithmsHelper, type: :helper do
       it 'should test higher "to indegree"' do
         higher_emp = 3
         lower_emp = 5
-        higher_indegree = @in_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @in_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @in_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @in_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to indegree"' do
@@ -191,7 +190,7 @@ describe AlgorithmsHelper, type: :helper do
       NetworkSnapshotData.delete_all
     end
 
-    describe 'Algorithm type: measure | bcc out degree | name: undercover' do
+    describe 'Algorithm name: undercover | bcc out degree | type: measure' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -202,6 +201,10 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
@@ -212,9 +215,9 @@ describe AlgorithmsHelper, type: :helper do
       it 'should test higher "to outdegree"' do
         higher_emp = 1
         lower_emp = 2
-        higher_indegree = @out_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @out_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @out_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @out_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to outdegree"' do
@@ -224,12 +227,16 @@ describe AlgorithmsHelper, type: :helper do
       end
     end
 
-    describe 'Algorithm type: measure | bcc in degree | name: politicos' do
+    describe 'Algorithm name: politicos | bcc in degree | type: measure' do
       before(:all) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)        
         
         create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -244,9 +251,9 @@ describe AlgorithmsHelper, type: :helper do
       it 'should test higher "to indegree"' do
         higher_emp = 4
         lower_emp = 1
-        higher_indegree = @in_res.select{|r| r[:id]==higher_emp}[0]
-        lower_indegree = @in_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_indegree[:measure]).to be > lower_indegree[:measure]
+        higher_measure = @in_res.select{|r| r[:id]==higher_emp}[0]
+        lower_measure = @in_res.select{|r| r[:id]==lower_emp}[0]
+        expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
       it 'should test zero "to indegree"' do
@@ -257,101 +264,128 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-  describe 'BCC field' do
+  describe 'Algorithm name: emails volume | out + in degree for to + cc + bcc | type: measure' do
     after(:each) do
       NetworkSnapshotData.delete_all
     end
 
-    describe 'Algorithm type: measure | out + in degree for to + cc + bcc | name: emails volume' do
-      before(:all) do
-        create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        
-        create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+    before(:all) do
+      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+      
+      create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e5.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
-        @out_res = calc_emails_volume(@s.id)
-        @out_res.each {|m| puts "#{m}\n"}
-      end
+      @out_res = calc_emails_volume(@s.id)
+      # @out_res.each {|m| puts "#{m}\n"}
+    end
 
-      it 'should test higher "to outdegree"' do
-        higher_emp = 1
-        lower_emp = 5
-        higher_indegree = @out_res.select{|r| r['id']==higher_emp}[0]
-        lower_indegree = @out_res.select{|r| r['id']==lower_emp}[0]
-        expect(higher_indegree["measure"]).to be > lower_indegree["measure"]
-      end
-
-      # it 'should test zero "to outdegree"' do
-      #   zero_emp = 4
-      #   zero_indegree = @out_res.select{|r| r[:id]==zero_emp}[0]
-      #   expect(zero_indegree[:measure]).to eq(0)
-      # end
+    it 'should test higher email volume' do
+      higher_emp = 1
+      lower_emp = 5
+      higher_measure = @out_res.select{|r| r[:id]==higher_emp}[0]
+      lower_measure = @out_res.select{|r| r[:id]==lower_emp}[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
     end
   end
 
-  describe "algorithm type: relative measure | fwd's out of total to's | name: blitzed" do
+  describe "Algorithm name: blitzed | fwd's out of total to's | type: relative measure" do
     after(:each) do
       NetworkSnapshotData.delete_all
     end
 
-    describe 'should test method: AlgorithmsHelper.calc_relative_fwd()' do
-      before(:all) do
-        create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e4.id, FWD, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+    before(:all) do
+      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e4.id, FWD, CC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e2.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e2.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e3.id, @e1.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e3.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e3.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e3.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e3.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e1.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e4.id, @e5.id, FWD, BCC_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e4.id, @e5.id, FWD, BCC_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-        
-        # Because of floats - any number below the threshold should be considered as zero
-        # value set arbitrarily and can be higher/lower
-        @zero_threshold = 0.01
+      create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
+      
+      # Because of floats - any number below the threshold should be considered as zero
+      # value set arbitrarily and can be higher/lower
+      @zero_threshold = 0.01
 
-        @fwd_res = calc_relative_fwd(@s.id)
-        # @fwd_res.each {|m| puts "#{m}\n"}
-      end
-      it 'should test higher relay measure' do
-        higher_emp = 1
-        lower_emp = 5
-        higher_measure = @fwd_res.select{|r| r[:id]==higher_emp}[0]
-        lower_measure = @fwd_res.select{|r| r[:id]==lower_emp}[0]
-        expect(higher_measure[:measure]).to be > lower_measure[:measure]
-      end
+      @fwd_res = calc_relative_fwd(@s.id)
+      # @fwd_res.each {|m| puts "#{m}\n"}
+    end
 
-      it 'should test zero relay measure' do
-        zero_emp = 2
-        zero_indegree = @fwd_res.select{|r| r[:id]==zero_emp}[0]
-        expect(zero_indegree[:measure]).to be < @zero_threshold
-      end
+    it 'should test higher relay measure' do
+      higher_emp = 1
+      lower_emp = 5
+      higher_measure = @fwd_res.select{|r| r[:id]==higher_emp}[0]
+      lower_measure = @fwd_res.select{|r| r[:id]==lower_emp}[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
+    end
 
-      it 'should test zero relay measure' do
-        zero_emp = 4
-        zero_indegree = @fwd_res.select{|r| r[:id]==zero_emp}[0]
-        expect(zero_indegree[:measure]).to be < @zero_threshold
-      end
+    it 'should test zero relay measure' do
+      zero_emp = 2
+      zero_indegree = @fwd_res.select{|r| r[:id]==zero_emp}[0]
+      expect(zero_indegree[:measure]).to be < @zero_threshold
+    end
+
+    it 'should test zero relay measure' do
+      zero_emp = 4
+      zero_indegree = @fwd_res.select{|r| r[:id]==zero_emp}[0]
+      expect(zero_indegree[:measure]).to be < @zero_threshold
+    end
+  end
+
+  describe 'Algorithm name: deadends | total received / replies | type: relative measure' do
+    after(:each) do
+      NetworkSnapshotData.delete_all
+    end
+    
+    before(:all) do
+      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e4.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e2.id, @e1.id, REPLY, TO_TYPE, @s.id, 0, @n1.id)
+
+      create_email_connection(@e1.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e3.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, TO_TYPE, @s.id, 0, @n1.id)
+
+      @res = calc_deadends(@s.id)
+      # @res.each {|m| puts "#{m}\n"}
+    end
+
+    it 'should test higher sink measure' do
+      higher_emp = 2
+      lower_emp = 5
+
+      higher_measure = @res.select{ |r| r[:id] == higher_emp }[0]
+      lower_measure = @res.select{ |r| r[:id] == lower_emp }[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
+    end
+
+    it 'should test for undefined - missing replies and to' do
+      undefined_emp = 6
+      undefined_measure = @res.select{ |r| r[:id] == undefined_emp }[0]
+      expect(undefined_measure[:measure]).to eq(-1)
     end
   end
 end

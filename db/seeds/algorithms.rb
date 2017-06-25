@@ -19,6 +19,7 @@ Algorithm.find_or_create_by!(id: 704, name: 'cced_measure', algorithm_type_id: 1
 Algorithm.find_or_create_by!(id: 705, name: 'undercover_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 706, name: 'politicos_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 707, name: 'emails_volume_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 708, name: 'deadends_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 100, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
