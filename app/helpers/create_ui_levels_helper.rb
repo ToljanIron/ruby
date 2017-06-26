@@ -654,5 +654,6 @@ module CreateUiLevelsHelper
     UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'Gate Keepers', level: 4, display_order: 2, parent_id: @external_knowledge_sharing.id, description: 'Indicates employees who are critical to information flow to the group', company_metric_id: gatekeepers_metric_id.try(:id))
 
     UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'Representatives', weight: 0.33, level: 4, display_order: 3, parent_id: @external_knowledge_sharing.id, description: 'Indicates employees who are critical to information flow from the group', company_metric_id: representatives_company_metric_id)
+    UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'New collaboration', weight: 0.33, level: 4, display_order: 3, parent_id: @external_knowledge_sharing.id, description: 'Indicates new collaboration between employees', company_metric_id: 1411)
   end
 end

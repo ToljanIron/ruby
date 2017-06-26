@@ -66,8 +66,7 @@ angular.module('workships')
     }
 
     function setState() {
-      $log.debug("GC In setState()");
-      debugger;
+      // $log.debug("GC In setState()");
       var network_id = graphService.network_id;
       var tab_id = graphService.tab_id;
       if (network_id === undefined || _.isNull(network_id)) { network_id = $scope.analyze_data.networks[0].network_index; }
