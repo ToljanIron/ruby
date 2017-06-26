@@ -41,14 +41,14 @@ module CdsGroupsHelper
     return groups.select { |g| g.extract_employees.count > min_emps }
   end
 
-  def self.get_unit_size(company_id, pinid, group_id)
-    if (pinid == -1) && (group_id == -1)
-      unit_size = Employee.where('company_id =?', company_id).count
-    elsif (pinid == -1) && (group_id != -1)
-      grp = Group.find(group_id)
+  def self.get_unit_size(cid, pid, gid, sid=nil)
+    if (pid == -1) && (gid == -1)
+      unit_size = Employee.by_company(cid, sid).count
+    elsif (pid == -1) && (gid != -1)
+      grp = Group.find(gid)
       unit_size = grp.extract_employees.length
-    elsif (pinid != -1) && (group_id == -1)
-      unit_size = EmployeesPin.size(pinid)
+    elsif (pid != -1) && (gid == -1)
+      unit_size = EmployeesPin.size(pid)
     end
     return unit_size
   end

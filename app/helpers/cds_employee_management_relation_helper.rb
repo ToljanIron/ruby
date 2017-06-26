@@ -43,14 +43,14 @@ module CdsEmployeeManagementRelationHelper
     return advise_relations
   end
 
-  def self.get_bypassed_in(informal_matrix, company_id, pid = NO_PIN, gid = NO_GROUP)
+  def self.get_bypassed_in(informal_matrix, cid, pid = NO_PIN, gid = NO_GROUP)
     value_of_non_advised_but_subordinate = 1
     filtered_for_subordinate_non_advised = informal_matrix.map { |x| x if x[:value] == value_of_non_advised_but_subordinate }.compact
     informal_in = reduce_informal_subordinate_non_advised_by_to(filtered_for_subordinate_non_advised)
-    unit_employees = Employee.where(company_id: company_id).pluck(:id)
+    unit_employees = Employee.by_company(cid).ids
     managers_count = EmployeeManagementRelation.where(relation_type: 0).pluck(:manager_id).select { |m| unit_employees.include? m }.uniq.length
     return [] if managers_count < 5
-    r_in = get_r_in(company_id, pid, gid)
+    r_in = get_r_in(cid, pid, gid)
     res = []
     # check only for managers: look for their corresponding informal entry and divide it by the corresponding value in r_in
     r_in.map do |candidate|
