@@ -71,43 +71,43 @@ angular.module('workships.services').factory('graphService', function (dataModel
     return { employee: _.omit(conditions, ['external_domains', 'external_id', 'keywords', 'keywords_names']), overlay: overlay_entity_conditions };
   }
 
-  function includeOverlay(layers) {
-    _.each(layers, function (layer) {
-      var layer_entities = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, { overlay_entity_type_name: layer.title });
-      _.each(layer_entities, function (entity) {
-        entity.active = layer.on;
-      });
-    });
-  }
+  // function includeOverlay(layers) {
+  //   _.each(layers, function (layer) {
+  //     var layer_entities = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, { overlay_entity_type_name: layer.title });
+  //     _.each(layer_entities, function (entity) {
+  //       entity.active = layer.on;
+  //     });
+  //   });
+  // }
 
-  graphService.preSetOverlayData = function () {
-    includeOverlay(analyzeMediator.layers);
-    //var entitiy_group_ids_of_showing = dataModelService.fetchGroupIdsFromOverlayEntity(analyzeMediator.shown_overlay_groups);
-    var _network = _.filter(dataModelService.overlay_snapshot_data.network, { snapshot_id: graphService.sid });
-    var _nodes = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, function (n) {
-      return (n.active === true || n.active === 't')
-             && (_.contains(analyzeMediator.shown_overlay_groups, n.overlay_entity_group_name)
-               || n.overlay_entity_type_name === 'keywords' && analyzeMediator.filter.getFilter().keywords_names && _.contains(_.keys(analyzeMediator.filter.getFilter().keywords_names), n.name))
-             && _.any(_network, function (l) {
-              return (l.from_type === 'overlay_entity' && l.from_id === n.id
-                        && _.any(nodes, { type: 'single', id: l.to_id }))
-                     || (l.to_type === 'overlay_entity' && l.to_id === n.id
-                        && _.any(nodes, { type: 'single', id: l.from_id })); });
-    });
+  // graphService.preSetOverlayData = function () {
+  //   includeOverlay(analyzeMediator.layers);
+  //   //var entitiy_group_ids_of_showing = dataModelService.fetchGroupIdsFromOverlayEntity(analyzeMediator.shown_overlay_groups);
+  //   var _network = _.filter(dataModelService.overlay_snapshot_data.network, { snapshot_id: graphService.sid });
+  //   var _nodes = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, function (n) {
+  //     return (n.active === true || n.active === 't')
+  //            && (_.contains(analyzeMediator.shown_overlay_groups, n.overlay_entity_group_name)
+  //              || n.overlay_entity_type_name === 'keywords' && analyzeMediator.filter.getFilter().keywords_names && _.contains(_.keys(analyzeMediator.filter.getFilter().keywords_names), n.name))
+  //            && _.any(_network, function (l) {
+  //             return (l.from_type === 'overlay_entity' && l.from_id === n.id
+  //                       && _.any(nodes, { type: 'single', id: l.to_id }))
+  //                    || (l.to_type === 'overlay_entity' && l.to_id === n.id
+  //                       && _.any(nodes, { type: 'single', id: l.from_id })); });
+  //   });
 
-    // If there are no connections then at least add the keywords themselves to avoid having a blank screen upon drill-in
-    //   since it may confuse the user.
-    if (_nodes.length === 0 && tabService.drillDownOriginIsOverlay()) {
-      _nodes = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, function (n) {
-      return (n.active === true || n.active === 't')
-             && (_.contains(analyzeMediator.shown_overlay_groups, n.overlay_entity_group_name)
-               || n.overlay_entity_type_name === 'keywords' && analyzeMediator.filter.getFilter().keywords_names && _.contains(_.keys(analyzeMediator.filter.getFilter().keywords_names), n.name))
-      });}
+  //   // If there are no connections then at least add the keywords themselves to avoid having a blank screen upon drill-in
+  //   //   since it may confuse the user.
+  //   if (_nodes.length === 0 && tabService.drillDownOriginIsOverlay()) {
+  //     _nodes = _.filter(dataModelService.overlay_snapshot_data.overlay_entities, function (n) {
+  //     return (n.active === true || n.active === 't')
+  //            && (_.contains(analyzeMediator.shown_overlay_groups, n.overlay_entity_group_name)
+  //              || n.overlay_entity_type_name === 'keywords' && analyzeMediator.filter.getFilter().keywords_names && _.contains(_.keys(analyzeMediator.filter.getFilter().keywords_names), n.name))
+  //     });}
 
-    graphService.setOverlayData(_nodes, _network);
-    graphService.setFilter(analyzeMediator.filter.getFiltered(), analyzeMediator.filter.getFilterGroupIds());
-    tabService.setDrillDownOriginNone();
-  };
+  //   graphService.setOverlayData(_nodes, _network);
+  //   graphService.setFilter(analyzeMediator.filter.getFiltered(), analyzeMediator.filter.getFilterGroupIds());
+  //   tabService.setDrillDownOriginNone();
+  // };
 
   graphService.setFilter = function (filter, group_filter) { // _TODO: fix after the filter is fixed
     // if (!$scope.groups) { return; }
@@ -153,23 +153,23 @@ angular.module('workships.services').factory('graphService', function (dataModel
         return result;
       }), 'id');
     }
-    overlay_ids = [];
-    if (conditionsEmpty(overlay_entity_conditions) || !dataModelService.overlay_snapshot_data) {
-      // if (!$scope.overlay_snapshot_data) { return; }
-      overlay_ids = []; // _.pluck($scope.overlay_snapshot_data.overlay_entities, 'id');
-    } else {
-      overlay_ids = _(dataModelService.overlay_snapshot_data.overlay_entities).filter(function (entity) {
-        return _.all(overlay_entity_conditions, function (v, k) {
-          if (k === 'overlay_entity_group_name' || k === 'keyword_name') {
-            v = _.map(overlay_entity_conditions.overlay_entity_group_name, function (name) { return name.split(' (')[0]; });
-            return _.include(v, entity.overlay_entity_group_name) || entity.overlay_entity_type_name === 'keywords' && _.include(overlay_entity_conditions.keyword_name, entity.name);
-          }
-          return (_.isEmpty(v) && _.isEmpty(conditions.id)) || _.include(v, String(entity[k]));
-        });
-      }).pluck('id').value();
-    }
-    var overlayLen = dataModelService.overlay_snapshot_data === undefined ? 0 : dataModelService.overlay_snapshot_data.overlay_entities.length;
-    graphService.setFilterByNodesIds({ employee: ids, overlay: overlay_ids }, dataModelService.employees.length + overlayLen);
+    // overlay_ids = [];
+    // if (conditionsEmpty(overlay_entity_conditions) || !dataModelService.overlay_snapshot_data) {
+    //   // if (!$scope.overlay_snapshot_data) { return; }
+    //   overlay_ids = []; // _.pluck($scope.overlay_snapshot_data.overlay_entities, 'id');
+    // } else {
+    //   overlay_ids = _(dataModelService.overlay_snapshot_data.overlay_entities).filter(function (entity) {
+    //     return _.all(overlay_entity_conditions, function (v, k) {
+    //       if (k === 'overlay_entity_group_name' || k === 'keyword_name') {
+    //         v = _.map(overlay_entity_conditions.overlay_entity_group_name, function (name) { return name.split(' (')[0]; });
+    //         return _.include(v, entity.overlay_entity_group_name) || entity.overlay_entity_type_name === 'keywords' && _.include(overlay_entity_conditions.keyword_name, entity.name);
+    //       }
+    //       return (_.isEmpty(v) && _.isEmpty(conditions.id)) || _.include(v, String(entity[k]));
+    //     });
+    //   }).pluck('id').value();
+    // }
+    // var overlayLen = dataModelService.overlay_snapshot_data === undefined ? 0 : dataModelService.overlay_snapshot_data.overlay_entities.length;
+    // graphService.setFilterByNodesIds({ employee: ids, overlay: overlay_ids }, dataModelService.employees.length + overlayLen);
   };
 
   graphService.getOpenCard = function () {
@@ -439,14 +439,16 @@ angular.module('workships.services').factory('graphService', function (dataModel
     combineService.resetData();
   };
 
-  graphService.setData = function (nodes, links, group_by_id, limits, group_id, layer_types, groups) {
+
+  // graphService.setData = function (nodes, links, group_by_id, limits, group_id, layer_types, groups) {
+    graphService.setData = function (nodes, links, group_by_id, limits, group_id, groups) {
     graphService.closeCard();
     combineService.resetData();
     graphService.measure_id = nodes.measure_id;
     graphService.network_id = links.network_index;
     graphService.group_id = group_id;
     graphService.network_name = links.name;
-    graphService.layer_types = layer_types;
+    // graphService.layer_types = layer_types;
     graphService.setNodes(nodes.degree_list);
     graphService.setLinks(links.relation);
 
