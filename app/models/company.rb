@@ -16,7 +16,11 @@ class Company < ActiveRecord::Base
   validates_uniqueness_of :name
 
   scope :domains, ->(id) { Domain.where(company_id: id) }
-  scope :employees, ->(id) { Employee.where(company_id: id) }
+  scope :employees, ->(sid=nil) {
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    Employee.where(company_id: id, snapshot_id: sid, active: true)
+  }
+
   enum product_type: [:full, :questionnaire_only]
 
   def last_snapshot
@@ -28,7 +32,7 @@ class Company < ActiveRecord::Base
   end
 
   def monitored_user_names
-    Company.employees(id).pluck(:email).map { |e| e.split('@')[0] }
+    Company.employees.pluck(:email).map { |e| e.split('@')[0] }
   end
 
   def export_to_csv
@@ -36,8 +40,8 @@ class Company < ActiveRecord::Base
     create_csv [emails_array]
   end
 
-  def emails
-    emails = Company.employees(id).pluck(:email)
+  def emails(sid=nil)
+    emails = Company.employees(sid).pluck(:email)
     aliases = Employee.aliases(Company.employees(id)).pluck(:email_alias)
     return emails + aliases
   end

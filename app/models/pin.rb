@@ -3,7 +3,7 @@ class Pin < ActiveRecord::Base
 
   enum status: [:draft, :pre_create_pin, :priority, :in_progress, :saved]
 
-  scope :all_by_company_id, ->(company_id) { Pin.where(company_id: company_id) }
+  scope :all_by_company, ->(cid) { Pin.where(company_id: cid) }
 
   def pack_to_json
     definition = JSON.parse( self.definition.gsub('\"', '"') )

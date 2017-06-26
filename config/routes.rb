@@ -38,7 +38,6 @@ Workships::Application.routes.draw do
   post  '/upload_csv',                  to: 'utils#upload_csv_v2'
   post  '/upload_excel',                to: 'utils#upload_excel'
 
-  get   '/get_employee_attributes',      to: 'employee_attributes#export_to_csv'
   get   '/get_networks_per_company',     to: 'backend_v_two#get_networks_per_company'
 
   post  '/upload_network_csv_v2',       to: 'backend_v_two#upload_network_csv_v2'

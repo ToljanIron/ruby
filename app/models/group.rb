@@ -126,13 +126,4 @@ class Group < ActiveRecord::Base
          WHERE snapshot_id = #{prev_sid} and active is true"
     )
   end
-
-  private
-
-  def set_default_snapshot
-    cid = Company.find(company_id).id
-    sid = Snapshot.last_snapshot_of_company(cid)
-    update(snapshot_id: sid)
-    return sid
-  end
 end

@@ -37,23 +37,40 @@ describe Employee, type: :model do
 
   it { is_expected.to be_valid }
 
-  it 'direct_managers_by_company_id should list all employees who are also direct managers' do
+  it 'direct_managers_by_company should list all employees who are also direct managers' do
     c = Company.create(name: 'company lala')
     e1 = FactoryGirl.create(:employee, company_id: c.id)
     e2 = FactoryGirl.create(:employee, company_id: c.id)
     EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 0)
-    res = Employee.direct_managers_by_company_id(c.id)
+    res = Employee.direct_managers_by_company(c.id)
     expect(res.count).to eq(1)
-    res2 = Employee.pro_managers_by_company_id(c.id)
+    res2 = Employee.pro_managers_by_company(c.id)
     expect(res2.count).to eq(0)
   end
 
-  it 'professional_managers_by_company_id should list all employees who are also professional managers' do
+  it 'direct_managers_by_company should list managers only in latest snapshot' do
+    cid = Company.create(name: 'company lala').id
+    sid1 = FactoryGirl.create(:snapshot).id
+    e1 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid1)
+    e2 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid1)
+    EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 0)
+    sid2 = FactoryGirl.create(:snapshot).id
+    bump_groups_snpashot(sid1, sid2)
+    Employee.create_snapshot(sid1, sid2)
+    e3 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid2, first_name: 'New', last_name: 'Manager')
+    emrel = EmployeeManagementRelation.last
+    emrel.update(manager_id: e3.id)
+
+    res = Employee.direct_managers_by_company(cid)
+    expect( res[0] ).to eq('New Manager')
+  end
+
+  it 'professional_managers_by_company should list all employees who are also professional managers' do
     c = Company.create(name: 'company lala')
     e1 = FactoryGirl.create(:employee, company_id: c.id)
     e2 = FactoryGirl.create(:employee, company_id: c.id)
     EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 1)
-    res = Employee.pro_managers_by_company_id(c.id)
+    res = Employee.pro_managers_by_company(c.id)
     expect(res.count).to eq(1)
   end
 
@@ -63,7 +80,7 @@ describe Employee, type: :model do
     j2 = JobTitle.create(name: 'Bum', company_id: c.id, color_id: 2)
     FactoryGirl.create(:employee, company_id: c.id, job_title_id: j1.id)
     FactoryGirl.create(:employee, company_id: c.id, job_title_id: j2.id)
-    res = Employee.job_title_by_company_id(c.id)
+    res = Employee.job_title_by_company(c.id)
     expect(res.count).to eq(2)
     res.should include('Janitor')
     res.should include('Bum')
@@ -171,7 +188,7 @@ describe Employee, type: :model do
     end
   end
 
-  it ', Employee.by_company_id should return all employees of company' do
+  it ', Employee.by_company should return all employees of company' do
     n = rand(1..100)
     company_id = rand(1..5)
     counter = 0
@@ -184,7 +201,7 @@ describe Employee, type: :model do
                          company_id: id)
       counter += 1 if company_id == id
     end
-    expect((Employee.by_company_id company_id).count).to eq(counter)
+    expect((Employee.by_company company_id).count).to eq(counter)
   end
 
   it ', Creating employee with pin related attributes works' do

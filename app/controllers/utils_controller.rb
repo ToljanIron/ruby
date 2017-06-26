@@ -6,7 +6,6 @@ include Mobile::CompaniesHelper
 
 class UtilsController < ApplicationController
   def list_filters
-    # begin
     authorize :util, :index?
     company_id = current_user.company_id
     c = Company.find(company_id)
@@ -16,12 +15,12 @@ class UtilsController < ApplicationController
       rank: %w(1 2 3 4 5 6),
       rank_2: %w(7 8 9 10 11 12),
       office: c.list_offices,
-      job_title: Employee.job_title_by_company_id(c.id),
+      job_title: Employee.job_title_by_company(c.id),
       role_type: rolescope.pluck(:name),
       marital_status: MaritalStatus.all.pluck(:name),
       gender: Employee.genders.keys,
-      direct_manager: Employee.direct_managers_by_company_id(c.id),
-      professional_manager: Employee.pro_managers_by_company_id(c.id),
+      direct_manager: Employee.direct_managers_by_company(c.id),
+      professional_manager: Employee.pro_managers_by_company(c.id),
       friendship: %w(from to),
       collaboration: %w(from to),
       trust: %w(from to),

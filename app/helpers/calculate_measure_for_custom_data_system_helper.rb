@@ -453,7 +453,11 @@ module CalculateMeasureForCustomDataSystemHelper
       #gid = nil if gid == NO_GROUP || Group.find(gid).parent_group_id.nil?
     end
     other_emp_id = Employee.where(email: 'other@mail.com').first.try(:id)
-    db_data = CdsMetricScore.where(company_id: cid, snapshot_id: sid, company_metric_id: company_metric_ids, pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
+    db_data = CdsMetricScore.where(
+      company_id: cid,
+      snapshot_id: sid,
+      company_metric_id: company_metric_ids,
+      pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
     return db_data
   end
 
@@ -474,10 +478,10 @@ module CalculateMeasureForCustomDataSystemHelper
     }
   end
 
-  def number_of_employees(cid, pid, gid)
+  def number_of_employees(cid, pid, gid, sid=nil)
     return Group.find(gid).try(:extract_employees).try(:count) if pid == NO_PIN && gid != NO_GROUP
     return EmployeesPin.where(pin_id: pid).try(:count) if pid != NO_PIN && gid == NO_GROUP
-    return Employee.where(company_id: cid).try(:count)
+    return Employee.by_company(cid, sid).try(:count)
   end
 
   def self.normalize(arr, max)
