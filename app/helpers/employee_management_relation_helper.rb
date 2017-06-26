@@ -1,7 +1,5 @@
 module EmployeeManagementRelationHelper
   include PinsHelper
-  include UtilHelper
-  include SelectionHelper
 
   NO_PIN   ||= -1
   NO_GROUP ||= -1

@@ -1,7 +1,6 @@
 require './lib/tasks/modules/create_snapshot_helper.rb'
 include CreateSnapshotHelper
 module LineProcessingContextClasses
-  include UtilHelper
   ########################################## Abstract LineProcessingContext ##########################################
   class LineProcessingContext
     attr_accessor :attrs

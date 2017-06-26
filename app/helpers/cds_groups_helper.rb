@@ -1,5 +1,3 @@
-include UtilHelper
-
 module CdsGroupsHelper
   def self.covert_formal_structure_to_group_id_child_groups_pairs(group_id)
     cache_key = "formal-to-child-group-paires-#{group_id}"

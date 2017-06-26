@@ -1,5 +1,4 @@
 module ReportHelper
-  include UtilHelper
 
   def self.create_gauge_regression_report(cid)
     report = prepare_regression_report(cid)

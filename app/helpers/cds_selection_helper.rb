@@ -16,7 +16,7 @@ module CdsSelectionHelper
     return CdsGroupsHelper.get_inner_select_by_group_as_arr(gid) if pinid == NO_PIN && gid != NO_GROUP
     return CdsPinsHelper.get_inner_select_by_pin_as_arr(pinid) if pinid != NO_PIN && gid == NO_GROUP
     fail 'Ambigious sub-group request with both pin-id and group-id' if pinid != NO_PIN && gid != NO_GROUP
-    ret = Employee.where(company_id: cid).where('email != ?', 'other@mail.com').select(:id).map { |entry| entry[:id] }
+    ret = Employee.by_company(cid).where("email != 'other@mail.com'").select(:id).map { |entry| entry[:id] }
     return ret
   end
 

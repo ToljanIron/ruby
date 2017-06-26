@@ -1,6 +1,6 @@
 include Mobile::CompaniesHelper
-require './app/helpers/mobile/questionnaire_helper.rb' 
-include UtilHelper
+require './app/helpers/mobile/questionnaire_helper.rb'
+
 class Mobile::CompaniesController < Mobile::MobileController
   def show
     load_companies

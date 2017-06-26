@@ -4,7 +4,7 @@ require 'oj_mimic_json'
 
 include SessionsHelper
 include CalculateMeasureHelper
-include UtilHelper
+include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
 

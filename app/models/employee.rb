@@ -1,4 +1,4 @@
-include UtilHelper
+include CdsUtilHelper
 include EmployeesHelper
 class Employee < ActiveRecord::Base
   attr_accessor :group_name
@@ -32,7 +32,7 @@ class Employee < ActiveRecord::Base
     end
   end
 
-  validates :email, presence:   true, format:     { with: UtilHelper::VALID_EMAIL_REGEX }
+  validates :email, presence:   true, format:     { with: CdsUtilHelper::VALID_EMAIL_REGEX }
   validates :company_id, presence: true
   validates :external_id, presence: true, length: { maximum: 50 }
   validates :first_name, presence: true, length: { maximum: 50 }
@@ -141,7 +141,7 @@ class Employee < ActiveRecord::Base
     h[:role_type] = role.name if role
     h[:gender] = gender
     h[:subordinates] = EmployeeManagementRelation.where(manager_id: id, relation_type: 2).pluck(:employee_id)
-    h[:age] = UtilHelper.calc_age_from_now(date_of_birth)
+    h[:age] = CdsUtilHelper.calc_age_from_now(date_of_birth)
     h[:age_group] = age_group.name if age_group
     h[:group_name] = group.name if group
     h[:job_title] = job_title.name if job_title
@@ -193,8 +193,8 @@ class Employee < ActiveRecord::Base
     job_title = processed_attrs.delete(:job_title) if  processed_attrs[:job_title]
     office_address = processed_attrs.delete(:office_address) if  processed_attrs[:office_address]
 
-    processed_attrs[:work_start_date] = UtilHelper.convert_str_to_date(processed_attrs[:work_start_date]) if valid_attr_field processed_attrs[:work_start_date]
-    processed_attrs[:date_of_birth] = UtilHelper.convert_str_to_date(processed_attrs[:date_of_birth]) if valid_attr_field processed_attrs[:alias_emails]
+    processed_attrs[:work_start_date] = CdsUtilHelper.convert_str_to_date(processed_attrs[:work_start_date]) if valid_attr_field processed_attrs[:work_start_date]
+    processed_attrs[:date_of_birth] = CdsUtilHelper.convert_str_to_date(processed_attrs[:date_of_birth]) if valid_attr_field processed_attrs[:alias_emails]
 
     check_enums(processed_attrs, errors)
     begin

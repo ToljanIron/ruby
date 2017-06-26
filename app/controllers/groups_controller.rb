@@ -1,6 +1,6 @@
 include SessionsHelper
 include GroupsHelper
-include UtilHelper
+include CdsUtilHelper
 
 class GroupsController < ApplicationController
   def formal_structure

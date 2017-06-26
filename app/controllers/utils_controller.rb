@@ -1,6 +1,6 @@
 include ImportDataHelper
 include XlsHelper
-include UtilHelper
+include CdsUtilHelper
 require './app/helpers/mobile/companies_helper.rb'
 include Mobile::CompaniesHelper
 
@@ -72,7 +72,7 @@ class UtilsController < ApplicationController
   end
 
   def upload_csv_v2
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     authorize :application, :passthrough
     errors = []
     cid = current_user.company_id
@@ -96,7 +96,7 @@ class UtilsController < ApplicationController
   end
 
   def upload_excel
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     authorize :application, :passthrough
     errors = []
     cid = current_user.company_id

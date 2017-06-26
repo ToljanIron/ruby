@@ -1,6 +1,5 @@
 # module NetworkSnapshotNodesHelper
 module EmailSnapshotDataHelper
-  include UtilHelper
   NO_SNAPSHOT = -1
   def format_snapshot(p, i)
     {

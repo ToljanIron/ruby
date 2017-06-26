@@ -71,7 +71,8 @@ module CdsUtilHelper
   end
 
   def self.get_subordinates(emp)
-    managment = EmployeeManagementRelation.where(employee_id: Employee.where(company_id: emp[:company_id]).ids, relation_type: 0)
+    eids = Employee.by_company(emp[:company_id]).ids
+    managment = EmployeeManagementRelation.where(employee_id: eids, relation_type: 0)
     managment_active_record_relation = emp.extract_descendants_with_parent(managment, emp.id)
     return managment_active_record_relation
   end

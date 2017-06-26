@@ -1,6 +1,6 @@
 include ImportDataHelper
 include XlsHelper
-include UtilHelper
+include CdsUtilHelper
 include Mobile::CompaniesHelper
 include CreateSnapshotHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
@@ -97,7 +97,7 @@ class BackendVTwoController < ApplicationController
 
   def upload_network_csv_v2
     authorize :application, :passthrough
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     errors = []
     company_id = current_user.company_id
 
