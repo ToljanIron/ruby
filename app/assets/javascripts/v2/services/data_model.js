@@ -669,31 +669,31 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return promiseThat(dm.getKeywords, method, url, params, 'keywords', succ, err);
   };
 
-  dm.getOverlaySnapshotData = function (overlay_groups_id, ids, group_id, s_id, reset) {
-    if (reset) {
-      dm.overlay_snapshot_data = undefined;
-    }
-    var deferred = deferMe(dm.getOverlaySnapshotData);
-    var method = 'GET';
-    var url = "API/get_overlay_snapshot_data";
-    var params = {};
-    if (overlay_groups_id) { params.oegid = JSON.stringify(overlay_groups_id); }
-    if (ids) { params.ids = JSON.stringify(ids); }
-    if (group_id) { params.gid = group_id; }
-    if (s_id) { params.snapshot_id = s_id; }
-    /* istanbul ignore next */
-    var succ = function (data) {
-      dm.overlay_snapshot_data = data;
-      deferred.resolve(dm.overlay_snapshot_data);
-    };
-    /* istanbul ignore next */
-    var err = function () {
-      dm.overlay_snapshot_data = undefined;
-      deferred.resolve(dm.overlay_snapshot_data);
-    };
+  // dm.getOverlaySnapshotData = function (overlay_groups_id, ids, group_id, s_id, reset) {
+  //   if (reset) {
+  //     dm.overlay_snapshot_data = undefined;
+  //   }
+  //   var deferred = deferMe(dm.getOverlaySnapshotData);
+  //   var method = 'GET';
+  //   var url = "API/get_overlay_snapshot_data";
+  //   var params = {};
+  //   if (overlay_groups_id) { params.oegid = JSON.stringify(overlay_groups_id); }
+  //   if (ids) { params.ids = JSON.stringify(ids); }
+  //   if (group_id) { params.gid = group_id; }
+  //   if (s_id) { params.snapshot_id = s_id; }
+  //   /* istanbul ignore next */
+  //   var succ = function (data) {
+  //     dm.overlay_snapshot_data = data;
+  //     deferred.resolve(dm.overlay_snapshot_data);
+  //   };
+  //   /* istanbul ignore next */
+  //   var err = function () {
+  //     dm.overlay_snapshot_data = undefined;
+  //     deferred.resolve(dm.overlay_snapshot_data);
+  //   };
 
-    return promiseThat(dm.getOverlaySnapshotData, method, url, params, 'overlay_snapshot_data', succ, err);
-  };
+  //   return promiseThat(dm.getOverlaySnapshotData, method, url, params, 'overlay_snapshot_data', succ, err);
+  // };
 
   dm.getGroups = function () {
     var deferred = deferMe(dm.getGroups);

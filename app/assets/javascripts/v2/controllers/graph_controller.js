@@ -332,12 +332,15 @@ angular.module('workships')
         var measure_name = _.find($scope.analyze_data.metrics, { measure_id: graphService.measure_id}).measure_name;
         $scope.tab =  _.find($scope.tab_tree, function (tab) { return _.include(tab, measure_name); });
       }
-      var overlay_types = dataModelService.overlay_snapshot_data === undefined ? [] : dataModelService.overlay_snapshot_data.overlay_entity_types;
-      graphService.setData($scope.measure, $scope.network, $scope.group_by.id, $scope.edge_sizes_range, $scope.selected.id, overlay_types || [], $scope.group_by);
+      // var overlay_types = dataModelService.overlay_snapshot_data === undefined ? [] : dataModelService.overlay_snapshot_data.overlay_entity_types;
+      
+      // graphService.setData($scope.measure, $scope.network, $scope.group_by.id, $scope.edge_sizes_range, $scope.selected.id, overlay_types || [], $scope.group_by);
+      graphService.setData($scope.measure, $scope.network, $scope.group_by.id, $scope.edge_sizes_range, $scope.selected.id, $scope.group_by);
+
       graphService.setGroupBy($scope.group_by);
-      if (_.any($scope.selected.layers, { on: true })) {
-        graphService.preSetOverlayData();
-      }
+      // if (_.any($scope.selected.layers, { on: true })) {
+      //   graphService.preSetOverlayData();
+      // }
 
       graphService.handleBidirectionalLinks();
 
