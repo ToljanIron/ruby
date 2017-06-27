@@ -147,7 +147,7 @@ module AlgorithmsHelper
 
   def self.no_of_emails_sent(sid, pid = NO_PIN, gid = NO_GROUP)
     cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     network = NetworkSnapshotData.emails(cid)
     sqlstr = "SELECT from_employee_id, COUNT(DISTINCT(message_id)) AS emails_sum
               FROM network_snapshot_data
@@ -168,7 +168,7 @@ module AlgorithmsHelper
 
   def self.no_of_emails_received(sid, pid = NO_PIN, gid = NO_GROUP)
     cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     network = NetworkSnapshotData.emails(cid)
     sqlstr = "SELECT to_employee_id, COUNT(DISTINCT(message_id)) AS emails_sum
               FROM network_snapshot_data
@@ -190,7 +190,7 @@ module AlgorithmsHelper
   # Gets a snapshot and a group number, returns the average number of attendees from said group in meetings related to it
   def self.average_no_of_attendees(sid, pid = NO_PIN, gid = NO_GROUP)
     cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     groups = get_group_and_all_its_descendants(gid)
     groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
     sqlstrdenom =  "SELECT COUNT(DISTINCT meeting_id) AS count
@@ -216,7 +216,7 @@ module AlgorithmsHelper
   # Gets a snapshot and a group number, returns the time spent in meetings in proportion of the group's size
   def self.proportion_time_spent_on_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
     cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     groups = get_group_and_all_its_descendants(gid)
     groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
     weekly_hours = 50
@@ -225,7 +225,7 @@ module AlgorithmsHelper
                   JOIN meeting_attendees  AS mee_att  ON mee_att.meeting_id = mee.id
                   JOIN employees          AS emp      ON emp.id             = mee_att.attendee_id
                   WHERE emp.group_id IN (#{groups.join(',')})
-                  AND   snapshot_id     =#{sid}"
+                  AND   mee.snapshot_id     = #{sid}"
     numerator = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
     numerator = numerator[0]["sum"].to_f
     return [{ group_id: gid, measure: 0.to_f }] if numerator == 0
@@ -235,8 +235,8 @@ module AlgorithmsHelper
   end
 
   def self.proportion_of_managers_never_in_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, company)
+    cid = Snapshot.find(sid).company_id
+    emps = get_members_in_group(pid, gid, cid, sid)
     group_id = Group.find(gid)
     managers = group_id.get_managers[:manager_id].count.to_f
     return [{ group_id: gid, measure: 0 }] if emps|| managers == 0
@@ -254,7 +254,7 @@ module AlgorithmsHelper
                 JOIN meeting_attendees  AS mee_att  ON mee_att.meeting_id = mee.id
                 JOIN employees          AS emp      ON emp.id             = mee_att.attendee_id
                 WHERE emp.id    IN  (#{inner_select[:manager_id].join(',')})
-                AND snapshot_id     =#{sid}
+                AND mee.snapshot_id  = #{sid}
                 GROUP BY emp.id"
       res = ActiveRecord::Base.connection.exec_query(sqlstr)
       h_scores = {}
@@ -365,9 +365,9 @@ module AlgorithmsHelper
     return res
   end
 
-  def self.avg_subject_length(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.find(snapshot_id).company_id
-    emps = get_members_in_group(pid, gid, cid)
+  def self.avg_subject_length(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.find(sid).company_id
+    emps = get_members_in_group(pid, gid, cid, sid)
 
     group_id = (gid == -1 ? pid : gid)
     length_str = is_sql_server_connection? ? 'LEN' : 'LENGTH'
@@ -406,7 +406,7 @@ module AlgorithmsHelper
   end
 
   ## Performs the actual calculation, without selelcting the flags
-  def self.pre_calculate_bottlenecks_scores(snapshot_id, _pid = NO_PIN, _gid = NO_GROUP, emps = [], sql_server = false)
+  def self.pre_calculate_bottlenecks_scores_NEED_TO_FIX_SNAPSHOTS(snapshot_id, _pid = NO_PIN, _gid = NO_GROUP, emps = [], sql_server = false)
     strate_infimum = 1
     candidates = {}
     outgroupgrades = nil
@@ -470,7 +470,7 @@ module AlgorithmsHelper
 
   def self.calculate_bottlenecks_for_flag(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
 
     ## Hanlde groups with small numbers
     return emps.map { |emp| { id: emp.to_i, measure: 0 } } if emps.count < 3
@@ -489,7 +489,7 @@ module AlgorithmsHelper
 
   def self.calculate_bottlenecks(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     group_id = (gid == -1 ? pid : gid)
 
     ## Handle small groups
@@ -508,7 +508,7 @@ module AlgorithmsHelper
 
   def self.calculate_bottlenecks_for_flag_to_explore(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     all_couples_in_group = calculate_bottlenecks_scores(sid, pid, gid, emps, sql_server)
 
     res = all_couples_in_group.map do |e|
@@ -590,7 +590,7 @@ module AlgorithmsHelper
   ###########################################################################
   def self.employees_network_non_reciprocity_scores(sid, nid, pid, gid)
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid).sort
+    emps = get_members_in_group(pid, gid, cid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
 
@@ -650,7 +650,7 @@ module AlgorithmsHelper
   ############################################################################
   def self.employees_email_non_reciprocity_scores(sid, pid, gid)
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid).sort
+    emps = get_members_in_group(pid, gid, cid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
     network = NetworkSnapshotData.emails(cid)
@@ -719,7 +719,7 @@ module AlgorithmsHelper
     email_scores = employees_email_non_reciprocity_scores(sid, pid, gid)
 
     cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
 
     net1_scores_q4  = to_ids_array(slice_percentile_from_hash_array(net1_scores,  Q3, emps))
     net2_scores_q4  = to_ids_array(slice_percentile_from_hash_array(net2_scores,  Q3, emps))
@@ -807,8 +807,8 @@ module AlgorithmsHelper
   end
 
   def self.volume_of_emails_for_explore(sid, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(sid).company_id
-    emp_arr = get_members_in_group(pid, gid, company)
+    cid = Snapshot.find(sid).company_id
+    emp_arr = get_members_in_group(pid, gid, cid, sid)
     arr = []
     emp_arr.each do |emp_one|
       arr.push(id: emp_one, measure: 0)
@@ -835,7 +835,7 @@ module AlgorithmsHelper
   end
 
   def self.sinks(sid, pid = NO_PIN, gid = NO_GROUP, cid, emps)
-    emps = get_members_in_group(pid, gid, cid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     nid  = NetworkSnapshotData.emails(cid)
 
     sqlstr =
@@ -874,17 +874,17 @@ module AlgorithmsHelper
     return ratios
   end
 
-  def self.flag_sinks(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.find(snapshot_id).company.id
-    emps = get_members_in_group(pid, gid, cid)
-    if NetworkSnapshotData.where(snapshot_id: snapshot_id, network_id: NetworkSnapshotData.emails(cid)).empty?
+  def self.flag_sinks(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.find(sid).company.id
+    emps = get_members_in_group(pid, gid, cid, sid)
+    if NetworkSnapshotData.where(snapshot_id: sid, network_id: NetworkSnapshotData.emails(cid)).empty?
       ratios = []
       emps.each do |ratio|
         ratios.push(id: ratio.to_i, measure: 0)
       end
       return ratios
     end
-    ratios = sinks(snapshot_id, pid, gid, cid, emps)
+    ratios = sinks(sid, pid, gid, cid, emps)
     q_one = find_q1_max(json_to_array_sinks(ratios))
     q_three = find_q3_min(json_to_array_sinks(ratios))
     iqr = q_three - q_one
@@ -892,31 +892,31 @@ module AlgorithmsHelper
     return sinks
   end
 
-  def self.flag_sinks_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    emps = get_members_in_group(pid, gid, company)
-    if NetworkSnapshotData.emails(cid).where(snapshot_id: snapshot_id).empty?
+  def self.flag_sinks_explore(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.find(sid).company_id
+    emps = get_members_in_group(pid, gid, cid, sid)
+    if NetworkSnapshotData.emails(cid).where(snapshot_id: sid).empty?
       ratios = []
       emps.each do |ratio|
         ratios.push(id: ratio.to_i, measure: 0)
       end
       return ratios
     end
-    ratios = sinks(snapshot_id, pid, gid, company, emps)
+    ratios = sinks(sid, pid, gid, cid, emps)
     q_one = find_q1_max(json_to_array_sinks(ratios))
     q_three = find_q3_min(json_to_array_sinks(ratios))
     iqr = q_three - q_one
     return find_sinks_to_explore(ratios, q_three + 1.5 * iqr)
   end
 
-  def self.no_of_isolates(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    emps = get_members_in_group(pid, gid, company)
-    network = NetworkSnapshotData.emails(company)
+  def self.no_of_isolates(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.find(sid).company_id
+    emps = get_members_in_group(pid, gid, cid, sid)
+    network = NetworkSnapshotData.emails(cid)
     sqlstr = "SELECT COUNT(id) AS emails_sum
               FROM network_snapshot_data
               WHERE network_id      = #{network}
-              AND snapshot_id       = #{snapshot_id}
+              AND snapshot_id       = #{sid}
               AND to_employee_id  IN (#{emps.join(',')})"
     sum = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     avg_emails = sum[0]['emails_sum'].to_f / emps.count.to_f if emps.count.to_f > 0
@@ -930,7 +930,7 @@ module AlgorithmsHelper
               AS emails_sum
               FROM network_snapshot_data
               WHERE network_id      = #{network}
-              AND snapshot_id       = #{snapshot_id}
+              AND snapshot_id       = #{sid}
               AND to_employee_id  IN (#{emps.join(',')})
               AND to_employee_id<>from_employee_id
               GROUP BY to_employee_id"
@@ -955,10 +955,10 @@ module AlgorithmsHelper
     return arr
   end
 
-  def self.grade_all_groups(company, sid, v_email_degs)
+  def self.grade_all_groups(cid, sid, v_email_degs)
     group_degrees = []
-    Group.by_snapshot(sid).where(company_id: company).each do |grp|
-      emp_arr = get_members_in_group(NO_PIN, grp.id, company)
+    Group.by_snapshot(sid).where(company_id: cid).each do |grp|
+      emp_arr = get_members_in_group(NO_PIN, grp.id, cid, sid)
       grades_for_employee = 0
       emp_arr.each do |employee|
         grades_for_employee += get_measure_for_employee(v_email_degs, employee)
@@ -1104,28 +1104,28 @@ module AlgorithmsHelper
     return res
   end
 
-  def self.calculate_inn_degree_email(snapshot_id, _network_id, company, pid = NO_PIN, gid = NO_GROUP)
-    all_metrix = calc_indegree_for_all_matrix_in_relation_to_company(snapshot_id, gid, pid)
-    emps = get_members_in_group(pid, gid, company)
+  def self.calculate_inn_degree_email(sid, _network_id, cid, pid = NO_PIN, gid = NO_GROUP)
+    all_metrix = calc_indegree_for_all_matrix_in_relation_to_company(sid, gid, pid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     emps.each do |emp_id|
       all_metrix.push(id: emp_id.to_i, measure: 0) unless exists_in_metrics(all_metrix, emp_id)
     end
     return [all_metrix, emps]
   end
 
-  def self.calculate_outn_degree_email(snapshot_id, _network_id, company, pid = NO_PIN, gid = NO_GROUP)
-    all_metrix = calc_outdegree_for_all_matrix_in_relation_to_company(snapshot_id, gid, pid)
-    emps = get_members_in_group(pid, gid, company)
+  def self.calculate_outn_degree_email(sid, _network_id, cic, pid = NO_PIN, gid = NO_GROUP)
+    all_metrix = calc_outdegree_for_all_matrix_in_relation_to_company(sid, gid, pid)
+    emps = get_members_in_group(pid, gid, cid, sid)
     emps.each do |emp_id|
       all_metrix.push(id: emp_id.to_i, measure: 0) unless exists_in_metrics(all_metrix, emp_id)
     end
     return all_metrix
   end
 
-  def self.remove_managers(employees_with_grades)
+  def self.remove_managers(employees_with_grades, sid)
     result = []
     employees_with_grades.each do |emps|
-      result.push(emps) if no_manager?(emps[:id].to_i)
+      result.push(emps) if no_manager?(emps[:id].to_i, sid)
     end
     result
   end
@@ -1133,7 +1133,7 @@ module AlgorithmsHelper
   def pre_calculate_powerful_non_managers(snapshot_id, network_id, network_b_id, network_c_id, pid = NO_PIN, gid = NO_GROUP)
     company = Snapshot.find(snapshot_id).company_id
     all_metrix_and_employees = calculate_inn_degree_email(snapshot_id, nil, company, pid, gid)
-    emps_without_managers = remove_managers(all_metrix_and_employees[0])
+    emps_without_managers = remove_managers(all_metrix_and_employees[0], snapshot_id)
     highest_emails = slice_percentile_from_hash_array(emps_without_managers, Q3)
     return [company, [highest_emails]]
   end
@@ -1173,8 +1173,8 @@ module AlgorithmsHelper
   #   - If there are less then 4 networks tnen only employees appearing in all will make the flag.
   #
   #################################################################################################
-  def assign_scores_by_all_categories(pid, gid, company, z_e, advice_arr, trust_arr, friendship_arr)
-    members_of_group = get_members_in_group(pid, gid, company)
+  def assign_scores_by_all_categories(pid, gid, cid, z_e, advice_arr, trust_arr, friendship_arr, sid)
+    members_of_group = get_members_in_group(pid, gid, cid, sid)
     results = []
     populated_networks = 0
     populated_networks += 1 if z_e.count > 0
@@ -1194,11 +1194,11 @@ module AlgorithmsHelper
     results
   end
 
-  def self.calculate_pair_for_specific_relation_per_snapshot(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
+  def self.calculate_pair_for_specific_relation_per_snapshot(sid, network_id, pid = NO_PIN, gid = NO_GROUP)
     inner_select = AlgorithmsHelper.get_inner_select(pid, gid)
-    snapshot = Snapshot.find(snapshot_id)
+    snapshot = Snapshot.find(sid)
     dt = snapshot.timestamp.to_i
-    query = AlgorithmsHelper.get_relation_arr(pid, gid, snapshot_id, network_id)
+    query = AlgorithmsHelper.get_relation_arr(pid, gid, sid, network_id)
     unless inner_select.blank?
       query += " and from_employee_id in (#{inner_select} ) " \
       "and to_employee_id in (#{inner_select}) "
@@ -1207,8 +1207,12 @@ module AlgorithmsHelper
     return AlgorithmsHelper.format_to_analyze_algorithm(temp_res, dt)
   end
 
-  def self.no_manager?(id)
-    return EmployeeManagementRelation.where(manager_id: id).empty?
+  def self.no_manager?(id, sid)
+    return EmployeeManagementRelation
+             .joins("JOIN employees as emps ON emps.id = employees_management_relation.employee_id")
+             .where(manager_id: id)
+             .where("emps.snapshot_id = #{sid}")
+             .empty?
   end
 
   def normalize_by_n_algorithm(res, n)
@@ -1243,14 +1247,14 @@ module AlgorithmsHelper
     return res
   end
 
-  def get_friends_relation_in_network(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP, in_or_out = 'in') ## need to convert
-    company_id = AlgorithmsHelper.get_company_id(snapshot_id)
+  def get_friends_relation_in_network(sid, nid, pid = NO_PIN, gid = NO_GROUP, in_or_out = 'in') ## need to convert
+    cid = AlgorithmsHelper.get_company_id(sid)
     f = if in_or_out == 'in'
-          get_list_of_employees_in(snapshot_id, network_id, pid, gid)
+          get_list_of_employees_in(sid, nid, pid, gid)
         else
-          get_list_of_employees_out(snapshot_id, network_id, pid, gid)
+          get_list_of_employees_out(sid, nid, pid, gid)
         end
-    unit_size = CdsGroupsHelper.get_unit_size(company_id, pid, gid)
+    unit_size = CdsGroupsHelper.get_unit_size(cid, pid, gid)
     f.rows.each do |row|
       val = if unit_size == 0
               0
@@ -1271,10 +1275,10 @@ module AlgorithmsHelper
     return ret
   end
 
-  def most_bypassed_managers(company_id, snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP) ## need to convert
+  def most_bypassed_managers(cid, sid, nid, pid = NO_PIN, gid = NO_GROUP)
     max_size = 5
-    informal_matrix = CdsEmployeeManagementRelationHelper.create_informal_matrix_per_snapshot(snapshot_id, network_id, pid, gid)
-    bypassed_managers = CdsEmployeeManagementRelationHelper.get_bypassed_in(informal_matrix, company_id, pid, gid)
+    informal_matrix = CdsEmployeeManagementRelationHelper.create_informal_matrix_per_snapshot(sid, nid, pid, gid)
+    bypassed_managers = CdsEmployeeManagementRelationHelper.get_bypassed_in(informal_matrix, cid, pid, gid)
     potential_candidates_size = bypassed_managers.length > max_size ? max_size : bypassed_managers.length
     res = if potential_candidates_size != 0
             bypassed_managers[0..potential_candidates_size - 1].map { |elem| elem.except(:measure) }
@@ -1283,7 +1287,6 @@ module AlgorithmsHelper
           end
     return res
   end
-
 
   ################################################## Gauges #############################################
 
@@ -1368,8 +1371,7 @@ module AlgorithmsHelper
   def political_power_flag(sid, pid, gid)
     res = read_or_calculate_and_write("political_power_flag-#{sid}-#{pid}-#{gid}") do
       cid = find_company_by_snapshot(sid)
-      #inner_select = get_inner_select_as_arr(cid, pid, gid)
-      emps = get_members_in_group(pid, gid, cid)
+      emps = get_members_in_group(pid, gid, cid, sid)
       return [] if emps.nil? || emps.empty?
       network = NetworkSnapshotData.emails(cid)
       sqlstrdenom = "SELECT COUNT(id) AS bcc_count, to_employee_id
@@ -1485,21 +1487,17 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
-  # 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
-  # 
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
   end
-  
-  # 
+
   def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
   end
-  # 
 
   def calc_outdegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
     calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
@@ -1565,7 +1563,7 @@ module AlgorithmsHelper
 
   def self.h_calc_max_traffic_between_two_employees_with_ids(sid, gid = NO_GROUP, pid = NO_PIN)
     cid = find_company_by_snapshot(sid)
-    emps = get_members_in_group(pid, gid, cid).sort
+    emps = get_members_in_group(pid, gid, cid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
     network = NetworkSnapshotData.emails(cid)
@@ -1574,7 +1572,7 @@ module AlgorithmsHelper
               WHERE outter_nsd.snapshot_id      = #{sid}
               AND   network_id                  = #{network}
               AND   outter_nsd.to_employee_id   IN (#{empsstr})
-              AND   outter_nsd.from_employee_id IN (#{empsstr}) 
+              AND   outter_nsd.from_employee_id IN (#{empsstr})
               AND   outter_nsd.from_employee_id <> outter_nsd.to_employee_id
               GROUP BY outter_nsd.from_employee_id, outter_nsd.to_employee_id
               HAVING 	COUNT(id) = (
@@ -1601,7 +1599,7 @@ module AlgorithmsHelper
 
   def self.s_calc_sum_of_metrix(sid, gid = NO_GROUP, pid = NO_PIN, nid = NO_NETWORK)
     cid = find_company_by_snapshot(sid)
-    emps = get_members_in_group(pid, gid, cid).sort
+    emps = get_members_in_group(pid, gid, cid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
     sqlstr = "SELECT COUNT(id)
@@ -1676,7 +1674,6 @@ module AlgorithmsHelper
   end
 
   def calc_degree_for_specified_matrix(sid, matrix_name, direction, gid = NO_GROUP, pid = NO_PIN)
-    
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     res = []
@@ -1691,7 +1688,7 @@ module AlgorithmsHelper
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select, to_type: matrix_name).select("#{direction} as id, count(id) as total_sum").group(direction)
     end
-    
+
     current_snapshot_nodes.each do |emp|
       res << { id: emp.id, measure: emp.total_sum }
     end
@@ -1699,9 +1696,7 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-
   def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     res = []
@@ -1805,11 +1800,11 @@ module AlgorithmsHelper
   end
 
   ################ Utilities ###########################################
-  def self.get_members_in_group(pinid, gid, company_id)
+  def self.get_members_in_group(pinid, gid, cid, sid)
     return Group.find(gid).extract_employees if pinid == NO_PIN && gid != NO_GROUP
     return CdsPinsHelper.get_inner_select_by_pin_as_arr(pinid) if pinid != NO_PIN && gid == NO_GROUP
     if pinid == NO_PIN && gid == NO_GROUP
-      return Company.find(company_id).active_employees.pluck(:id)
+      return Employee.by_snapshot(sid).pluck(:id)
     end
     return nil
   end
