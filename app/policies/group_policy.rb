@@ -11,7 +11,7 @@ class GroupPolicy < ApplicationPolicy
     end
 
     def resolve
-      return scope.where(company_id: user.company_id) if user.admin? || user.hr?
+      return nil
     end
   end
 end

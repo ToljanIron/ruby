@@ -71,46 +71,6 @@ module ImportDataHelper
     return context_list_errors(context_list)
   end
 
-  def self.export_csv_with_external_id(csv_path, question_type)
-    src = []
-    CSV.foreach(csv_path, :headers => false) do |row|
-      src.push(row)
-    end
-    create_headers(src, question_type)
-    formatted_questions = get_ans_formatted(csv_path, src)
-    write_question_to_csv(formatted_questions, question_type)
-  end
-
-  def self.write_question_to_csv(formatted_questions, question_type)
-    csv_file = CSV.open("#{question_type}" + '.csv', 'a+')
-    formatted_questions.each do |row|
-      csv_file << row
-    end
-    csv_file.close
-  end
-
-  def self.get_ans_formatted(csv_path, src)
-    ans = []
-    start_of_lines = 1
-    end_of_lines = CSV.readlines(csv_path).size - 1
-    (start_of_lines..end_of_lines).each_with_index do |row, index|
-      external_id = get_external_id_by_email(src[row][0])
-      referred_external_id = get_external_id_by_email(src[row][1])
-      ans << [external_id, referred_external_id, src[row][2], src[row][3]]
-    end
-    return ans
-  end
-
-  def self.get_external_id_by_email(email)
-    return Employee.find_by(email: email).external_id
-  end
-
-  def self.create_headers(src, question_type)
-    csv_target = CSV.open("#{question_type}" + '.csv', 'w')
-    csv_target << [src[0][0], src[0][1], src[0][2], src[0][3]]
-    csv_target.close
-  end
-
   ######################### Imange upload #########################################
   IMAGES_FILE_NAME='/home/dev/Development/workships/public/employee_images.zip'
   def upload_images(cid, images_file)
@@ -129,7 +89,6 @@ module ImportDataHelper
 
     groups_sht = ex.sheet('Groups')
     groups_context_list = lift_excel_to_context_list(cid, groups_sht, 'groups')
-
 
     context_list += groups_context_list
     ## This is not a mistake. It's done in order to make sure all group parent groups are accounted for
@@ -311,7 +270,7 @@ module ImportDataHelper
       date_formatter(parsed[4].strip, date_format_id)
     end
     name = safe_titleize(parsed[1].strip)
-    group_context = GroupLineProcessingContextNew.new(csv_line, csv_line_number, company_id)
+    group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
     group_context.attrs.merge!(
       company_id: company_id,
       external_id: parsed[0].nil? ? name : parsed[0], ## If external_id is not provided then default to the name

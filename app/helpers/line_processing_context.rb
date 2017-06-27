@@ -15,6 +15,7 @@ module LineProcessingContextClasses
       @original_csv_type = original_csv_type
       @attrs = { company_id: company_id }
       @error_log = []
+      @sid = Snapshot.last_snapshot_of_company(company_id)
     end
 
     def create_if_not_existing
@@ -75,17 +76,16 @@ module LineProcessingContextClasses
     def connect
       begin
         cid = @attrs[:company_id]
-        sid = Snapshot.last_snapshot_of_company(cid)
 
-        g = Group.find_by(company_id: cid, external_id: @attrs[:external_id], snapshot_id: sid)
+        g = Group.find_by(company_id: cid, external_id: @attrs[:external_id], snapshot_id: @sid)
         g.update(name: @attrs[:name]) unless (@attrs[:name] && !g.nil? && g.name == @attrs[:name])
         g.update(color_id: choose_random_color) unless g.color_id
 
-        parent = Group.find_by(company_id: cid, external_id: @attrs[:parent_external_id], snapshot_id: sid)
+        parent = Group.find_by(company_id: cid, external_id: @attrs[:parent_external_id], snapshot_id: @sid)
 
         ## Do this because in some cases parent groups may be specified in terms of their names
         if parent.nil?
-          parent = Group.find_by(company_id: cid, name: @attrs[:parent_external_id], snapshot_id: sid)
+          parent = Group.find_by(company_id: cid, name: @attrs[:parent_external_id], snapshot_id: @sid)
         end
         g.update( parent_group_id: parent.id) if !parent.nil?
       rescue => ex
@@ -101,10 +101,9 @@ module LineProcessingContextClasses
       return unless @attrs[:delete]
       begin
         cid = @attrs[:company_id]
-        sid = Snapshot.last_snapshot_of_company(cid)
 
-        higest_group = Group.find_by(company_id: cid, snapshot_id: sid, parent_group_id: nil, )
-        g = Group.find_by(company_id: cid, snapshot_id: sid, external_id: @attrs[:external_id])
+        higest_group = Group.find_by(company_id: cid, snapshot_id: @sid, parent_group_id: nil, )
+        g = Group.find_by(company_id: cid, snapshot_id: @sid, external_id: @attrs[:external_id])
         child_groups = Group.where(parent_group_id: g.id)
         child_groups.each do |cg|
           cg.update(parent_group_id: higest_group.id)
@@ -169,9 +168,8 @@ module LineProcessingContextClasses
 
     def connect
       begin
-        e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        e = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:external_id])
         return unless e
-        #connect_alias_emails e
         connect_offices e
         connect_qualifications e
         connect_group e
@@ -188,7 +186,7 @@ module LineProcessingContextClasses
     end
 
     def delete
-      e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+      e = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:external_id])
       e.delete if e
     end
 
@@ -224,7 +222,7 @@ module LineProcessingContextClasses
 
     def connect_group(employee)
       return nil if @satellite_tables_attrs[:group_name].nil?
-      g = Group.find_by(name: @satellite_tables_attrs[:group_name], company_id: employee.company_id)
+      g = Group.find_by(name: @satellite_tables_attrs[:group_name], snapshot_id: @sid)
       if g
         employee.group_id = g.id
         employee.save
@@ -288,8 +286,8 @@ module LineProcessingContextClasses
     def create_if_not_existing
       fail if @attrs[:company_id].nil? || Company.where(id: @attrs[:company_id]).empty?
       return if @attrs[:delete]
-      manager = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:manager_external_id])
-      employee = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:employee_external_id])
+      manager = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:manager_external_id])
+      employee = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:employee_external_id])
       relation = EmployeeManagementRelation.find_by(manager_id: manager.id, employee_id: employee.id)
       if relation
         relation.update(relation_type: @attrs[:relation_type])
@@ -306,8 +304,8 @@ module LineProcessingContextClasses
     end
 
     def delete
-      manager_id = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:manager_external_id])
-      employee_id = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:employee_external_id])
+      manager_id = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:manager_external_id])
+      employee_id = Employee.find_by(snapshot_id: @sid, external_id: @attrs[:employee_external_id])
       relation_type = @attrs[:relation_type]
       return unless manager_id && employee_id && relation_type
       r = EmployeeManagementRelation.find_by(manager_id: manager_id, employee_id: employee_id, relation_type: relation_type)
@@ -324,31 +322,25 @@ module LineProcessingContextClasses
     def create_if_not_existing
       fail if @attrs[:company_id].nil? || @attrs[:csv_type].nil? || Company.where(id: @attrs[:company_id]).empty?
       use_latest_snapshot = @attrs[:use_latest_snapshot].nil? ? false : @attrs[:use_latest_snapshot]
-      e1 = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:from_employee_id])
-      e2 = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:to_employee_id])
-      value = @attrs[:value]
       snapshot_time = @attrs.delete(:snapshot)
-      fail if e1[:company_id] != e2[:company_id]
-
       sid = use_latest_snapshot ? Snapshot.last_snapshot_of_company(e1[:company_id]) : find_or_create_snapshot(e1[:company_id], snapshot_time)
 
-      if @attrs[:version] == 'v2'
-        network_name = NetworkName.find_or_create_by(name: @attrs[:csv_type], company_id: @attrs[:company_id].to_i)
-        NetworkSnapshotData.find_or_create_by(
-          snapshot_id: sid,
-          network_id: network_name.id,
-          company_id: @attrs[:company_id].to_i,
-          from_employee_id: e1.id,
-          to_employee_id: e2.id,
-          value: value.to_i,
-          questionnaire_question_id: -1,
-          original_snapshot_id: sid
-        )
-      end
-      if @attrs[:version] == 'v1'
-        t = TrustsSnapshot.find_or_create_by(employee_id: e1.id, trusted_id: e2.id, snapshot_id: sid)
-        t.update(trust_flag: trust_flag)
-      end
+      e1 = Employee.find_by(snapshot_id: sid, external_id: @attrs[:from_employee_id])
+      e2 = Employee.find_by(snapshot_id: sid, external_id: @attrs[:to_employee_id])
+      value = @attrs[:value]
+      fail if e1[:company_id] != e2[:company_id]
+
+      network_name = NetworkName.find_or_create_by(name: @attrs[:csv_type], company_id: @attrs[:company_id].to_i)
+      NetworkSnapshotData.find_or_create_by(
+        snapshot_id: sid,
+        network_id: network_name.id,
+        company_id: @attrs[:company_id].to_i,
+        from_employee_id: e1.id,
+        to_employee_id: e2.id,
+        value: value.to_i,
+        questionnaire_question_id: -1,
+        original_snapshot_id: sid
+      )
     rescue => e
       @error_log << "unable to create NetworkSnapshotData relation. #{e}, #{@attrs}"
       puts "EXCEPTIO: #{e.message[0..1000]}"
