@@ -31,6 +31,53 @@ module ParamsToArgsHelper
       return AlgorithmsHelper.relays_measure(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
+  def self.ccers_measure(args)
+    key = "ccers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.ccers_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.cced_measure(args)
+    key = "cced_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.cced_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.undercover_measure(args)
+    key = "undercover_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.undercover_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.politicos_measure(args)
+    key = "politicos_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.politicos_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.emails_volume_measure(args)
+    key = "emails_volume_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.emails_volume_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.deadends_measure(args)
+    key = "deadends_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.deadends_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
 
   ########################## v2 and V1 algorithms #######################
 
@@ -240,13 +287,13 @@ module ParamsToArgsHelper
     return ParamsToArgsHelper.email_based_analyze_for_precalculation(data, args[:company_id].to_i, args[:pid].to_i, args[:gid].to_i)
   end
 
-  def self.flag_sinks(args)
-    return AlgorithmsHelper.flag_sinks(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
-  end
+  # def self.flag_sinks(args)
+  #   return AlgorithmsHelper.flag_sinks(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
+  # end
 
-  def self.flag_sinks_explore(args)
-    return AlgorithmsHelper.flag_sinks_explore(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
-  end
+  # def self.flag_sinks_explore(args)
+  #   return AlgorithmsHelper.flag_sinks_explore(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
+  # end
 
   #################### calculate measure helper after functions #############################
 

@@ -276,6 +276,7 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def cds_get_analyze_data(cid, pid, gid, company_metrics, sid)
+    
     res = {}
     all_scores_data = cds_fetch_analyze_scores(cid, sid, pid, gid, company_metrics.pluck(:id))
     snapshot = Snapshot.find(sid)
@@ -501,8 +502,8 @@ module CalculateMeasureForCustomDataSystemHelper
     snapshots_as_hash = emps.to_hash
     weights = weight_algorithm(emps, normalize)
     snapshots_as_hash.each_with_index do |node, index|
-      from_emp = node['employee_from_id'].to_i
-      to_emp = node['employee_to_id'].to_i
+      from_emp = node['from_employee_id'].to_i
+      to_emp = node['to_employee_id'].to_i
       weight = weights[index]
       relation_arr << { from_emp_id: from_emp, to_emp_id: to_emp, weight: weight, dt: dt }
     end
