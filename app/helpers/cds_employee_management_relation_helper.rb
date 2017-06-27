@@ -94,9 +94,14 @@ module CdsEmployeeManagementRelationHelper
 
   module_function
 
-  def get_r(company_id, groupby, pid = NO_PIN, gid = NO_GROUP)
+  def get_r(company_id, groupby, sid,  pid = NO_PIN, gid = NO_GROUP)
     inner_select = get_inner_select_for_employee_management(company_id, pid, gid)
-    employees = ActiveRecord::Base.connection.select_all('select employee_id from employee_management_relations').rows.join(',')
+    sqlstr = "
+      select employee_id
+      from employee_management_relations as emr
+      join employees as emps on emps.id = emr.employee_id
+      where emps.snapshot_id = #{sid}"
+    employees = ActiveRecord::Base.connection.select_all(sqlstr).rows.join(',')
     query = "select #{groupby}, count(employee_id)  from employee_management_relations where relation_type = 0"
     query += " and employee_id in (#{inner_select} ) " \
     " and manager_id in (#{inner_select}) and manager_id in (#{employees}) "
@@ -104,17 +109,13 @@ module CdsEmployeeManagementRelationHelper
     return ActiveRecord::Base.connection.select_all(query)
   end
 
-  def get_inner_select_for_employee_management(company_id, pinid, gid)
-    return CdsGroupsHelper.get_inner_select_by_group(gid) if pinid == NO_PIN && gid != NO_GROUP
-    return CdsPinsHelper.get_inner_select_by_pin(pinid) if pinid != NO_PIN && gid == NO_GROUP
+  def get_inner_select_for_employee_management(cid, pid, gid, sid)
+    return CdsGroupsHelper.get_inner_select_by_group(gid) if pid == NO_PIN && gid != NO_GROUP
+    return CdsPinsHelper.get_inner_select_by_pin(pid) if pid != NO_PIN && gid == NO_GROUP
     fail 'Ambiguous sub-group request with both pin-id and group-id' if pinid != NO_PIN && gid != NO_GROUP
-    return "select id from employees where company_id = #{company_id}"
+    return "select id from employees where company_id = #{cid} and snapshot_id = #{sid}"
   end
 
-  # def get_relations_arr(_pid, _gid, snapshot) DEAD CODE ASAF BYEBUG
-  #   return "select employee_id, friend_id from friendships_snapshots where friend_flag = 1
-  #   AND snapshot_id = #{snapshot} "
-  # end
 
   def get_all_emps(cid, pid, gid)
     if pid == NO_PIN && gid != NO_GROUP

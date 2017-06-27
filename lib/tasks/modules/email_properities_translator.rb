@@ -149,13 +149,13 @@ module EmailPropertiesTranslator
     return arg[1..-2].split(',')
   end
 
-  def email_to_employee_id(email, company_id)
+  def email_to_employee_id(email, company_id, sid)
     cache_key = "email_to_employee_id-company_id-#{company_id}i_email-#{email}"
     cached_id = cache_read(cache_key)
     return cached_id unless cached_id.nil?
 
     email = email.tr('"', '').strip
-    employee_id = Employee.find_by(email: email.downcase).try(:id) || EmployeeAliasEmail.find_by(email_alias: email).try(:employee_id)
+    employee_id = Employee.find_by(email: email.downcase, snapshot_id: sid).try(:id) || EmployeeAliasEmail.find_by(email_alias: email).try(:employee_id)
     if employee_id.nil?
       return nil if in_comany_doamin_list(email, company_id)
 

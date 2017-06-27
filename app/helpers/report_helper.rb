@@ -110,7 +110,7 @@ module ReportHelper
   ##   to test it just run the rake task, it's just as quick and no maintanence is needed.
   ##
   #################################################################################################
-  def self.query_employee_data(cid)
+  def self.query_employee_data(cid, sid)
     sqlstr = "create extension if not exists \"tablefunc\""
     ActiveRecord::Base.connection.select_all(sqlstr)
 
@@ -120,7 +120,7 @@ module ReportHelper
           from cds_metric_scores as c
           join employees as e on e.id = c.employee_id
           join groups as g on g.id = c.group_id
-          where employee_id <> 0 and algorithm_id in(16, 27, 61, 63, 64, 66, 67, 70, 71, 100, 101, 102, 129, 130, 135, 141) and c.group_id is not null
+          where employee_id <> 0 and algorithm_id in(16, 27, 61, 63, 64, 66, 67, 70, 71, 100, 101, 102, 129, 130, 135, 141) and c.group_id is not null and e.snapshot_id = #{sid}
           order by employee_id, c.group_id, snapshot_id' ,
          'select id from algorithms where id in(16, 27, 61, 63, 64, 66, 67, 70, 71, 100, 101, 102, 129, 130, 135, 141)')
        as emloyees_report(
@@ -273,7 +273,7 @@ module ReportHelper
   end
 
   ######################## Simple Employee Scores Report ##########################3
-  def self.simple_employee_scores_report(cid)
+  def self.simple_employee_scores_report(cid, sid)
 
     emp_name_str = "concat(emp.first_name, ' ', emp.last_name)" if is_sql_server_connection?
     emp_name_str = "emp.first_name || ' ' || emp.last_name"     if !is_sql_server_connection?
@@ -319,7 +319,8 @@ module ReportHelper
       JOIN id_to_name as itn ON itn.id = al.id
       WHERE
       cds.company_id = #{cid} and
-      al.id IN (74,100,101,154,63,65,62,71,130,141,63,64,66,67,70,102,135,129)
+      al.id IN (74,100,101,154,63,65,62,71,130,141,63,64,66,67,70,102,135,129) AND
+      emp.snapshot_id = #{sid}
       ORDER BY snapshot_id, group_name, algorithm_name, score"
 
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -364,11 +365,11 @@ module ReportHelper
   end
 
   ################## questionnaire_completion_status ##################################
-  def self.questionnaire_completion_status(cid)
+  def self.questionnaire_completion_status(cid, sid)
     ret = QuestionnaireParticipant.joins("JOIN employees AS emp ON emp.id = questionnaire_participants.employee_id")
             .joins("JOIN groups AS g ON g.id = emp.group_id")
             .select("emp.email as email, emp.group_id, emp.external_id")
-            .where("emp.company_id = #{cid}")
+            .where("emp.company_id = #{cid}, emp.snapshot_id = #{sid}")
             .order('g.name')
             .pluck(:email, :group_id, :name, :status, :external_id)
     res = ''

@@ -87,7 +87,7 @@ module CreateSnapshotHelper
     db_records = NetworkSnapshotData.where(snapshot_id: sid, network_id: network)
     puts "create snapshot - delete old records"
     db_records.delete_all
-    company_employee_emails = Employee.where(company_id: cid).pluck(:email)
+    company_employee_emails = Employee.by_snapshot(sid).pluck(:email)
     company_employee_emails_hash = Hash.new(company_employee_emails.length)
     company_employee_emails.each { |e| company_employee_emails_hash[e] = 1 }
     puts "create snapshot - get existing domains"
@@ -198,7 +198,7 @@ module CreateSnapshotHelper
   def process_in_domain_transactions_with_external_sender(raw_data_entries, sid)
     cid = Snapshot.where(id: sid).first.try(:company_id)
     overlay_entity_type = OverlayEntityType.find_or_create_by(overlay_entity_type: 0, name: 'external_domains')
-    emps = Employee.where(active: true)
+    emps = Employee.by_snapshot(sid)
     emps_hash = Hash.new(emps.length)
     emps.map { |e| emps_hash[e.email] = e.id }
     raw_data_entries.each do |rde|
@@ -229,7 +229,7 @@ module CreateSnapshotHelper
 
   def process_out_of_domain_transactions(raw_data_entries, sid)
     cid = Snapshot.where(id: sid).first.try(:company_id)
-    emps = Employee.where(active: true)
+    emps = Employee.by_snapshot(sid)
     emps_hash = Hash.new(emps.length)
     emps.map { |e| emps_hash[e.email] = e }
     overlay_entity_type = OverlayEntityType.find_or_create_by(overlay_entity_type: 0, name: 'external_domains')
@@ -353,7 +353,7 @@ module CreateSnapshotHelper
   end
 
   def get_is_from_selected_to_in_indipendent_question(new_data_row)
-    if new_data_row.questionnaire_question_id == -1 || new_data_row.questionnaire_question_id.nil? 
+    if new_data_row.questionnaire_question_id == -1 || new_data_row.questionnaire_question_id.nil?
       return true
     end
     relevant_questionnaire_question = new_data_row.questionnaire_question
@@ -363,8 +363,6 @@ module CreateSnapshotHelper
     relevant_indipendent_questionnaire_question_replies = QuestionnaireQuestion.find_by(order: 1, questionnaire_id: new_data_row.questionnaire_question.questionnaire_id).question_replies
     return relevant_indipendent_questionnaire_question_replies.where( questionnaire_participant_id: relevant_from_questionnaire_participant,
                                                                reffered_questionnaire_participant_id: relevant_to_questionnaire_participant).first.answer == true
-    # question_replies = .question_replies
-    # relevant_questi
   end
 
   def get_relevant_data(new_data_row, last_snapshot_network_snapshot_data)
@@ -374,7 +372,6 @@ module CreateSnapshotHelper
       new_data_row.network_id       == row.network_id
     }.first
   end
-
 
   private
 
