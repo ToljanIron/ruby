@@ -1,7 +1,8 @@
-require './app/helpers/util_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 require './app/helpers/dashboard_helper.rb'
 include DashboardHelper
-include UtilHelper
+include CdsUtilHelper
+
 namespace :db do
   desc 'create_communication_volume_changes_between_dyads'
   task :create_communication_volume_changes_between_dyads, [:cid, :type] => :environment do |_t, args|

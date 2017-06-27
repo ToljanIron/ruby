@@ -1,5 +1,5 @@
 require './lib/tasks/modules/create_snapshot_helper.rb'
-require './app/helpers/util_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 
 namespace :db do
   desc 'create_ui_levels_for_company'
@@ -9,10 +9,9 @@ namespace :db do
     cid        = args[:cid]  || ENV['COMPANY_ID'] || (fail 'No company ID given (cid)')
     quest_only = args[:quest_only]  || false
     puts "Running with CID=#{cid}"
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     ActiveRecord::Base.transaction do
       begin
-        puts ">>>#{quest_only}<<<"
         if quest_only == false
           puts "Running regular ui levels"
           CreateUiLevelsHelper::create_ui_level(cid.to_i)

@@ -1,4 +1,5 @@
 require './lib/tasks/modules/email_properities_translator.rb'
+require './app/helpers/email_snapshot_data_helper.rb'
 include EmailPropertiesTranslator
 include EmailSnapshotDataHelper
 
@@ -11,33 +12,40 @@ module CreateSnapshotHelper
 
   OUT_OF_DOMAIN_TRANSACTIONS_TYPE = 0
 
-  def create_company_snapshot_by_weeks(company_id, date, create_measures_snapshots = true)
-    end_date = calculate_end_date_of_snapshot(date, company_id)
-    name = create_snapshot_by_week_name(end_date, company_id)
-    if !exist_snapshot?(company_id, name)
-      sid = Snapshot.create(name: name, snapshot_type: nil, timestamp: end_date, company_id: company_id)
+  def create_company_snapshot_by_weeks(cid, date, create_measures_snapshots = true)
+    end_date = calculate_end_date_of_snapshot(date, cid)
+    name = create_snapshot_by_week_name(end_date, cid)
+    if !exist_snapshot?(cid, name)
+      snapshot = Snapshot.create(name: name, snapshot_type: nil, timestamp: end_date, company_id: cid)
     else
-      sid = Snapshot.find_by(company_id: company_id, name: name, snapshot_type: nil)
+      snapshot = Snapshot.find_by(company_id: cid, name: name, snapshot_type: nil)
     end
-    return sid unless create_measures_snapshots
-    puts "Going to create a snapshot for sid: #{sid.id}, end_date: #{end_date}"
-    create_emails_for_weekly_snapshots(company_id, sid.id, end_date)
-    puts "Duplicating emails"
-    duplicate_network_snapshot_data_for_weekly_snapshots(company_id, sid.id)
-    puts "In calc_meaningfull_emails"
-    EmailSnapshotDataHelper.calc_meaningfull_emails(sid.id)
-    if CompanyConfigurationTable.find_by(comp_id: company_id, key: 'process_meetings').try(:value) == 'true'
-      start_date = end_date - get_period_of_weeks(company_id).to_i.week
-      MeetingsHelper.create_meetings_for_snapshot(sid.id, start_date, end_date)
-    end
-    puts "Creating employees snapshot"
-    Employee.create_snapshot(cid, sid)
+    sid = snapshot.id
 
     puts "Creating groups snapshot"
     Group.create_snapshot(cid, sid)
 
+    puts "Creating employees snapshot"
+    Employee.create_snapshot(cid, sid)
+
+    return snapshot unless create_measures_snapshots
+    puts "Going to create a snapshot for sid: #{sid}, end_date: #{end_date}"
+    create_emails_for_weekly_snapshots(cid, snapshot.id, end_date)
+
+    puts "Duplicating emails"
+    duplicate_network_snapshot_data_for_weekly_snapshots(cid, sid)
+
+    puts "In calc_meaningfull_emails"
+    EmailSnapshotDataHelper.calc_meaningfull_emails(sid)
+
+    if CompanyConfigurationTable.find_by(comp_id: cid, key: 'process_meetings').try(:value) == 'true'
+      puts "Creating meetings snapshot"
+      start_date = end_date - get_period_of_weeks(cid).to_i.week
+      MeetingsHelper.create_meetings_for_snapshot(sid, start_date, end_date)
+    end
+
     puts "Done create_company_snapshot_by_weeks"
-    return sid
+    return snapshot
   end
 
   def create_snapshot_by_week_name(end_date ,cid)
@@ -100,17 +108,14 @@ module CreateSnapshotHelper
     out_of_domain_transactions = out_of_domain_emails_filter(raw_data_entries_dup, company_employee_emails_hash)
     puts "create snapshot - process out of domain trasactions"
     process_out_of_domain_transactions(out_of_domain_transactions, sid)
-    subjects_arr = []
     existing_records_arr = []
     puts "create snapshot - calculate email relations and subjects"
     ii = 0
     in_domain_raw_data_entries.each do |rde|
       ii += 1
       hashed_rde = hash_raw_data_entry(rde)
-      existing_records = EmailPropertiesTranslator.process_email(hashed_rde, cid)
+      existing_records = EmailPropertiesTranslator.process_email(hashed_rde, cid, sid)
       existing_records_arr = existing_records_arr.concat(existing_records)
-      subjects  = EmailPropertiesTranslator.process_email_subject(hashed_rde, cid)
-      subjects_arr = subjects_arr.concat(subjects)
       puts "Went over #{ii} records" if (ii % 2000 == 0)
     end
     puts "Going over senders from external_domains"
@@ -132,33 +137,6 @@ module CreateSnapshotHelper
       NetworkSnapshotData.connection.execute(query)
     end
     puts "Wrote #{entries_count} records to network_snapshot_data"
-
-    ## PUsh all subjects to the database
-    puts "create snapshot - write subjects to database"
-    entries_count = subjects_arr.count
-    EmailSubjectSnapshotData.where(snapshot_id: sid).delete_all
-    (0..entries_count/1000).each do |i|
-      puts "Writing to email_subjects_snapshot_data: batch #{i} out of #{entries_count/1000} "
-      foffset = i * 1000
-      toffset = (i == entries_count/1000 ? entries_count : ((i+1) * 1000) - 1)
-      columns = '(employee_from_id, employee_to_id, snapshot_id, subject)'
-
-      flitlerd_values = subjects_arr[foffset..toffset].select { |e| !e[:subject].nil? && e[:subject].length > 0 && !e[:employee_from_id].nil? }
-      flitlerd_values.map do |s|
-        subject = s[:subject].gsub("'", "''")
-        EmailSubjectSnapshotData.create!(
-          employee_from_id: s[:employee_from_id],
-          employee_to_id: s[:employee_to_id],
-          snapshot_id: sid,
-          subject: subject
-        )
-      end
-
-      #values = values.join(",")
-      #query = "INSERT INTO email_subject_snapshot_data #{columns} VALUES #{values}"
-      #EmailSubjectSnapshotData.connection.execute(query) if values.length > 0
-
-    end
 
     puts "create snapshot - update raw_data_entries"
     raw_data_entries.update_all(processed: true)

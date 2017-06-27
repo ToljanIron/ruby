@@ -122,6 +122,15 @@ class Group < ActiveRecord::Base
          SELECT name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, #{sid}
          FROM groups
          WHERE snapshot_id = #{prev_sid} and active is true"
-    )
+   )
+
+   ActiveRecord::Base.connection.execute(
+     "UPDATE groups AS g set parent_group_id = (
+        SELECT ggg.id
+        FROM groups AS gg
+        JOIN groups AS ggg ON ggg.external_id = gg.external_id AND ggg.snapshot_id = #{sid}
+        WHERE gg.snapshot_id = #{prev_sid} AND g.parent_group_id = gg.id)
+      WHERE snapshot_id = #{sid}"
+   )
   end
 end

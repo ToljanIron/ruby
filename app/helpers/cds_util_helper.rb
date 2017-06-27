@@ -114,37 +114,36 @@ module CdsUtilHelper
   end
 
   ##################### CACHE ############################3
-  def self.to_cache?
+  def to_cache?
     return true if Rails.env.production? || Rails.env.onpremise?
     return false
   end
 
-  def self.cache_read(key)
+  def cache_read(key)
     fail 'Key is nil' if key.nil?
     return Rails.cache.fetch(key) if to_cache?
     return nil
   end
 
-  def self.cache_write(key, value)
+  def cache_write(key, value)
     fail 'Key is nil' if key.nil?
     Rails.cache.write(key, value, expires_in: 24.hours) if to_cache?
   end
 
-  def self.cache_delete(key, _value)
+  def cache_delete(key, _value)
     fail 'Key is nil' if key.nil?
     Rails.cache.delete(key) if to_cache?
   end
 
-  def self.cache_delete_all
+  def cache_delete_all
     Rails.cache.clear if to_cache?
   end
 
-  def self.read_or_calculate_and_write(key) # takes a block, a returned value of which will be written to cache and returned
+  def read_or_calculate_and_write(key) # takes a block, a returned value of which will be written to cache and returned
     result = cache_read(key)
     return result unless result.nil?
     result = yield
     cache_write(key, result)
     return result
   end
-
 end

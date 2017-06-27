@@ -7,9 +7,10 @@
 # - When adding a flag algorithm, add similar algorithm for explore; naming convention: <flag_alg_name>_explore
 #############################################################
 
-require './app/helpers/util_helper.rb'
-require './app/helpers/selection_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 require './app/helpers/cds_dfs_helper.rb'
+require './app/helpers/cds_selection_helper.rb'
+include CdsSelectionHelper
 
 module AlgorithmsHelper
   NO_PIN     ||= -1
