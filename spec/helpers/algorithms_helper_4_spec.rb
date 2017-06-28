@@ -127,7 +127,7 @@ describe AlgorithmsHelper, type: :helper do
 
       MeetingAttendee.create!(meeting_id: meeting3.id, employee_id: @e5.id, response: 3)
 
-      @res = calc_routined(@s.id)
+      @res = calc_routiners(@s.id)
       # @res.each {|r| puts "#{r}\n"}
     end
 
@@ -174,7 +174,7 @@ describe AlgorithmsHelper, type: :helper do
       MeetingAttendee.create!(meeting_id: meeting3.id, employee_id: @e2.id)
 
       @res = calc_observers(@s.id)
-      @res.each {|r| puts "#{r}\n"}
+      # @res.each {|r| puts "#{r}\n"}
     end
 
     it 'should test higher "observers degree"' do
@@ -201,14 +201,14 @@ describe AlgorithmsHelper, type: :helper do
       @res.each {|r| puts "#{r}\n"}
     end
 
-    it 'should test higher "observers degree"' do
-      higher_emp = @e2.id
-      lower_emp = @e3.id
+    it 'should test higher "inviters (organized) degree"' do
+      higher_emp = @e1.id
+      lower_emp = @e2.id
       higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
       lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
       expect(higher_measure[:measure]).to be > lower_measure[:measure]
     end
-    it 'should test zero "observers measure"' do
+    it 'should test zero "inviters (organized) measure"' do
       zero_emp = @e5.id
       zero_measure = @res.select{|r| r[:id]==zero_emp}[0]
       expect(zero_measure[:measure]).to eq(0)

@@ -326,11 +326,11 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
       
-      # Because of floats - any number below the threshold should be considered as zero
-      # value set arbitrarily and can be higher/lower
+      # Because of floats - any number below the threshold should be considered as zero.
+      # Threshold value set arbitrarily and can be higher/lower
       @zero_threshold = 0.01
 
-      @res = calc_relative_fwd(@s.id)
+      @res = calc_relays(@s.id)
       # @res.each {|m| puts "#{m}\n"}
     end
 

@@ -1397,7 +1397,7 @@ module AlgorithmsHelper
   end
 
   def relays_measure(sid, gid, pid)
-    return calc_relative_fwd(sid, gid, pid)
+    return calc_relays(sid, gid, pid)
   end
 
   def ccers_measure(sid, gid, pid)
@@ -1437,7 +1437,7 @@ module AlgorithmsHelper
   end
 
   def routiners_measure(sid, gid, pid)
-    return calc_routined(sid, gid, pid)
+    return calc_routiners(sid, gid, pid)
   end
 
   def observers_measure(sid, gid, pid)
@@ -1824,7 +1824,8 @@ module AlgorithmsHelper
 
   ################  ###########################################
 
-  def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
+
+  def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
     
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
@@ -1962,12 +1963,11 @@ module AlgorithmsHelper
 
     return res if is_retrieved_snapshot_data_empty(count_of_invited, sqlstr)
 
-    count_of_invited.each{|obj| count_of_invited_arr << obj.to_hash}
-
-    count_of_invited_arr = integerify_hash_arr(count_of_invited_arr)
-      
-    res = result_zero_padding(employee_ids, count_of_invited_arr)
-    return symbolize_hash_arr(res)
+    # count_of_invited.each{|obj| count_of_invited_arr << obj.to_hash}
+    # count_of_invited_arr = integerify_hash_arr(count_of_invited_arr)      
+    # res = result_zero_padding(employee_ids, count_of_invited_arr)
+    # return res
+    return handle_raw_snapshot_data(count_of_invited, employee_ids)
   end
 
   def calc_rejecters(sid, gid = NO_GROUP, pid = NO_PIN)
@@ -1993,15 +1993,15 @@ module AlgorithmsHelper
     
     return res if is_retrieved_snapshot_data_empty(count_of_rejected, sqlstr)
 
-    count_of_rejected.each{|obj| count_of_rejected_arr << obj.to_hash} # convert to array of hashes
+    # count_of_rejected.each{|obj| count_of_rejected_arr << obj.to_hash} # convert to array of hashes
+    # count_of_rejected_arr = integerify_hash_arr(count_of_rejected_arr)
+    # res = calc_relative_measure_by_key(result_zero_padding(count_of_rejected, count_of_rejected_arr), count_of_invited, 'id', 'measure')
 
-    count_of_rejected_arr = integerify_hash_arr(count_of_rejected_arr)
-
-    res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_rejected_arr), count_of_invited, 'id', 'measure')
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_rejected, employee_ids), count_of_invited, 'id', 'measure')
     return res
   end
 
-  def calc_routined(sid, gid = NO_GROUP, pid = NO_PIN)
+  def calc_routiners(sid, gid = NO_GROUP, pid = NO_PIN)
 
     res = []
     count_of_recurring_arr = []
@@ -2024,9 +2024,11 @@ module AlgorithmsHelper
 
     return res if is_retrieved_snapshot_data_empty(count_of_recurring, sqlstr)
 
-    count_of_recurring.each{|obj| count_of_recurring_arr << obj.to_hash}
-    count_of_recurring_arr = integerify_hash_arr(count_of_recurring_arr)
-    res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_recurring_arr), count_of_invited, 'id', 'measure')
+    # count_of_recurring.each{|obj| count_of_recurring_arr << obj.to_hash}
+    # count_of_recurring_arr = integerify_hash_arr(count_of_recurring_arr)
+    # res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_recurring_arr), count_of_invited, 'id', 'measure')
+
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_recurring, employee_ids), count_of_invited, 'id', 'measure')
     return res
   end
 
@@ -2041,18 +2043,21 @@ module AlgorithmsHelper
 
   def calc_inviters(sid, gid = NO_GROUP, pid = NO_PIN)
     
-    res = []
-    count_of_invited_arr = []
+    count_of_organized_hashes = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
-    sqlstr = "SELECT organizer_id as id, COUNT(employee_id) as measure
+    sqlstr = "SELECT organizer_id as id, COUNT(organizer_id) as measure
               FROM meetings_snapshot_data
-              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              WHERE organizer_id IN (#{employee_ids.join(',')}) AND
               snapshot_id = #{sid}
-              GROUP BY employee_id"
+              GROUP BY organizer_id"
 
-    count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
+    count_of_organized_raw = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return [] if is_retrieved_snapshot_data_empty(count_of_organized_raw, sqlstr)
+    
+    return handle_raw_snapshot_data(count_of_organized_raw, employee_ids)
   end
 
   def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)
@@ -2069,6 +2074,16 @@ module AlgorithmsHelper
       end
     end
     return symbolize_hash_arr(res)
+  end
+
+  # Common functionality for handling raw data for measure algorithms
+  def handle_raw_snapshot_data(raw_object_array, employee_ids)
+    array = []
+    
+    raw_object_array.each{|obj| array << obj.to_hash}
+    array = integerify_hash_arr(array)
+
+    return result_zero_padding(employee_ids, array)
   end
 
   ################ Utilities ###########################################
