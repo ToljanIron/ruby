@@ -32,9 +32,9 @@ module AlgorithmsHelper
   ALL_MATRIX ||= 4
 
   # From type - init, fwd or reply
-  INIT  ||= 1
-  FWD  ||= 2
-  REPLY  ||= 3
+  # INIT  ||= 1
+  # REPLY  ||= 2
+  # FWD  ||= 3
 
   TO ||=1
 
@@ -1863,6 +1863,9 @@ module AlgorithmsHelper
     nid = NetworkSnapshotData.emails(cid)
     emps = get_inner_select_as_arr(cid, pid, gid)
 
+    puts "-------------------"
+    puts "REPLY ? #{REPLY}"
+    puts "-------------------"
     sqlstr =
       "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
       FROM employees AS emps
@@ -1914,7 +1917,6 @@ module AlgorithmsHelper
     # sink/deadend measure - because they never reply.
 
     max_deadend_measure = 0
-
     ratios.each do |r|
       max_deadend_measure = r[:measure] if r[:measure] > max_deadend_measure
     end
