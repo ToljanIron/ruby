@@ -61,7 +61,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
         @res = calc_outdegree_for_to_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res.each {|m| puts "#{m}\n"}
       end
 
       it 'should test higher "to outdegree"' do

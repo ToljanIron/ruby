@@ -1442,12 +1442,11 @@ module AlgorithmsHelper
   
   def result_zero_padding(empids, scores)
     res = []
+    temp = symbolize_hash_arr(scores)
     empids.each do |eid|
-      score_sym = scores.find { |s| s[:id] == eid.to_i || s[:id] == eid.to_s }
-      res << score_sym if !score_sym.nil?
-      score_str = scores.find { |s| s['id'] == eid.to_i || s['id'] == eid.to_s }
-      res << score_str if !score_str.nil?
-      res << {id: eid, measure: 0} if score_sym.nil? && score_str.nil?
+      score = scores.find { |s| s[:id] == eid.to_i || s[:id] == eid.to_s }
+      res << score if !score.nil?
+      res << {id: eid, measure: 0} if score.nil?
     end
     return res
   end
@@ -1844,10 +1843,8 @@ module AlgorithmsHelper
     union = in_result + out_result
 
     temp = sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
-    # temp.each {|entry| res << entry.symbolize_keys}
 
     res = symbolize_hash_arr(temp)
-    
     return res
   end
   
@@ -1894,8 +1891,6 @@ module AlgorithmsHelper
 
       elm = {}
       elm[:id] = e['empid']
-      # elm['emails_sum'] = 100 if (!toempcount.nil? && fromempcount.nil?)
-      # elm['emails_sum'] = toempcount.to_f / fromempcount.to_f if (!toempcount.nil? && !fromempcount.nil?)
 
       if fromempcount.nil?
         if toempcount.nil?
@@ -1937,26 +1932,31 @@ module AlgorithmsHelper
   end
 
   def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)
-    cid = find_company_by_snapshot(sid)
+    
     res = []
-
+    count_of_invited_arr = []
+    cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
-    meeting_ids = MeetingsSnapshotData.where(snapshot_id: sid, company_id: cid)
+    # meeting_ids = MeetingsSnapshotData.where(snapshot_id: sid, company_id: cid)
+    # count_of_invited = MeetingAttendee.where(meeting_id: meeting_ids, employee_id: employee_ids).
+    # select("employee_id, count(employee_id) as total_sum").group("employee_id")
     
-    attendee_with_meeting_count = MeetingAttendee.where(meeting_id: meeting_ids, employee_id: employee_ids).
-    select("employee_id, count(employee_id) as total_sum").group("employee_id")
-    
-    # sqlstr = "SELECT meeting_attendees.employee_id, COUNT(employee_id) as total_sum
-    #           FROM meetings_snapshot_data
-    #           JOIN meeting_attendees ON 
-    #           meetings_snapshot_data.id = meeting_attendees.meeting_id
-    #           GROUP BY employee_id"
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')})
+              GROUP BY employee_id"
 
-    # attendee_with_meeting_count = ActiveRecord::Base.connection.exec_query(sqlstr)
-    attendee_with_meeting_count.each {|a| res << {id: a.employee_id, measure: a.total_sum}}
+    count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
 
-    return result_zero_padding(employee_ids, res)
+    count_of_invited.each{|obj| count_of_invited_arr << obj.to_hash}
+
+    count_of_invited_arr = integerify_hash_arr(count_of_invited_arr)
+      
+    res = result_zero_padding(employee_ids, count_of_invited_arr)
+    return symbolize_hash_arr(res)
   end
 
   def calc_rejecters(sid, gid = NO_GROUP, pid = NO_PIN)
@@ -1968,8 +1968,7 @@ module AlgorithmsHelper
 
     count_of_invited = calc_in_the_loop(sid, gid, pid)
 
-    # Get entries from meeting_attendees JOINED meetings_snapshot_data
-    # for the employee id's from above, with a response of declined to meeting (3)
+    # Get meeting count for attendees with a declined response
     sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
               FROM meetings_snapshot_data
               JOIN meeting_attendees ON
@@ -1980,31 +1979,28 @@ module AlgorithmsHelper
 
     count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
     
-    count_of_rejected.each{|rej| count_of_rejected_arr << rej.to_hash} # convert to array of hashes
+    count_of_rejected.each{|obj| count_of_rejected_arr << obj.to_hash} # convert to array of hashes
 
-    count_of_rejected_arr.each do |r| 
-      r['id'] = r['id'].to_i
-      r['measure'] = r['measure'].to_i
-    end
-    
-    res =  calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_rejected_arr), count_of_invited, 'id', 'measure')
-    return symbolize_hash_arr(res)
+    count_of_rejected_arr = integerify_hash_arr(count_of_rejected_arr)
+
+    res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_rejected_arr), count_of_invited, 'id', 'measure')
+    return res
   end
 
   def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)
     res = []
     stringified_numerator_arr = stringify_hash_arr(numerator_arr)
     stringified_denominator_arr = stringify_hash_arr(denominator_arr)
-    
+
     stringified_numerator_arr.each do |numerator|
       stringified_denominator_arr.each do |denominator|
-        if(numerator[key] == denominator[key])
+        if(numerator[key].to_i == denominator[key].to_i)
           next if numerator[value].nil?
-          res << { key => numerator[key], value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1  }
+          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1 }
         end
       end
     end
-    return res
+    return symbolize_hash_arr(res)
   end
 
   ################ Utilities ###########################################
@@ -2032,19 +2028,15 @@ module AlgorithmsHelper
   def sum_and_minimize_array_of_hashes_by_key(array, key, value)
     temp = []
     result = []
-    # stringified_array = []
-
-    # stringify hashes
-    # array.each{|entry| stringified_array << entry.stringify_keys}
     stringified_array = stringify_hash_arr(array)
 
     stringified_array.each do |entry|
       temp[entry[key]] = 0 if temp[entry[key]].nil?
       temp[entry[key]] += entry[value]
-    end    
+    end
     temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
     
-    return result
+    return symbolize_hash_arr(result)
   end
 
   def stringify_hash_arr(hash_array)
@@ -2057,6 +2049,16 @@ module AlgorithmsHelper
     arr = []
     hash_array.each{|entry| arr << entry.symbolize_keys}
     return arr
+  end
+
+  # Convert all values to integers
+  # +hash_array+:: array of hashes - with keys as symbols
+  # Example: {:id=>"1004", :measure=>"1"} will return {:id=>1004, :measure=>1}
+  def integerify_hash_arr(hash_array)
+    res = []
+    temp = symbolize_hash_arr(hash_array)
+    temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
+    return res   
   end
 end
 
