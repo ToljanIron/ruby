@@ -9,7 +9,7 @@ class Group < ActiveRecord::Base
 
   scope :by_snapshot, ->(sid) {
     raise 'snapshot_id cant be nil' if sid.nil?
-    Group.where(snapshot_id: sid)
+    Group.where(snapshot_id: sid, active: true)
   }
 
   before_save do
