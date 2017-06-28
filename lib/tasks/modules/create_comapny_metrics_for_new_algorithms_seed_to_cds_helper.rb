@@ -19,7 +19,9 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     emails_volume_id         = MetricName.find_or_create_by(name: 'Emails Volume', company_id: cid).id   
     deadends_id              = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id   
     
-    in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id   
+    in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id
+    rejecters_id           = MetricName.find_or_create_by(name: 'Rejecters', company_id: cid).id
+    routiners_id           = MetricName.find_or_create_by(name: 'Routiners', company_id: cid).id
 
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2)
@@ -38,6 +40,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: deadends_id, network_id: communication_network_id, company_id: cid, algorithm_id: 708, algorithm_type_id: 1)
 
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: -1, company_id: cid, algorithm_id: 800, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: rejecters_id, network_id: -1, company_id: cid, algorithm_id: 801, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: routiners_id, network_id: -1, company_id: cid, algorithm_id: 802, algorithm_type_id: 1)
   end
 
   def create_new_seed_for_sinks(cid)

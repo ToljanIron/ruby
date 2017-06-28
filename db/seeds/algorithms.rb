@@ -29,6 +29,8 @@ Algorithm.find_or_create_by!(id: 158, name: 'proportion_time_spent_on_meetings_g
 Algorithm.find_or_create_by!(id: 159, name: 'proportion_of_managers_never_in_meetings_gauge', algorithm_type_id: 5)
 
 Algorithm.find_or_create_by!(id: 800, name: 'in_the_loop_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 801, name: 'rejecters_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
+Algorithm.find_or_create_by!(id: 802, name: 'routiners_measure', algorithm_type_id: 1, algorithm_flow_id: 1)
 
 ############## Communication ###############
 Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)

@@ -89,6 +89,22 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.rejecters_measure(args)
+    key = "rejecters_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.rejecters_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.routiners_measure(args)
+    key = "routiners_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.routiners_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
   ########################## v2 and V1 algorithms #######################
 
   def self.most_isolated_to_args(args)

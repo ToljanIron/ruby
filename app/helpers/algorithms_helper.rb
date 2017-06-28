@@ -1436,6 +1436,18 @@ module AlgorithmsHelper
     return calc_rejecters(sid, gid, pid)
   end
 
+  def routiners_measure(sid, gid, pid)
+    return calc_routined(sid, gid, pid)
+  end
+
+  def observers_measure(sid, gid, pid)
+    return calc_observers(sid, gid, pid)
+  end
+
+  def inviters_measure(sid, gid, pid)
+    return calc_inviters(sid, gid, pid)
+  end
+    
   ###################################################
 
   ##################### V3 formatting utilities ###################################################
@@ -1937,19 +1949,18 @@ module AlgorithmsHelper
     count_of_invited_arr = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
-
-    # meeting_ids = MeetingsSnapshotData.where(snapshot_id: sid, company_id: cid)
-    # count_of_invited = MeetingAttendee.where(meeting_id: meeting_ids, employee_id: employee_ids).
-    # select("employee_id, count(employee_id) as total_sum").group("employee_id")
     
     sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
               FROM meetings_snapshot_data
               JOIN meeting_attendees ON
               meetings_snapshot_data.id = meeting_attendees.meeting_id
-              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')})
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid}
               GROUP BY employee_id"
 
     count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return res if is_retrieved_snapshot_data_empty(count_of_invited, sqlstr)
 
     count_of_invited.each{|obj| count_of_invited_arr << obj.to_hash}
 
@@ -1974,17 +1985,74 @@ module AlgorithmsHelper
               JOIN meeting_attendees ON
               meetings_snapshot_data.id = meeting_attendees.meeting_id
               WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid} AND
               response = 3
               GROUP BY employee_id"
 
     count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
     
+    return res if is_retrieved_snapshot_data_empty(count_of_rejected, sqlstr)
+
     count_of_rejected.each{|obj| count_of_rejected_arr << obj.to_hash} # convert to array of hashes
 
     count_of_rejected_arr = integerify_hash_arr(count_of_rejected_arr)
 
     res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_rejected_arr), count_of_invited, 'id', 'measure')
     return res
+  end
+
+  def calc_routined(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    count_of_recurring_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+
+    # Get meeting count for attendees with a declined response
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid} AND
+              meeting_type = 1
+              GROUP BY employee_id"
+
+    count_of_recurring = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return res if is_retrieved_snapshot_data_empty(count_of_recurring, sqlstr)
+
+    count_of_recurring.each{|obj| count_of_recurring_arr << obj.to_hash}
+    count_of_recurring_arr = integerify_hash_arr(count_of_recurring_arr)
+    res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_recurring_arr), count_of_invited, 'id', 'measure')
+    return res
+  end
+
+  def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
+    return res
+  end
+
+  def calc_inviters(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    count_of_invited_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    sqlstr = "SELECT organizer_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid}
+              GROUP BY employee_id"
+
+    count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
   end
 
   def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)
@@ -2059,6 +2127,14 @@ module AlgorithmsHelper
     temp = symbolize_hash_arr(hash_array)
     temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
     return res   
+  end
+
+  def is_retrieved_snapshot_data_empty(entries, query)
+    if(entries.count == 0)
+      puts ">>> No snapshot data for this query:\n#{query}"
+      return true
+    end
+    return false
   end
 end
 
