@@ -378,23 +378,23 @@ angular.module('workships').controller('NewGraphSidebarController',
   $scope.setDrillDown = function (key, layer) {
     $scope.drillDown = key;
     $scope.drillDownLayer = layer;
-    if (!key) {
-      $scope.selected.overlay_entity = null;
-      return;
-    }
-    var drillDownType, collection;
-    if (isSingleKeyword(key)) {
-      drillDownType = 'id';
-      collection = $scope.dm.overlay_snapshot_data.overlay_entities;
-    } else {
-      drillDownType = 'group';
-      collection = $scope.dm.overlay_snapshot_data.overlay_entity_groups;
-    }
-    $scope.selected.overlay_entity = {
-      id: _.find(collection, { name: key.split(' (')[0] }).id,
-      type: drillDownType
-    };
-    tabService.setDrillDownOriginOverlay();
+    // if (!key) {
+    //   $scope.selected.overlay_entity = null;
+    //   return;
+    // }
+    // var drillDownType, collection;
+    // if (isSingleKeyword(key)) {
+    //   drillDownType = 'id';
+    //   collection = $scope.dm.overlay_snapshot_data.overlay_entities;
+    // } else {
+    //   drillDownType = 'group';
+    //   collection = $scope.dm.overlay_snapshot_data.overlay_entity_groups;
+    // }
+    // $scope.selected.overlay_entity = {
+    //   id: _.find(collection, { name: key.split(' (')[0] }).id,
+    //   type: drillDownType
+    // };
+    // tabService.setDrillDownOriginOverlay();
   };
 
   $scope.layerValuesToShow = function (layer) {
