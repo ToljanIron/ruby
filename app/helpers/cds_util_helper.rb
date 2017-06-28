@@ -1,6 +1,12 @@
 module CdsUtilHelper
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
 
+  def safe_titleize(str)
+    return nil if str.nil?
+    return str.titleize if !str.match(/^[a-zA-Z \-]*$/).nil?
+    return str
+  end
+
   def self.convert_str_to_date(str)
     return Date.parse(str) if str
   end

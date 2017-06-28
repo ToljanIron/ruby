@@ -1,6 +1,9 @@
 include CdsUtilHelper
-include EmployeesHelper
 class Employee < ActiveRecord::Base
+
+  DIRECT_MANAGER = 0
+  PRO_MANAGER = 1
+
   attr_accessor :group_name
   has_many    :employee_alias_email
   belongs_to  :group
@@ -269,5 +272,17 @@ class Employee < ActiveRecord::Base
         relation_type: m.relation_type
       )
     end
+  end
+
+  def check_enums(processed_attrs, errors)
+    if !Employee.genders.keys.include? processed_attrs[:gender]
+      errors.push 'gender'
+      processed_attrs[:gender] = nil
+    end
+    return
+  end
+
+  def valid_attr_field(attr_field)
+    return attr_field && !attr_field.empty?
   end
 end

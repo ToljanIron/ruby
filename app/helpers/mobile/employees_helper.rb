@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'tempfile'
-require './app/helpers/util_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 
 module Mobile::EmployeesHelper
   def deactivate_employee_by_id(id, questionnaire_id)

@@ -1,5 +1,4 @@
 include SessionsHelper
-include EmployeesHelper
 include CdsUtilHelper
 
 class EmployeesController < ApplicationController
