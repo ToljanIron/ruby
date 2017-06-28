@@ -152,4 +152,46 @@ module CdsUtilHelper
     cache_write(key, result)
     return result
   end
+
+  ############################## SQL helper functions ################################3
+  def is_sql_server_connection?
+    return ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+  end
+
+  def sql_concat(a,b)
+    return "concat(#{a}, ' ', #{b})" if is_sql_server_connection?
+    return "#{a} || ' ' || #{b}"     if !is_sql_server_connection?
+  end
+
+  def sql_check_boolean(field, value)
+    raise 'value should be true or false' if (value.class != FalseClass && value.class != TrueClass)
+    val = value ? 1 : 0
+    return "#{field} is #{value}" if !is_sql_server_connection?
+    return "#{field} = #{val}" if is_sql_server_connection?
+  end
+
+  ############################## Statistics functions ################################3
+  def array_mean(a)
+    raise 'Nil argument' if a.nil?
+    raise 'Argument is not an Array' if !a.kind_of?(Array)
+    raise 'Empty array' if a.count == 0
+    res = 0
+    a.each { |e| res += e }
+    return (res.to_f / a.count).round(3)
+  end
+
+  def array_sd(a)
+    raise 'Nil argument' if a.nil?
+    raise 'Argument is not an Array' if !a.kind_of?(Array)
+    raise 'Empty array' if a.count <= 1
+    mean = array_mean(a)
+    res = 0
+    a.each { |e| res += (e - mean) ** 2}
+    return Math.sqrt(res.to_f / (a.count - 1)).round(3)
+  end
+
+  def array_median(a)
+    stats = DescriptiveStatistics::Stats.new(a)
+    return stats.median
+  end
 end

@@ -1,3 +1,5 @@
+include CdsUtilHelper
+
 class Group < ActiveRecord::Base
   has_many :employees
   belongs_to :company
@@ -121,7 +123,9 @@ class Group < ActiveRecord::Base
          (name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, snapshot_id)
          SELECT name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, #{sid}
          FROM groups
-         WHERE snapshot_id = #{prev_sid} and active is true"
+         WHERE
+           snapshot_id = #{prev_sid} AND
+           #{sql_check_boolean('active', true)}"
    )
 
    ActiveRecord::Base.connection.execute(
