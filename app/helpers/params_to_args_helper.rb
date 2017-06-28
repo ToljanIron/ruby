@@ -7,7 +7,7 @@ module ParamsToArgsHelper
   GROUP   = 4
 
   ########################## v3 algorithms ##############################
-
+  ########################## Email ##########################
   def self.spammers_measure(args)
     key = "spammers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
@@ -76,6 +76,16 @@ module ParamsToArgsHelper
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
       return AlgorithmsHelper.deadends_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  ########################## Meetings ##########################
+  
+  def self.in_the_loop_measure(args)
+    key = "in_the_loop_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.in_the_loop_measure(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 

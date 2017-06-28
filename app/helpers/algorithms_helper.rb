@@ -1386,6 +1386,8 @@ module AlgorithmsHelper
 
   ##################### V3 algorithms ###################################################
 
+  ##################### Emails #####################
+
   def spammers_measure(sid, gid, pid)
     return calc_outdegree_for_to_matrix(sid, gid, pid)
   end
@@ -1422,14 +1424,30 @@ module AlgorithmsHelper
     return calc_deadends(sid, gid, pid)
   end
 
+  ###################################################
+
+  ##################### Meetings #####################
+
+  def in_the_loop_measure(sid, gid, pid)
+    return calc_in_the_loop(sid, gid, pid)
+  end
+
+  def rejecters_measure(sid, gid, pid)
+    return calc_rejecters(sid, gid, pid)
+  end
+
+  ###################################################
+
   ##################### V3 formatting utilities ###################################################
   
   def result_zero_padding(empids, scores)
     res = []
     empids.each do |eid|
-      score = scores.find { |s| s[:id] == eid }
-      res << score if !score.nil?
-      res << {id: eid, measure: 0} if score.nil?
+      score_sym = scores.find { |s| s[:id] == eid.to_i || s[:id] == eid.to_s }
+      res << score_sym if !score_sym.nil?
+      score_str = scores.find { |s| s['id'] == eid.to_i || s['id'] == eid.to_s }
+      res << score_str if !score_str.nil?
+      res << {id: eid, measure: 0} if score_sym.nil? && score_str.nil?
     end
     return res
   end
@@ -1618,7 +1636,6 @@ module AlgorithmsHelper
     res = []
     emp_list = []
     if direction == EMAILS_IN
-      # 22.6.17 - replaced method calls from EmailTrafficHelper - Michael K. 
       # to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
       # cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
       # bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
@@ -1709,6 +1726,93 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
+  ############################ ALL MATRIX IMPLEMENTATION #########################################
+
+  def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  end
+
+  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  def calc_outdeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  def calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id = NO_GROUP, pin_id = NO_PIN)
+    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id, pin_id)
+    maximum = calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
+    return res if maximum == 0
+    return -1 if maximum.nil?
+    res.map { |emp| { id: emp[:id], measure: (emp[:measure] /= maximum.to_f).round(2) } }
+  end
+
+  def calc_normalized_indegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  end
+
+  def calc_normalized_outdegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  #################################  AVERAGES #######################################################
+  
+  def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
+    result_vector = nil
+    if (direction == EMAILS_IN)
+      result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    else
+      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    end
+
+    comp1 = find_company_by_snapshot(snapshot_id)
+    company_size = CdsGroupsHelper.get_unit_size(comp1, -1, -1)
+    total_sum = result_vector.inject(0) { |memo, emp| memo + emp[:measure] }
+    return -1 if company_size == 0
+    (total_sum.to_f / company_size).round(2)
+  end
+
+  def calc_avg_indeg_for_specified_matrix(snapshot_id, matrix_name)
+    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN)
+  end
+
+  def calc_avg_outdeg_for_specified_matrix(snapshot_id, matrix_name)
+    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT)
+  end
+
+  #################################  MAXIMA FUNCTIONS ################################################
+  
+  def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
+    res = nil
+    if (direction == EMAILS_IN)
+      res = calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
+    else
+      res = calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
+    end
+    return res
+  end
+
+  def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
+    result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    calc_max_vector(result_vector)
+  end
+
+  def calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
+    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    calc_max_vector(result_vector)
+  end
+
+  def calc_max_vector(emp_vector)
+    return calc_max_in_vector_by_attribute(emp_vector, :measure)
+  end
+
+  def calc_max_in_vector_by_attribute(emp_vector, attribute)
+    return emp_vector.map { |elem| elem[attribute.to_s.to_sym] }.max
+  end
+
+  ################  ###########################################
+
   def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
     
     cid = find_company_by_snapshot(sid)
@@ -1725,23 +1829,24 @@ module AlgorithmsHelper
     fwded_emails.each do |emp_fwd|
       total_to_measure.each do |emp|
         if(emp[:id] == emp_fwd.id)
-          res << { id: emp[:id], measure: emp[:measure] != 0 ? (emp_fwd.total_sum.to_f/emp[:measure]).round(2) : 0 }
+          res << { id: emp[:id], measure: emp[:measure] != 0 ? (emp_fwd.total_sum.to_f/emp[:measure]).round(2) : -1 }
         end
       end
     end
-    result = result_zero_padding(inner_select, res)
-    return result
+    return result_zero_padding(inner_select, res)
   end
 
-  def calc_emails_volume(sid, group_id = NO_GROUP, pin_id = NO_PIN)
+  def calc_emails_volume(sid, gid = NO_GROUP, pid = NO_PIN)
     res = []
 
-    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, group_id, pin_id)
-    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, group_id, pin_id)
+    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
     union = in_result + out_result
 
     temp = sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
-    temp.each {|entry| res << entry.symbolize_keys}
+    # temp.each {|entry| res << entry.symbolize_keys}
+
+    res = symbolize_hash_arr(temp)
     
     return res
   end
@@ -1831,87 +1936,75 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)
+    cid = find_company_by_snapshot(sid)
+    res = []
+
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    meeting_ids = MeetingsSnapshotData.where(snapshot_id: sid, company_id: cid)
+    
+    attendee_with_meeting_count = MeetingAttendee.where(meeting_id: meeting_ids, employee_id: employee_ids).
+    select("employee_id, count(employee_id) as total_sum").group("employee_id")
+    
+    # sqlstr = "SELECT meeting_attendees.employee_id, COUNT(employee_id) as total_sum
+    #           FROM meetings_snapshot_data
+    #           JOIN meeting_attendees ON 
+    #           meetings_snapshot_data.id = meeting_attendees.meeting_id
+    #           GROUP BY employee_id"
+
+    # attendee_with_meeting_count = ActiveRecord::Base.connection.exec_query(sqlstr)
+    attendee_with_meeting_count.each {|a| res << {id: a.employee_id, measure: a.total_sum}}
+
+    return result_zero_padding(employee_ids, res)
   end
 
-  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
-  end
+  def calc_rejecters(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    count_of_rejected_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
-  def calc_outdeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
-  end
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
 
-  def calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id = NO_GROUP, pin_id = NO_PIN)
-    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id, pin_id)
-    maximum = calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
-    return res if maximum == 0
-    return -1 if maximum.nil?
-    res.map { |emp| { id: emp[:id], measure: (emp[:measure] /= maximum.to_f).round(2) } }
-  end
+    # Get entries from meeting_attendees JOINED meetings_snapshot_data
+    # for the employee id's from above, with a response of declined to meeting (3)
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              response = 3
+              GROUP BY employee_id"
 
-  def calc_normalized_indegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
-  end
+    count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
+    
+    count_of_rejected.each{|rej| count_of_rejected_arr << rej.to_hash} # convert to array of hashes
 
-  def calc_normalized_outdegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
-  end
-
-  #################################  AVERAGES #######################################################
-  
-  def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
-    result_vector = nil
-    if (direction == EMAILS_IN)
-      result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    else
-      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    count_of_rejected_arr.each do |r| 
+      r['id'] = r['id'].to_i
+      r['measure'] = r['measure'].to_i
     end
-
-    comp1 = find_company_by_snapshot(snapshot_id)
-    company_size = CdsGroupsHelper.get_unit_size(comp1, -1, -1)
-    total_sum = result_vector.inject(0) { |memo, emp| memo + emp[:measure] }
-    return -1 if company_size == 0
-    (total_sum.to_f / company_size).round(2)
+    
+    res =  calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_rejected_arr), count_of_invited, 'id', 'measure')
+    return symbolize_hash_arr(res)
   end
 
-  def calc_avg_indeg_for_specified_matrix(snapshot_id, matrix_name)
-    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN)
-  end
-
-  def calc_avg_outdeg_for_specified_matrix(snapshot_id, matrix_name)
-    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT)
-  end
-
-  #################################  MAXIMA FUNCTIONS ################################################
-  
-  def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
-    res = nil
-    if (direction == EMAILS_IN)
-      res = calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    else
-      res = calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
+  def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)
+    res = []
+    stringified_numerator_arr = stringify_hash_arr(numerator_arr)
+    stringified_denominator_arr = stringify_hash_arr(denominator_arr)
+    
+    stringified_numerator_arr.each do |numerator|
+      stringified_denominator_arr.each do |denominator|
+        if(numerator[key] == denominator[key])
+          next if numerator[value].nil?
+          res << { key => numerator[key], value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1  }
+        end
+      end
     end
     return res
-  end
-
-  def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    calc_max_vector(result_vector)
-  end
-
-  def calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
-    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    calc_max_vector(result_vector)
-  end
-
-  def calc_max_vector(emp_vector)
-    return calc_max_in_vector_by_attribute(emp_vector, :measure)
-  end
-
-  def calc_max_in_vector_by_attribute(emp_vector, attribute)
-    return emp_vector.map { |elem| elem[attribute.to_s.to_sym] }.max
   end
 
   ################ Utilities ###########################################
@@ -1931,20 +2024,19 @@ module AlgorithmsHelper
   # +key+:: key by which to minimize values
   # +value+:: value to sum
   # 
-  # Example: calling the method like this: 
-  # sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') where the
-  # array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
+  # Example: calling sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') 
+  # where array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]
   # 
   # Notice that the addition for the 1st and 3rd hash was: 2+3, and the addition for
-  # the 2nd and 4th was 10+8. They were added like that, because the  
   def sum_and_minimize_array_of_hashes_by_key(array, key, value)
     temp = []
     result = []
-    stringified_array = []
+    # stringified_array = []
 
     # stringify hashes
-    array.each{|entry| stringified_array << entry.stringify_keys}
+    # array.each{|entry| stringified_array << entry.stringify_keys}
+    stringified_array = stringify_hash_arr(array)
 
     stringified_array.each do |entry|
       temp[entry[key]] = 0 if temp[entry[key]].nil?
@@ -1953,6 +2045,18 @@ module AlgorithmsHelper
     temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
     
     return result
+  end
+
+  def stringify_hash_arr(hash_array)
+    arr = []
+    hash_array.each{|entry| arr << entry.stringify_keys}
+    return arr
+  end
+
+  def symbolize_hash_arr(hash_array)
+    arr = []
+    hash_array.each{|entry| arr << entry.symbolize_keys}
+    return arr
   end
 end
 
