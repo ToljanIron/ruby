@@ -12,7 +12,7 @@ development-small:
   <<: *default
   database: workships_development
 
-development-ext:
+development:
   <<: *default
   database: workships_ext
 
@@ -35,7 +35,7 @@ test-sqlserver:
   password: workships
   timeout: 20000000
 
-development:
+development-sqlserver:
   mode: dblib
   pool: 5
   adapter: sqlserver
