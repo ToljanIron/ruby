@@ -380,7 +380,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def cds_get_group_measure_data(cid, gid, cm)
     algorithm_id = cm.algorithm_id
     result = { snapshots: {}, graph_data: { data: { values: [] } } }
-    gid = Group.where(company_id: cid, parent_group_id: nil).pluck(:id) if gid.nil?
+    gid = Group.get_parent_group(cid).pluck(:id) if gid.nil?
     subgroups = Group.where(parent_group_id: gid).pluck(:id)
     return nil if subgroups.empty?
     data = CdsMetricScore.where(algorithm_id: algorithm_id, company_id: cid, subgroup_id: subgroups.to_a).order('score DESC')
@@ -454,7 +454,11 @@ module CalculateMeasureForCustomDataSystemHelper
       #gid = nil if gid == NO_GROUP || Group.find(gid).parent_group_id.nil?
     end
     other_emp_id = Employee.where(email: 'other@mail.com').first.try(:id)
-    db_data = CdsMetricScore.where(company_id: cid, snapshot_id: sid, company_metric_id: company_metric_ids, pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
+    db_data = CdsMetricScore.where(
+      company_id: cid,
+      snapshot_id: sid,
+      company_metric_id: company_metric_ids,
+      pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
     return db_data
   end
 
@@ -475,10 +479,10 @@ module CalculateMeasureForCustomDataSystemHelper
     }
   end
 
-  def number_of_employees(cid, pid, gid)
+  def number_of_employees(cid, pid, gid, sid=nil)
     return Group.find(gid).try(:extract_employees).try(:count) if pid == NO_PIN && gid != NO_GROUP
-    return EmployeesPin.where(pin_id: pid).try(:count, active: true) if pid != NO_PIN && gid == NO_GROUP
-    return Employee.where(company_id: cid, active: true).try(:count)
+    return EmployeesPin.where(pin_id: pid).try(:count) if pid != NO_PIN && gid == NO_GROUP
+    return Employee.by_company(cid, sid).try(:count)
   end
 
   def self.normalize(arr, max)

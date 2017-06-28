@@ -1,7 +1,7 @@
 require './app/helpers/jobs_helper.rb'
-require './app/helpers/util_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 include JobsHelper
-include UtilHelper
+include CdsUtilHelper
 
 namespace :db do
   desc 'update_images_from_s3'
@@ -9,7 +9,7 @@ namespace :db do
     expiration = 1.second.ago
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     t_id = ENV['ID'].to_i
     ActiveRecord::Base.transaction do
       begin

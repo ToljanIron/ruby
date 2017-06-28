@@ -1,5 +1,5 @@
 class WordCloudController < ApplicationController
-  include UtilHelper
+  include CdsUtilHelper
 
   def get_wordcloud
     authorize :word_cloud, :index?

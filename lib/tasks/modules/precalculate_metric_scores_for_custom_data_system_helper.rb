@@ -1,11 +1,11 @@
 module PrecalculateMetricScoresForCustomDataSystemHelper
   require './app/helpers/algorithms_helper'
   require './app/helpers/interact_algorithms_helper'
-  require './app/helpers/util_helper'
+  require './app/helpers/cds_util_helper'
   require 'logger'
   include AlgorithmsHelper
   include InteractAlgorithmsHelper
-  include UtilHelper
+  include CdsUtilHelper
 
   NO_PIN = -1
   NO_GROUP = -1

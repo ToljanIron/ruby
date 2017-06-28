@@ -1,4 +1,4 @@
-include UtilHelper
+include CdsUtilHelper
 
 class ClientsController < ApiController
   # render job number(according to lib/jobs_protocol.yaml) and cerdantials/arguments needed by client script.
@@ -10,7 +10,6 @@ class ClientsController < ApiController
       res = {
         task_id: next_task.id,
         params: next_task.try(:params),
-        # script_path: 'sender/sender.rb'
         script_path: next_task.api_client_task_definition.script_path
       }
     else
@@ -67,7 +66,7 @@ class ClientsController < ApiController
     file = Tempfile.new(['log-', api_client.client_name, '-'].join + '.zip')
     file.write log
     file.rewind
-    UtilHelper.upload_to_s3 file.path
+    CdsUtilHelper.upload_to_s3 file.path
     file.close
     file.unlink
     render json: { msg: 'log was uploaded' }, status: 200
@@ -154,7 +153,7 @@ class ClientsController < ApiController
       "redirect_uri=#{redirect_uri}",
       'grant_type=authorization_code'
     ].join('&')
-    response = UtilHelper.run_syncronic_post(convert_code_to_tokens_url, body)
+    response = CdsUtilHelper.run_syncronic_post(convert_code_to_tokens_url, body)
     return JSON.parse response
   end
 end

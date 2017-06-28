@@ -1,6 +1,6 @@
 include SessionsHelper
 include EmployeesHelper
-include UtilHelper
+include CdsUtilHelper
 
 class EmployeesController < ApplicationController
   DIRECT = 0
@@ -8,19 +8,21 @@ class EmployeesController < ApplicationController
 
   def list_employees
     authorize :employee, :index?
-    company_id = current_user.company_id
-    cache_key = "employees-company_id-#{company_id}"
+    cid = current_user.company_id
+    sid = params[:sid].to_i
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    cache_key = "employees-company_id-#{cid}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       res = []
-      emp_arr = empscope.includes(:role).includes(:rank).includes(:age_group).includes(:group).includes(:job_title).includes(:marital_status).includes(:office).includes(:seniority)
+      emp_arr = Employee.by_company(cid, sid).includes(:role).includes(:rank).includes(:age_group).includes(:group).includes(:job_title).includes(:marital_status).includes(:office).includes(:seniority)
 
       sqlstr =
         "select emp.id, CONCAT(man.first_name, ' ', man.last_name) as manager_name, man.id as manager_id
          from employees as emp
          join employee_management_relations as emr on emr.employee_id = emp.id
          join employees as man on man.id = emr.manager_id
-         where emp.company_id = #{company_id} and relation_type = #{DIRECT}"
+         where emp.company_id = #{cid} and relation_type = #{DIRECT} and emp.snapshot_id = #{sid}"
       sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
       managers_hash = {}
       sqlres.each do |e|
@@ -32,29 +34,26 @@ class EmployeesController < ApplicationController
       end
       cache_write(cache_key, res)
     end
-    pp res
     render json: { employees: res }, status: 200
   end
 
   def list_managers
     authorize :employee_management_relation, :index?
-    company_id = current_user.company_id
-    cache_key = "list_managers-#{company_id}"
+    cid = current_user.company_id
+    sid = params[:sid].to_i
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    cache_key = "list_managers-#{cid}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       res = []
-      managers = EmployeeManagementRelation.where(employee_id: Employee.where(company_id: company_id).ids, relation_type: DIRECT)
+      managers = EmployeeManagementRelation.where(
+                   employee_id: Employee.by_company(cid, sid).ids,
+                   relation_type: DIRECT)
       managers.each do |m|
         res.push m.pack_to_json
       end
       cache_write(cache_key, res)
     end
     render json: { managers: res }, status: 200
-  end
-
-  private
-
-  def empscope
-    EmployeePolicy::Scope.new(current_user, Employee).resolve
   end
 end

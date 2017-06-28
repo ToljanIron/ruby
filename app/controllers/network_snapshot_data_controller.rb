@@ -28,8 +28,8 @@ class NetworkSnapshotDataController < ApplicationController
     from_type     = params[:from_type]
     to_type       = params[:to_type]
 
-    feid = Employee.where(email: from_employee).last.id
-    teid = Employee.where(email: to_employee).last.id
+    feid = Employee.where(email: from_employee, snapshot_id: sid).last.id
+    teid = Employee.where(email: to_employee, snapshot_id: sid).last.id
 
     nsd = NetworkSnapshotData.create!(
       snapshot_id: sid,

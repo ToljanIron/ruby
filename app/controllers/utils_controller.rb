@@ -1,12 +1,11 @@
 include ImportDataHelper
 include XlsHelper
-include UtilHelper
+include CdsUtilHelper
 require './app/helpers/mobile/companies_helper.rb'
 include Mobile::CompaniesHelper
 
 class UtilsController < ApplicationController
   def list_filters
-    # begin
     authorize :util, :index?
     company_id = current_user.company_id
     c = Company.find(company_id)
@@ -16,12 +15,12 @@ class UtilsController < ApplicationController
       rank: %w(1 2 3 4 5 6),
       rank_2: %w(7 8 9 10 11 12),
       office: c.list_offices,
-      job_title: Employee.job_title_by_company_id(c.id),
+      job_title: Employee.job_title_by_company(c.id),
       role_type: rolescope.pluck(:name),
       marital_status: MaritalStatus.all.pluck(:name),
       gender: Employee.genders.keys,
-      direct_manager: Employee.direct_managers_by_company_id(c.id),
-      professional_manager: Employee.pro_managers_by_company_id(c.id),
+      direct_manager: Employee.direct_managers_by_company(c.id),
+      professional_manager: Employee.pro_managers_by_company(c.id),
       friendship: %w(from to),
       collaboration: %w(from to),
       trust: %w(from to),
@@ -73,21 +72,19 @@ class UtilsController < ApplicationController
   end
 
   def upload_csv_v2
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     authorize :application, :passthrough
     errors = []
     cid = current_user.company_id
     employees =             params[:employees]
-    company_structure =     params[:company_structure]
-    company_structure_new = params[:company_structure_new]
+    company_structure =     params[:company_structure_new]
     managment_relations =   params[:managment_relations]
     date_format =           params[:date_format]
     images =                params[:images]
 
-    push_errors(errors, cid, company_structure,     nil, ImportDataHelper::GROUPS_CSV) if company_structure
-    push_errors(errors, cid, company_structure_new, nil, ImportDataHelper::GROUPS_CSV_NEW) if company_structure_new
-    push_errors(errors, cid, employees,             nil, ImportDataHelper::EMPLOYEES_CSV, false, date_format) if employees
-    push_errors(errors, cid, managment_relations,   nil, ImportDataHelper::MANAGMENT_RELATION_CSV) if managment_relations
+    push_errors(errors, cid, company_structure,  nil, ImportDataHelper::GROUPS_CSV) if company_structure
+    push_errors(errors, cid, employees,          nil, ImportDataHelper::EMPLOYEES_CSV, false, date_format) if employees
+    push_errors(errors, cid, managment_relations,nil, ImportDataHelper::MANAGMENT_RELATION_CSV) if managment_relations
 
     upload_images(cid, images) if images
 
@@ -99,7 +96,7 @@ class UtilsController < ApplicationController
   end
 
   def upload_excel
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     authorize :application, :passthrough
     errors = []
     cid = current_user.company_id

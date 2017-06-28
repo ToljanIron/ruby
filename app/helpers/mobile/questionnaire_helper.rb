@@ -38,7 +38,7 @@ module Mobile::QuestionnaireHelper
     end
     create_headers
     questions_indexes = get_questions_lines(src)
-    emps = Company.find(cid).active_employees.order(:id)
+    emps = Employee.by_company(cid).order(:id)
     questions_indexes.each do |index|
       question_type = get_question_type(src, index)
       snapshot_date = get_snapshot_date(src, index)
@@ -101,7 +101,8 @@ module Mobile::QuestionnaireHelper
 
   def self.create_questionnaire(cid, name, language_id = nil, sms_text = nil)
     quest = Questionnaire.create!(company_id: cid, name: name, language_id: language_id, sms_text: sms_text)
-    emps = Employee.where(company_id: cid)
+    sid = Snapshot.last_snapshot_of_company(cid)
+    emps = Employee.by_snapshot(sid)
     emps.each do |emp|
       next if emp[:email] == 'other@mail.com'
       QuestionnaireParticipant.create!(employee_id: emp.id, questionnaire_id: quest.id)

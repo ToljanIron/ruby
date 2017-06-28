@@ -3,7 +3,7 @@ include ApplicationHelper
 include Mobile::Utils
 include SessionsHelper
 include Pundit
-include UtilHelper
+include CdsUtilHelper
 
 class ApplicationController < ActionController::Base
   DYNAMIC_LOCALE = false

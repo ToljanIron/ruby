@@ -21,6 +21,6 @@ module Mobile::CompaniesHelper
   def select_company_by_id(id)
     @curr_company = Company.find(id)
     return unless @curr_company
-    @curr_employees = @curr_company.employees.order('first_name')
+    @curr_employees = Employee.by_company(id).order('first_name')
   end
 end

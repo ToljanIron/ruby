@@ -10,7 +10,7 @@ class EmployeePolicy < ApplicationPolicy
     end
 
     def resolve
-      return scope.where('company_id = ? and email != ?', user.company_id, 'other@mail.com') if user.admin? || user.hr?
+      return nil
     end
   end
 end

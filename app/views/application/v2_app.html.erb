@@ -111,7 +111,9 @@
   <script>
   window.__workships_bootstrap__ = {
         currentUser: <%= @current_user.to_json.html_safe %>,
-        companies: <%= @comapnies.to_json.html_safe %>,
+        companies: {
+          product_type: '<%= get_company_type %>'
+        },
         displayEmails: <%= display_emails? %>,
       };
   </script>

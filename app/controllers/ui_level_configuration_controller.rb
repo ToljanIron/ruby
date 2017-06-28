@@ -1,6 +1,6 @@
 class UiLevelConfigurationController < ApplicationController
   include UiLevelConfigurationHelper
-  include UtilHelper
+  include CdsUtilHelper
   def get_ui_levels
     authorize :ui_level_configuration, :index?
     cid = current_user.company_id

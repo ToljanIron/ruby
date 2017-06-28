@@ -1,14 +1,20 @@
 include SessionsHelper
 include GroupsHelper
-include UtilHelper
+include CdsUtilHelper
 
 class GroupsController < ApplicationController
   def formal_structure
-    parent_groups = groupscope.where(parent_group_id: nil)
     authorize parent_groups, :index?
-    res = []
-    parent_groups.each do |g|
-      res.push covert_formal_structure_to_group_id_child_groups_pairs g.id
+
+    cid = current_user.company_id
+    sid = params[:sid].to_i || Snapshot.last_snapshot_of_company(cid)
+
+    cache_key = "formal_structure-cid-#{cid}-sid-#{sid}"
+    res = cache_read(cache_key)
+    if res.nil?
+      parent_group_id = Group.get_parent_group(cid, sid).id
+      res = covert_formal_structure_to_group_id_child_groups_pairs(parent_group_id)
+      cache_write(cache_key, res)
     end
     render json: { formal_structure: res }, status: 200
   end
@@ -16,11 +22,13 @@ class GroupsController < ApplicationController
   def groups
     authorize :group, :index?
 
-    company_id = current_user.company_id
-    cache_key = "groups-comapny_id-#{company_id}"
+    cid = current_user.company_id
+    sid = params[:sid].to_i || Snapshot.last_snapshot_of_company(cid)
+
+    cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
-      groups = groupscope
+      groups = Group.by_snapshot(sid)
       res = []
       groups.each do |g|
         res.push g.pack_to_json
@@ -31,11 +39,5 @@ class GroupsController < ApplicationController
       res[index].merge!({selected: false }) unless res[index].nil?
     end
     render json: { groups: res }, status: 200
-  end
-
-  private
-
-  def groupscope
-    GroupPolicy::Scope.new(current_user, Group).resolve
   end
 end

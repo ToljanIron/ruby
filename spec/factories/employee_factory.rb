@@ -6,6 +6,7 @@ FactoryGirl.define do
     company_id 1
     group_id 1
     sequence(:external_id) { |n| "#{n}" }
+    active true
   end
 
   factory :group_employee, class: Employee do

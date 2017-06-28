@@ -1,28 +1,28 @@
 include ImportDataHelper
 include XlsHelper
-include UtilHelper
+include CdsUtilHelper
 include Mobile::CompaniesHelper
 include CreateSnapshotHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
 include PrecalculateMetricScoresForCustomDataSystemHelper
 
 class BackendVTwoController < ApplicationController
-	def list_filters
+  def list_filters
     authorize :util, :index?
     company_id = current_user.company_id
-    c = Company.find(company_id)
+    cid = Company.find(company_id).id
     res = {
       age_group: %w(15-24 25-34 35-44 45-54 55-64 65+),
       seniority: %w(0 1Y 2Y 3Y 4Y 5Y+),
       rank: %w(1 2 3 4 5 6),
       rank_2: %w(7 8 9 10 11 12),
       office: c.list_offices,
-      job_title: Employee.job_title_by_company_id(c.id),
+      job_title: Employee.job_title_by_company(cid),
       role_type: rolescope.pluck(:name),
       marital_status: MaritalStatus.all.pluck(:name),
       gender: Employee.genders.keys,
-      direct_manager: Employee.direct_managers_by_company_id(c.id),
-      professional_manager: Employee.pro_managers_by_company_id(c.id),
+      direct_manager: Employee.direct_managers_by_company(cid),
+      professional_manager: Employee.pro_managers_by_company(cid),
       friendship: %w(from to),
       collaboration: %w(from to),
       trust: %w(from to),
@@ -97,7 +97,7 @@ class BackendVTwoController < ApplicationController
 
   def upload_network_csv_v2
     authorize :application, :passthrough
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     errors = []
     company_id = current_user.company_id
 

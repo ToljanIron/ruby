@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require './app/helpers/util_helper.rb'
+include CdsUtilHelper
 
 module EmailPropertiesTranslator
   # extend ActiveSupport::Concern
@@ -16,13 +16,13 @@ module EmailPropertiesTranslator
   CC  = 2
   BCC = 3
 
-  def process_email(raw_data_entry, company_id)
-    sender = convert_emails_to_employee_ids(raw_data_entry[:from], company_id)
+  def process_email(raw_data_entry, cid, sid)
+    sender = convert_emails_to_employee_ids(raw_data_entry[:from], cid, sid)
     return [] unless sender
     recipients = {
-      TO  => convert_emails_array_to_employee_ids(raw_data_entry[:to],   company_id),
-      CC  => convert_emails_array_to_employee_ids(raw_data_entry[:cc],   company_id),
-      BCC => convert_emails_array_to_employee_ids(raw_data_entry[:bcc],  company_id)
+      TO  => convert_emails_array_to_employee_ids(raw_data_entry[:to],   cid, sid),
+      CC  => convert_emails_array_to_employee_ids(raw_data_entry[:cc],   cid, sid),
+      BCC => convert_emails_array_to_employee_ids(raw_data_entry[:bcc],  cid, sid)
     }
     multy_type = find_multiplicity_type(raw_data_entry)
     email_type = find_email_relation(raw_data_entry)
@@ -120,17 +120,17 @@ module EmailPropertiesTranslator
     res
   end
 
-  def convert_emails_to_employee_ids(emails, company_id)
+  def convert_emails_to_employee_ids(emails, cid, sid)
     return nil if !emails || emails.empty?
-    res = email_to_employee_id emails, company_id
+    res = email_to_employee_id(emails, cid, sid)
     return res
   end
 
-  def convert_emails_array_to_employee_ids(emails, company_id)
+  def convert_emails_array_to_employee_ids(emails, cid, sid)
     res =  []
     emails_arr = to_array(emails)
     emails_arr.each do |email|
-      emp_id = email_to_employee_id email, company_id
+      emp_id = email_to_employee_id(email, cid, sid)
       if emp_id
         res << emp_id
       else
@@ -149,13 +149,13 @@ module EmailPropertiesTranslator
     return arg[1..-2].split(',')
   end
 
-  def email_to_employee_id(email, company_id)
+  def email_to_employee_id(email, company_id, sid)
     cache_key = "email_to_employee_id-company_id-#{company_id}i_email-#{email}"
     cached_id = cache_read(cache_key)
     return cached_id unless cached_id.nil?
 
     email = email.tr('"', '').strip
-    employee_id = Employee.find_by(email: email.downcase).try(:id) || EmployeeAliasEmail.find_by(email_alias: email).try(:employee_id)
+    employee_id = Employee.find_by(email: email.downcase, snapshot_id: sid).try(:id) || EmployeeAliasEmail.find_by(email_alias: email).try(:employee_id)
     if employee_id.nil?
       return nil if in_comany_doamin_list(email, company_id)
 

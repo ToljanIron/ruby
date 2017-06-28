@@ -29,7 +29,7 @@ module Mobile::EmployeesHelper
     qp_ids = QuestionnaireParticipant.find_by(token: token).questionnaire.questionnaire_participant.pluck(:id)
     return if qp_ids.nil? || qp_ids.empty?
     query = "select emp.id as id,
-            (#{UtilHelper.sql_concat('emp.first_name', 'emp.last_name')}) as name,
+            (#{CdsUtilHelper.sql_concat('emp.first_name', 'emp.last_name')}) as name,
             emp.img_url as image_url,
             roles.name as role,
             qp.id as qp_id

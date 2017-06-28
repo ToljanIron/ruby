@@ -1,9 +1,11 @@
-require './app/helpers/util_helper.rb'
+require './app/helpers/cds_util_helper.rb'
 require './app/helpers/dashboard_helper.rb'
 include DashboardHelper
-include UtilHelper
+include CdsUtilHelper
+
 DIFFRENCE_DYAD = 'Difference dyad'.freeze
 NO_SNAPSHOT = -1
+
 namespace :db do
   desc 'create_communication_volume'
   task :create_communication_volume, [:cid, :sid] => :environment do |_t, args|

@@ -27,11 +27,9 @@ angular.module('workships').controller('appController', function ($rootScope, $s
     currentUserService.setCurrentUser($scope.data.currentUser);
     currentUserService.setShouldDisplayEmails($scope.data.displayEmails);
     if ($scope.data.companies.name === undefined) {
-      //console.log(">>> ", $scope.data.companies);
       //$scope.current_company_name = _.find($scope.data.companies, {'id': $scope.data.currentUser.company_id}).name;
     }
   } else if ($scope.data) {
     $scope.current_company_name = $scope.data.companies.name;
   }
-
 });

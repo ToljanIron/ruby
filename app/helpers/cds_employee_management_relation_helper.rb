@@ -43,14 +43,14 @@ module CdsEmployeeManagementRelationHelper
     return advise_relations
   end
 
-  def self.get_bypassed_in(informal_matrix, company_id, pid = NO_PIN, gid = NO_GROUP)
+  def self.get_bypassed_in(informal_matrix, cid, pid = NO_PIN, gid = NO_GROUP)
     value_of_non_advised_but_subordinate = 1
     filtered_for_subordinate_non_advised = informal_matrix.map { |x| x if x[:value] == value_of_non_advised_but_subordinate }.compact
     informal_in = reduce_informal_subordinate_non_advised_by_to(filtered_for_subordinate_non_advised)
-    unit_employees = Employee.where(company_id: company_id).pluck(:id)
+    unit_employees = Employee.by_company(cid).ids
     managers_count = EmployeeManagementRelation.where(relation_type: 0).pluck(:manager_id).select { |m| unit_employees.include? m }.uniq.length
     return [] if managers_count < 5
-    r_in = get_r_in(company_id, pid, gid)
+    r_in = get_r_in(cid, pid, gid)
     res = []
     # check only for managers: look for their corresponding informal entry and divide it by the corresponding value in r_in
     r_in.map do |candidate|
@@ -94,9 +94,14 @@ module CdsEmployeeManagementRelationHelper
 
   module_function
 
-  def get_r(company_id, groupby, pid = NO_PIN, gid = NO_GROUP)
+  def get_r(company_id, groupby, sid,  pid = NO_PIN, gid = NO_GROUP)
     inner_select = get_inner_select_for_employee_management(company_id, pid, gid)
-    employees = ActiveRecord::Base.connection.select_all('select employee_id from employee_management_relations').rows.join(',')
+    sqlstr = "
+      select employee_id
+      from employee_management_relations as emr
+      join employees as emps on emps.id = emr.employee_id
+      where emps.snapshot_id = #{sid}"
+    employees = ActiveRecord::Base.connection.select_all(sqlstr).rows.join(',')
     query = "select #{groupby}, count(employee_id)  from employee_management_relations where relation_type = 0"
     query += " and employee_id in (#{inner_select} ) " \
     " and manager_id in (#{inner_select}) and manager_id in (#{employees}) "
@@ -104,17 +109,13 @@ module CdsEmployeeManagementRelationHelper
     return ActiveRecord::Base.connection.select_all(query)
   end
 
-  def get_inner_select_for_employee_management(company_id, pinid, gid)
-    return CdsGroupsHelper.get_inner_select_by_group(gid) if pinid == NO_PIN && gid != NO_GROUP
-    return CdsPinsHelper.get_inner_select_by_pin(pinid) if pinid != NO_PIN && gid == NO_GROUP
+  def get_inner_select_for_employee_management(cid, pid, gid, sid)
+    return CdsGroupsHelper.get_inner_select_by_group(gid) if pid == NO_PIN && gid != NO_GROUP
+    return CdsPinsHelper.get_inner_select_by_pin(pid) if pid != NO_PIN && gid == NO_GROUP
     fail 'Ambiguous sub-group request with both pin-id and group-id' if pinid != NO_PIN && gid != NO_GROUP
-    return "select id from employees where company_id = #{company_id}"
+    return "select id from employees where company_id = #{cid} and snapshot_id = #{sid}"
   end
 
-  # def get_relations_arr(_pid, _gid, snapshot) DEAD CODE ASAF BYEBUG
-  #   return "select employee_id, friend_id from friendships_snapshots where friend_flag = 1
-  #   AND snapshot_id = #{snapshot} "
-  # end
 
   def get_all_emps(cid, pid, gid)
     if pid == NO_PIN && gid != NO_GROUP

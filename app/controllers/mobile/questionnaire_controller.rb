@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 include Mobile::QuestionnaireHelper
-include UtilHelper
 module Mobile
   class QuestionnaireController < Mobile::MobileController
     def get_questionnaires_state

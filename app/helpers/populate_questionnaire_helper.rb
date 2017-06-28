@@ -24,7 +24,7 @@ module PopulateQuestionnaireHelper
   POPULATE_QUESTIONNAIRE_HELPER_DEBUG = false
 
   def self.run(cid)
-    employees = Employee.where(company_id: cid, active: true)
+    employees = Employee.by_company(cid)
     company_maximum = CompanyConfigurationTable.find_by(key: 'max_questionnaire_population', comp_id: cid).try(:value).try(:to_i) || DEFAULT_MAX_QUESTIONNAIRE_POPULATION
     puts "Building #{company_maximum} connections per employee"
     company_connections = {}
@@ -72,7 +72,8 @@ module PopulateQuestionnaireHelper
 
   def self.random_emps(emp, connections, company_maximum)
     length = company_maximum - connections.size
-    emp_array = Employee.where(company_id: emp[:company_id])
+    sid = Snapshot.last_snapshot_of_company(emp[:company_id])
+    emp_array = Employee.where(snapshot_id: sid)
                         .where.not(id: [emp.id] + connections.keys)
                         .pluck(:id)
                         .sample(length)

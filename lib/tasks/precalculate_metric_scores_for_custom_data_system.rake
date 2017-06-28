@@ -1,10 +1,10 @@
 namespace :db do
   require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
   require './app/helpers/jobs_helper.rb'
-  require './app/helpers/util_helper.rb'
+  require './app/helpers/cds_util_helper.rb'
   include PrecalculateMetricScoresForCustomDataSystemHelper
   include JobsHelper
-  include UtilHelper
+  include CdsUtilHelper
 
   desc 'precalculate_metric_scores_for_custom_data_system'
   task :precalculate_metric_scores_for_custom_data_system, [:cid, :gid, :pid, :mid, :sid, :rewrite, :calc_all] => :setup_logger do |t, args|
@@ -14,7 +14,7 @@ namespace :db do
     t_id = ENV['ID'].to_i
     status = nil
     EventLog.log_event(job_id: t_id, message: 'precalculate_metric_scores_for_custom_data_system_helper started')
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     start_job(t_id) if t_id != 0
     cid = args[:cid] || -1
     gid = args[:gid] || -1
