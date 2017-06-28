@@ -249,7 +249,7 @@ class Employee < ActiveRecord::Base
          JOIN groups AS new_group ON new_group.external_id = orig_group.external_id and new_group.snapshot_id = #{sid}
          WHERE
          emps.snapshot_id = #{prev_sid} AND
-         emps.active is true AND
+         #{sql_check_boolean('emps.active', true)} AND
          emps.email <> 'other@email.com'"
     )
   end
