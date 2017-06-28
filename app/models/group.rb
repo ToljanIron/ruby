@@ -128,13 +128,13 @@ class Group < ActiveRecord::Base
            #{sql_check_boolean('active', true)}"
    )
 
-   ActiveRecord::Base.connection.execute(
-     "UPDATE groups AS g set parent_group_id = (
-        SELECT ggg.id
-        FROM groups AS gg
-        JOIN groups AS ggg ON ggg.external_id = gg.external_id AND ggg.snapshot_id = #{sid}
-        WHERE gg.snapshot_id = #{prev_sid} AND g.parent_group_id = gg.id)
-      WHERE snapshot_id = #{sid}"
-   )
+   ## Fix parent group IDs
+   Group.by_snapshot(sid).each do |currg|
+     parent_in_prev_sid = currg.parent_group_id
+     next if parent_in_prev_sid.nil?
+     external_id = Group.find(parent_in_prev_sid).external_id
+     parent_in_sid = Group.by_snapshot(sid).where(external_id: external_id).last
+     currg.update(parent_group_id: parent_in_sid.id)
+   end
   end
 end

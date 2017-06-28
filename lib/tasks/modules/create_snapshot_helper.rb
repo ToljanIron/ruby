@@ -20,13 +20,15 @@ module CreateSnapshotHelper
     else
       snapshot = Snapshot.find_by(company_id: cid, name: name, snapshot_type: nil)
     end
+
     sid = snapshot.id
+    prev_sid = Snapshot.last_snapshot_of_company(cid)
 
     puts "Creating groups snapshot"
-    Group.create_snapshot(cid, sid)
+    Group.create_snapshot(prev_sid, sid)
 
     puts "Creating employees snapshot"
-    Employee.create_snapshot(cid, sid)
+    Employee.create_snapshot(prev_sid, sid)
 
     return snapshot unless create_measures_snapshots
     puts "Going to create a snapshot for sid: #{sid}, end_date: #{end_date}"
@@ -112,6 +114,7 @@ module CreateSnapshotHelper
     puts "create snapshot - calculate email relations and subjects"
     ii = 0
     in_domain_raw_data_entries.each do |rde|
+    byebug
       ii += 1
       hashed_rde = hash_raw_data_entry(rde)
       existing_records = EmailPropertiesTranslator.process_email(hashed_rde, cid, sid)
@@ -144,6 +147,7 @@ module CreateSnapshotHelper
   end
 
   def in_domain_emails_filter(raw_data_entries, company_employee_emails, cid)
+    byebug
     sender_in_domain = []
     sender_not_in_domain = []
     company_domains = Domain.where(company_id: cid).pluck(:domain)
