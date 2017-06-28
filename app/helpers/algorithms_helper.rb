@@ -1884,7 +1884,8 @@ module AlgorithmsHelper
   end
 
   def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    # result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, -1, -1)
     calc_max_vector(result_vector)
   end
 

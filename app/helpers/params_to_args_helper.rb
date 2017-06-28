@@ -1,5 +1,6 @@
 module ParamsToArgsHelper
   extend AlgorithmsHelper
+  extend CdsEmployeeManagementRelationHelper
 
   MEASURE = 1
   FLAG    = 2
@@ -345,7 +346,8 @@ module ParamsToArgsHelper
       deg_list << { id: node, measure: 0 }
     end
     deg_list.delete_if { |r| r[:id] == others_id } unless others_id.nil?
-    group_max = get_max(deg_list)
+    # group_max = get_max(deg_list)
+    group_max = CdsUtilHelper.get_max(deg_list)
     return CalculateMeasureForCustomDataSystemHelper.normalize(deg_list, group_max)
   end
 
