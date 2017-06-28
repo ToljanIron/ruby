@@ -1,5 +1,5 @@
 include SessionsHelper
-include GroupsHelper
+include CdsGroupsHelper
 include CdsUtilHelper
 
 class GroupsController < ApplicationController

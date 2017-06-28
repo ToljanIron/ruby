@@ -1,7 +1,7 @@
-require './app/helpers/employee_management_relation_helper.rb'
+require './app/helpers/cds_employee_management_relation_helper.rb'
 module FlagsHelper
   include PinsHelper
-  include EmployeeManagementRelationHelper
+  include CdsEmployeeManagementRelationHelper
 
   NO_PIN   ||= -1
   NO_GROUP ||= -1
@@ -35,7 +35,6 @@ module FlagsHelper
     socials = get_most_social(friendship_snapshot_id, pid, gid)
     group_or_pin_size = get_unit_size(company_id, pid, gid)
     potential_candidates_size = group_or_pin_size > max_size ? max_size :  group_or_pin_size
-    # return calc_promising()
     s = socials[0..potential_candidates_size - 1].map { |elem| elem.except(:measure) }  ## remove measure attribute from hashes
     a = advisors[0..potential_candidates_size - 1].map { |elem| elem.except(:measure) }
     intersected = s & a

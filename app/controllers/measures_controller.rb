@@ -3,7 +3,6 @@ require 'oj'
 require 'oj_mimic_json'
 
 include SessionsHelper
-include CalculateMeasureHelper
 include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
