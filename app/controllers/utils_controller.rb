@@ -196,7 +196,7 @@ class UtilsController < ApplicationController
   private
 
   def groups_colors
-    dbgroups = GroupPolicy::Scope.new(current_user, Group).resolve.includes(:color)
+    dbgroups = Employee.by_company(current_user.company_id)
     groups = {}
     default_color = Color.find(8)[:rgb]
     dbgroups.each do |g|
@@ -206,7 +206,7 @@ class UtilsController < ApplicationController
   end
 
   def emp_colors
-    dbemps = EmployeePolicy::Scope.new(current_user, Employee).resolve.includes(:color)
+    dbemps = Employee.by_company(current_user.company_id)
     emps = {}
     default_color = Color.find(3)[:rgb]
     dbemps.each do |emp|

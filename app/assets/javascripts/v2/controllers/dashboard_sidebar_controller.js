@@ -179,7 +179,8 @@ angular.module('workships').controller('dashboardSidebarController',
     $scope.startStructure = false;
     $scope.header_str = tabService.current_tab;
     $scope.org = OrgLeftPanelUtilService;
-    loadDataModel();
+    console.log("[dannym] - not calling loadDataModel");
+    //loadDataModel();
     $scope.moveExpandToLeft = false;
     $scope.show_pins = true;
     $scope.show_active_pins = true;

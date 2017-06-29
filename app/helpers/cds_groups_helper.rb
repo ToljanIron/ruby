@@ -1,5 +1,5 @@
 module CdsGroupsHelper
-  def self.covert_formal_structure_to_group_id_child_groups_pairs(group_id)
+  def convert_formal_structure_to_group_id_child_groups_pairs(group_id)
     cache_key = "formal-to-child-group-paires-#{group_id}"
     res = cache_read(cache_key)
     unless res
@@ -8,7 +8,7 @@ module CdsGroupsHelper
       if descendants_ids.length > 0
         child_groups = []
         descendants_ids.each do |id|
-          child_groups.push covert_formal_structure_to_group_id_child_groups_pairs id
+          child_groups.push convert_formal_structure_to_group_id_child_groups_pairs id
         end
         res = { group_id: group_id, child_groups: child_groups }
       else
@@ -21,7 +21,7 @@ module CdsGroupsHelper
 
   def self.get_subgroup_ids_only_1_level_deep(gid)
     group_ids = []
-    CdsGroupsHelper.covert_formal_structure_to_group_id_child_groups_pairs(gid)[:child_groups].each do |group_hash|
+    convert_formal_structure_to_group_id_child_groups_pairs(gid)[:child_groups].each do |group_hash|
       group_ids.push(group_hash[:group_id])
     end
     return group_ids
@@ -29,7 +29,7 @@ module CdsGroupsHelper
 
   def self.get_subgroup_ids_only_1_level_deep_with_at_least_5_emps(gid)
     group_ids = []
-    CdsGroupsHelper.covert_formal_structure_to_group_id_child_groups_pairs(gid)[:child_groups].each do |group_hash|
+    convert_formal_structure_to_group_id_child_groups_pairs(gid)[:child_groups].each do |group_hash|
       group_ids.push(group_hash[:group_id]) if Group.find(group_hash[:group_id]).extract_employees.count > 5
     end
     return group_ids

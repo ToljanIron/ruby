@@ -101,50 +101,35 @@ angular.module('workships').controller('dashboardController', function ($interva
     $scope.sidebar = sidebarMediator;
     $scope.miniHeader = tabService.showMiniHeader;
 
-    var onTreeMapSucc = function (treeMap) {
-      $scope.treeMap = treeMap.treemap;
-      if (treeMap.treemap) {
-
-        var bad_scores = treeMap.treemap.bad_scores;
-        var low_score = 0;
-        if (bad_scores.length > 0) {
-          low_score  = _.sortBy(bad_scores, function (obj) { return -obj.score; })[4].score;
-        }
-        $scope.block_per_bad_score = low_score / 4;
-
-        var good_scores = treeMap.treemap.good_scores;
-        var high_score = 0;
-        if (good_scores > 0) {
-          high_score = _.sortBy(treeMap.treemap.good_scores, function (obj) { return -obj.score; })[0].score;
-        }
-        $scope.block_per_good_score = high_score / 4;
-      }
-    };
-
-    $scope.data_model.getTreeMap(onTreeMapSucc);
-
     //////////////////////////////////////////////////////////////////
     // These scope variables are all related to the measure debugger
     //////////////////////////////////////////////////////////////////
-    $scope.selectedGroup   = undefined;
-    $scope.measures        = [];
-    $scope.selectedMeasure = undefined;
-    console.log("Init: selectedMeasure: ", $scope.selectedMeasure);
-    $scope.scores          = undefined;
+    $scope.selectedGroup    = undefined;
+    $scope.selectedSnapshot = undefined;
+    $scope.snapshots        = undefined;
+    $scope.measures         = [];
+    $scope.selectedMeasure  = undefined;
+    $scope.scores           = undefined;
     $scope.displayAddRowModal = false;
-    $scope.messageId       = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 8).toUpperCase();
-    $scope.fromFilter      = '';
+    $scope.messageId        = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 8).toUpperCase();
+    $scope.fromFilter       = '';
 
-    $scope.data_model.getGroups().then(function(groups) {
-      $scope.groups = groups;
-    });
+    $scope.data_model.getSnapshots().then(function(snapshots) {
+      $scope.snapshots = snapshots;
+      $scope.selectedSnapshot = $scope.snapshots[0].id;
+      console.log("selected snapshot id: ", $scope.selectedSnapshot );
 
-    $scope.data_model.getEmployees().then(function(emps) {
-      $scope.emps = emps;
-    });
+      $scope.data_model.getGroups($scope.selectedSnapshot).then(function(groups) {
+        $scope.groups = groups;
+      });
 
-    $scope.data_model.getEmailsNetwork(-1, '').then(function(network) {
-      $scope.network = network;
+      $scope.data_model.getEmployees($scope.selectedSnapshot).then(function(emps) {
+        $scope.emps = emps;
+      });
+
+      $scope.data_model.getEmailsNetwork(-1, '', $scope.selectedSnapshot).then(function(network) {
+        $scope.network = network;
+      });
     });
   };
 
@@ -204,7 +189,6 @@ angular.module('workships').controller('dashboardController', function ($interva
     var gid = group.id;
     var cmid = measure.company_metric_id;
     var selectedMeasure = $scope.selectedMeasure;
-    console.log("selectedMeasure 1: ", selectedMeasure);
 
     pleaseWaitService.on();
     $scope.data_model.runPrecalculate(gid, cmid)
@@ -221,13 +205,11 @@ angular.module('workships').controller('dashboardController', function ($interva
         //});
         //$scope.measures = $scope.measures.concat(reduced_flags);
         $scope.selectedMeasure = selectedMeasure;
-        console.log("selectedMeasure 2: ", selectedMeasure);
         updateScoresList(selectedMeasure);
       });
   };
 
   $scope.deleteEmailConnection = function(relid) {
-    console.log("Deleteing");
     $scope.data_model.deleteEmailRelation(relid);
     _.remove($scope.network, {id: relid});
   };
@@ -272,7 +254,6 @@ angular.module('workships').controller('dashboardController', function ($interva
   };
 
   $scope.$watch('selectedMeasure', function(n,o) {
-    console.log("selectedMeasure: ", n);
     if (n === o) { return; }
     if (n === null) { return; }
     updateScoresList(n);

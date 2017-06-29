@@ -5,11 +5,8 @@ angular.module('workships').controller('appController', function ($rootScope, $s
   $scope.init = function () {
     $rootScope.VERSION = '1.4.4';
     $rootScope.show_sidebar = true;
-    var setCurrentUser = function () {
-      $scope.img_url = 'assets/logo.png'; //current_employee.img_url;
-    };
+    $scope.img_url = 'assets/logo.png';
     dataModelService.init();
-    dataModelService.getEmployees().then(setCurrentUser);
   };
 
   /* istanbul ignore next */

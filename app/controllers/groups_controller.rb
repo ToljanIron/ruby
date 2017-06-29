@@ -4,16 +4,18 @@ include CdsUtilHelper
 
 class GroupsController < ApplicationController
   def formal_structure
-    authorize parent_groups, :index?
+    authorize :group, :index?
 
     cid = current_user.company_id
-    sid = params[:sid].to_i || Snapshot.last_snapshot_of_company(cid)
+    sid = params[:sid].to_i
+    sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
 
     cache_key = "formal_structure-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       parent_group_id = Group.get_parent_group(cid, sid).id
-      res = covert_formal_structure_to_group_id_child_groups_pairs(parent_group_id)
+      res = []
+      res.push CdsGroupsHelper.convert_formal_structure_to_group_id_child_groups_pairs(parent_group_id)
       cache_write(cache_key, res)
     end
     render json: { formal_structure: res }, status: 200
@@ -23,7 +25,8 @@ class GroupsController < ApplicationController
     authorize :group, :index?
 
     cid = current_user.company_id
-    sid = params[:sid].to_i || Snapshot.last_snapshot_of_company(cid)
+    sid = params[:sid].to_i
+    sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
 
     cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)

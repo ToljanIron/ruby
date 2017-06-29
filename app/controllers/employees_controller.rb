@@ -9,7 +9,7 @@ class EmployeesController < ApplicationController
     authorize :employee, :index?
     cid = current_user.company_id
     sid = params[:sid].to_i
-    sid ||= Snapshot.last_snapshot_of_company(cid)
+    sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
     cache_key = "employees-company_id-#{cid}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?

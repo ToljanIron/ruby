@@ -118,7 +118,6 @@ module CalculateMeasureForCustomDataSystemHelper
     res.keys.each do |metric_name|
       sids.each do |sid|
         group_data = res[metric_name][:snapshots][sid]
-        puts "Working on metric: #{metric_name}"
         res[metric_name][:graph_data][:data][:values] << arrange_per_each_snapshot(sid, group_data)
       end
     end
@@ -141,7 +140,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def cds_init_graph_data(_metric_id, metric_name)
     return {
       measure_name: metric_name,
-      last_updated: time_now,
+      last_updated: Time.now,
       avg: nil,
       trend: false,
       negative: 1,

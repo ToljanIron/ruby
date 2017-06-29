@@ -9,6 +9,11 @@ class Group < ActiveRecord::Base
   validates :name, presence: true, length: { maximum: 150 }
   validates :company_id, presence: true
 
+  scope :by_company, ->(cid, sid=nil) {
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    Group.where(company_id: cid, active: true, snapshot_id: sid)
+  }
+
   scope :by_snapshot, ->(sid) {
     raise 'snapshot_id cant be nil' if sid.nil?
     Group.where(snapshot_id: sid, active: true)
@@ -48,7 +53,7 @@ class Group < ActiveRecord::Base
     hash = {}
     hash[:id] = id
     hash[:name] = !CompanyConfigurationTable::is_investigation_mode? ? name : "#{id}-#{name}"
-    hash[:level] = group_level(self)
+    hash[:level] = -1  ##group_level(self)
     hash[:child_groups] = extract_descendants_ids
     hash[:employees_ids] = Employee.where(group_id: hash[:child_groups] + [id]).pluck(:id)
     hash[:parent] = parent_group_id
