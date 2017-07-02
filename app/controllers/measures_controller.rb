@@ -393,4 +393,32 @@ class MeasuresController < ApplicationController
     end
     render json: Oj.dump(res)
   end
+
+  private
+
+  def get_snapshot_list(cid)
+    snapshot_list = Snapshot.where(company_id: cid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order(timestamp: :desc)
+    res = []
+    snapshot_list.each_with_index do |snapshot|
+      time = snapshot.timestamp.strftime('W-%V')+'  ' + week_start(snapshot.timestamp).gsub('.', '/') + ' - ' + week_end(snapshot.timestamp).gsub('.', '/')
+      res.push(sid: snapshot.id, name: snapshot.name, time: time)
+    end
+    return res
+  end
+
+  def week_start(date)
+    (date.beginning_of_week - 1).strftime('%d.%m.%y')
+  end
+
+  def week_end(date)
+    (date.end_of_week - 1).strftime('%d.%m.%y')
+  end
+
+  def normalize_by_attribute(arr, attribute, factor)
+    maximum = arr.map { |elem| elem["#{attribute}".to_sym] }.max
+    return arr if maximum == 0
+    arr.each do |o|
+      o["#{attribute}".to_sym] = (factor * o["#{attribute}".to_sym] / maximum.to_f).round(2)
+    end
+  end
 end

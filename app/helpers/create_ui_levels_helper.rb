@@ -630,6 +630,11 @@ module CreateUiLevelsHelper
     company_metric = CompanyMetric.where(company_id: @cid, algorithm_id: 120).first
     embed_email_network = company_metric.nil? ? @mocked_gauge_company_metric : company_metric
 
+    collaboration_id = CompanyMetric.where(company_id: @cid, algorithm_id: 60).first.id
+    puts "*************************"
+    puts collaboration_id
+    puts "*************************"
+
     algo_gatekeepers_information_id = Algorithm.find_by(id: 135, name: 'calculate_gate_keepers_for_flag', algorithm_type_id: 2, algorithm_flow_id: 1).try(:id)
     gatekeepers_metric_id = CompanyMetric.where(company_id: @cid, algorithm_id: algo_gatekeepers_information_id).first
 
@@ -654,6 +659,6 @@ module CreateUiLevelsHelper
     UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'Gate Keepers', level: 4, display_order: 2, parent_id: @external_knowledge_sharing.id, description: 'Indicates employees who are critical to information flow to the group', company_metric_id: gatekeepers_metric_id.try(:id))
 
     UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'Representatives', weight: 0.33, level: 4, display_order: 3, parent_id: @external_knowledge_sharing.id, description: 'Indicates employees who are critical to information flow from the group', company_metric_id: representatives_company_metric_id)
-    UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'New collaboration', weight: 0.33, level: 4, display_order: 4, parent_id: @external_knowledge_sharing.id, description: 'Indicates new collaboration between employees', company_metric_id: 1411)
+    UiLevelConfiguration.find_or_create_by(company_id: @cid, name: 'New collaboration', weight: 0.33, level: 4, display_order: 4, parent_id: @external_knowledge_sharing.id, description: 'Indicates new collaboration between employees', company_metric_id: collaboration_id)
   end
 end

@@ -114,7 +114,6 @@ module CreateSnapshotHelper
     puts "create snapshot - calculate email relations and subjects"
     ii = 0
     in_domain_raw_data_entries.each do |rde|
-    byebug
       ii += 1
       hashed_rde = hash_raw_data_entry(rde)
       existing_records = EmailPropertiesTranslator.process_email(hashed_rde, cid, sid)
@@ -147,7 +146,6 @@ module CreateSnapshotHelper
   end
 
   def in_domain_emails_filter(raw_data_entries, company_employee_emails, cid)
-    byebug
     sender_in_domain = []
     sender_not_in_domain = []
     company_domains = Domain.where(company_id: cid).pluck(:domain)
