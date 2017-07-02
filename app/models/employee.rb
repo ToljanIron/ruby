@@ -134,7 +134,7 @@ class Employee < ActiveRecord::Base
   end
 
   def pack_to_json(managers_hash = nil)
-    attrs = %i(id email first_name last_name company_id group_id formal_level)
+    attrs = %i(id email first_name last_name company_id group_id formal_level snapshot_id)
     h = {}
     attrs.each do |a|
       h[a] = self[a]

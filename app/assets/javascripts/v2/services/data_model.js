@@ -560,7 +560,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
       deferred.resolve(dm.employees);
     };
 
-    return promiseThat(dm.getEmployees, method, url, params, 'employees', succ, err);
+    var cacheKey = 'employees' + sid;
+    return promiseThat(dm.getEmployees, method, url, params, cacheKey, succ, err);
   };
 
   dm.getQuestionnaires = function (reset) {
@@ -714,7 +715,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
       deferred.resolve(dm.groups);
     };
 
-    return promiseThat(dm.getGroups, method, url, params, 'groups', succ, err);
+    var cache_key = 'groups' + sid;
+    return promiseThat(dm.getGroups, method, url, params, cache_key, succ, err);
   };
 
 
@@ -1129,7 +1131,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
       deferred.resolve(dm.emails_network);
     };
 
-    return promiseThat(dm.getEmailsNetwork, method, url, params, 'emails_network', callback, err);
+    var cacheKey = 'emails_network' + gid + fromEmailFilter + sid;
+    return promiseThat(dm.getEmailsNetwork, method, url, params, cacheKey, callback, err);
   };
 
   dm.getWordcloud = function (group_id, pin_id, reset) {
@@ -1259,7 +1262,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return promiseThat(dm.getTopLevelGauges, method, url, params, 'gauges', callback, err);
   };
 
-  dm.getMeasures = function (group_id, pin_id, reset) {
+  dm.getMeasures = function (gid, pid, reset, sid) {
+    if (sid === undefined) {sid = 0;}
     if (!reset) {
       dm.mesures = null;
     }
@@ -1269,7 +1273,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     var acc_res = [];
     var method = 'GET';
     var url = "API/get_cds_measure_data";
-    /* istanbul ignore next */
+
     var callbackBuilder = function () {
       return function (data) {
         dm.mesures = null;
@@ -1289,12 +1293,14 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     callback = callbackBuilder(measure_types);
     params = {
       cid: COMPANY_ID,
-      pid: pin_id,
-      gid: group_id,
+      pid: pid,
+      gid: gid,
+      sid: sid,
       measure_types: measure_types
     };
 
-    return promiseThat(dm.getMeasures, method, url, params, 'measures', callback, callback, reset);
+    var cacheKey = 'measures' + gid + sid;
+    return promiseThat(dm.getMeasures, method, url, params, cacheKey, callback, callback, reset);
   };
 
   var callback_succ_arr = [];

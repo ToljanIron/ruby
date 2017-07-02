@@ -229,23 +229,24 @@ class MeasuresController < ApplicationController
     oegid = params[:oegid].try(:to_i)
     oeid = params[:oeid].try(:to_i)
     gid = -1 if gid.zero?
+    lgid = Group.find_group_in_snapshot(gid, sid)
 
     company_metrics = find_company_metrics(cid)
 
-    cache_key = "cds_get_analyze_data-#{cid}-#{pid}-#{gid}-#{sid}"
+    cache_key = "cds_get_analyze_data-#{cid}-#{pid}-#{lgid}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       res = if Company.find(cid).questionnaire_only?
-              cds_get_analyze_data_questionnaire_only(cid, pid, gid, company_metrics, sid)
+              cds_get_analyze_data_questionnaire_only(cid, pid, lgid, company_metrics, sid)
             else
-              cds_get_analyze_data(cid, pid, gid, company_metrics, sid)
+              cds_get_analyze_data(cid, pid, lgid, company_metrics, sid)
             end
       cache_write(cache_key, res)
     end
-    cache_key = "cds_show_analyze_network-#{cid}-#{pid}-#{gid}-#{sid}"
+    cache_key = "cds_show_analyze_network-#{cid}-#{pid}-#{lgid}-#{sid}"
     networks = cache_read(cache_key)
     if networks.nil?
-      networks = cds_get_network_relations_data(cid, pid, gid, sid)
+      networks = cds_get_network_relations_data(cid, pid, lgid, sid)
       cache_write(cache_key, networks)
     end
     res = filter_by_overlay_connections(res, oegid, oeid, sid) if oegid || oeid

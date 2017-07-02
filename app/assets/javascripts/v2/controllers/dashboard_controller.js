@@ -43,14 +43,19 @@ angular.module('workships').controller('dashboardController', function ($interva
     return {'width': '99%'};
   };
 
-  function setCommDynamics(res) {
-    if (res.data) {
-      $scope.comm_dynamics = res.data;
-    } else {
-      $scope.comm_dynamics = [];
-      $scope.comm_dynamics_msg = res.msg;
-    }
-  }
+  var updateAllDataFromServer = function(sid) {
+    $scope.data_model.getGroups(sid).then(function(groups) {
+      $scope.groups = groups;
+    });
+
+    $scope.data_model.getEmployees(sid).then(function(emps) {
+      $scope.emps = emps;
+    });
+
+    $scope.data_model.getEmailsNetwork(-1, '', sid).then(function(network) {
+      $scope.network = network;
+    });
+  };
 
   $scope.init = function () {
     pleaseWaitService.on();
@@ -116,26 +121,16 @@ angular.module('workships').controller('dashboardController', function ($interva
 
     $scope.data_model.getSnapshots().then(function(snapshots) {
       $scope.snapshots = snapshots;
-      $scope.selectedSnapshot = $scope.snapshots[0].id;
-      console.log("selected snapshot id: ", $scope.selectedSnapshot );
-
-      $scope.data_model.getGroups($scope.selectedSnapshot).then(function(groups) {
-        $scope.groups = groups;
-      });
-
-      $scope.data_model.getEmployees($scope.selectedSnapshot).then(function(emps) {
-        $scope.emps = emps;
-      });
-
-      $scope.data_model.getEmailsNetwork(-1, '', $scope.selectedSnapshot).then(function(network) {
-        $scope.network = network;
-      });
+      var maxSid = _.reduce( snapshots, function(max,snapshot) {
+        return max < snapshot.id ? snapshot.id : max;
+      }, 0);
+      $scope.selectedSnapshot = maxSid;
+      updateAllDataFromServer($scope.selectedSnapshot.id);
     });
   };
 
   $scope.filterEmailData = function() {
-    console.log("In the filter");
-    $scope.data_model.getEmailsNetwork($scope.selectedGroup, $scope.fromFilter).then(function(network) {
+    $scope.data_model.getEmailsNetwork($scope.selectedGroup.id, $scope.fromFilter, $scope.selectedSnapshot.id).then(function(network) {
       $scope.network = network;
     });
   };
@@ -194,16 +189,8 @@ angular.module('workships').controller('dashboardController', function ($interva
     $scope.data_model.runPrecalculate(gid, cmid)
       .then( function() {
         return $scope.data_model.getMeasures(gid, -1, false);
-      })
-    //.then( function() {
-    //    return $scope.data_model.getFlags(gid, -1, false);
-    //  })
-      .then(function () {
+      }).then(function () {
         $scope.measures = $scope.data_model.mesures;
-        //var reduced_flags = _.filter($scope.data_model.flags, function(e) {
-        //  return e.ret_list.length > 0;
-        //});
-        //$scope.measures = $scope.measures.concat(reduced_flags);
         $scope.selectedMeasure = selectedMeasure;
         updateScoresList(selectedMeasure);
       });
@@ -214,20 +201,16 @@ angular.module('workships').controller('dashboardController', function ($interva
     _.remove($scope.network, {id: relid});
   };
 
+  $scope.$watch('selectedSnapshot', function(n,o) {
+    if (n === o) { return; }
+    updateAllDataFromServer(n.id);
+  });
+
   $scope.$watch('selectedGroup', function(n,o) {
     if (n === o) { return; }
     $scope.data_model.getMeasures(n.id, -1, false).then(function () {
-      $scope.measures = $scope.measures.concat($scope.data_model.mesures);
-      console.log("measures after measures: ", $scope.measures);
+      $scope.measures = $scope.data_model.mesures;
     });
-
-    //$scope.data_model.getFlags(n.id, -1, false).then(function () {
-    //  var reduced_flags = _.filter($scope.data_model.flags, function(e) {
-    //    return e.ret_list.length > 0;
-    //  });
-    //  $scope.measures = $scope.measures.concat(reduced_flags);
-    //  console.log("measures after flags: ", $scope.measures);
-    //});
   });
 
   $scope.decodeFromType = function(t) {

@@ -56,10 +56,7 @@ class NetworkSnapshotData < ActiveRecord::Base
             .where(snapshot_id: sid)
             .where(network_id: nid)
             .where(from_employee_id: empids, to_employee_id: empids)
-            .where("emps.email like '%#{from_email_filter}%'")
-
-   ap ret
-   puts "***********************"
+            .where("emps.email like '%#{from_email_filter}%'").limit(100)
     return ret
   end
 end

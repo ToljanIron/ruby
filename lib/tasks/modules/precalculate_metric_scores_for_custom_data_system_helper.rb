@@ -391,7 +391,17 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       algorithm = Algorithm.find(company_metric_row.algorithm_id)
       network_b_id = JSON.parse(algo_params)['network_b_id'] if (algo_params && JSON.parse(algo_params))
       network_c_id = JSON.parse(algo_params)['network_c_id'] if (algo_params && JSON.parse(algo_params))
-      args = { company_id: company_metric_row.company_id, network_b_id: network_b_id, network_c_id: network_c_id, snapshot_id: sid, network_id: company_metric_row.network_id, pid: pid, gid: gid, algorithm_type: algorithm.algorithm_type_id }
+      lgid = Group.find_group_in_snapshot(gid, sid)
+      args = {
+        company_id: company_metric_row.company_id,
+        network_b_id: network_b_id,
+        network_c_id: network_c_id,
+        snapshot_id: sid,
+        network_id: company_metric_row.network_id,
+        pid: pid,
+        gid: lgid,
+        algorithm_type: algorithm.algorithm_type_id
+      }
       calculated = algorithm.run(args)
       pid = nil if pid == NO_PIN
       gid = nil if gid == NO_GROUP
@@ -404,7 +414,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
           else
             score = (obj[:measure] || 1.00).to_f
           end
-          [cid, obj[:id].to_i, pid, gid, sid, company_metric_row.id, score, algorithm_id, obj[:group_id]].each do |v|
+          [cid, obj[:id].to_i, pid, lgid, sid, company_metric_row.id, score, algorithm_id, obj[:group_id]].each do |v|
             row.push(v || 'null')
           end
           values.push row

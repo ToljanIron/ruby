@@ -33,6 +33,7 @@
       <div class='communication-widget'>
         <h2 class='sub-header'>MEASURES DEBUGGER</h2>
 
+        <h3> Current selections: Snapshot {{selectedSnapshot.id}}, Group {{selectedGroup.name}}, Measure: {{selectedMeasure.name}} </h3>
         Snapshots: <select ng-model="selectedSnapshot" ng-options="x.name for x in snapshots"></select><br><br>
         Groups: <select ng-model="selectedGroup" ng-options="x.name for x in groups"></select>
         Measures: <select ng-model="selectedMeasure" ng-options="x.name for x in measures"></select> </br><br>

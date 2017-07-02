@@ -142,4 +142,15 @@ class Group < ActiveRecord::Base
      currg.update(parent_group_id: parent_in_sid.id)
    end
   end
+
+  ## Since the group id changes with the snapshot id, sometimes we're going to
+  ## have an older group id which doesn't belong with the given snapshot. This
+  ## method will return the updated group id, based on it's external id.
+  def self.find_group_in_snapshot(gid, sid)
+    orig_group = Group.find(gid)
+    return gid if orig_group.snapshot_id == sid
+    external_id = orig_group.external_id
+    new_group = Group.where(external_id: external_id, snapshot_id: sid).last
+    return new_group.id
+  end
 end

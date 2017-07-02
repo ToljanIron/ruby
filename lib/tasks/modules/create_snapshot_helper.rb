@@ -86,9 +86,9 @@ module CreateSnapshotHelper
     start_date = end_date - get_period_of_weeks(cid).to_i.week
     puts "create_emails_for_weekly_snapshots - start_date: #{start_date}"
     if ENV['e2e_test']
-      raw_data_entries = RawDataEntry.where(company_id: cid, processed: false)
+      raw_data_entries = RawDataEntry.where(company_id: cid)
     else
-      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date, processed: false)
+      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date)
     end
     puts "Found #{raw_data_entries.length} raw entries"
     puts "create snapshot - prepare"

@@ -127,7 +127,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def arrange_per_each_snapshot(snapshot_id, calculated_data)
     pin_avg = 0
-    unless calculated_data.empty?
+    unless (calculated_data.nil? || calculated_data.empty?)
       pin_avg = calculated_data.inject(0) { |memo, n| memo + (n[:measure] || n[:score]) } / calculated_data.length
       pin_avg = pin_avg.round(2)
     end
@@ -432,6 +432,9 @@ module CalculateMeasureForCustomDataSystemHelper
   private
 
   def cds_get_data_to_relation(company_metric, algorithm_flow_id, sid, pid, gid)
+    puts "company_metric: #{company_metric}"
+    ap company_metric
+    puts "&&&&&&&&&&&&&&&&&&&&&"
     data = if algorithm_flow_id != EMAIL
              AlgorithmsHelper.calculate_pair_for_specific_relation_per_snapshot(sid, company_metric.network_id, pid, gid)
            else
