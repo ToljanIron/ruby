@@ -216,6 +216,10 @@ angular.module('workships').controller('dashboardController', function ($interva
   $scope.decodeFromType = function(t) {
     if (t === 1) {
       return "init";
+    } else if (t === 2) {
+      return "Re";
+    } else if (t === 3) {
+      return "Fw";
     }
     return "na";
   };

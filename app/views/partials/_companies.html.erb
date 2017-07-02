@@ -9,7 +9,7 @@
         <th class='col-md-1'>Last proc</th>
         <th class='col-md-1'>Next proc</th>
         <th class='col-md-1'>Active</th>
-        <th class='col-md-1'>Product type</th>        
+        <th class='col-md-1'>Product type</th>
         <th class='col-md-1'></th>
         <th class='col-md-1'></th>
       </tr>
@@ -20,12 +20,12 @@
         <tr class='row' ng-show='!employee_in_edit_state[<%= i %>]'>
           <td class='col-xs-1'> <input type="checkbox" disabled='true'></input> </td>
           <td class='col-md-1'><%= link_to e.name , change_company_path( session:{company_id: e.id}) %></td>
-          <td class='col-md-1'><%=Employee.where('company_id = (?) and first_name != (?)',e.id, 'Other').count%></td>
+          <td class='col-md-1'><%=Employee.where('company_id = (?) and first_name != (?) and snapshot_id = (?)',e.id, 'Other', Snapshot.last_snapshot_of_company(e.id)).count%></td>
           <td class='col-md-1'> <%= Snapshot.where(company_id: 2).last.try(:timestamp).try(:strftime,'%F')%> </td>
           <td class='col-md-1'> Last proc</td>
           <td class='col-md-1'> Next proc</td>
           <td class='col-md-1'> <%= e.active %> </td>
-          <td class='col-md-1'> <%= e.product_type %></td>        
+          <td class='col-md-1'> <%= e.product_type %></td>
           <td class='col-md-1'><button class='btn btn-primary' ng-click='toggleEmployeeEditState(<%= i %>)'>Edit</button></td>
           <td class='col-md-1'>
             <button class="row btn btn-danger" type="button" ng-show='!employee_in_delete_state[<%= i %>]' ng-click='toggleEmployeeDeleteState(<%= i %>)'>Deactivate</button>
@@ -33,7 +33,7 @@
               <div class='popup-content'>
                 <h3>Are you Sure you to deactivate: <%= e.name %>? </h3>
                 <button class='left btn btn-primary btn-lg' type='button' ng-click='toggleEmployeeDeleteState(<%= i %>)'>No </button>
-                <%= button_to('Deactivate', 'company/diactivate', class: 'right btn btn-danger btn-lg', params: {id: e.id})%>  
+                <%= button_to('Deactivate', 'company/diactivate', class: 'right btn btn-danger btn-lg', params: {id: e.id})%>
               </div>
             </div>
           </td>
@@ -42,7 +42,7 @@
           <%= form_for(:company, url:'company/update') do |f|%>
             <td class='col-xs-1'> <input type="checkbox" disabled='true'></input> </td>
             <td class='col-md-1'><%= f.text_field :name, value: e.name %></td>
-            <td class='col-md-1'><%=Employee.where('company_id = (?) and first_name != (?)',e.id, 'Other').count%></td>
+            <td class='col-md-1'><%=Employee.where('company_id = (?) and first_name != (?) and snapshot_id = (?)',e.id, 'Other', Snapshot.last_snapshot_of_company(e.id)).count%></td>
             <td class='col-md-1'> <%= Snapshot.where(company_id: 2).last.try(:timestamp).try(:strftime,'%F')%> </td>
             <td class='col-md-1'> Last proc</td>
             <td class='col-md-1'> Next proc</td>

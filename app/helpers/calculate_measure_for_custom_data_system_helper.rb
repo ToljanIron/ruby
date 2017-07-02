@@ -432,9 +432,6 @@ module CalculateMeasureForCustomDataSystemHelper
   private
 
   def cds_get_data_to_relation(company_metric, algorithm_flow_id, sid, pid, gid)
-    puts "company_metric: #{company_metric}"
-    ap company_metric
-    puts "&&&&&&&&&&&&&&&&&&&&&"
     data = if algorithm_flow_id != EMAIL
              AlgorithmsHelper.calculate_pair_for_specific_relation_per_snapshot(sid, company_metric.network_id, pid, gid)
            else

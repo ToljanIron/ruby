@@ -25,10 +25,10 @@ module CreateSnapshotHelper
     prev_sid = Snapshot.last_snapshot_of_company(cid)
 
     puts "Creating groups snapshot"
-    Group.create_snapshot(prev_sid, sid)
+    Group.create_snapshot(cid, prev_sid, sid)
 
     puts "Creating employees snapshot"
-    Employee.create_snapshot(prev_sid, sid)
+    Employee.create_snapshot(cid, prev_sid, sid)
 
     return snapshot unless create_measures_snapshots
     puts "Going to create a snapshot for sid: #{sid}, end_date: #{end_date}"

@@ -223,17 +223,17 @@ class Employee < ActiveRecord::Base
     }
   end
 
-  def self.create_snapshot(prev_sid, sid)
+  def self.create_snapshot(cid, prev_sid, sid)
     return if Employee.where(snapshot_id: sid).count > 0
     prev_sid = -1 if Employee.where(snapshot_id: prev_sid).count == 0
     raise 'Groups have to be bumped into new snapshot before employees' if (Group.by_snapshot(sid).count == 0)
-    create_snapshot_employees(prev_sid, sid)
-    create_snapshot_managers(prev_sid, sid)
+    create_snapshot_employees(cid, prev_sid, sid)
+    create_snapshot_managers(cid, prev_sid, sid)
   end
 
   private
 
-  def self.create_snapshot_employees(prev_sid, sid)
+  def self.create_snapshot_employees(cid, prev_sid, sid)
     ActiveRecord::Base.connection.execute(
       "INSERT INTO employees
          (company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
@@ -249,15 +249,16 @@ class Employee < ActiveRecord::Base
          JOIN groups AS new_group ON new_group.external_id = orig_group.external_id and new_group.snapshot_id = #{sid}
          WHERE
          emps.snapshot_id = #{prev_sid} AND
+         emps.company_id = #{cid} AND
          #{sql_check_boolean('emps.active', true)} AND
          emps.email <> 'other@email.com'"
     )
   end
 
-  def self.create_snapshot_managers(prev_sid, sid)
-    oldemps = Employee.by_snapshot(prev_sid).select(:id,:external_id)
+  def self.create_snapshot_managers(cid, prev_sid, sid)
+    oldemps = Employee.by_snapshot(prev_sid).where(company_id: cid).select(:id,:external_id)
     oldempsids = oldemps.pluck(:id)
-    newemps = Employee.by_snapshot(sid).select(:id,:external_id)
+    newemps = Employee.by_snapshot(sid).where(company_id: cid).select(:id,:external_id)
     emps_hash = {}
     oldemps.each do |oemp|
       nemp = newemps.select{ |e| e.external_id == oemp.external_id }.last

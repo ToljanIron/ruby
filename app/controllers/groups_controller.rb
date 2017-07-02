@@ -13,7 +13,7 @@ class GroupsController < ApplicationController
     cache_key = "formal_structure-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
-      parent_group_id = Group.get_parent_group(cid, sid).id
+      parent_group_id = Group.get_parent_group(cid, sid).try(:id)
       res = []
       res.push CdsGroupsHelper.convert_formal_structure_to_group_id_child_groups_pairs(parent_group_id)
       cache_write(cache_key, res)

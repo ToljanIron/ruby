@@ -119,7 +119,7 @@ class Group < ActiveRecord::Base
     parents
   end
 
-  def self.create_snapshot(prev_sid, sid)
+  def self.create_snapshot(cid, prev_sid, sid)
    return if Group.where(snapshot_id: sid).count > 0
    prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
 
@@ -130,6 +130,7 @@ class Group < ActiveRecord::Base
          FROM groups
          WHERE
            snapshot_id = #{prev_sid} AND
+           company_id = #{cid} AND
            #{sql_check_boolean('active', true)}"
    )
 
