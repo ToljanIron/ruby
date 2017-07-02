@@ -1438,12 +1438,20 @@ module AlgorithmsHelper
     return calc_routiners(sid, gid, pid)
   end
 
+  def inviters_measure(sid, gid, pid)
+    return calc_inviters(sid, gid, pid)
+  end
+
   def observers_measure(sid, gid, pid)
     return calc_observers(sid, gid, pid)
   end
 
-  def inviters_measure(sid, gid, pid)
-    return calc_inviters(sid, gid, pid)
+  def avg_num_of_ppl_in_meetings(sid, gid, pid)
+    return calc_num_of_ppl_in_meetings(sid, gid, pid)
+  end
+
+  def avg_time_spent_in_meetings_per_employee(sid, gid, pid)
+    return calc_avg_time_spent_in_meetings_per_employee(sid, gid, pid)
   end
     
   ###################################################
@@ -1862,10 +1870,6 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     emps = get_inner_select_as_arr(cid, pid, gid)
-
-    puts "-------------------"
-    puts "REPLY ? #{REPLY}"
-    puts "-------------------"
     sqlstr =
       "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
       FROM employees AS emps
@@ -2025,21 +2029,6 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
-
-    count_of_invited = calc_in_the_loop(sid, gid, pid)
-    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
-
-    res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
-    return res
-  end
-  
-  def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    # result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, -1, -1)
-    calc_max_vector(result_vector)
-  end
-
   def calc_inviters(sid, gid = NO_GROUP, pid = NO_PIN)
     
     count_of_organized_hashes = []
@@ -2057,6 +2046,68 @@ module AlgorithmsHelper
     return [] if is_retrieved_snapshot_data_empty(count_of_organized_raw, sqlstr)
     
     return handle_raw_snapshot_data(count_of_organized_raw, employee_ids)
+  end
+
+  def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
+    return res
+  end
+  
+  def calc_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
+              FROM meeting_attendees
+              WHERE employee_id IN (#{employee_ids.join(',')}) AND NOT
+              response = 3
+              GROUP BY meeting_id"
+
+    # num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    # num_of_ppl_in_meetings.each {|e| res << {meeting_id: e[:meeting_id].to_i, measure: e[:measure].to_i}}
+
+    # return res
+
+    total_participants_in_meetings = 0
+    average_participants_in_meetings = -1
+
+    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    
+    num_of_ppl_in_meetings.each {|r| total_participants_in_meetings += r[:measure].to_i}
+
+    average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
+    
+    res << {id: nil, measure: average_participants_in_meetings}
+    return res
+  end
+
+  def calc_avg_time_spent_in_meetings_per_employee(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    employee_count = employee_ids.count
+
+
+    meeting_durations = MeetingsSnapshotData.where(company_id: cid, snapshot_id: sid)
+    sqlstr = "SELECT meeting_id, duration
+              FROM meeting_snapshot_data"
+              
+
+    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+  end
+
+  def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
+    # result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, -1, -1)
+    calc_max_vector(result_vector)
   end
 
   def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)

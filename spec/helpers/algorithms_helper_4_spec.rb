@@ -145,6 +145,30 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
+  describe 'Algorithm name: inviters | invitations out degree (times employee organized a meeting) | type: measure' do
+    before(:all) do
+      meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 1, organizer_id: @e1.id)
+      meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e1.id)
+      meeting3 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e2.id)
+
+      @res = calc_inviters(@s.id)
+      # @res.each {|r| puts "#{r}\n"}
+    end
+
+    it 'should test higher "inviters (organized) degree"' do
+      higher_emp = @e1.id
+      lower_emp = @e2.id
+      higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
+      lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
+    end
+    it 'should test zero "inviters (organized) measure"' do
+      zero_emp = @e5.id
+      zero_measure = @res.select{|r| r[:id]==zero_emp}[0]
+      expect(zero_measure[:measure]).to eq(0)
+    end
+  end
+
   describe 'Algorithm name: observers | invitations devided by email indegree | type: measure' do
     before(:all) do
       @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: @cid)
@@ -191,27 +215,31 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-  describe 'Algorithm name: inviters | invitations out degree (times employee organized a meeting) | type: measure' do
+  describe 'Algorithm name: average number of ppl in meetings | (implied in name...) | type: gauge' do
     before(:all) do
-      meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 1, organizer_id: @e1.id)
-      meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e1.id)
-      meeting3 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e2.id)
 
-      @res = calc_inviters(@s.id)
+      meeting10 = MeetingsSnapshotData.create!(id: 10, snapshot_id: @s.id, company_id: @cid, meeting_type: 1)
+      meeting11 = MeetingsSnapshotData.create!(id: 11, snapshot_id: @s.id, company_id: @cid, meeting_type: 0)
+      meeting12 = MeetingsSnapshotData.create!(id: 12, snapshot_id: @s.id, company_id: @cid, meeting_type: 0)
+
+      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e1.id)
+      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e2.id)
+      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e3.id)
+      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e4.id, response: 3)
+      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e6.id)
+
+      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e1.id)
+      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e4.id)
+      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e6.id, response: 3)
+
+      MeetingAttendee.create!(meeting_id: meeting12.id, employee_id: @e2.id)
+
+      @res = calc_num_of_ppl_in_meetings(@s.id)
       @res.each {|r| puts "#{r}\n"}
     end
 
-    it 'should test higher "inviters (organized) degree"' do
-      higher_emp = @e1.id
-      lower_emp = @e2.id
-      higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
-      lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
-      expect(higher_measure[:measure]).to be > lower_measure[:measure]
-    end
-    it 'should test zero "inviters (organized) measure"' do
-      zero_emp = @e5.id
-      zero_measure = @res.select{|r| r[:id]==zero_emp}[0]
-      expect(zero_measure[:measure]).to eq(0)
+    it 'should test number of ppl in a meeting' do
+      # expect(@res - 2.33).to be < 0.001
     end
   end
 end

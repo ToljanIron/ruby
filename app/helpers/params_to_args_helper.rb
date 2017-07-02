@@ -106,6 +106,26 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.inviters_measure(args)
+    key = "inviters_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.inviters_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.observers_measure(args)
+    key = "observers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.observers_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.num_of_ppl_in_meetings_gauge(args)
+    return AlgorithmsHelper.avg_num_of_ppl_in_meetings(args[:snapshot_id], args[:gid], args[:pid])
+  end
+
   ########################## v2 and V1 algorithms #######################
 
   def self.most_isolated_to_args(args)

@@ -26,6 +26,10 @@ namespace :db do
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_political_power(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_political_power(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_company_metrics_for_analyze_superposition_graph(company_id)
+
+        # V3
+        CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_num_of_ppl_in_meetings(company_id)
+
         EventLog.log_event(job_id: t_id, message: 'create seed to company metrics ended')
       rescue => e
         puts "EXCEPTION: #{e.message}"

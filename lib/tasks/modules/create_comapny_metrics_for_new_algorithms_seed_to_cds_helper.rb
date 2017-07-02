@@ -20,14 +20,16 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     deadends_id              = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id   
     
     in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id
-    rejecters_id           = MetricName.find_or_create_by(name: 'Rejecters', company_id: cid).id
-    routiners_id           = MetricName.find_or_create_by(name: 'Routiners', company_id: cid).id
+    rejecters_id             = MetricName.find_or_create_by(name: 'Rejecters', company_id: cid).id
+    routiners_id             = MetricName.find_or_create_by(name: 'Routiners', company_id: cid).id
+    inviters_id              = MetricName.find_or_create_by(name: 'Inviters', company_id: cid).id
+    observers_id             = MetricName.find_or_create_by(name: 'Observers', company_id: cid).id
 
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
-    CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2)
+    CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2, active: false)
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: communication_network_id, company_id: cid, algorithm_id: 16, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 60, algorithm_type_id: 1)
-    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2)
+    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: false)
 
     CompanyMetric.find_or_create_by(metric_id: spammers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 700, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: blitzed_id, network_id: communication_network_id, company_id: cid, algorithm_id: 701, algorithm_type_id: 1)
@@ -42,12 +44,28 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: -1, company_id: cid, algorithm_id: 800, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: rejecters_id, network_id: -1, company_id: cid, algorithm_id: 801, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: routiners_id, network_id: -1, company_id: cid, algorithm_id: 802, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: inviters_id, network_id: -1, company_id: cid, algorithm_id: 803, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: observers_id, network_id: -1, company_id: cid, algorithm_id: 804, algorithm_type_id: 1)
   end
+
+  ############## V3 gauges ###############################################################
+
+  def create_new_seed_for_gauge_num_of_ppl_in_meetings(cid)
+    meeting_network_id = NetworkName.find_or_create_by(name: 'Meeting Flow', company_id: cid).id
+    avg_meeting_participants_gauge_id = MetricName.find_or_create_by!(name: 'Participants', company_id: cid).id
+    cm = CompanyMetric.find_or_create_by!(metric_id: avg_meeting_participants_gauge_id,
+                                          network_id: meeting_network_id,
+                                          company_id: cid,
+                                          algorithm_id: 806,
+                                          algorithm_type_id: 5)
+  end
+
+  ########################################################################################
 
   def create_new_seed_for_sinks(cid)
     communication_network_id = NetworkName.find_or_create_by(name: 'Communication Flow', company_id: cid).id
     sinks_metric_id = MetricName.find_or_create_by(name: 'calculate_sinks_flag', company_id: cid).id
-    CompanyMetric.find_or_create_by(metric_id: sinks_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 141, algorithm_type_id: 2)
+    CompanyMetric.find_or_create_by(metric_id: sinks_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 141, algorithm_type_id: 2, active: false)
   end
 
   def create_new_seed_bottlenecks(cid)
@@ -58,7 +76,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
   def create_new_seed_for_non_reciprocity(cid)
     communication_network_id = NetworkName.find_or_create_by(name: 'Communication Flow', company_id: cid).id
     non_reciprocity_metric_id = MetricName.find_or_create_by(name: 'non reciprocity', company_id: cid).id
-    CompanyMetric.find_or_create_by(metric_id: non_reciprocity_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 102, algorithm_type_id: 2)
+    CompanyMetric.find_or_create_by(metric_id: non_reciprocity_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 102, algorithm_type_id: 2, active: false)
   end
 
   def create_new_seed_for_political_power(cid)
@@ -139,7 +157,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
                                      network_id: meeting_network_id,
                                      company_id: cid,
                                      algorithm_id: 159,
-                                     algorithm_type_id: 5)
+                                     algorithm_type_id: 5,
+                                     active: false)
   end
 
   def create_new_seed_for_avg_of_subject(cid)
