@@ -44,11 +44,10 @@ class NetworkSnapshotData < ActiveRecord::Base
     end
   end
 
-  def self.show_emails(cid, gid, from_email_filter)
+  def self.show_emails(cid, gid, from_email_filter, sid)
     nid = NetworkName.where(company_id: cid, name: 'Communication Flow').last.id
-    gid = Group.where(company_id: cid, parent_group_id: nil).first.id if gid == -1
+    gid = Group.by_snapshot(sid).where(parent_group_id: nil).first.id if gid == -1
     empids = Group.find(gid).extract_employees
-    sid = Snapshot.last_snapshot_of_company(cid)
 
     ret = NetworkSnapshotData
             .select(:id,:from_employee_id, :to_employee_id, :message_id, :multiplicity, :from_type, :to_type)
@@ -57,7 +56,7 @@ class NetworkSnapshotData < ActiveRecord::Base
             .where(snapshot_id: sid)
             .where(network_id: nid)
             .where(from_employee_id: empids, to_employee_id: empids)
-            .where("emps.email like '%#{from_email_filter}%'")
+            .where("emps.email like '%#{from_email_filter}%'").limit(100)
     return ret
   end
 end

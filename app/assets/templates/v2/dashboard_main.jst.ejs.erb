@@ -33,10 +33,11 @@
       <div class='communication-widget'>
         <h2 class='sub-header'>MEASURES DEBUGGER</h2>
 
+        <h3> <u>Snapshot:</u> {{selectedSnapshot.id}}, <u>Group:</u> {{selectedGroup.name}}, <u>Measure:</u> {{selectedMeasure.name}} </h3>
+        Snapshots: <select ng-model="selectedSnapshot" ng-options="x.name for x in snapshots"></select><br><br>
         Groups: <select ng-model="selectedGroup" ng-options="x.name for x in groups"></select>
-        Measures: <select ng-model="selectedMeasure" ng-options="x.name for x in measures"></select> </br>
+        Measures: <select ng-model="selectedMeasure" ng-options="x.name for x in measures"></select> </br><br>
         <button ng-click='runPrecalculate(selectedGroup,selectedMeasure)'>Run Precalculate</button> </br>
-        Measure: {{selectedMeasure.name}}
         <br>
         <br>
         <table>

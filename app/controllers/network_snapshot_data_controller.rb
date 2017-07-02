@@ -5,11 +5,14 @@ class NetworkSnapshotDataController < ApplicationController
     authorize :network_snapshot_data, :index?
     cid = current_user.company_id
     gid = params[:gid].to_i
+    sid = params[:sid].to_i
+    sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
     from_email_filter = params[:from_email_filter] || ''
+
     cache_key = "show_email_network-#{cid}"
     res = cache_read(cache_key)
     if res.nil?
-      res = NetworkSnapshotData.show_emails(cid, gid, from_email_filter).as_json
+      res = NetworkSnapshotData.show_emails(cid, gid, from_email_filter, sid).as_json
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

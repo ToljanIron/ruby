@@ -542,24 +542,26 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return $q.when(dm[data_model] || the_function.deferred.promise);
   }
 
-  dm.getEmployees = function () {
+  dm.getEmployees = function (sid) {
+    if (sid === undefined) { sid = 0; }
     var deferred = deferMe(dm.getEmployees);
     var method = 'GET';
     var url = "get_employees";
-    var params = {};
-    /* istanbul ignore next */
+    var params = {sid: sid};
+
     var succ = function (data) {
       dm.employees = data.employees;
       createEmployeesDictionary();
       deferred.resolve(dm.employees);
     };
-    /* istanbul ignore next */
+
     var err = function () {
       dm.employees = undefined;
       deferred.resolve(dm.employees);
     };
 
-    return promiseThat(dm.getEmployees, method, url, params, 'employees', succ, err);
+    var cacheKey = 'employees' + sid;
+    return promiseThat(dm.getEmployees, method, url, params, cacheKey, succ, err);
   };
 
   dm.getQuestionnaires = function (reset) {
@@ -695,24 +697,26 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
   //   return promiseThat(dm.getOverlaySnapshotData, method, url, params, 'overlay_snapshot_data', succ, err);
   // };
 
-  dm.getGroups = function () {
+  dm.getGroups = function (sid) {
     var deferred = deferMe(dm.getGroups);
+    if (sid === undefined) { sid = 0; }
     var method = 'GET';
     var url = "get_groups";
-    var params = {};
-    /* istanbul ignore next */
+    var params = {sid: sid};
+
     var succ = function (data) {
       dm.groups = data.groups;
       deriveAdditionalGroupsData();
       deferred.resolve(dm.groups);
     };
-    /* istanbul ignore next */
+
     var err = function () {
       dm.groups = undefined;
       deferred.resolve(dm.groups);
     };
 
-    return promiseThat(dm.getGroups, method, url, params, 'groups', succ, err);
+    var cache_key = 'groups' + sid;
+    return promiseThat(dm.getGroups, method, url, params, cache_key, succ, err);
   };
 
 
@@ -800,7 +804,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     var method = 'GET';
     var url = "get_snapshots";
     var params = {};
-    /* istanbul ignore next */
+
     var succ = function (data) {
       _.each(data.snapshots, function (snapshot) {
         snapshot.date = new Date(snapshot.date);
@@ -808,7 +812,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
       dm.snapshots = data.snapshots;
       deferred.resolve(dm.snapshots);
     };
-    /* istanbul ignore next */
+
     var err = function () {
       dm.snapshots = undefined;
       deferred.resolve(dm.snapshots);
@@ -817,17 +821,18 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return promiseThat(dm.getSnapshots, method, url, params, 'snapshots', succ, err);
   };
 
-  dm.getFormalStructure = function () {
+  dm.getFormalStructure = function (sid) {
+    if (sid === undefined) { sid = 0; }
     var deferred = deferMe(dm.getFormalStructure);
     var method = 'GET';
     var url = "get_formal_structure";
-    var params = {};
-    /* istanbul ignore next */
+    var params = {sid: sid};
+
     var succ = function (data) {
       dm.formal_structure = data.formal_structure;
       deferred.resolve(dm.formal_structure);
     };
-    /* istanbul ignore next */
+
     var err = function () {
       dm.formal_structure = undefined;
       deferred.resolve(dm.formal_structure);
@@ -1104,7 +1109,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     };
     return promiseThat(dm.deleteEmailRelation, method, url, params, 'delete_email_relation', succ, err);
   };
-  dm.getEmailsNetwork = function(gid, fromEmailFilter) {
+  dm.getEmailsNetwork = function(gid, fromEmailFilter, sid) {
+    if (sid === undefined) { sid = 0; }
     var deferred = deferMe(dm.getEmailsNetwork);
     var method = 'GET';
     var url = "API/get_emails_network";
@@ -1117,6 +1123,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     var params = {
       cid: COMPANY_ID,
       gid: gid,
+      sid: sid,
       from_email_filter: fromEmailFilter
     };
     var err = function () {
@@ -1124,7 +1131,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
       deferred.resolve(dm.emails_network);
     };
 
-    return promiseThat(dm.getEmailsNetwork, method, url, params, 'emails_network', callback, err);
+    var cacheKey = 'emails_network' + gid + fromEmailFilter + sid;
+    return promiseThat(dm.getEmailsNetwork, method, url, params, cacheKey, callback, err);
   };
 
   dm.getWordcloud = function (group_id, pin_id, reset) {
@@ -1254,7 +1262,8 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return promiseThat(dm.getTopLevelGauges, method, url, params, 'gauges', callback, err);
   };
 
-  dm.getMeasures = function (group_id, pin_id, reset) {
+  dm.getMeasures = function (gid, pid, reset, sid) {
+    if (sid === undefined) {sid = 0;}
     if (!reset) {
       dm.mesures = null;
     }
@@ -1264,7 +1273,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     var acc_res = [];
     var method = 'GET';
     var url = "API/get_cds_measure_data";
-    /* istanbul ignore next */
+
     var callbackBuilder = function () {
       return function (data) {
         dm.mesures = null;
@@ -1284,12 +1293,14 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     callback = callbackBuilder(measure_types);
     params = {
       cid: COMPANY_ID,
-      pid: pin_id,
-      gid: group_id,
+      pid: pid,
+      gid: gid,
+      sid: sid,
       measure_types: measure_types
     };
 
-    return promiseThat(dm.getMeasures, method, url, params, 'measures', callback, callback, reset);
+    var cacheKey = 'measures' + gid + sid;
+    return promiseThat(dm.getMeasures, method, url, params, cacheKey, callback, callback, reset);
   };
 
   var callback_succ_arr = [];
@@ -1870,25 +1881,14 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return dm.ui_levels[level].children;
   };
 
-  //For signin init() func - if to show "password changed successfully after reset/set password"
   dm.passwordChangedSuccessfully = false;
 
-  // _TODO do we need init?
   dm.init = function () {
     dm.getUiLevels().then(function (response) {
       dm.ui_levels = response.children;
     });
-    dm.getCompanyStatistics(true);
-    dm.getGroupOrIndividualView();
-    dm.getExternalDataList();
-    dm.getEmployees();
-    dm.getPins();
     dm.getColors();
     dm.getFormalStructure();
-    dm.getSnapshots();
-    dm.getGroups();
-    dm.getQuestionnaires();
-    dm.getMostCommunicationVolumeDiffBetweenDyads();
   };
 
   return dm;

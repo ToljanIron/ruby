@@ -84,4 +84,15 @@ class Snapshot < ActiveRecord::Base
     snapshot = Snapshot.create!(name: snapshot_name, timestamp: Time.now, company_id: cid)
     return snapshot.id
   end
+
+  def self.drop_snapshot(sid)
+    snapshot = Snapshot.find(sid)
+    raise "Snapshot: #{sid} not found" if snapshot.nil?
+    CdsMetricScore.where(snapshot_id: sid).delete_all
+    NetworkSnapshotData.where(snapshot_id: sid).delete_all
+    Employee.by_snapshot(sid).delete_all
+    Group.by_snapshot(sid).delete_all
+    snapshot.delete
+  end
+
 end

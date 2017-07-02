@@ -12,19 +12,14 @@ angular.module('workships').controller('layoutController', function ($scope, $ti
   var isAdmin = function () {
     $scope.admin_show = $scope.data.currentUser.role === ADMIN;
   };
+
   $scope.linkToAdminPage = function () {
     window.location.href = '/admin_page';
   };
+
   $scope.employee_init = function () {
     $scope.admin_show = false;
 
-    var employeesSuccess = function (employees_list) {
-      var current_employee = _.find(employees_list, function (employee) {
-        return employee.email === $scope.data.currentUser.email;
-      });
-      unused(current_employee);
-      $scope.img_url = 'assets/user.jpg'; //current_employee.img_url;
-    };
     $scope.companies = [];
     _.each($scope.data.companies, function (company) {
       if (!company) { return; }
@@ -37,7 +32,6 @@ angular.module('workships').controller('layoutController', function ($scope, $ti
       $scope.companies.push(temp);
     });
     isAdmin();
-    dataModelService.getEmployees().then(employeesSuccess);
   };
 
 
@@ -253,9 +247,7 @@ angular.module('workships').controller('layoutController', function ($scope, $ti
     $scope.sidebar = sidebarMediator;
     $scope.sidebar.init(true);
     $scope.data_model = dataModelService;
-    dataModelService.getGroupOrIndividualView().then(function (bottom_up_view) {
-      $scope.bottom_up_view = bottom_up_view;
-    });
+    $scope.bottom_up_view = false;
     $scope.employee_init();
     $scope.show_higligthed = false;
     $scope.show_left_on_explore = true;

@@ -118,7 +118,6 @@ module CalculateMeasureForCustomDataSystemHelper
     res.keys.each do |metric_name|
       sids.each do |sid|
         group_data = res[metric_name][:snapshots][sid]
-        puts "Working on metric: #{metric_name}"
         res[metric_name][:graph_data][:data][:values] << arrange_per_each_snapshot(sid, group_data)
       end
     end
@@ -128,7 +127,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def arrange_per_each_snapshot(snapshot_id, calculated_data)
     pin_avg = 0
-    unless calculated_data.empty?
+    unless (calculated_data.nil? || calculated_data.empty?)
       pin_avg = calculated_data.inject(0) { |memo, n| memo + (n[:measure] || n[:score]) } / calculated_data.length
       pin_avg = pin_avg.round(2)
     end
@@ -141,7 +140,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def cds_init_graph_data(_metric_id, metric_name)
     return {
       measure_name: metric_name,
-      last_updated: time_now,
+      last_updated: Time.now,
       avg: nil,
       trend: false,
       negative: 1,

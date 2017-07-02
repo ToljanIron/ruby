@@ -20,13 +20,15 @@ module CreateSnapshotHelper
     else
       snapshot = Snapshot.find_by(company_id: cid, name: name, snapshot_type: nil)
     end
+
     sid = snapshot.id
+    prev_sid = Snapshot.last_snapshot_of_company(cid)
 
     puts "Creating groups snapshot"
-    Group.create_snapshot(cid, sid)
+    Group.create_snapshot(cid, prev_sid, sid)
 
     puts "Creating employees snapshot"
-    Employee.create_snapshot(cid, sid)
+    Employee.create_snapshot(cid, prev_sid, sid)
 
     return snapshot unless create_measures_snapshots
     puts "Going to create a snapshot for sid: #{sid}, end_date: #{end_date}"
@@ -84,9 +86,9 @@ module CreateSnapshotHelper
     start_date = end_date - get_period_of_weeks(cid).to_i.week
     puts "create_emails_for_weekly_snapshots - start_date: #{start_date}"
     if ENV['e2e_test']
-      raw_data_entries = RawDataEntry.where(company_id: cid, processed: false)
+      raw_data_entries = RawDataEntry.where(company_id: cid)
     else
-      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date, processed: false)
+      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date)
     end
     puts "Found #{raw_data_entries.length} raw entries"
     puts "create snapshot - prepare"

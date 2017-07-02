@@ -9,6 +9,11 @@ class Group < ActiveRecord::Base
   validates :name, presence: true, length: { maximum: 150 }
   validates :company_id, presence: true
 
+  scope :by_company, ->(cid, sid=nil) {
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    Group.where(company_id: cid, active: true, snapshot_id: sid)
+  }
+
   scope :by_snapshot, ->(sid) {
     raise 'snapshot_id cant be nil' if sid.nil?
     Group.where(snapshot_id: sid, active: true)
@@ -48,7 +53,7 @@ class Group < ActiveRecord::Base
     hash = {}
     hash[:id] = id
     hash[:name] = !CompanyConfigurationTable::is_investigation_mode? ? name : "#{id}-#{name}"
-    hash[:level] = group_level(self)
+    hash[:level] = -1  ##group_level(self)
     hash[:child_groups] = extract_descendants_ids
     hash[:employees_ids] = Employee.where(group_id: hash[:child_groups] + [id]).pluck(:id)
     hash[:parent] = parent_group_id
@@ -114,7 +119,7 @@ class Group < ActiveRecord::Base
     parents
   end
 
-  def self.create_snapshot(prev_sid, sid)
+  def self.create_snapshot(cid, prev_sid, sid)
    return if Group.where(snapshot_id: sid).count > 0
    prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
 
@@ -125,16 +130,28 @@ class Group < ActiveRecord::Base
          FROM groups
          WHERE
            snapshot_id = #{prev_sid} AND
+           company_id = #{cid} AND
            #{sql_check_boolean('active', true)}"
    )
 
-   ActiveRecord::Base.connection.execute(
-     "UPDATE groups AS g set parent_group_id = (
-        SELECT ggg.id
-        FROM groups AS gg
-        JOIN groups AS ggg ON ggg.external_id = gg.external_id AND ggg.snapshot_id = #{sid}
-        WHERE gg.snapshot_id = #{prev_sid} AND g.parent_group_id = gg.id)
-      WHERE snapshot_id = #{sid}"
-   )
+   ## Fix parent group IDs
+   Group.by_snapshot(sid).each do |currg|
+     parent_in_prev_sid = currg.parent_group_id
+     next if parent_in_prev_sid.nil?
+     external_id = Group.find(parent_in_prev_sid).external_id
+     parent_in_sid = Group.by_snapshot(sid).where(external_id: external_id).last
+     currg.update(parent_group_id: parent_in_sid.id)
+   end
+  end
+
+  ## Since the group id changes with the snapshot id, sometimes we're going to
+  ## have an older group id which doesn't belong with the given snapshot. This
+  ## method will return the updated group id, based on it's external id.
+  def self.find_group_in_snapshot(gid, sid)
+    orig_group = Group.find(gid)
+    return gid if orig_group.snapshot_id == sid
+    external_id = orig_group.external_id
+    new_group = Group.where(external_id: external_id, snapshot_id: sid).last
+    return new_group.id
   end
 end

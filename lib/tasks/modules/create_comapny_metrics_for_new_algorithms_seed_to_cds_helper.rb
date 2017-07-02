@@ -176,17 +176,5 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
       relevant_id = CompanyMetric.where(algorithm_type_id: 3, company_id: cid, metric_id: cm.metric_id).first.try(:id)
       cm.update(analyze_company_metric_id: relevant_id) if relevant_id
     end
-
-    company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig = CompanyMetric.find_by(company_id: cid, algorithm_id: Algorithm.find_by_name('calculate_non_reciprocity_between_employees_to_args'))
-    if company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig.try(:analyze_company_metric_id).nil?
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args = company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig.dup
-      calculate_non_reciprocity_between_employees_explore_to_args_id = Algorithm.find_by_name('calculate_non_reciprocity_between_employees_explore_to_args').id
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args.update(algorithm_id: calculate_non_reciprocity_between_employees_explore_to_args_id, algorithm_type_id: 3)
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args.save
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig.update(analyze_company_metric_id: company_metric_for_calculate_non_reciprocity_between_employees_to_args.id)
-    else
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args = CompanyMetric.find(company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig.analyze_company_metric_id)
-      company_metric_for_calculate_non_reciprocity_between_employees_to_args.update(algorithm_params: company_metric_for_calculate_non_reciprocity_between_employees_to_args_orig.algorithm_params)
-    end
   end
 end
