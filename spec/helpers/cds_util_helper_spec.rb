@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe UtilHelper, type: :helper do
+describe CdsUtilHelper, type: :helper do
   ########################### Stat Functions ###########################
   describe 'Stat functions' do
     describe 'array_mean' do
@@ -65,11 +65,11 @@ describe UtilHelper, type: :helper do
 
     describe 'lev' do
       it 'should work' do
-        puts "aa - ab - #{UtilHelper.lev('aa', 'ab')}"
-        puts "ab - aa - #{UtilHelper.lev('ab', 'aa')}"
-        puts "aa - aa - #{UtilHelper.lev('aa', 'aa')}"
-        puts "aa - bb - #{UtilHelper.lev('aa', 'bb')}"
-        puts "aa - Aa - #{UtilHelper.lev('aa', 'Aa')}"
+        puts "aa - ab - #{CdsUtilHelper.lev('aa', 'ab')}"
+        puts "ab - aa - #{CdsUtilHelper.lev('ab', 'aa')}"
+        puts "aa - aa - #{CdsUtilHelper.lev('aa', 'aa')}"
+        puts "aa - bb - #{CdsUtilHelper.lev('aa', 'bb')}"
+        puts "aa - Aa - #{CdsUtilHelper.lev('aa', 'Aa')}"
       end
     end
   end
