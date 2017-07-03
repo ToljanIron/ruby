@@ -36,6 +36,8 @@ module AlgorithmsHelper
   # REPLY  ||= 2
   # FWD  ||= 3
 
+  DECLINE ||= 2
+
   TO ||=1
 
   BOSS         ||= 10
@@ -1450,8 +1452,8 @@ module AlgorithmsHelper
     return calc_num_of_ppl_in_meetings(sid, gid, pid)
   end
 
-  def avg_time_spent_in_meetings_per_employee(sid, gid, pid)
-    return calc_avg_time_spent_in_meetings_per_employee(sid, gid, pid)
+  def avg_time_spent_in_meetings_per_group(sid, gid, pid)
+    return calc_avg_time_spent_in_meetings_per_group(sid, gid, pid)
   end
     
   ###################################################
@@ -1893,8 +1895,8 @@ module AlgorithmsHelper
 
     ratios = []
 
-    missing_to_and_from = -1
-    missing_from = -2
+    missing_to_and_from = -1 # Illegal entry
+    missing_from = -2 # Should be same as max entry
 
     sqlres.each do |e|
       toempcount   = e['toempcount']
@@ -1983,7 +1985,7 @@ module AlgorithmsHelper
               meetings_snapshot_data.id = meeting_attendees.meeting_id
               WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
               snapshot_id = #{sid} AND
-              response = 3
+              response = #{DECLINE}
               GROUP BY employee_id"
 
     count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
@@ -2007,7 +2009,6 @@ module AlgorithmsHelper
 
     count_of_invited = calc_in_the_loop(sid, gid, pid)
 
-    # Get meeting count for attendees with a declined response
     sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
               FROM meetings_snapshot_data
               JOIN meeting_attendees ON
@@ -2066,7 +2067,7 @@ module AlgorithmsHelper
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees
               WHERE employee_id IN (#{employee_ids.join(',')}) AND NOT
-              response = 3
+              response = #{DECLINE}
               GROUP BY meeting_id"
 
     # num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
@@ -2074,11 +2075,11 @@ module AlgorithmsHelper
 
     # return res
 
+    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    
     total_participants_in_meetings = 0
     average_participants_in_meetings = -1
 
-    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
-    
     num_of_ppl_in_meetings.each {|r| total_participants_in_meetings += r[:measure].to_i}
 
     average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
@@ -2087,21 +2088,32 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_avg_time_spent_in_meetings_per_employee(sid, gid = NO_GROUP, pid = NO_PIN)
+  def calc_avg_time_spent_in_meetings_per_group(sid, gid = NO_GROUP, pid = NO_PIN)
 
     res = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
-
+    employee_ids = Group.find(gid).extract_employees
     employee_count = employee_ids.count
 
+    sqlstr = "SELECT meeting_id, duration_in_minutes, COUNT(meeting_attendees.meeting_id) as ppl_count
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND NOT
+              response = #{DECLINE}
+              GROUP BY meeting_id, duration_in_minutes"
 
-    meeting_durations = MeetingsSnapshotData.where(company_id: cid, snapshot_id: sid)
-    sqlstr = "SELECT meeting_id, duration
-              FROM meeting_snapshot_data"
-              
+    meeting_entries = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    meeting_entries = integerify_hash_arr_all(meeting_entries)
 
-    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    total_time_spent = 0
+    meeting_entries.each do |meeting|
+      total_time_spent += meeting[:duration_in_minutes] * meeting[:ppl_count]
+    end
+
+    res << {id: nil, measure: total_time_spent/employee_count}
+    return res
   end
 
   def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
@@ -2131,7 +2143,8 @@ module AlgorithmsHelper
     array = []
     
     raw_object_array.each{|obj| array << obj.to_hash}
-    array = integerify_hash_arr(array)
+    # array = integerify_hash_arr(array)
+    array = integerify_hash_arr_all(array)
 
     return result_zero_padding(employee_ids, array)
   end
@@ -2189,11 +2202,38 @@ module AlgorithmsHelper
   # Convert all values to integers
   # +hash_array+:: array of hashes - with keys as symbols
   # Example: {:id=>"1004", :measure=>"1"} will return {:id=>1004, :measure=>1}
-  def integerify_hash_arr(hash_array)
+  # def integerify_hash_arr(hash_array)
+  #   res = []
+  #   temp = symbolize_hash_arr(hash_array)
+  #   temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
+  #   return res   
+  # end
+
+  # Convert values of field to integers
+  # +hash_array+:: array of hashes
+  # +key+:: key of field to convert
+  # Example: for key= 'measure' - {:id=>1004, :measure=>"1"} will return {:id=>1004, :measure=>1}
+  def integerify_hash_arr_by_key(hash_array, key)
     res = []
-    temp = symbolize_hash_arr(hash_array)
-    temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
-    return res   
+    temp = stringify_hash_arr(hash_array)
+    temp.each do |r|
+      r[key] = r[key].to_i
+      res << r
+    end
+    return symbolize_hash_arr(res)
+  end
+
+  # Convert all values of hashes to integers
+  # +hash_array+:: array of hashes
+  def integerify_hash_arr_all(hash_array)
+    res = hash_array
+    hash_array.each do |h|
+      keys = h.stringify_keys.keys
+      keys.each do|key|
+        res = integerify_hash_arr_by_key(res, key)
+      end
+    end
+    return res
   end
 
   def is_retrieved_snapshot_data_empty(entries, query)

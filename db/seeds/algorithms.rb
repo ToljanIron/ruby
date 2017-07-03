@@ -33,8 +33,8 @@ Algorithm.find_or_create_by!(id: 801, name: 'rejecters_measure', algorithm_type_
 Algorithm.find_or_create_by!(id: 802, name: 'routiners_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 803, name: 'inviters_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 804, name: 'observers_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
-# Algorithm.find_or_create_by!(id: 805, name: 'time_spent_on_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2)
-Algorithm.find_or_create_by!(id: 806, name: 'num_of_ppl_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 805, name: 'num_of_ppl_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 806, name: 'avg_time_spent_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2)
 
 ############## Communication ###############
 Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)

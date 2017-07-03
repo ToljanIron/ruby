@@ -126,6 +126,10 @@ module ParamsToArgsHelper
     return AlgorithmsHelper.avg_num_of_ppl_in_meetings(args[:snapshot_id], args[:gid], args[:pid])
   end
 
+  def self.avg_time_spent_in_meetings_gauge(args)
+    return AlgorithmsHelper.avg_time_spent_in_meetings_per_group(args[:snapshot_id], args[:gid], args[:pid])
+  end
+
   ########################## v2 and V1 algorithms #######################
 
   def self.most_isolated_to_args(args)

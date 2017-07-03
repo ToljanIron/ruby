@@ -7,5 +7,5 @@ class MeetingAttendee < ActiveRecord::Base
 end
 
 def init
-  self.attendee_type ||= 0
+  # self.attendee_type ||= 0
 end

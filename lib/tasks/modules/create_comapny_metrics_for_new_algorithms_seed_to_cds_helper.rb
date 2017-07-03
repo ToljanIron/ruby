@@ -56,6 +56,16 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     cm = CompanyMetric.find_or_create_by!(metric_id: avg_meeting_participants_gauge_id,
                                           network_id: meeting_network_id,
                                           company_id: cid,
+                                          algorithm_id: 805,
+                                          algorithm_type_id: 5)
+  end
+
+  def create_new_seed_for_gauge_avg_time_spent_in_meetings(cid)
+    meeting_network_id = NetworkName.find_or_create_by(name: 'Meeting Flow', company_id: cid).id
+    avg_time_spent_in_meetings_gauge_id = MetricName.find_or_create_by!(name: 'Time spent in meetings', company_id: cid).id
+    cm = CompanyMetric.find_or_create_by!(metric_id: avg_time_spent_in_meetings_gauge_id,
+                                          network_id: meeting_network_id,
+                                          company_id: cid,
                                           algorithm_id: 806,
                                           algorithm_type_id: 5)
   end
