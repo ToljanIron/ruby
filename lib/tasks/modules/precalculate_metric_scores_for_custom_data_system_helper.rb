@@ -66,7 +66,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       cmin  = generate_company_metrics_for_network_in(cid, nid)
       cmout = generate_company_metrics_for_network_out(cid, nid)
 
-      groups = Group.where(company_id: cid)
+      groups = Group.by_snapshot(sid)
       fail 'No networks found' if networks.empty?
       groups.each do |g|
         puts "Working on group: #{g.name}"
@@ -184,7 +184,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   def cds_calculate_l3_scores(cid, sid, rewrite = false)
     puts "In cds_calculate_l3_scores for sid: #{sid}"
     begin
-      groups = Group.where(company_id: cid)
+      groups = Group.by_snapshot(sid)
       l3s = UiLevelConfiguration.where(company_id: cid, level: 3).where('company_metric_id is not null')
       l3s.each do |l3|
         l4_gauges = l3.find_l4_gauge_decendents
@@ -266,7 +266,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
 
   def cds_calculate_higher_level_scores(cid, sid, level, rewrite = false)
     begin
-      groups = Group.where(company_id: cid)
+      groups = Group.by_snapshot(sid)
       lhs = UiLevelConfiguration.where(company_id: cid, level: level).where('company_metric_id is not null')
       lhs.each do |lh|
         parent_skew_direction = CompanyMetric.find(lh.company_metric_id).algorithm.meaningful_sqew_value
@@ -349,7 +349,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     cid = company_metric_row.company_id
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     CdsMetricScore.where(snapshot_id: sid, company_metric_id: company_metric_row.id).delete_all
-    company_groups = Group.where(company_id: cid)
+    company_groups = Group.by_snapshot(sid)
     company_pins = Pin.where(company_id: cid)
     company_groups = put_mother_group_first(company_groups)
     company_groups.each do |group|
@@ -403,6 +403,9 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         algorithm_type: algorithm.algorithm_type_id
       }
       calculated = algorithm.run(args)
+      #puts "*********************************"
+      #ap calculated
+      #puts "*********************************"
       pid = nil if pid == NO_PIN
       gid = nil if gid == NO_GROUP
       unless calculated.nil?
