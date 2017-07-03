@@ -33,8 +33,8 @@ module AlgorithmsHelper
 
   # From type - init, fwd or reply
   INIT  ||= 1
-  FWD  ||= 2
-  REPLY  ||= 3
+  REPLY ||= 2
+  FWD ||= 3
 
   TO ||=1
 
