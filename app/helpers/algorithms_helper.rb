@@ -1393,23 +1393,27 @@ module AlgorithmsHelper
   end
 
   def relays_measure(sid, gid, pid)
-    return calc_relative_fwd(sid, gid, pid)
+    return calc_relays(sid, gid, pid)
   end
 
   def ccers_measure(sid, gid, pid)
-    return calc_outdegree_for_cc_matrix(sid, gid, pid)
+    # return calc_outdegree_for_cc_matrix(sid, gid, pid)
+    return calc_ccers(sid, gid, pid)
   end
 
   def cced_measure(sid, gid, pid)
-    return calc_indegree_for_cc_matrix(sid, gid, pid)
+    # return calc_indegree_for_cc_matrix(sid, gid, pid)
+    return calc_cced(sid, gid, pid)
   end
 
   def undercover_measure(sid, gid, pid)
-    return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    # return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    return calc_undercover(sid, gid, pid)
   end
 
   def politicos_measure(sid, gid, pid)
-    return calc_indegree_for_bcc_matrix(sid, gid, pid)
+    # return calc_indegree_for_bcc_matrix(sid, gid, pid)
+    return calc_politicos(sid, gid, pid)
   end
 
   def emails_volume_measure(sid, gid, pid)
@@ -1705,27 +1709,167 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-  def calc_relative_fwd(sid, gid = NO_GROUP, pid = NO_PIN)
+  ############################ ALL MATRIX IMPLEMENTATION #########################################
+
+  def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  end
+
+  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  def calc_outdeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  def calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id = NO_GROUP, pin_id = NO_PIN)
+    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id, pin_id)
+    maximum = calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
+    return res if maximum == 0
+    return -1 if maximum.nil?
+    res.map { |emp| { id: emp[:id], measure: (emp[:measure] /= maximum.to_f).round(2) } }
+  end
+
+  def calc_normalized_indegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  end
+
+  def calc_normalized_outdegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  end
+
+  #################################  AVERAGES #######################################################
+  
+  def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
+    result_vector = nil
+    if (direction == EMAILS_IN)
+      result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    else
+      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    end
+
+    comp1 = find_company_by_snapshot(snapshot_id)
+    company_size = CdsGroupsHelper.get_unit_size(comp1, -1, -1)
+    total_sum = result_vector.inject(0) { |memo, emp| memo + emp[:measure] }
+    return -1 if company_size == 0
+    (total_sum.to_f / company_size).round(2)
+  end
+
+  def calc_avg_indeg_for_specified_matrix(snapshot_id, matrix_name)
+    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN)
+  end
+
+  def calc_avg_outdeg_for_specified_matrix(snapshot_id, matrix_name)
+    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT)
+  end
+
+  #################################  MAXIMA FUNCTIONS ################################################
+  
+  def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
+    res = nil
+    if (direction == EMAILS_IN)
+      res = calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
+    else
+      res = calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
+    end
+    return res
+  end
+
+  def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
+    result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    calc_max_vector(result_vector)
+  end
+
+  def calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
+    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    calc_max_vector(result_vector)
+  end
+
+  def calc_max_vector(emp_vector)
+    return calc_max_in_vector_by_attribute(emp_vector, :measure)
+  end
+
+  def calc_max_in_vector_by_attribute(emp_vector, attribute)
+    return emp_vector.map { |elem| elem[attribute.to_s.to_sym] }.max
+  end
+
+  ################  ###########################################
+
+  def calc_ccers(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_cc_outdegree = calc_outdegree_for_cc_matrix(sid, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    
+    res = calc_relative_measure_by_key(total_cc_outdegree, total_outdegree, 'id', 'measure')
+   
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_cced(sid, gid = NO_GROUP, pid = NO_PIN)
+    
     res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_cc_indegree = calc_indegree_for_cc_matrix(sid, gid, pid)
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(total_cc_indegree, total_indegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_undercover(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_bcc_outdegree = calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    
+    res = calc_relative_measure_by_key(total_bcc_outdegree, total_outdegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_politicos(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_bcc_indegree = calc_indegree_for_bcc_matrix(sid, gid, pid)
+
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(total_bcc_indegree, total_indegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
 
     fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD, 
       to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
-    select("#{EMAILS_OUT} as id, count(id) as total_sum").group(EMAILS_OUT)
-
-    fwded_emails.each do |emp_fwd|
-      total_to_measure.each do |emp|
-        if(emp[:id] == emp_fwd.id)
-          res << { id: emp[:id], measure: emp[:measure] != 0 ? (emp_fwd.total_sum.to_f/emp[:measure]).round(2) : 0 }
-        end
-      end
-    end
-    result = result_zero_padding(inner_select, res)
-    return result
+    select("#{EMAILS_OUT} as id, count(id) as measure").group(EMAILS_OUT).as_json
+    
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(fwded_emails, inner_select), total_to_measure, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
   end
 
   def calc_emails_volume(sid, group_id = NO_GROUP, pin_id = NO_PIN)
