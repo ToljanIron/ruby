@@ -1,5 +1,7 @@
 require './lib/tasks/modules/create_snapshot_helper.rb'
 include CreateSnapshotHelper
+include CdsUtilHelper
+
 module LineProcessingContextClasses
   ########################################## Abstract LineProcessingContext ##########################################
   class LineProcessingContext
@@ -223,6 +225,7 @@ module LineProcessingContextClasses
     def connect_group(employee)
       return nil if @satellite_tables_attrs[:group_name].nil?
       g = Group.find_by(name: @satellite_tables_attrs[:group_name], snapshot_id: @sid)
+      g = Group.find_by(external_id: @satellite_tables_attrs[:group_name], snapshot_id: @sid) if g.nil?
       if g
         employee.group_id = g.id
         employee.save

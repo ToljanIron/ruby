@@ -3,9 +3,11 @@ module CdsUtilHelper
 
   def safe_titleize(str)
     return nil if str.nil?
+    str = str.to_s
     return str.titleize if !str.match(/^[a-zA-Z \-]*$/).nil?
     return str
   end
+
 
   def self.convert_str_to_date(str)
     return Date.parse(str) if str
@@ -91,7 +93,7 @@ module CdsUtilHelper
     return max
   end
 
-  def self.choose_random_color
+  def choose_random_color
     all_colors = Color.all
     color_index = rand(all_colors.all.size) + 1
     all_colors.find(color_index).id
