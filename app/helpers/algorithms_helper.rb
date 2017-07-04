@@ -36,7 +36,12 @@ module AlgorithmsHelper
   # REPLY  ||= 2
   # FWD  ||= 3
 
+  # Response to meeting
   DECLINE ||= 2
+
+  # Meeting type
+  SINGLE ||= 0
+  RECCURING ||= 1
 
   TO ||=1
 
@@ -1962,10 +1967,6 @@ module AlgorithmsHelper
 
     return res if is_retrieved_snapshot_data_empty(count_of_invited, sqlstr)
 
-    # count_of_invited.each{|obj| count_of_invited_arr << obj.to_hash}
-    # count_of_invited_arr = integerify_hash_arr(count_of_invited_arr)      
-    # res = result_zero_padding(employee_ids, count_of_invited_arr)
-    # return res
     return handle_raw_snapshot_data(count_of_invited, employee_ids)
   end
 
@@ -1992,10 +1993,6 @@ module AlgorithmsHelper
     
     return res if is_retrieved_snapshot_data_empty(count_of_rejected, sqlstr)
 
-    # count_of_rejected.each{|obj| count_of_rejected_arr << obj.to_hash} # convert to array of hashes
-    # count_of_rejected_arr = integerify_hash_arr(count_of_rejected_arr)
-    # res = calc_relative_measure_by_key(result_zero_padding(count_of_rejected, count_of_rejected_arr), count_of_invited, 'id', 'measure')
-
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_rejected, employee_ids), count_of_invited, 'id', 'measure')
     return res
   end
@@ -2015,16 +2012,12 @@ module AlgorithmsHelper
               meetings_snapshot_data.id = meeting_attendees.meeting_id
               WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
               snapshot_id = #{sid} AND
-              meeting_type = 1
+              meeting_type = #{RECCURING}
               GROUP BY employee_id"
 
     count_of_recurring = ActiveRecord::Base.connection.exec_query(sqlstr)
 
     return res if is_retrieved_snapshot_data_empty(count_of_recurring, sqlstr)
-
-    # count_of_recurring.each{|obj| count_of_recurring_arr << obj.to_hash}
-    # count_of_recurring_arr = integerify_hash_arr(count_of_recurring_arr)
-    # res = calc_relative_measure_by_key(result_zero_padding(employee_ids, count_of_recurring_arr), count_of_invited, 'id', 'measure')
 
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_recurring, employee_ids), count_of_invited, 'id', 'measure')
     return res
@@ -2069,12 +2062,7 @@ module AlgorithmsHelper
               WHERE employee_id IN (#{employee_ids.join(',')}) AND NOT
               response = #{DECLINE}
               GROUP BY meeting_id"
-
-    # num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
-    # num_of_ppl_in_meetings.each {|e| res << {meeting_id: e[:meeting_id].to_i, measure: e[:measure].to_i}}
-
-    # return res
-
+    
     num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
     
     total_participants_in_meetings = 0
@@ -2092,7 +2080,6 @@ module AlgorithmsHelper
 
     res = []
     cid = find_company_by_snapshot(sid)
-    employee_ids = get_inner_select_as_arr(cid, pid, gid)
     employee_ids = Group.find(gid).extract_employees
     employee_count = employee_ids.count
 

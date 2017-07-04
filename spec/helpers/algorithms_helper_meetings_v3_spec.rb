@@ -19,8 +19,13 @@ DECLINE ||= 2
 
 describe AlgorithmsHelper, type: :helper do
   
-  before(:all) do
-    
+  after(:each) do
+    DatabaseCleaner.clean_with(:truncation)
+    FactoryGirl.reload
+  end
+
+  before(:each) do
+
     @cid = 9
     @s = FactoryGirl.create(:snapshot, name: 'meetings test snapshot', company_id: @cid)
     @g = FactoryGirl.create(:group, name: 'Test group', company_id: @cid)
@@ -40,14 +45,8 @@ describe AlgorithmsHelper, type: :helper do
     @e6 = FactoryGirl.create(:employee, id: 1006, email: em6, company_id: @cid, group_id: @g.id)
   end
 
-  after(:each) do
-    MeetingsSnapshotData.delete_all
-    MeetingAttendee.delete_all
-  end
-
   describe 'Algorithm name: in the loop | meeting invitations in degree | type: measure' do
-    before(:all) do
-
+    before(:each) do
       meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid)
       meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid)
 
@@ -77,8 +76,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: meeting rejecters | rejections devided by invitations | type: relative measure' do
-    before(:all) do
-
+    before(:each) do
       meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid)
       meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid)
       meeting3 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid)
@@ -112,7 +110,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: routiners | recurring devided by invitations | type: relative measure' do
-    before(:all) do
+    before(:each) do
 
       meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 1)
       meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0)
@@ -149,7 +147,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: inviters | invitations out degree (times employee organized a meeting) | type: measure' do
-    before(:all) do
+    before(:each) do
       meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 1, organizer_id: @e1.id)
       meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e1.id)
       meeting3 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0, organizer_id: @e2.id)
@@ -173,7 +171,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: observers | invitations devided by email indegree | type: measure' do
-    before(:all) do
+    before(:each) do
       @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: @cid)
       create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e3.id, @e2.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -219,7 +217,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: average number of ppl in meetings | (implied in name...) | type: gauge' do
-    before(:all) do
+    before(:each) do
 
       meeting10 = MeetingsSnapshotData.create!(id: 10, snapshot_id: @s.id, company_id: @cid, meeting_type: 1, duration_in_minutes: 30)
       meeting11 = MeetingsSnapshotData.create!(id: 11, snapshot_id: @s.id, company_id: @cid, meeting_type: 0, duration_in_minutes: 60)
@@ -247,7 +245,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: average number of ppl in meetings | (implied in name...) | type: gauge' do
-    before(:all) do
+    before(:each) do
 
       meeting10 = MeetingsSnapshotData.create!(id: 10, snapshot_id: @s.id, company_id: @cid, meeting_type: 1)
       meeting11 = MeetingsSnapshotData.create!(id: 11, snapshot_id: @s.id, company_id: @cid, meeting_type: 0)

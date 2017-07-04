@@ -16,12 +16,13 @@ BCC_TYPE ||= 3
 # This test file is for new algorithms for emails network - part of V3 version
 
 describe AlgorithmsHelper, type: :helper do
+  
   after(:each) do
-    # DatabaseCleaner.clean_with(:truncation)
-    # FactoryGirl.reloadcat gem
+    DatabaseCleaner.clean_with(:truncation)
+    FactoryGirl.reload
   end
   
-  before(:all) do
+  before(:each) do
     cid = 1
     gid = 3
     @s = FactoryGirl.create(:snapshot, name: 's3', company_id: cid)
@@ -44,12 +45,8 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'TO field' do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-
     describe 'Algorithm name: spammers | to out degree | type: measure' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -80,7 +77,7 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     describe 'Algorithm name: blitzed | to in degree | type: measure' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -113,12 +110,8 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'CC field' do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-
     describe 'Algorithm name: ccers | cc out degree | type: measure ' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -153,7 +146,7 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     describe 'Algorithm name: cced | type: measure | cc in degree' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -188,12 +181,8 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'BCC field' do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-
     describe 'Algorithm name: undercover | bcc out degree | type: measure' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -230,7 +219,7 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     describe 'Algorithm name: politicos | bcc in degree | type: measure' do
-      before(:all) do
+      before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -267,11 +256,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: emails volume | out + in degree for to + cc + bcc | type: measure' do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-
-    before(:all) do
+    before(:each) do
       create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
@@ -298,11 +283,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe "Algorithm name: blitzed | fwd's out of total to's | type: relative measure" do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-
-    before(:all) do
+    before(:each) do
       create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
@@ -356,11 +337,7 @@ describe AlgorithmsHelper, type: :helper do
   end
 
   describe 'Algorithm name: deadends | total received / replies | type: relative measure' do
-    after(:each) do
-      NetworkSnapshotData.delete_all
-    end
-    
-    before(:all) do
+    before(:each) do
       create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e3.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e4.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
