@@ -42,6 +42,7 @@ gem "jqcloud-rails"
 gem 'literate_randomizer', '~> 0.4.0'
 #gem "roo"
 #gem 'roo-xls'
+gem 'hirb'
 
 group :development, :test do
   gem 'rspec-rails'
