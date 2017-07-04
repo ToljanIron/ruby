@@ -61,7 +61,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
         @res = calc_outdegree_for_to_matrix(@s.id)
-        @res.each {|m| puts "#{m}\n"}
+        # @res.each {|m| puts "#{m}\n"}
       end
 
       it 'should test higher "to outdegree"' do
@@ -285,7 +285,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e5.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
       @res = calc_emails_volume(@s.id)
-      # @out_rreses.each {|m| puts "#{m}\n"}
+      # @res.each {|m| puts "#{m}\n"}
     end
 
     it 'should test higher email volume' do
@@ -370,6 +370,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e1.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e3.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e5.id, @e1.id, REPLY, TO_TYPE, @s.id, 0, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, CC_TYPE, @s.id, 0, @n1.id)
 
       @res = calc_deadends(@s.id)
       # @res.each {|m| puts "#{m}\n"}
