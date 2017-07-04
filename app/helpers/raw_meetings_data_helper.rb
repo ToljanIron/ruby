@@ -20,7 +20,6 @@ module RawMeetingsDataHelper
     
     data.shift
     data.each do |meeting|
-      
       start_time = format_meeting_item(meeting[2])
       end_time = format_meeting_item(meeting[3])
 
@@ -40,7 +39,6 @@ module RawMeetingsDataHelper
         external_meeting_id: format_meeting_item(meeting[12]),
         company_id: company_id
       )
-
       existing_meeting = get_meeting(incoming_entry.company_id, 
         incoming_entry.external_meeting_id, incoming_entry.subject, 
         incoming_entry.start_time, incoming_entry.location)
@@ -52,7 +50,13 @@ module RawMeetingsDataHelper
         update_meeting_entry_in_db(incoming_entry, existing_meeting)
         next
       end
-      incoming_entry.save!
+      begin
+        incoming_entry.save!
+      rescue Exception => e
+        # If this is a duplicate entry as defined by the table indices - continue to the next entry
+        next if e.message.include? "PG::UniqueViolation"
+        raise e
+      end
     end
   end
 

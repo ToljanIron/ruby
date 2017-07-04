@@ -8,7 +8,7 @@ module ParamsToArgsHelper
   GROUP   = 4
 
   ########################## v3 algorithms ##############################
-
+  ########################## Email ##########################
   def self.spammers_measure(args)
     key = "spammers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
@@ -78,6 +78,56 @@ module ParamsToArgsHelper
     return CdsUtilHelper.read_or_calculate_and_write(key) do
       return AlgorithmsHelper.deadends_measure(args[:snapshot_id], args[:gid], args[:pid])
     end
+  end
+
+  ########################## Meetings ##########################
+  
+  def self.in_the_loop_measure(args)
+    key = "in_the_loop_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.in_the_loop_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.rejecters_measure(args)
+    key = "rejecters_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.rejecters_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.routiners_measure(args)
+    key = "routiners_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.routiners_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.inviters_measure(args)
+    key = "inviters_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.inviters_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.observers_measure(args)
+    key = "observers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.observers_measure(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.num_of_ppl_in_meetings_gauge(args)
+    return AlgorithmsHelper.avg_num_of_ppl_in_meetings(args[:snapshot_id], args[:gid], args[:pid])
+  end
+
+  def self.avg_time_spent_in_meetings_gauge(args)
+    return AlgorithmsHelper.avg_time_spent_in_meetings_per_group(args[:snapshot_id], args[:gid], args[:pid])
   end
 
   ########################## v2 and V1 algorithms #######################

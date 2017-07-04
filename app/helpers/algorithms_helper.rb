@@ -32,9 +32,16 @@ module AlgorithmsHelper
   ALL_MATRIX ||= 4
 
   # From type - init, fwd or reply
-  INIT  ||= 1
-  REPLY ||= 2
-  FWD ||= 3
+  # INIT  ||= 1
+  # REPLY  ||= 2
+  # FWD  ||= 3
+
+  # Response to meeting
+  DECLINE ||= 2
+
+  # Meeting type
+  SINGLE ||= 0
+  RECCURING ||= 1
 
   TO ||=1
 
@@ -1384,6 +1391,8 @@ module AlgorithmsHelper
 
   ##################### V3 algorithms ###################################################
 
+  ##################### Emails #####################
+
   def spammers_measure(sid, gid, pid)
     return calc_outdegree_for_to_matrix(sid, gid, pid)
   end
@@ -1424,12 +1433,47 @@ module AlgorithmsHelper
     return calc_deadends(sid, gid, pid)
   end
 
+  ###################################################
+
+  ##################### Meetings #####################
+
+  def in_the_loop_measure(sid, gid, pid)
+    return calc_in_the_loop(sid, gid, pid)
+  end
+
+  def rejecters_measure(sid, gid, pid)
+    return calc_rejecters(sid, gid, pid)
+  end
+
+  def routiners_measure(sid, gid, pid)
+    return calc_routiners(sid, gid, pid)
+  end
+
+  def inviters_measure(sid, gid, pid)
+    return calc_inviters(sid, gid, pid)
+  end
+
+  def observers_measure(sid, gid, pid)
+    return calc_observers(sid, gid, pid)
+  end
+
+  def avg_num_of_ppl_in_meetings(sid, gid, pid)
+    return calc_num_of_ppl_in_meetings(sid, gid, pid)
+  end
+
+  def avg_time_spent_in_meetings_per_group(sid, gid, pid)
+    return calc_avg_time_spent_in_meetings_per_group(sid, gid, pid)
+  end
+    
+  ###################################################
+
   ##################### V3 formatting utilities ###################################################
   
   def result_zero_padding(empids, scores)
     res = []
+    temp = symbolize_hash_arr(scores)
     empids.each do |eid|
-      score = scores.find { |s| s[:id] == eid }
+      score = scores.find { |s| s[:id] == eid.to_i || s[:id] == eid.to_s }
       res << score if !score.nil?
       res << {id: eid, measure: 0} if score.nil?
     end
@@ -1619,7 +1663,6 @@ module AlgorithmsHelper
     res = []
     emp_list = []
     if direction == EMAILS_IN
-      # 22.6.17 - replaced method calls from EmailTrafficHelper - Michael K. 
       # to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
       # cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
       # bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
@@ -1872,14 +1915,17 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-  def calc_emails_volume(sid, group_id = NO_GROUP, pin_id = NO_PIN)
+  def calc_emails_volume(sid, gid = NO_GROUP, pid = NO_PIN)
+    
     res = []
-    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, group_id, pin_id)
-    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, group_id, pin_id)
+
+    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
     union = in_result + out_result
 
     temp = sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
-    temp.each {|entry| res << entry.symbolize_keys}
+
+    res = symbolize_hash_arr(temp)
     return res
   end
 
@@ -1889,7 +1935,6 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     emps = get_inner_select_as_arr(cid, pid, gid)
-
     sqlstr =
       "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
       FROM employees AS emps
@@ -1913,8 +1958,8 @@ module AlgorithmsHelper
 
     ratios = []
 
-    missing_to_and_from = -1
-    missing_from = -2
+    missing_to_and_from = -1 # Illegal entry
+    missing_from = -2 # Should be same as max entry
 
     sqlres.each do |e|
       toempcount   = e['toempcount']
@@ -1941,7 +1986,6 @@ module AlgorithmsHelper
     # sink/deadend measure - because they never reply.
 
     max_deadend_measure = 0
-
     ratios.each do |r|
       max_deadend_measure = r[:measure] if r[:measure] > max_deadend_measure
     end
@@ -1962,68 +2006,158 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_indeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
+  def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    count_of_invited_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+    
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid}
+              GROUP BY employee_id"
+
+    count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return res if is_retrieved_snapshot_data_empty(count_of_invited, sqlstr)
+
+    return handle_raw_snapshot_data(count_of_invited, employee_ids)
   end
 
-  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  def calc_rejecters(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    count_of_rejected_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+
+    # Get meeting count for attendees with a declined response
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid} AND
+              response = #{DECLINE}
+              GROUP BY employee_id"
+
+    count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
+    
+    return res if is_retrieved_snapshot_data_empty(count_of_rejected, sqlstr)
+
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_rejected, employee_ids), count_of_invited, 'id', 'measure')
+    return res
   end
 
-  def calc_outdeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  def calc_routiners(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    count_of_recurring_arr = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+
+    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid} AND
+              meeting_type = #{RECCURING}
+              GROUP BY employee_id"
+
+    count_of_recurring = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return res if is_retrieved_snapshot_data_empty(count_of_recurring, sqlstr)
+
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_recurring, employee_ids), count_of_invited, 'id', 'measure')
+    return res
   end
 
-  def calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id = NO_GROUP, pin_id = NO_PIN)
-    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id, pin_id)
-    maximum = calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
-    return res if maximum == 0
-    return -1 if maximum.nil?
-    res.map { |emp| { id: emp[:id], measure: (emp[:measure] /= maximum.to_f).round(2) } }
+  def calc_inviters(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    count_of_organized_hashes = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    sqlstr = "SELECT organizer_id as id, COUNT(organizer_id) as measure
+              FROM meetings_snapshot_data
+              WHERE organizer_id IN (#{employee_ids.join(',')}) AND
+              snapshot_id = #{sid}
+              GROUP BY organizer_id"
+
+    count_of_organized_raw = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    return [] if is_retrieved_snapshot_data_empty(count_of_organized_raw, sqlstr)
+    
+    return handle_raw_snapshot_data(count_of_organized_raw, employee_ids)
   end
 
-  def calc_normalized_indegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
-  end
+  def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
 
-  def calc_normalized_outdegree_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
-  end
+    count_of_invited = calc_in_the_loop(sid, gid, pid)
+    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
 
-  #################################  AVERAGES #######################################################
+    res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
+    return res
+  end
   
-  def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
-    result_vector = nil
-    if (direction == EMAILS_IN)
-      result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    else
-      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+  def calc_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
+              FROM meeting_attendees
+              WHERE employee_id IN (#{employee_ids.join(',')}) AND NOT
+              response = #{DECLINE}
+              GROUP BY meeting_id"
+    
+    num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    
+    total_participants_in_meetings = 0
+    average_participants_in_meetings = -1
+
+    num_of_ppl_in_meetings.each {|r| total_participants_in_meetings += r[:measure].to_i}
+
+    average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
+    
+    res << {id: nil, measure: average_participants_in_meetings}
+    return res
+  end
+
+  def calc_avg_time_spent_in_meetings_per_group(sid, gid = NO_GROUP, pid = NO_PIN)
+
+    res = []
+    cid = find_company_by_snapshot(sid)
+    employee_ids = Group.find(gid).extract_employees
+    employee_count = employee_ids.count
+
+    sqlstr = "SELECT meeting_id, duration_in_minutes, COUNT(meeting_attendees.meeting_id) as ppl_count
+              FROM meetings_snapshot_data
+              JOIN meeting_attendees ON
+              meetings_snapshot_data.id = meeting_attendees.meeting_id
+              WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND NOT
+              response = #{DECLINE}
+              GROUP BY meeting_id, duration_in_minutes"
+
+    meeting_entries = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
+    meeting_entries = integerify_hash_arr_all(meeting_entries)
+
+    total_time_spent = 0
+    meeting_entries.each do |meeting|
+      total_time_spent += meeting[:duration_in_minutes] * meeting[:ppl_count]
     end
 
-    comp1 = find_company_by_snapshot(snapshot_id)
-    company_size = CdsGroupsHelper.get_unit_size(comp1, -1, -1)
-    total_sum = result_vector.inject(0) { |memo, emp| memo + emp[:measure] }
-    return -1 if company_size == 0
-    (total_sum.to_f / company_size).round(2)
-  end
-
-  def calc_avg_indeg_for_specified_matrix(snapshot_id, matrix_name)
-    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN)
-  end
-
-  def calc_avg_outdeg_for_specified_matrix(snapshot_id, matrix_name)
-    calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT)
-  end
-
-  #################################  MAXIMA FUNCTIONS ################################################
-  
-  def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
-    res = nil
-    if (direction == EMAILS_IN)
-      res = calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    else
-      res = calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
-    end
+    res << {id: nil, measure: total_time_spent/employee_count}
     return res
   end
 
@@ -2033,17 +2167,31 @@ module AlgorithmsHelper
     calc_max_vector(result_vector)
   end
 
-  def calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
-    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    calc_max_vector(result_vector)
+  def calc_relative_measure_by_key(numerator_arr, denominator_arr, key, value)
+    res = []
+    stringified_numerator_arr = stringify_hash_arr(numerator_arr)
+    stringified_denominator_arr = stringify_hash_arr(denominator_arr)
+
+    stringified_numerator_arr.each do |numerator|
+      stringified_denominator_arr.each do |denominator|
+        if(numerator[key].to_i == denominator[key].to_i)
+          next if numerator[value].nil?
+          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1 }
+        end
+      end
+    end
+    return symbolize_hash_arr(res)
   end
 
-  def calc_max_vector(emp_vector)
-    return calc_max_in_vector_by_attribute(emp_vector, :measure)
-  end
+  # Common functionality for handling raw data for measure algorithms
+  def handle_raw_snapshot_data(raw_object_array, employee_ids)
+    array = []
+    
+    raw_object_array.each{|obj| array << obj.to_hash}
+    # array = integerify_hash_arr(array)
+    array = integerify_hash_arr_all(array)
 
-  def calc_max_in_vector_by_attribute(emp_vector, attribute)
-    return emp_vector.map { |elem| elem[attribute.to_s.to_sym] }.max
+    return result_zero_padding(employee_ids, array)
   end
 
   ################ Utilities ###########################################
@@ -2062,30 +2210,83 @@ module AlgorithmsHelper
   # +array+:: array to add and  minimize
   # +key+:: key by which to minimize values
   # +value+:: value to sum
-  #
-  # Example: calling the method like this:
-  # sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') where the
-  # array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
+  # 
+  # Example: calling sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') 
+  # where array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]
   #
-  # Notice that the addition for the 1st and 3rd hash was: 2+3, and the addition for
+  # Notice the addition for the 1st and 3rd hash was: 2+3, and the addition for
   # the 2nd and 4th was 10+8. They were added like that, because the
   ##################################################################################
   def sum_and_minimize_array_of_hashes_by_key(array, key, value)
     temp = []
     result = []
-    stringified_array = []
-
-    # stringify hashes
-    array.each{|entry| stringified_array << entry.stringify_keys}
+    stringified_array = stringify_hash_arr(array)
 
     stringified_array.each do |entry|
       temp[entry[key]] = 0 if temp[entry[key]].nil?
       temp[entry[key]] += entry[value]
     end
     temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
+    
+    return symbolize_hash_arr(result)
+  end
 
-    return result
+  def stringify_hash_arr(hash_array)
+    arr = []
+    hash_array.each{|entry| arr << entry.stringify_keys}
+    return arr
+  end
+
+  def symbolize_hash_arr(hash_array)
+    arr = []
+    hash_array.each{|entry| arr << entry.symbolize_keys}
+    return arr
+  end
+
+  # Convert all values to integers
+  # +hash_array+:: array of hashes - with keys as symbols
+  # Example: {:id=>"1004", :measure=>"1"} will return {:id=>1004, :measure=>1}
+  # def integerify_hash_arr(hash_array)
+  #   res = []
+  #   temp = symbolize_hash_arr(hash_array)
+  #   temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
+  #   return res   
+  # end
+
+  # Convert values of field to integers
+  # +hash_array+:: array of hashes
+  # +key+:: key of field to convert
+  # Example: for key= 'measure' - {:id=>1004, :measure=>"1"} will return {:id=>1004, :measure=>1}
+  def integerify_hash_arr_by_key(hash_array, key)
+    res = []
+    temp = stringify_hash_arr(hash_array)
+    temp.each do |r|
+      r[key] = r[key].to_i
+      res << r
+    end
+    return symbolize_hash_arr(res)
+  end
+
+  # Convert all values of hashes to integers
+  # +hash_array+:: array of hashes
+  def integerify_hash_arr_all(hash_array)
+    res = hash_array
+    hash_array.each do |h|
+      keys = h.stringify_keys.keys
+      keys.each do|key|
+        res = integerify_hash_arr_by_key(res, key)
+      end
+    end
+    return res
+  end
+
+  def is_retrieved_snapshot_data_empty(entries, query)
+    if(entries.count == 0)
+      puts ">>> No snapshot data for this query:\n#{query}"
+      return true
+    end
+    return false
   end
 end
 

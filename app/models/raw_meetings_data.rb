@@ -2,6 +2,10 @@ class RawMeetingsData < ActiveRecord::Base
   validates :company_id, presence: true
   validates :start_time, presence: true
 
+  enum meeting_type: [:singleInstance, :occurrence]
+  enum show_as: [:free, :workingelsewhere, :tentative, :busy, :oof]
+  enum importance: [:low, :normal, :high]
+
   def add_external_id
     return if self[:external_meeting_id]
     update(external_meeting_id: SecureRandom.uuid)
