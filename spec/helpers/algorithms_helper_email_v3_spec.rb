@@ -130,7 +130,7 @@ describe AlgorithmsHelper, type: :helper do
         # @res.each {|m| puts "#{m}\n"}
       end
 
-      it 'should test higher "to outdegree"' do
+      it 'should test higher "cc outdegree"' do
         higher_emp = @e2.id
         lower_emp = @e1.id
         higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
@@ -138,7 +138,7 @@ describe AlgorithmsHelper, type: :helper do
         expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
-      it 'should test zero "to outdegree"' do
+      it 'should test zero "cc outdegree"' do
         zero_emp = @e4.id
         zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
         expect(zero_indegree[:measure]).to eq(0)
@@ -148,23 +148,26 @@ describe AlgorithmsHelper, type: :helper do
     describe 'Algorithm name: cced | type: measure | cc in degree' do
       before(:each) do
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e2.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
-        create_email_connection(@e2.id, @e4.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e1.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e4.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e5.id, @e2.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
 
         @res = calc_indegree_for_cc_matrix(@s.id)
         # @res.each {|m| puts "#{m}\n"}
       end
 
-      it 'should test higher "to indegree"' do
+      it 'should test higher "cc indegree"' do
         higher_emp = @e3.id
         lower_emp = @e5.id
         higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
@@ -172,7 +175,7 @@ describe AlgorithmsHelper, type: :helper do
         expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
-      it 'should test zero "to indegree"' do
+      it 'should test zero "cc indegree"' do
         zero_emp = @e4.id
         zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
         expect(zero_indegree[:measure]).to eq(0)
@@ -197,13 +200,14 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
+        create_email_connection(@e4.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
         @res = calc_outdegree_for_bcc_matrix(@s.id)
         # @res.each {|m| puts "#{m}\n"}
       end
 
-      it 'should test higher "to outdegree"' do
+      it 'should test higher "bcc outdegree"' do
         higher_emp = @e1.id
         lower_emp = @e2.id
         higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
@@ -211,7 +215,7 @@ describe AlgorithmsHelper, type: :helper do
         expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
-      it 'should test zero "to outdegree"' do
+      it 'should test zero "bcc outdegree"' do
         zero_emp = @e3.id
         zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
         expect(zero_indegree[:measure]).to eq(0)
@@ -220,26 +224,26 @@ describe AlgorithmsHelper, type: :helper do
 
     describe 'Algorithm name: politicos | bcc in degree | type: measure' do
       before(:each) do
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e1.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)        
         
+        create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-        create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
+        create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
 
         @res = calc_indegree_for_bcc_matrix(@s.id)
         # @res.each {|m| puts "#{m}\n"}
       end
 
-      it 'should test higher "to indegree"' do
+      it 'should test higher "bcc indegree"' do
         higher_emp = @e4.id
         lower_emp = @e1.id
         higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
@@ -247,7 +251,7 @@ describe AlgorithmsHelper, type: :helper do
         expect(higher_measure[:measure]).to be > lower_measure[:measure]
       end
 
-      it 'should test zero "to indegree"' do
+      it 'should test zero "bcc indegree"' do
         zero_emp = @e3.id
         zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
         expect(zero_indegree[:measure]).to eq(0)

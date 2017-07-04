@@ -187,6 +187,7 @@ class Employee < ActiveRecord::Base
     processed_attrs = attrs.clone
     alias_emails  = processed_attrs.delete(:alias_emails)   if processed_attrs[:alias_emails]
     qualifications = processed_attrs.delete(:qualifications) if processed_attrs[:qualifications]
+
     group_name = processed_attrs.delete(:group_name) if valid_attr_field processed_attrs[:group_name]
     processed_attrs.delete(:delete)
 
@@ -275,7 +276,7 @@ class Employee < ActiveRecord::Base
     end
   end
 
-  def check_enums(processed_attrs, errors)
+  def self.check_enums(processed_attrs, errors)
     if !Employee.genders.keys.include? processed_attrs[:gender]
       errors.push 'gender'
       processed_attrs[:gender] = nil
@@ -283,7 +284,7 @@ class Employee < ActiveRecord::Base
     return
   end
 
-  def valid_attr_field(attr_field)
+  def self.valid_attr_field(attr_field)
     return attr_field && !attr_field.empty?
   end
 end

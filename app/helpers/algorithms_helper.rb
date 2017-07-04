@@ -1406,19 +1406,23 @@ module AlgorithmsHelper
   end
 
   def ccers_measure(sid, gid, pid)
-    return calc_outdegree_for_cc_matrix(sid, gid, pid)
+    # return calc_outdegree_for_cc_matrix(sid, gid, pid)
+    return calc_ccers(sid, gid, pid)
   end
 
   def cced_measure(sid, gid, pid)
-    return calc_indegree_for_cc_matrix(sid, gid, pid)
+    # return calc_indegree_for_cc_matrix(sid, gid, pid)
+    return calc_cced(sid, gid, pid)
   end
 
   def undercover_measure(sid, gid, pid)
-    return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    # return calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    return calc_undercover(sid, gid, pid)
   end
 
   def politicos_measure(sid, gid, pid)
-    return calc_indegree_for_bcc_matrix(sid, gid, pid)
+    # return calc_indegree_for_bcc_matrix(sid, gid, pid)
+    return calc_politicos(sid, gid, pid)
   end
 
   def emails_volume_measure(sid, gid, pid)
@@ -1835,25 +1839,79 @@ module AlgorithmsHelper
 
   ################  ###########################################
 
-  def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
+  def calc_ccers(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_cc_outdegree = calc_outdegree_for_cc_matrix(sid, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    
+    res = calc_relative_measure_by_key(total_cc_outdegree, total_outdegree, 'id', 'measure')
+   
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_cced(sid, gid = NO_GROUP, pid = NO_PIN)
+    
     res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_cc_indegree = calc_indegree_for_cc_matrix(sid, gid, pid)
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(total_cc_indegree, total_indegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_undercover(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_bcc_outdegree = calc_outdegree_for_bcc_matrix(sid, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    
+    res = calc_relative_measure_by_key(total_bcc_outdegree, total_outdegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_politicos(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
+    inner_select = get_inner_select_as_arr(cid, pid, gid)
+
+    total_bcc_indegree = calc_indegree_for_bcc_matrix(sid, gid, pid)
+
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+
+    res = calc_relative_measure_by_key(total_bcc_indegree, total_indegree, 'id', 'measure')
+    return result_zero_padding(inner_select, res)
+  end
+
+  def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
+    
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
 
     fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD, 
       to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
-    select("#{EMAILS_OUT} as id, count(id) as total_sum").group(EMAILS_OUT)
-
-    fwded_emails.each do |emp_fwd|
-      total_to_measure.each do |emp|
-        if(emp[:id] == emp_fwd.id)
-          res << { id: emp[:id], measure: emp[:measure] != 0 ? (emp_fwd.total_sum.to_f/emp[:measure]).round(2) : -1 }
-        end
-      end
-    end
+    select("#{EMAILS_OUT} as id, count(id) as measure").group(EMAILS_OUT).as_json
+    
+    res = calc_relative_measure_by_key(handle_raw_snapshot_data(fwded_emails, inner_select), total_to_measure, 'id', 'measure')
     return result_zero_padding(inner_select, res)
   end
 

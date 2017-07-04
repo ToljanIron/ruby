@@ -84,15 +84,15 @@ module ImportDataHelper
   def load_excel_sheet(cid, spreadsheet)
     ex = Roo::Excelx.new(spreadsheet.path)
 
-    emps_sht = ex.sheet('Employees')
-    context_list = lift_excel_to_context_list(cid, emps_sht, 'emps')
-
     groups_sht = ex.sheet('Groups')
     groups_context_list = lift_excel_to_context_list(cid, groups_sht, 'groups')
 
-    context_list += groups_context_list
+    context_list = groups_context_list
     ## This is not a mistake. It's done in order to make sure all group parent groups are accounted for
     context_list += groups_context_list
+
+    emps_sht = ex.sheet('Employees')
+    context_list += lift_excel_to_context_list(cid, emps_sht, 'emps')
 
     ii = 0
     context_list.each do |co|
@@ -119,7 +119,6 @@ module ImportDataHelper
     end
     ret = context_list.flatten
     ret = ret.select { |e| !e.nil? }
-    ret.delete_at(0)
     return ret
   end
 
@@ -135,42 +134,64 @@ module ImportDataHelper
     employee_context = EmployeeLineProcessingContext.new(csv_line, csv_line_number, company_id)
     email = parsed[4]
     return nil if (email.nil?)
-	begin
-	    employee_context.attrs.merge!(
-	      company_id:       company_id,
-	      external_id:      format_string(parsed[0]),
-	      first_name:       safe_titleize(parsed[1]),
-	      middle_name:      safe_titleize(parsed[2]),
-	      last_name:        safe_titleize(parsed[3]),
-	      email:            format_string(email),
-	      #alias_email:      format_string(parsed[5]),
-	      role:             format_string(parsed[6]),
-	      rank:             parsed[7],
-	      job_title:        format_string(parsed[8]),
-	      date_of_birth:    parse_date_for_xls(parsed[9]),
-	      gender:           format_string(parsed[10]),
-	      marital_status:   format_string(parsed[11]),
-	      work_start_date:  parse_date_for_xls(parsed[12]),
-	      qualifications:   format_string(parsed[13]),
-	      home_address:     format_string(parsed[14]),
-	      office_address:   format_string(parsed[15]),
-	      position_scope:   parsed[16].class == Fixnum ? parsed[16] : parsed[16].strip,
-	      group_name:       safe_titleize(parsed[17]),
-	      id_number:        format_string(parsed[18]),
-	      delete:           is_delete?(parsed[19])
-	    )
-	rescue => e
-	  puts "Exception loading employee with email: #{email} with error: #{e.message}"
-	  raise e.message
-	end
+
+    begin
+      external_id = format_string(parsed[0])
+      first_name = safe_titleize(parsed[1])
+      middle_name = safe_titleize(parsed[2])
+      last_name = safe_titleize(parsed[3])
+      email = format_string(email)
+      role = format_string(parsed[6])
+      job_title = format_string(parsed[8])
+      birth_date = parse_date_for_xls(parsed[9])
+      gender = format_string(parsed[10])
+      marital_status = format_string(parsed[11])
+      work_start_date = parse_date_for_xls(parsed[12])
+      qual = format_string(parsed[13])
+      home_address = format_string(parsed[14])
+      office_address = format_string(parsed[15])
+      pos = format_string(parsed[16])
+      group_name = safe_titleize(parsed[17])
+      id_number = format_string(parsed[18])
+      del = is_delete?(parsed[19])
+
+        employee_context.attrs.merge!(
+          company_id:       company_id,
+          external_id:      external_id,
+          first_name:       first_name,
+          middle_name:      middle_name,
+          last_name:        last_name,
+          email:            email,
+          #alias_email:     format_string(parsed[5]),
+          role:             role,
+          rank:             parsed[7],
+          job_title:        job_title,
+          date_of_birth:    birth_date,
+          gender:           gender,
+          marital_status:   marital_status,
+          work_start_date:  work_start_date,
+          qualifications:   qual,
+          home_address:     home_address,
+          office_address:   office_address,
+          position_scope:   pos,
+          group_name:       group_name,
+          id_number:        id_number,
+          delete:           del
+        )
+    rescue => e
+      puts "Exception loading employee with email: #{email} with error: #{e.message}"
+      puts e.backtrace[0..20]
+      puts "\n\n"
+      raise e.message
+    end
     return [employee_context]
   end
 
   def process_xls_groups(parsed, company_id, csv_line, csv_line_number)
     date = parsed[4] || Time.now
     date = date.strftime('%Y-%m-%d')
-    name = safe_titleize(parsed[1].strip)
-    english_name = safe_titleize(parsed[5].strip)
+    name = safe_titleize(format_string(parsed[1]))
+    english_name = safe_titleize(format_string(parsed[5]))
     group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
     group_context.attrs.merge!(
       company_id: company_id,
@@ -186,9 +207,9 @@ module ImportDataHelper
 
 
   def format_string(s)
-    return nil if s.nil? || s.empty?
+    return nil if (s.nil? || s == '')
+    s = s.to_s
     s = s.strip
-    return nil if s.empty?
     return s.strip.downcase
   end
   #################################################################################
@@ -256,12 +277,6 @@ module ImportDataHelper
   def is_delete?(parsed)
     return false if (parsed.nil? || parsed[18].nil?)
     return !parsed[18].empty?
-  end
-
-  def safe_titleize(str)
-    return nil if str.nil?
-    return str.titleize if !str.match(/^[a-zA-Z \-]*$/).nil?
-    return str
   end
 
   def process_groups(parsed, company_id, csv_line, csv_line_number)
