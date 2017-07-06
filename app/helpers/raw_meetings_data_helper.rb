@@ -100,7 +100,7 @@ module RawMeetingsDataHelper
   end
 
   def zip_to_csv(zipped_str)
-    Zip::Archive.open_buffer(zipped_str) do |archive|
+    ZipRuby::Archive.open_buffer(zipped_str) do |archive|
       archive.each do |entry|
         return entry.read
       end

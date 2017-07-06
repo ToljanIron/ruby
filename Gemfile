@@ -14,7 +14,8 @@ gem 'compass-rails', '3.0.2'
 gem 'uglifier'
 gem 'pg'
 gem 'ejs'
-gem 'zipruby'
+#gem 'zipruby'
+gem "zipruby-compat", :require => 'zipruby', :git => "https://github.com/jawspeak/zipruby-compatibility-with-rubyzip-fork.git", :tag => "v0.3.7"
 gem 'yui-compressor'
 #gem 'aws-sdk', '1.36.0'
 gem 'aws-sdk', '~> 3.0.0.rc1'
@@ -43,7 +44,7 @@ gem 'meta_request'
 gem "jqcloud-rails"
 gem 'literate_randomizer', '~> 0.4.0'
 #gem "roo"
-#gem 'roo-xls'
+gem 'roo-xls', '~>1.1.0'
 gem 'hirb'
 
 group :development, :test do
