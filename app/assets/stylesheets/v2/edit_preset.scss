@@ -54,10 +54,16 @@
         height: 28px;
         background-repeat: no-repeat;
         display: inline-block;
+        /*
+        6.7.17 - Michael - Commented out after upgrade to rails 5. Need to delete or fix
         background-image: url(asset-path('save draft_active.png'));
+        */
       }
       .off {
+      /*
+      6.7.17 - Michael - Commented out after upgrade to rails 5. Need to delete or fix
         background-image: url(asset-path('save draft_disabled.png'));
+        */
       }
       .generate-preset {
         padding-right: 10px;
