@@ -34,7 +34,7 @@ module Mobile
       # sender_type = params[:sender_type]
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-      q.delay.resend_questionnaire(questionnaire_id)
+      q.delay.resend_questionnaire
       render json: true
     end
 

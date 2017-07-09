@@ -8,6 +8,10 @@
   &.narrow {
     width: calc(100% - 394px);
   }
+  .disabled{
+    opacity: 0.5;
+    pointer-events: none;
+  }
   .title {
     margin-top: 10px;
     margin-bottom: 20px;
@@ -270,6 +274,7 @@
       font-weight: 700;
       cursor: pointer;
       border: 1px solid #4a55e5;
+      background-color: white;
       &:hover {
         /*background-color: rgb(237, 238, 252);*/
       }

@@ -179,8 +179,9 @@ angular.module('workships').controller('dashboardSidebarController',
     $scope.startStructure = false;
     $scope.header_str = tabService.current_tab;
     $scope.org = OrgLeftPanelUtilService;
-    console.log("[dannym] - not calling loadDataModel");
-    //loadDataModel();
+    // Uncommented loadDataModel() call (was commented to reduce redundant ajax calls). 
+    // Need this to get groups, for example, to show employees in questionnaire
+    loadDataModel();
     $scope.moveExpandToLeft = false;
     $scope.show_pins = true;
     $scope.show_active_pins = true;

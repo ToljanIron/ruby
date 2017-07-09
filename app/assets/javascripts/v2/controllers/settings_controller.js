@@ -55,30 +55,28 @@ angular.module('workships').controller('SettingsController', function ($scope, d
   }
 
   var callTimes = 0;
-  var inFreezQuestionnaireState = false;
+  // var inFreezQuestionnaireState = false;
   $scope.freezeQuestionnaire = function() {
     if ( confirm(SUBMIT_MESSAGE) ) {
       dataModelService.freezQuestionnaire();
-      inFreezQuestionnaireState = true;
+      $scope.inFreezQuestionnaireState = true;
       getFreezeState();
     }
   };
 
   var getFreezeState = function() {
-    if ( !inFreezQuestionnaireState ) {
+    if ( !$scope.inFreezQuestionnaireState ) {
       $scope.freezeState = 'Submit';
       return;
     }
-
     callTimes += 1;
     dataModelService.getFreezQuestionnaireStatus().then(function(state) {
       if (state === 'completed') {
         $scope.freezeState = 'Completed';
-        inFreezQuestionnaireState = false;
+        $scope.inFreezQuestionnaireState = false;
       } else {
         $scope.freezeState = 'Running ..';
       }
-
       if (state !== 'completed' && callTimes < 100) {
         setTimeout(getFreezeState, 10000);
       }
@@ -96,6 +94,7 @@ angular.module('workships').controller('SettingsController', function ($scope, d
     $scope.product_type = window.__workships_bootstrap__.companies.product_type;
     tabService.setSubTab('Settings', 0);
     $scope.data_model = dataModelService;
+    $scope.inFreezQuestionnaireState = false;
     dataModelService.getQuestionnaireParticipantsByQuestionnaire().then(setQuestionnaireParticipantsByQuestionnaire).then(dataModelService.getQuestionnaires).then(setQuestionnaires);
     getFreezeState();
   };
