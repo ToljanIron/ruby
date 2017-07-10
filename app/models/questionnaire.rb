@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 include Mobile::QuestionnaireHelper
+
 class Questionnaire < ActiveRecord::Base
   belongs_to :company
   has_many :questions, through: :questionnaire_questions
@@ -55,13 +56,11 @@ class Questionnaire < ActiveRecord::Base
 
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
-      ExampleMailer.sample_email(email).deliver_now unless Rails.env.test? || Rails.env.develpment?
-      email.send_email
-      msg = "Sent email to #{email.questionnaire_participant.employee.email}: #{email.message}"
-      EventLog.create!(message: msg, event_type_id: 1)
-      puts msg
+      
+      # ExampleMailer.sample_email(email).deliver_now
+      # email.send_email
+      puts "\n\nWARNING: EMail will not be sent. Check MAILER_ENABLED env var\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
     end
-
     EventLog.create!(message: "Done resending questionnaire for id: #{id}", event_type_id: 1)
   end
 

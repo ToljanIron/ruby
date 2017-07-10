@@ -33,4 +33,8 @@ Workships::Application.configure do
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
+
+  if ENV['MAILER_ENABLED']
+    config.action_mailer.perform_deliveries = (ENV['MAILER_ENABLED'] == 'true')
+  end
 end
