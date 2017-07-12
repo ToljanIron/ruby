@@ -1,4 +1,4 @@
-class MeetingAttendeesAddIndices < ActiveRecord::Migration
+class MeetingAttendeesAddIndices < ActiveRecord::Migration[4.2]
   def change
     add_index :meeting_attendees, [:meeting_id], name:"index_attendees_on_meeting_id"
     add_index :meeting_attendees, [:attendee_id], name:"index_attendees_on_attendee_id"

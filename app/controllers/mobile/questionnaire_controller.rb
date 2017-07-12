@@ -8,45 +8,53 @@ module Mobile
       render json: { questionnaire_status: state }
     end
 
-    def send_questionnaire
+    # def send_questionnaire
+    #   questionnaire_id = params[:questionnaire_id].to_i
+    #   send_only_to_unstarted = params[:send_only_to_unstarted]
+    #   sender_type = params[:sender_type]
+    #   q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
+    #   raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
+    #   q.send_q(send_only_to_unstarted, sender_type)
+    #   redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
+    # end
+
+    def reset_questionnaire_for_emp
       questionnaire_id = params[:questionnaire_id].to_i
-      send_only_to_unstarted = params[:send_only_to_unstarted]
-      sender_type = params[:sender_type]
+      eid = params[:eid].to_i
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
-      raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-      q.send_q(send_only_to_unstarted, sender_type)
-      redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
+      q.reset_questionnaire_for_emp(eid)
+      render json: true
     end
 
-    def send_questionnaire_per_employee
+    def send_questionnaire_for_emp
       questionnaire_id = params[:questionnaire_id].to_i
       eid = params[:eid].to_i
       sender_type = 'email'
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-      q.send_q(false, sender_type, eid)
+      q.send_questionnaire_to_emp(eid)
       render json: true
     end
 
-    def send_questionnaire_ajax
+    def send_questionnaire_to_all_ajax
       questionnaire_id = params[:questionnaire_id].to_i
       # send_only_to_unstarted = params[:send_only_to_unstarted]
       # sender_type = params[:sender_type]
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-      q.delay.resend_questionnaire
+      q.delay.resend_questionnaire_to_incomplete
       render json: true
     end
 
-    def send_questionnaire_desktop
-      questionnaire_id = params[:questionnaire_id].to_i
-      send_only_to_unstarted = params[:send_only_to_unstarted]
-      sender_type = params[:sender_type]
-      q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
-      raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-      q.send_q_desktop(send_only_to_unstarted, sender_type)
-      redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
-    end
+    # def send_questionnaire_desktop
+    #   questionnaire_id = params[:questionnaire_id].to_i
+    #   send_only_to_unstarted = params[:send_only_to_unstarted]
+    #   sender_type = params[:sender_type]
+    #   q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
+    #   raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
+    #   q.send_q_desktop(send_only_to_unstarted, sender_type)
+    #   redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
+    # end
 
     def create_new_questionnaire
       cid = @current_user.company_id
@@ -114,7 +122,7 @@ module Mobile
       questionnaire = Questionnaire.last
       Rails.cache.clear
       questionnaire.delay.freeze_questionnaire
-
+      
       # if sid.nil?
       # render json: { error: 'Snapshot not created' }, status: 500
       # else
@@ -141,6 +149,7 @@ module Mobile
       relevant_questionnaires = Questionnaire.where(company_id: cid)
       res = []
       questions = QuestionnaireQuestion.where(questionnaire_id: relevant_questionnaires.pluck(:id))
+      
       relevant_questionnaires.each do |q|
         other = Employee.where(email: 'other@mail.com').first
         other = 0 unless other
@@ -154,7 +163,7 @@ module Mobile
                                                     else
                                                       0
                                                     end,
-                                      'last_action' => e.last_action }
+                                      'last_action' => e.last_action(q.id) }
                                   end
         total = q.questionnaire_participant.where(active: true).count
         completed = total.zero? ? 0 : (q.questionnaire_participant.where(status: 3, active: true).count.to_f / total).round(2) * 100

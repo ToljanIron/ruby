@@ -20,48 +20,48 @@ class Questionnaire < ActiveRecord::Base
     return :en
   end
 
-  def send_q(send_only_to_unstarted, sender_type, eid = nil)
-    pending_send =  if eid
-                      if self[:pending_send] && self[:pending_send].start_with?('single_employee=')
-                        parts = self[:pending_send].split('|')
-                        parts.first + ",#{eid}"
-                      else
-                        "single_employee=#{eid}"
-                      end
-                    elsif send_only_to_unstarted == 'true'
-                      'unstarted'
-                    else
-                      'all'
-                    end
-    pending_send += "|#{sender_type}"
-    update(pending_send: pending_send)
-    self.state = :sent
-    save!
+  # Reset the questionnaire for this employee. Next time he will enter the questionnaire
+  # he will be able to start over.
+  def reset_questionnaire_for_emp(emp_id)
+    EventLog.create!(message: "resetting questionnaire for id: #{id} and emp #{emp_id}", event_type_id: 1)
+    qp = QuestionnaireParticipant.where(questionnaire_id: id, employee_id: emp_id).first
+    qp.reset_questionnaire
+    EventLog.create!(message: "Done resetting questionnaire for id: #{id} and emp id #{emp_id}", event_type_id: 1)
   end
 
-  def send_q_desktop(send_only_to_unstarted, sender_type)
-    pending_send = send_only_to_unstarted == 'true' ? 'unstarted' : 'all'
-    pending_send += "|#{sender_type}|desktop"
-    update(pending_send: pending_send)
-    self.state = :sent
-    save!
+  # Send questionnaire to specific employee. Will send only if he did not complete
+  # the questionnaire
+  def send_questionnaire_to_emp(emp_id)
+    EventLog.create!(message: "Resending questionnaire for id: #{id}, and emp #{emp_id}", event_type_id: 1)
+    qps = QuestionnaireParticipant.where(questionnaire_id: id, employee_id: emp_id).where('status < 3').pluck(:id)
+    send_questionnaire_email(qps)
+    EventLog.create!(message: "Done resending questionnaire for id: #{id} and emp id #{emp_id}", event_type_id: 1)
   end
 
-  def resend_questionnaire
-    puts "Resceived resend_questionnaire for ID: #{id}"
+  # Resend questionnaire to employees who haven't completed it yet. Employees with 
+  # finished state of 3 won't receive this email.
+  def resend_questionnaire_to_incomplete
     EventLog.create!(message: "Resending questionnaire for id: #{id}", event_type_id: 1)
     qps = QuestionnaireParticipant.where(questionnaire_id: id).where('status < 3').pluck(:id)
-    EmailMessage.where(questionnaire_participant_id: qps).update_all(pending: true)
+    send_questionnaire_email(qps)
+    EventLog.create!(message: "Done resending questionnaire for id: #{id}", event_type_id: 1)
+  end
+
+  # Send email to questionnaire participants. This is the actual function which sends the 
+  # email, using the Rails mailer. In order to send the emails, you need to uncomment 
+  # 2 lines in the loop
+  def send_questionnaire_email(q_participants)
+
+    EmailMessage.where(questionnaire_participant_id: q_participants).update_all(pending: true)
     pending_emails = EmailMessage.where(pending: true)
 
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
-      
+      # Remove comment from next 2 lines when you want to send emails.
       # ExampleMailer.sample_email(email).deliver_now
       # email.send_email
-      puts "\n\nWARNING: EMail will not be sent. Check MAILER_ENABLED env var\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
+      puts "\n\nWARNING: Emails will not be sent. Check MAILER_ENABLED env var\n\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
     end
-    EventLog.create!(message: "Done resending questionnaire for id: #{id}", event_type_id: 1)
   end
 
   def last_submitted

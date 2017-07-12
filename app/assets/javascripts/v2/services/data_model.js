@@ -1458,7 +1458,7 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     }
     var deferred = deferMe(dm.resendAllQuestionnaire);
     var method = 'POST';
-    var url = "questionnaire/send_questionnaire_ajax";
+    var url = "questionnaire/send_questionnaire_to_all_ajax";
     var params = { questionnaire_id: q_id, send_only_to_unstarted: true, sender_type: 'email' };
     var succ = function (data) {
       dm.resend_all_status = data;

@@ -17,6 +17,6 @@ angular.module('workships.services').factory('questionnaireService', function ($
     questionnaire.question = questionnaire;
   };
   questionnaire.qpname = '';
-  questionnaire.qpid = null;
+  questionnaire.eid = null;
   return questionnaire;
 });

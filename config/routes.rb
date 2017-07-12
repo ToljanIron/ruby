@@ -158,8 +158,9 @@ Workships::Application.routes.draw do
   post  'question/remove' => 'mobile/questions#remove'
 
   post  'questionnaire/send_questionnaire'         => 'mobile/questionnaire#send_questionnaire'
-  post  'questionnaire/send_questionnaire_per_employee' => 'mobile/questionnaire#send_questionnaire_per_employee'
-  post  'questionnaire/send_questionnaire_ajax' => 'mobile/questionnaire#send_questionnaire_ajax'
+  post  'questionnaire/resend_questionnaire_for_emp' => 'mobile/questionnaire#send_questionnaire_for_emp'
+  post  'questionnaire/reset_questionnaire_for_emp' => 'mobile/questionnaire#reset_questionnaire_for_emp'
+  post  'questionnaire/send_questionnaire_to_all_ajax' => 'mobile/questionnaire#send_questionnaire_to_all_ajax'
   post  'questionnaire/send_questionnaire_desktop' => 'mobile/questionnaire#send_questionnaire_desktop'
   post  'questionnaire/download_csv'               => 'mobile/questionnaire#download_csv'
   get   'questionnaire/capture_snapshot'          ,to:  'mobile/questionnaire#capture_quesitonnaire_in_snapshot'

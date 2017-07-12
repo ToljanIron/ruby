@@ -2,7 +2,7 @@
 angular.module('workships').controller('SettingsController', function ($scope, dataModelService, tabService, questionnaireService, ajaxService, overlayBlockerService, $timeout, $rootScope, StateService) {
   'use strict';
 
-  var SUBMIT_MESSAGE = 'Submitting the questionnaire data and performing the calculations needed to display the data in the explore and collaborations tabs may take serval minutes. Continue?';
+  var SUBMIT_MESSAGE = 'Submitting the questionnaire data and performing the calculations needed to display the data in the explore and collaborations tabs may take several minutes. Continue?';
 
   $scope.not_started = "Haven't Started";
   var getDate = function (date) {
@@ -155,16 +155,26 @@ angular.module('workships').controller('SettingsController', function ($scope, d
     $scope.toggleUpdateFilterMenu('submit_results_modal');
   };
 
-  $scope.openResendModal = function (q_id, qp) {
+  $scope.openResendAllModal = function (q_id) {
     questionnaireService.setQuestionniareId(q_id);
-    if (!qp) {
-      $scope.toggleUpdateFilterMenu('resend_all_modal');
-    } else {
-      var emp = dataModelService.getEmployeeById(qp.employee_id);
-      questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
-      questionnaireService.eid = qp.employee_id;
-      $scope.toggleUpdateFilterMenu('resend_emp_modal');
-    }
+    $scope.toggleUpdateFilterMenu('resend_all_modal');
+  };
+
+  $scope.openResendEmpModal = function (q_id, qp) {
+    questionnaireService.setQuestionniareId(q_id);
+    var eid = qp.employee_id;
+    var emp = dataModelService.getEmployeeById(eid);
+    questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
+    questionnaireService.eid = qp.employee_id;
+    $scope.toggleUpdateFilterMenu('resend_emp_modal');
+  };
+
+  $scope.openResetEmpQuestionnaireModal = function (q_id, qp) {
+    questionnaireService.setQuestionniareId(q_id);
+    var emp = dataModelService.getEmployeeById(qp.employee_id);
+    questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
+    questionnaireService.eid = qp.employee_id;
+    $scope.toggleUpdateFilterMenu('reset_emp_quest_modal');
   };
 
   $scope.get_employees_for_questionnaire = function (q) {

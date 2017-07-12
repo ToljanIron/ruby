@@ -1,4 +1,4 @@
-class AddSnapshotIdToGroups < ActiveRecord::Migration
+class AddSnapshotIdToGroups < ActiveRecord::Migration[4.2]
   def up
     add_column :groups, :snapshot_id, :integer
     add_column :groups, :active, :boolean, default: true

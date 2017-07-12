@@ -41,7 +41,7 @@ describe Questionnaire, type: :model do
       EmailMessage.create!(questionnaire_participant_id: @question_recipient3.id, pending: false, message: 'Stam')
     end
     it 'should send only to employees who did not complete their questionnaire' do
-      @questionnaire.resend_questionnaire
+      @questionnaire.resend_questionnaire_to_incomplete
       expect(EventLog.count).to eq(3)
     end
   end
