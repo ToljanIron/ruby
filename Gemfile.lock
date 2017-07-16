@@ -738,7 +738,7 @@ GEM
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
     scout_apm (2.1.26)
-    scss-lint (0.38.0)
+    scss_lint (0.38.0)
       rainbow (~> 2.0)
       sass (~> 3.4.1)
     seed_dump (3.2.4)
@@ -844,7 +844,7 @@ DEPENDENCIES
   sass (= 3.4.1)
   sass-rails
   scout_apm
-  scss-lint (~> 0.38.0)
+  scss_lint (~> 0.38.0)
   seed_dump
   simplecov
   spork

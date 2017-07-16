@@ -60,7 +60,7 @@ group :development, :test do
   gem 'simplecov', require: false, group: :test
   gem 'guard-rubocop'
   gem 'colorize'
-  gem 'scss-lint', '~> 0.38.0'
+  gem 'scss_lint', '~> 0.38.0'
   gem 'transpec'
 end
 
