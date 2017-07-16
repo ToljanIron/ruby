@@ -38,7 +38,7 @@ Workships::Application.routes.draw do
   post  '/upload_csv',                  to: 'utils#upload_csv_v2'
   post  '/upload_excel',                to: 'utils#upload_excel'
 
-  get   '/get_networks_per_company',     to: 'backend_v_two#get_networks_per_company'
+  get   '/get_networks_per_company',    to: 'backend_v_two#get_networks_per_company'
 
   post  '/upload_network_csv_v2',       to: 'backend_v_two#upload_network_csv_v2'
   get   '/get_filters_values',          to: 'utils#list_filters'
@@ -157,17 +157,16 @@ Workships::Application.routes.draw do
   post  'question/create' => 'mobile/questions#create'
   post  'question/remove' => 'mobile/questions#remove'
 
-  post  'questionnaire/send_questionnaire'         => 'mobile/questionnaire#send_questionnaire'
-  post  'questionnaire/resend_questionnaire_for_emp' => 'mobile/questionnaire#send_questionnaire_for_emp'
-  post  'questionnaire/reset_questionnaire_for_emp' => 'mobile/questionnaire#reset_questionnaire_for_emp'
+  post  'questionnaire/resend_questionnaire_for_emp'   => 'mobile/questionnaire#send_questionnaire_for_emp'
+  post  'questionnaire/reset_questionnaire_for_emp'    => 'mobile/questionnaire#reset_questionnaire_for_emp'
+  post  'questionnaire/generate_questionnaire_report'  => 'mobile/questionnaire#generate_questionnaire_report'
   post  'questionnaire/send_questionnaire_to_all_ajax' => 'mobile/questionnaire#send_questionnaire_to_all_ajax'
-  post  'questionnaire/send_questionnaire_desktop' => 'mobile/questionnaire#send_questionnaire_desktop'
-  post  'questionnaire/download_csv'               => 'mobile/questionnaire#download_csv'
-  get   'questionnaire/capture_snapshot'          ,to:  'mobile/questionnaire#capture_quesitonnaire_in_snapshot'
-  get   'questionnaire/get_questionnaire_state'   ,to:  'mobile/questionnaire#get_questionnaires_state'
+  post  'questionnaire/send_questionnaire_desktop'     => 'mobile/questionnaire#send_questionnaire_desktop'
+  post  'questionnaire/download_csv'                   => 'mobile/questionnaire#download_csv'
+  get   'questionnaire/capture_snapshot'               ,to:  'mobile/questionnaire#capture_quesitonnaire_in_snapshot'
+  get   'questionnaire/get_questionnaire_state'        ,to:  'mobile/questionnaire#get_questionnaires_state'
 
   get   'keep_alive'     => 'mobile/mobile#keep_alive'
-
 
   post  'questionnaire_questions/update', to: 'mobile/questionnaire_questions#update_questionnaire_question'
 

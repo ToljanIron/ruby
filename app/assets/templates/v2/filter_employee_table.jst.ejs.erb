@@ -21,9 +21,10 @@
     </div>
     <div class='right'>
       <div class='warrper-flash'>
-        <div  ng-show='questionnaire_service.show_flash' class='flash-message'> {{questionnaire_service.flash_text}}</div>
+        <div ng-show='questionnaire_service.show_flash' class='flash-message'> {{questionnaire_service.flash_text}}</div>
       </div>
       <div class='resend-all clickable' ng-click='onResendAll()'>Resend All</div>
+      <div class='reports clickable' ng-click='onGenerateReport()'>Reports</div>
     </div>
   </div>
   <div class='pagination-class' ng-hide='total_items <= page_size'>
@@ -48,7 +49,7 @@
         <td employee-status='q_p.status'></td>
         <td class='employee-answered-number'>{{q_p.answered}}</td>
         <td class='employee-last-action'>{{q_p.last_action}}</td>
-        <td class='employee-resend'><div class='emp-action resend clickable centered' ng-click='onResendEmp(q_p)'>Resend</div></td>
+        <td class='employee-resend'><div class='emp-action resend clickable centered' ng-click='onResendEmp(q_p)' ng-class="{disabled: q_p.status=='completed'}">Resend</div></td>
         <td class='employee-resend'><div class='emp-action reset clickable centered' ng-click='onResetEmpQuestionnaire(q_p)' ng-class="{disabled: q_p.status=='notstarted'}">Reset</div></td>
       </tr>
   </table>

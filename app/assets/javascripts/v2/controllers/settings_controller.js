@@ -1,5 +1,5 @@
 /*globals angular , window, unused, _, console  */
-angular.module('workships').controller('SettingsController', function ($scope, dataModelService, tabService, questionnaireService, ajaxService, overlayBlockerService, $timeout, $rootScope, StateService) {
+angular.module('workships').controller('SettingsController', function ($scope, dataModelService, tabService, questionnaireService, ajaxService, overlayBlockerService, $timeout, $rootScope, StateService, pleaseWaitService) {
   'use strict';
 
   var SUBMIT_MESSAGE = 'Submitting the questionnaire data and performing the calculations needed to display the data in the explore and collaborations tabs may take several minutes. Continue?';
@@ -146,6 +146,7 @@ angular.module('workships').controller('SettingsController', function ($scope, d
       overlayBlockerService.unblock();
     }
   };
+
   $scope.showUpdateFilterMenu = function () {
     return overlayBlockerService.isElemDisplayed(modal_name);
   };
@@ -158,6 +159,19 @@ angular.module('workships').controller('SettingsController', function ($scope, d
   $scope.openResendAllModal = function (q_id) {
     questionnaireService.setQuestionniareId(q_id);
     $scope.toggleUpdateFilterMenu('resend_all_modal');
+  };
+
+  $scope.generateQuestReport = function (q_id) {
+    pleaseWaitService.on();
+    overlayBlockerService.block();
+    dataModelService.generateQuestionnaireReport(q_id).then(function (data) {
+      if (data.status === true) {
+        window.location = data.report_path;
+        return console.log('Report generation completed');
+      }
+      return console.log('There was a problem while generating the report. Please try again, or contact the admin');
+    });
+    overlayBlockerService.unblock();
   };
 
   $scope.openResendEmpModal = function (q_id, qp) {

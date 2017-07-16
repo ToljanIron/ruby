@@ -8,6 +8,7 @@ angular.module('workships.directives').directive('filterEmployeeTable', function
       employees: '=',
       resend: '&',
       resendAll: '&',
+      genReport: '&',
       reset: '&',
       freeze: '&',
       qId: '=',
@@ -36,6 +37,10 @@ angular.module('workships.directives').directive('filterEmployeeTable', function
 
       scope.onFreezeQuestionnaire = function () {
         scope.freeze();
+      };
+
+      scope.onGenerateReport = function () {
+        scope.genReport({q_id: scope.qId});
       };
 
       scope.onResendAll = function () {

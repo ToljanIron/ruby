@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 include Mobile::QuestionnaireHelper
+include XlsHelper
 
 class Questionnaire < ActiveRecord::Base
   belongs_to :company
@@ -49,7 +50,7 @@ class Questionnaire < ActiveRecord::Base
 
   # Send email to questionnaire participants. This is the actual function which sends the 
   # email, using the Rails mailer. In order to send the emails, you need to uncomment 
-  # 2 lines in the loop
+  # line in loop
   def send_questionnaire_email(q_participants)
 
     EmailMessage.where(questionnaire_participant_id: q_participants).update_all(pending: true)
@@ -57,7 +58,7 @@ class Questionnaire < ActiveRecord::Base
 
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
-      # Remove comment from next 2 lines when you want to send emails.
+      # Remove comment from next line when you want to send emails.
       # ExampleMailer.sample_email(email).deliver_now
       # email.send_email
       puts "\n\nWARNING: Emails will not be sent. Check MAILER_ENABLED env var\n\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
@@ -180,5 +181,43 @@ class Questionnaire < ActiveRecord::Base
     update(state: 3)
     puts 'Done'
     EventLog.create!(message: 'Freeze questionnaire completed', event_type_id: 1)
+  end
+
+  def generate_report
+    sheets = []
+    report_folder = 'questionnaire_reports'
+    report_path = "#{report_folder}/questionnaire_report_company_#{company_id}.xls"
+    Dir.mkdir(report_folder) unless Dir.exists?(report_folder)
+
+    sheets << ReportHelper.get_questionnaire_report_raw(company_id)
+    
+    quest_scores_report_raw = parse_gender(ReportHelper.create_interact_report(company_id))
+    sheets << hashes_to_arr(quest_scores_report_raw)
+
+    quest_network_report_raw = parse_gender(ReportHelper.create_snapshot_report(company_id))
+    sheets << hashes_to_arr(quest_network_report_raw)
+
+    XlsHelper.create_excel_file(sheets, report_path)
+    return report_path
+  end
+
+  # Move to some util helper
+  def hashes_to_arr(arr_of_hashes)
+    keys = arr_of_hashes[0].keys
+    res = []
+
+    res << keys
+    arr_of_hashes.each {|h| res << h.values}
+
+    return res
+  end
+
+  def parse_gender(data)
+    data.each do |d|
+      d.each do |key, val|
+        d[key] = val == 0 ? 'male' : 'female' if(key.to_s.downcase.include?('gender'))
+      end
+    end
+    return data
   end
 end

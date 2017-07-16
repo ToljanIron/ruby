@@ -46,15 +46,14 @@ module Mobile
       render json: true
     end
 
-    # def send_questionnaire_desktop
-    #   questionnaire_id = params[:questionnaire_id].to_i
-    #   send_only_to_unstarted = params[:send_only_to_unstarted]
-    #   sender_type = params[:sender_type]
-    #   q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
-    #   raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-    #   q.send_q_desktop(send_only_to_unstarted, sender_type)
-    #   redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
-    # end
+    def generate_questionnaire_report
+      questionnaire_id = params[:questionnaire_id].to_i
+      q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
+      raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
+      report_path = q.generate_report
+
+      render json: {report_path: report_path, status: true}
+    end
 
     def create_new_questionnaire
       cid = @current_user.company_id

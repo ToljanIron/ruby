@@ -160,18 +160,67 @@ module ReportHelper
     ActiveRecord::Base.connection.select_all(sqlstr)
 
     sqlstr =
-      "select emp.first_name || ' ' || emp.last_name as name, g.name as group_name, nn.name || '-' || als.name as metric_name, cms.score
-       from cds_metric_scores as cms
-       join employees as emp      on emp.id = cms.employee_id
-       join groups as g           on g.id   = cms.group_id
-       join company_metrics as cm on cm.id  = cms.company_metric_id
-       join network_names as nn   on nn.id  = cm.network_id
-       join (VALUES (601, 'In'), (602, 'Out')) as als (id, name) on als.id = cm.algorithm_id
-       where
-       cms.company_id  = #{cid} and
-       cms.snapshot_id = #{sid}"
+      "SELECT emp.external_id as id, emp.first_name || ' ' || emp.last_name AS name, emp.email, g.name AS group_name,
+         nn.name || '-' || als.name AS metric_name, cms.score, off.name AS office, rol.name as role,
+         ra.name as rank, emp.gender, job.name as job_title
+       FROM cds_metric_scores AS cms
+         JOIN 
+         (
+           employees AS emp
+           LEFT JOIN offices AS off     ON off.id = emp.office_id
+           LEFT JOIN roles AS rol       ON rol.id = emp.role_id
+           LEFT JOIN ranks AS ra        ON ra.id  = emp.rank_id
+           LEFT JOIN job_titles AS job  ON job.id = emp.job_title_id
+         )                          ON emp.id = cms.employee_id
+         JOIN groups AS g           ON g.id   = cms.group_id
+         JOIN company_metrics AS cm ON cm.id  = cms.company_metric_id
+         JOIN network_names AS nn   ON nn.id  = cm.network_id
+         JOIN (VALUES (601, 'In'), (602, 'Out')) AS als (id, name) ON als.id = cm.algorithm_id
+       WHERE
+         cms.company_id  = #{cid} AND
+         cms.snapshot_id = #{sid}"
 
-      return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return res
+  end
+
+  def self.create_snapshot_report(cid)
+    sid = Snapshot.last_snapshot_of_company(cid)
+
+    sqlstr =
+      "SELECT nn.name AS network, from_emp.first_name || ' ' || from_emp.last_name AS from_name, 
+          from_emp.external_id AS from_id, from_emp.email AS from_email, off.name AS from_office,
+          from_emp.group_id AS from_group, rol.name as from_role, ra.name AS from_rank, 
+          from_emp.gender AS from_gender, job.name AS from_job_title, to_emp.first_name || ' ' || to_emp.last_name AS to_name,
+          to_emp.external_id AS to_id, to_emp.email AS to_email, to_off.name AS to_office,
+          to_emp.group_id AS to_group, to_rol.name as to_role, to_ra.name AS to_rank, 
+          to_emp.gender AS to_gender, job.name AS to_job_title
+       FROM network_snapshot_data AS nsd
+         JOIN 
+         (
+           employees AS from_emp
+           JOIN groups AS from_g       ON from_g.id = from_emp.group_id
+           LEFT JOIN offices AS off    ON off.id = from_emp.office_id
+           LEFT JOIN roles AS rol      ON rol.id = from_emp.role_id
+           LEFT JOIN ranks AS ra       ON ra.id  = from_emp.rank_id
+           LEFT JOIN job_titles AS job ON job.id = from_emp.job_title_id
+         )                        ON from_emp.id = nsd.from_employee_id
+         JOIN
+         (
+           employees AS to_emp
+           JOIN groups AS to_g            ON to_g.id   = to_emp.group_id
+           LEFT JOIN offices AS to_off    ON to_off.id = to_emp.office_id
+           LEFT JOIN roles AS to_rol      ON to_rol.id = to_emp.role_id
+           LEFT JOIN ranks AS to_ra       ON to_ra.id  = to_emp.rank_id
+           LEFT JOIN job_titles AS to_job ON to_job.id = to_emp.job_title_id
+         )                        ON to_emp.id = nsd.to_employee_id
+         JOIN network_names AS nn ON nn.id  = nsd.network_id
+       WHERE
+         nsd.company_id  = #{cid} AND
+         nsd.snapshot_id = #{sid}"
+
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return res
   end
 
   ######################### Matrix Report #################################
@@ -216,6 +265,7 @@ module ReportHelper
   #     ]
   #   }
   ########################################################################
+
   def self.add_entry_to_record_accumulator(e, rec)
     entry = {
       aname: e[:aname],
@@ -363,15 +413,24 @@ module ReportHelper
     file.close
     puts "Done"
   end
-
+  
   ################## questionnaire_completion_status ##################################
-  def self.questionnaire_completion_status(cid, sid)
+  
+  def self.get_questionnaire_report_raw(cid)
+    sid = Snapshot.last_snapshot_of_company(cid)
+    field_names = ["email", "group_id", "name", "status", "emp.external_id"]
     ret = QuestionnaireParticipant.joins("JOIN employees AS emp ON emp.id = questionnaire_participants.employee_id")
             .joins("JOIN groups AS g ON g.id = emp.group_id")
             .select("emp.email as email, emp.group_id, emp.external_id")
-            .where("emp.company_id = #{cid}, emp.snapshot_id = #{sid}")
+            .where("emp.company_id = #{cid}").where("emp.snapshot_id = #{sid}")
             .order('g.name')
-            .pluck(:email, :group_id, :name, :status, :external_id)
+            .pluck(field_names[0], field_names[1], field_names[2], field_names[3], field_names[4])
+    ret.insert(0, field_names)
+    return ret
+  end
+
+  def self.questionnaire_completion_status(cid, sid)
+    ret = get_questionnaire_report_raw(cid, sid)
     res = ''
     ret.each do |e|
       res += "#{e[4]},#{e[0]},#{e[1]},#{e[2]},#{e[3]}\n"
