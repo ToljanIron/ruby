@@ -8,6 +8,8 @@ angular.module('workships.directives').directive('filterEmployeeTable', function
       employees: '=',
       resend: '&',
       resendAll: '&',
+      genReport: '&',
+      reset: '&',
       freeze: '&',
       qId: '=',
       freezeState: '='
@@ -33,16 +35,24 @@ angular.module('workships.directives').directive('filterEmployeeTable', function
       scope.maxSize = 5;
       scope.current_page = 1;
 
-      scope.onResendAll = function () {
-        scope.resendAll({q_id: scope.qId});
-      };
-
       scope.onFreezeQuestionnaire = function () {
         scope.freeze();
       };
 
+      scope.onGenerateReport = function () {
+        scope.genReport({q_id: scope.qId});
+      };
+
+      scope.onResendAll = function () {
+        scope.resendAll({q_id: scope.qId});
+      };
+
       scope.onResendEmp = function (qp) {
         scope.resend({q_id: scope.qId, qp: qp});
+      };
+      
+      scope.onResetEmpQuestionnaire = function (qp) {
+        scope.reset({q_id: scope.qId, qp: qp});
       };
 
       function filterEmployeesByStatus(status) {

@@ -3,9 +3,16 @@ require 'open-uri'
 require 'fastimage'
 
 module XlsHelper
+  
   def create_file(file_name)
     file_path = "#{Rails.root}/tmp/#{file_name}"
     workbook  = WriteExcel.new(file_path)
+    return workbook
+  end
+
+  def create_file_2(file_path)
+    full_file_path = "#{Rails.root}/#{file_path}"
+    workbook  = WriteExcel.new(full_file_path)
     return workbook
   end
 
@@ -143,5 +150,21 @@ module XlsHelper
       ret += "#{e['name']},#{e['group_name']},#{e['metric_name']},#{e['score']}\n"
     end
     return ret
+  end
+
+  # Function to create excel file from arrays
+  # +sheets+:: array of sheets to write to excel file. Each sheet is an array by himself, and will
+  # be written as rows to the excel sheet. 'sheets' param can contain any number of sheets.
+  def create_excel_file(sheets, file_name)
+    workbook = create_file_2(file_name)
+    sheets.each do |s|
+      worksheet  = workbook.add_worksheet
+      s.each_with_index do |row_data, i|
+        row_data.each_with_index do |column_data, j|
+          worksheet.write(i,j, column_data)
+        end
+      end
+    end
+    workbook.close
   end
 end

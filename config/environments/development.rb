@@ -30,4 +30,8 @@ Workships::Application.configure do
   config.secret_key_base = 'asdljkhwer02987346asdflkjhsvluikyawerlkjghszvlhjkgawerioluyasdf'
 
   config.cache_store = :dalli_store
+
+  if ENV['MAILER_ENABLED']
+    config.action_mailer.perform_deliveries = (ENV['MAILER_ENABLED'] == 'true')
+  end
 end

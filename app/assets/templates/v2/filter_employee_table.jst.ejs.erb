@@ -21,9 +21,10 @@
     </div>
     <div class='right'>
       <div class='warrper-flash'>
-        <div  ng-show='questionnaire_service.show_flash' class='flash-message'> {{questionnaire_service.flash_text}}</div>
+        <div ng-show='questionnaire_service.show_flash' class='flash-message'> {{questionnaire_service.flash_text}}</div>
       </div>
       <div class='resend-all clickable' ng-click='onResendAll()'>Resend All</div>
+      <div class='reports clickable' ng-click='onGenerateReport()'>Reports</div>
     </div>
   </div>
   <div class='pagination-class' ng-hide='total_items <= page_size'>
@@ -38,6 +39,7 @@
       <th class='answered-th'>ANSWERED Q.</th>
       <th class='last-action-th'>LAST ACTION</th>
       <th class='resend-th'>RESEND</th>
+      <th class='resend-th'>RESET</th>
       <th> </th>
     </tr>
       <tr class='employees_table_table_row' ng-repeat='q_p in filtered_employees | startFrom: (current_page + - 1) * page_size | limitTo: page_size'>
@@ -46,8 +48,9 @@
         <td class='employee-role'>{{data_model.getEmployeeById(q_p.employee_id).role_type}}</td>
         <td employee-status='q_p.status'></td>
         <td class='employee-answered-number'>{{q_p.answered}}</td>
-        <td class='employee-last_action'>{{q_p.last_action}}</td>
-        <td class='employee-resend'><div class='resend-emp clickable' ng-click='onResendEmp(q_p)'>Resend</div></th>
+        <td class='employee-last-action'>{{q_p.last_action}}</td>
+        <td class='employee-resend'><div class='emp-action resend clickable centered' ng-click='onResendEmp(q_p)' ng-class="{disabled: q_p.status=='completed'}">Resend</div></td>
+        <td class='employee-resend'><div class='emp-action reset clickable centered' ng-click='onResetEmpQuestionnaire(q_p)' ng-class="{disabled: q_p.status=='notstarted'}">Reset</div></td>
       </tr>
   </table>
 </div>

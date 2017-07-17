@@ -1452,13 +1452,31 @@ angular.module('workships.services').factory('dataModelService', function (ajaxS
     return promiseThat(dm.editExternalDataMetric, method, url, params, 'external_data_list', succ, err);
   };
 
+  dm.generateQuestionnaireReport = function (q_id) {
+    console.log("data model service: generateQuestionnaireReport()");
+    var deferred = deferMe(dm.generateQuestionnaireReport);
+    var method = 'POST';
+    var url = "questionnaire/generate_questionnaire_report";
+    var params = { questionnaire_id: q_id};
+    var succ = function (data) {
+      dm.generate_report_status = data;
+      deferred.resolve(dm.generate_report_status);
+    };
+    /* istanbul ignore next */
+    var err = function (data) {
+      dm.generate_report_status = data;
+      deferred.resolve(dm.generate_report_status);
+    };
+    return promiseThat(dm.generateQuestionnaireReport, method, url, params, 'generate_report_status', succ, err);
+  };
+
   dm.resendAllQuestionnaire = function (q_id, reset) {
     if (reset) {
       dm.resend_all_status = null;
     }
     var deferred = deferMe(dm.resendAllQuestionnaire);
     var method = 'POST';
-    var url = "questionnaire/send_questionnaire_ajax";
+    var url = "questionnaire/send_questionnaire_to_all_ajax";
     var params = { questionnaire_id: q_id, send_only_to_unstarted: true, sender_type: 'email' };
     var succ = function (data) {
       dm.resend_all_status = data;

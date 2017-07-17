@@ -79,11 +79,13 @@
       <div class="content_container" ng-click="tabService.showNotifications=false">
         <div ng-if="isCurrentView('Explore') && obs.isElemDisplayed('update_filter_menu')" ng-include src="'update_filter_menu'"></div>
         <div ng-if="isCurrentView('Explore') && obs.isElemDisplayed('choose_layer_filter')" ng-include src="'choose_layer_filter'"></div>
-       <!--  <div ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')" ng-include src="'resend_all_modal'">
+        <!--  <div ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')" ng-include src="'resend_all_modal'">
         </div> -->
-        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('submit_results_modal')" type='SUBMIT_RESULT' ></questionnaire-modal>
-        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')" type='RESEND_ALL'></questionnaire-modal>
-        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_emp_modal')" type='RESEND_EMP'></questionnaire-modal>
+
+        <questionnaire-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_all_modal')"></questionnaire-modal>
+        <questionnaire-resend-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('resend_emp_modal')"></questionnaire-resend-modal>
+        <questionnaire-reset-modal ng-if="isCurrentView('Settings') && obs.isElemDisplayed('reset_emp_quest_modal')"></questionnaire-reset-modal>
+
         <include-directive awesome-if="!isCurrentView('Explore')" template="v2/left_dashboard_panel"></include-directive>
         <include-directive awesome-if="isCurrentView('Explore')" template="v2/left_explore_panel"></include-directive>
         <div class="content" ng-class="{'content_without_menu' : !showMenu , 'content_with_left': !isCurrentView('Explore'), explore: isCurrentView('Explore')}">

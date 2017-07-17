@@ -1,4 +1,4 @@
-class AddEmailInfoToNetworkSnapshotData < ActiveRecord::Migration
+class AddEmailInfoToNetworkSnapshotData < ActiveRecord::Migration[4.2]
   def self.up
     add_column :network_snapshot_data, :message_id, :string
     add_column :network_snapshot_data, :multiplicity, :integer

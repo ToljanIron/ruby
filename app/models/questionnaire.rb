@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 include Mobile::QuestionnaireHelper
+include XlsHelper
+
 class Questionnaire < ActiveRecord::Base
   belongs_to :company
   has_many :questions, through: :questionnaire_questions
@@ -19,50 +21,48 @@ class Questionnaire < ActiveRecord::Base
     return :en
   end
 
-  def send_q(send_only_to_unstarted, sender_type, eid = nil)
-    pending_send =  if eid
-                      if self[:pending_send] && self[:pending_send].start_with?('single_employee=')
-                        parts = self[:pending_send].split('|')
-                        parts.first + ",#{eid}"
-                      else
-                        "single_employee=#{eid}"
-                      end
-                    elsif send_only_to_unstarted == 'true'
-                      'unstarted'
-                    else
-                      'all'
-                    end
-    pending_send += "|#{sender_type}"
-    update(pending_send: pending_send)
-    self.state = :sent
-    save!
+  # Reset the questionnaire for this employee. Next time he will enter the questionnaire
+  # he will be able to start over.
+  def reset_questionnaire_for_emp(emp_id)
+    EventLog.create!(message: "resetting questionnaire for id: #{id} and emp #{emp_id}", event_type_id: 1)
+    qp = QuestionnaireParticipant.where(questionnaire_id: id, employee_id: emp_id).first
+    qp.reset_questionnaire
+    EventLog.create!(message: "Done resetting questionnaire for id: #{id} and emp id #{emp_id}", event_type_id: 1)
   end
 
-  def send_q_desktop(send_only_to_unstarted, sender_type)
-    pending_send = send_only_to_unstarted == 'true' ? 'unstarted' : 'all'
-    pending_send += "|#{sender_type}|desktop"
-    update(pending_send: pending_send)
-    self.state = :sent
-    save!
+  # Send questionnaire to specific employee. Will send only if he did not complete
+  # the questionnaire
+  def send_questionnaire_to_emp(emp_id)
+    EventLog.create!(message: "Resending questionnaire for id: #{id}, and emp #{emp_id}", event_type_id: 1)
+    qps = QuestionnaireParticipant.where(questionnaire_id: id, employee_id: emp_id).where('status < 3').pluck(:id)
+    send_questionnaire_email(qps)
+    EventLog.create!(message: "Done resending questionnaire for id: #{id} and emp id #{emp_id}", event_type_id: 1)
   end
 
-  def resend_questionnaire
-    puts "Resceived resend_questionnaire for ID: #{id}"
+  # Resend questionnaire to employees who haven't completed it yet. Employees with 
+  # finished state of 3 won't receive this email.
+  def resend_questionnaire_to_incomplete
     EventLog.create!(message: "Resending questionnaire for id: #{id}", event_type_id: 1)
     qps = QuestionnaireParticipant.where(questionnaire_id: id).where('status < 3').pluck(:id)
-    EmailMessage.where(questionnaire_participant_id: qps).update_all(pending: true)
+    send_questionnaire_email(qps)
+    EventLog.create!(message: "Done resending questionnaire for id: #{id}", event_type_id: 1)
+  end
+
+  # Send email to questionnaire participants. This is the actual function which sends the 
+  # email, using the Rails mailer. In order to send the emails, you need to uncomment 
+  # line in loop
+  def send_questionnaire_email(q_participants)
+
+    EmailMessage.where(questionnaire_participant_id: q_participants).update_all(pending: true)
     pending_emails = EmailMessage.where(pending: true)
 
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
-      ExampleMailer.sample_email(email).deliver_now unless Rails.env.test? || Rails.env.develpment?
+      # Remove comment from next line when you want to send emails.
+      # ExampleMailer.sample_email(email).deliver_now
       email.send_email
-      msg = "Sent email to #{email.questionnaire_participant.employee.email}: #{email.message}"
-      EventLog.create!(message: msg, event_type_id: 1)
-      puts msg
+      puts "\n\nWARNING: Emails will not be sent. Check MAILER_ENABLED env var\n\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
     end
-
-    EventLog.create!(message: "Done resending questionnaire for id: #{id}", event_type_id: 1)
   end
 
   def last_submitted
@@ -181,5 +181,48 @@ class Questionnaire < ActiveRecord::Base
     update(state: 3)
     puts 'Done'
     EventLog.create!(message: 'Freeze questionnaire completed', event_type_id: 1)
+  end
+
+  def generate_report
+    sheets = []
+    company_name = Company.where(id: company_id).first.name
+    public_folder = 'public'
+    report_folder = 'questionnaire_reports'
+    report_name = "questionnaire_report_company_#{company_name}.xls"
+    report_path = "#{public_folder}/#{report_folder}/#{report_name}"
+
+    Dir.mkdir("#{public_folder}/#{report_folder}") unless Dir.exists?("#{public_folder}/#{report_folder}")
+
+    quest_report_raw = ReportHelper.get_questionnaire_report_raw(company_id)
+    sheets << quest_report_raw unless quest_report_raw.nil? || quest_report_raw.count == 0
+    
+    quest_scores_report_raw = parse_gender(ReportHelper.create_interact_report(company_id))
+    sheets << hashes_to_arr(quest_scores_report_raw) unless quest_scores_report_raw.nil? || quest_scores_report_raw.count == 0
+
+    quest_network_report_raw = parse_gender(ReportHelper.create_snapshot_report(company_id))
+    sheets << hashes_to_arr(quest_network_report_raw) unless quest_network_report_raw.nil? || quest_network_report_raw.count == 0
+
+    XlsHelper.create_excel_file(sheets, report_path)
+    return "#{report_folder}/#{report_name}"
+  end
+
+  # Move to some util helper
+  def hashes_to_arr(arr_of_hashes)
+    res = []
+    return if arr_of_hashes.nil?
+    keys = arr_of_hashes[0].keys
+    res << keys
+    arr_of_hashes.each {|h| res << h.values}
+
+    return res
+  end
+
+  def parse_gender(data)
+    data.each do |d|
+      d.each do |key, val|
+        d[key] = val == 0 ? 'male' : 'female' if(key.to_s.downcase.include?('gender'))
+      end
+    end
+    return data
   end
 end

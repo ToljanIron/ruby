@@ -62,16 +62,16 @@ class Group < ActiveRecord::Base
   end
 
   def extract_descendants_with_parent_with_parent(groups, root_id, sid)
+    res_arr = []
     sid ||= Snapshot.last_snapshot_of_company(company_id)
     res = groups.by_snapshot(sid).where(id: root_id)
+    res_arr << res
     sub_groups = groups.by_snapshot(sid).where(parent_group_id: root_id)
     sub_groups.each do |sg|
       groups_active_record_relation = extract_descendants_with_parent_with_parent(groups, sg.id, sid)
-      groups_active_record_relation.each do |g|
-        res << g
-      end
+      groups_active_record_relation.each {|g| res_arr << g}
     end
-    res
+    return res_arr
   end
 
   def extract_descendants_ids_and_self
@@ -83,9 +83,9 @@ class Group < ActiveRecord::Base
   def extract_descendants_ids
     res = []
     groups = Group.by_snapshot(snapshot_id)
-    groups_active_record_relation = extract_descendants_with_parent_with_parent(groups, id, snapshot_id)
-    groups_active_record_relation.each do |g|
-      res.push g.id
+    groups_active_record_relation_arr = extract_descendants_with_parent_with_parent(groups, id, snapshot_id)
+    groups_active_record_relation_arr.each do |gr_relation|
+      gr_relation.each {|gr| res.push gr.id}
     end
     res.delete(id)
     res

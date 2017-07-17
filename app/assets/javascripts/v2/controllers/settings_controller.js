@@ -1,8 +1,8 @@
 /*globals angular , window, unused, _, console  */
-angular.module('workships').controller('SettingsController', function ($scope, dataModelService, tabService, questionnaireService, ajaxService, overlayBlockerService, $timeout, $rootScope, StateService) {
+angular.module('workships').controller('SettingsController', function ($scope, dataModelService, tabService, questionnaireService, ajaxService, overlayBlockerService, $timeout, $rootScope, StateService, pleaseWaitService) {
   'use strict';
 
-  var SUBMIT_MESSAGE = 'Submitting the questionnaire data and performing the calculations needed to display the data in the explore and collaborations tabs may take serval minutes. Continue?';
+  var SUBMIT_MESSAGE = 'Submitting the questionnaire data and performing the calculations needed to display the data in the explore and collaborations tabs may take several minutes. Continue?';
 
   $scope.not_started = "Haven't Started";
   var getDate = function (date) {
@@ -55,30 +55,28 @@ angular.module('workships').controller('SettingsController', function ($scope, d
   }
 
   var callTimes = 0;
-  var inFreezQuestionnaireState = false;
+  // var inFreezQuestionnaireState = false;
   $scope.freezeQuestionnaire = function() {
     if ( confirm(SUBMIT_MESSAGE) ) {
       dataModelService.freezQuestionnaire();
-      inFreezQuestionnaireState = true;
+      $scope.inFreezQuestionnaireState = true;
       getFreezeState();
     }
   };
 
   var getFreezeState = function() {
-    if ( !inFreezQuestionnaireState ) {
+    if ( !$scope.inFreezQuestionnaireState ) {
       $scope.freezeState = 'Submit';
       return;
     }
-
     callTimes += 1;
     dataModelService.getFreezQuestionnaireStatus().then(function(state) {
       if (state === 'completed') {
         $scope.freezeState = 'Completed';
-        inFreezQuestionnaireState = false;
+        $scope.inFreezQuestionnaireState = false;
       } else {
         $scope.freezeState = 'Running ..';
       }
-
       if (state !== 'completed' && callTimes < 100) {
         setTimeout(getFreezeState, 10000);
       }
@@ -96,6 +94,7 @@ angular.module('workships').controller('SettingsController', function ($scope, d
     $scope.product_type = window.__workships_bootstrap__.companies.product_type;
     tabService.setSubTab('Settings', 0);
     $scope.data_model = dataModelService;
+    $scope.inFreezQuestionnaireState = false;
     dataModelService.getQuestionnaireParticipantsByQuestionnaire().then(setQuestionnaireParticipantsByQuestionnaire).then(dataModelService.getQuestionnaires).then(setQuestionnaires);
     getFreezeState();
   };
@@ -147,6 +146,7 @@ angular.module('workships').controller('SettingsController', function ($scope, d
       overlayBlockerService.unblock();
     }
   };
+
   $scope.showUpdateFilterMenu = function () {
     return overlayBlockerService.isElemDisplayed(modal_name);
   };
@@ -156,16 +156,39 @@ angular.module('workships').controller('SettingsController', function ($scope, d
     $scope.toggleUpdateFilterMenu('submit_results_modal');
   };
 
-  $scope.openResendModal = function (q_id, qp) {
+  $scope.openResendAllModal = function (q_id) {
     questionnaireService.setQuestionniareId(q_id);
-    if (!qp) {
-      $scope.toggleUpdateFilterMenu('resend_all_modal');
-    } else {
-      var emp = dataModelService.getEmployeeById(qp.employee_id);
-      questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
-      questionnaireService.eid = qp.employee_id;
-      $scope.toggleUpdateFilterMenu('resend_emp_modal');
-    }
+    $scope.toggleUpdateFilterMenu('resend_all_modal');
+  };
+
+  $scope.generateQuestReport = function (q_id) {
+    pleaseWaitService.on();
+    overlayBlockerService.block();
+    dataModelService.generateQuestionnaireReport(q_id).then(function (data) {
+      if (data.status === true) {
+        window.location = data.report_path;
+        return console.log('Report generation completed');
+      }
+      return console.log('There was a problem while generating the report. Please try again, or contact the admin');
+    });
+    overlayBlockerService.unblock();
+  };
+
+  $scope.openResendEmpModal = function (q_id, qp) {
+    questionnaireService.setQuestionniareId(q_id);
+    var eid = qp.employee_id;
+    var emp = dataModelService.getEmployeeById(eid);
+    questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
+    questionnaireService.eid = qp.employee_id;
+    $scope.toggleUpdateFilterMenu('resend_emp_modal');
+  };
+
+  $scope.openResetEmpQuestionnaireModal = function (q_id, qp) {
+    questionnaireService.setQuestionniareId(q_id);
+    var emp = dataModelService.getEmployeeById(qp.employee_id);
+    questionnaireService.qpname = emp.first_name + ' ' + emp.last_name;
+    questionnaireService.eid = qp.employee_id;
+    $scope.toggleUpdateFilterMenu('reset_emp_quest_modal');
   };
 
   $scope.get_employees_for_questionnaire = function (q) {
