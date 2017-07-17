@@ -10,7 +10,7 @@ module XlsHelper
     return workbook
   end
 
-  def create_file_public(file_path)
+  def create_file_2(file_path)
     full_file_path = "#{Rails.root}/#{file_path}"
     workbook  = WriteExcel.new(full_file_path)
     return workbook
@@ -156,7 +156,7 @@ module XlsHelper
   # +sheets+:: array of sheets to write to excel file. Each sheet is an array by himself, and will
   # be written as rows to the excel sheet. 'sheets' param can contain any number of sheets.
   def create_excel_file(sheets, file_name)
-    workbook = create_file_public(file_name)
+    workbook = create_file_2(file_name)
     sheets.each do |s|
       worksheet  = workbook.add_worksheet
       s.each_with_index do |row_data, i|

@@ -60,7 +60,7 @@ class Questionnaire < ActiveRecord::Base
     pending_emails.each do |email|
       # Remove comment from next line when you want to send emails.
       # ExampleMailer.sample_email(email).deliver_now
-      # email.send_email
+      email.send_email
       puts "\n\nWARNING: Emails will not be sent. Check MAILER_ENABLED env var\n\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
     end
   end
@@ -185,27 +185,32 @@ class Questionnaire < ActiveRecord::Base
 
   def generate_report
     sheets = []
+    company_name = Company.where(id: company_id).first.name
+    public_folder = 'public'
     report_folder = 'questionnaire_reports'
-    report_path = "#{report_folder}/questionnaire_report_company_#{company_id}.xls"
-    Dir.mkdir(report_folder) unless Dir.exists?(report_folder)
+    report_name = "questionnaire_report_company_#{company_name}.xls"
+    report_path = "#{public_folder}/#{report_folder}/#{report_name}"
 
-    sheets << ReportHelper.get_questionnaire_report_raw(company_id)
+    Dir.mkdir("#{public_folder}/#{report_folder}") unless Dir.exists?("#{public_folder}/#{report_folder}")
+
+    quest_report_raw = ReportHelper.get_questionnaire_report_raw(company_id)
+    sheets << quest_report_raw unless quest_report_raw.nil? || quest_report_raw.count == 0
     
     quest_scores_report_raw = parse_gender(ReportHelper.create_interact_report(company_id))
-    sheets << hashes_to_arr(quest_scores_report_raw)
+    sheets << hashes_to_arr(quest_scores_report_raw) unless quest_scores_report_raw.nil? || quest_scores_report_raw.count == 0
 
     quest_network_report_raw = parse_gender(ReportHelper.create_snapshot_report(company_id))
-    sheets << hashes_to_arr(quest_network_report_raw)
+    sheets << hashes_to_arr(quest_network_report_raw) unless quest_network_report_raw.nil? || quest_network_report_raw.count == 0
 
     XlsHelper.create_excel_file(sheets, report_path)
-    return report_path
+    return "#{report_folder}/#{report_name}"
   end
 
   # Move to some util helper
   def hashes_to_arr(arr_of_hashes)
-    keys = arr_of_hashes[0].keys
     res = []
-
+    return if arr_of_hashes.nil?
+    keys = arr_of_hashes[0].keys
     res << keys
     arr_of_hashes.each {|h| res << h.values}
 
