@@ -1,4 +1,4 @@
-class CreateAlgorithms < ActiveRecord::Migration
+class CreateAlgorithms < ActiveRecord::Migration[4.2]
   def change
     create_table :algorithms do |t|
       t.string 'name', null: false

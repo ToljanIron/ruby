@@ -1,4 +1,4 @@
-class CreateStatisticsDataValuesForCompanies < ActiveRecord::Migration
+class CreateStatisticsDataValuesForCompanies < ActiveRecord::Migration[4.2]
   def change
     create_table :statistics_data_values_for_companies do |t|
       t.integer 'company_id', null: false

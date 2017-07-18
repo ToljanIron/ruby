@@ -1,4 +1,4 @@
-class CreateFilterKeyword < ActiveRecord::Migration
+class CreateFilterKeyword < ActiveRecord::Migration[4.2]
   def change
     create_table :filter_keywords do |t|
       t.integer :company_id, null: false

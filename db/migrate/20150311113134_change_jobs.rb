@@ -1,4 +1,4 @@
-class ChangeJobs < ActiveRecord::Migration
+class ChangeJobs < ActiveRecord::Migration[4.2]
   def change
     remove_column :jobs, :type_id
     remove_column :jobs, :credential_id

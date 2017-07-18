@@ -52,6 +52,7 @@ angular.module('workships').controller('signInController', function ($scope, $ht
   };
 
   $scope.submit = function (event) {
+    console.log("AAAAAAAAAAAAA");
     $scope.showTokenExpired = false;
     $scope.change_user = true;
     $scope.change_password = true;

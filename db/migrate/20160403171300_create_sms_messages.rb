@@ -1,4 +1,4 @@
-class CreateSmsMessages < ActiveRecord::Migration
+class CreateSmsMessages < ActiveRecord::Migration[4.2]
   def up
     create_table :sms_messages do |t|
       t.integer :questionnaire_participant_id

@@ -1,4 +1,4 @@
-class AddIndexToCds < ActiveRecord::Migration
+class AddIndexToCds < ActiveRecord::Migration[4.2]
   def change
     return unless table_exists? 'cds_metric_scores'
     add_index :cds_metric_scores, :company_id, name: 'index_cds_metric_scores_on_company_id'

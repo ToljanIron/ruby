@@ -1,4 +1,4 @@
-class CreateMetricNames < ActiveRecord::Migration
+class CreateMetricNames < ActiveRecord::Migration[4.2]
   def change
     create_table :metric_names do |t|
       t.string 'name', null: false

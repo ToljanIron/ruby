@@ -1,4 +1,4 @@
-class CreateEmployeesPins < ActiveRecord::Migration
+class CreateEmployeesPins < ActiveRecord::Migration[4.2]
   def change
     create_table :employees_pins, id: false do |t|
       t.integer  :pin_id,       null: false

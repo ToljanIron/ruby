@@ -1,4 +1,4 @@
-class CreateEmailServices < ActiveRecord::Migration
+class CreateEmailServices < ActiveRecord::Migration[4.2]
   def change
     create_table :email_services do |t|
       t.integer :domain_id, nul: false

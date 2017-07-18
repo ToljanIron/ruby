@@ -1,4 +1,4 @@
-class CreateReoccurrence < ActiveRecord::Migration
+class CreateReoccurrence < ActiveRecord::Migration[4.2]
   def change
     create_table :reoccurrences do |t|
       t.bigint :run_every_by_minutes, null: false

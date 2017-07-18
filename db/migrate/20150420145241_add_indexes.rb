@@ -1,4 +1,4 @@
-class AddIndexes < ActiveRecord::Migration
+class AddIndexes < ActiveRecord::Migration[4.2]
   def change
     add_index :domains, :company_id, name: 'index_domains_on_company_id'
     add_index :employee_alias_emails, :employee_id, name: 'index_alias_emails_on_employee_id'

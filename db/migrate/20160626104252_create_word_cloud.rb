@@ -1,4 +1,4 @@
-class CreateWordCloud < ActiveRecord::Migration
+class CreateWordCloud < ActiveRecord::Migration[4.2]
   def change
     create_table :word_clouds do |t|
       t.integer :company_id, null: false

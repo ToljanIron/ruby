@@ -1,4 +1,4 @@
-class CreateExternalDataScores < ActiveRecord::Migration
+class CreateExternalDataScores < ActiveRecord::Migration[4.2]
   def change
     create_table :external_data_scores do |t|
       t.decimal :score, null: false

@@ -1,4 +1,4 @@
-class AddQuestionnaireFieldsToEmployees < ActiveRecord::Migration
+class AddQuestionnaireFieldsToEmployees < ActiveRecord::Migration[4.2]
   def up
     add_column :employees, :active, :boolean, default: true
     add_column :employees, :phone_number, :string

@@ -1,4 +1,4 @@
-class AddEnglishNameToGroups < ActiveRecord::Migration
+class AddEnglishNameToGroups < ActiveRecord::Migration[4.2]
   def up
     add_column :groups, :english_name, :string, default: nil
   end

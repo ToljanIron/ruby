@@ -1,4 +1,4 @@
-class CreateApiClient < ActiveRecord::Migration
+class CreateApiClient < ActiveRecord::Migration[4.2]
   def change
     create_table :api_clients do |t|
       t.string :token, null: false

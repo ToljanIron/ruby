@@ -37,6 +37,7 @@ Workships::Application.routes.draw do
   get   '/backend',                     to: 'utils#backend'
   post  '/upload_csv',                  to: 'utils#upload_csv_v2'
   post  '/upload_excel',                to: 'utils#upload_excel'
+  get   '/qqq',                         to: 'utils#qqq'
 
   get   '/get_networks_per_company',     to: 'backend_v_two#get_networks_per_company'
 

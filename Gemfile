@@ -46,6 +46,8 @@ gem 'literate_randomizer', '~> 0.4.0'
 #gem "roo"
 gem 'roo-xls', '~>1.1.0'
 gem 'hirb'
+gem 'rack-cors'
+gem 'jwt'
 
 group :development, :test do
   gem 'rspec-rails'

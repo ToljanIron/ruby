@@ -1,4 +1,4 @@
-class CreateEmailSubjectSnapshotData < ActiveRecord::Migration
+class CreateEmailSubjectSnapshotData < ActiveRecord::Migration[4.2]
   def up
     create_table :email_subject_snapshot_data do |t|
       t.integer :employee_from_id, null: false

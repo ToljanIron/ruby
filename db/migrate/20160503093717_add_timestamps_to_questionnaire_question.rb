@@ -1,4 +1,4 @@
-class AddTimestampsToQuestionnaireQuestion < ActiveRecord::Migration
+class AddTimestampsToQuestionnaireQuestion < ActiveRecord::Migration[4.2]
   def self.up
   	change_table :questionnaire_questions do |t|
   		t.timestamps

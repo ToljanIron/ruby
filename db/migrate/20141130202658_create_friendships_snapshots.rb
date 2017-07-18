@@ -1,4 +1,4 @@
-class CreateFriendshipsSnapshots < ActiveRecord::Migration
+class CreateFriendshipsSnapshots < ActiveRecord::Migration[4.2]
   def change
     create_table :friendships_snapshots do |t|
       t.integer :employee_id, null: false

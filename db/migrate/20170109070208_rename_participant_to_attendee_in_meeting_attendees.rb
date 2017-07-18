@@ -1,4 +1,4 @@
-class RenameParticipantToAttendeeInMeetingAttendees < ActiveRecord::Migration
+class RenameParticipantToAttendeeInMeetingAttendees < ActiveRecord::Migration[4.2]
   def up
     rename_column :meeting_attendees, :participant_id, :attendee_id
     rename_column :meeting_attendees, :participant_type, :attendee_type

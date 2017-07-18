@@ -1,4 +1,4 @@
-class CreateNetworkSnapshotData < ActiveRecord::Migration
+class CreateNetworkSnapshotData < ActiveRecord::Migration[4.2]
   def change
     create_table :network_snapshot_data do |t|
       t.integer 'snapshot_id', null: false

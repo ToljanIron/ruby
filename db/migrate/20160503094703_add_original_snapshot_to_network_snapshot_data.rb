@@ -1,4 +1,4 @@
-class AddOriginalSnapshotToNetworkSnapshotData < ActiveRecord::Migration
+class AddOriginalSnapshotToNetworkSnapshotData < ActiveRecord::Migration[4.2]
   def change
   	add_column :network_snapshot_data, :original_snapshot_id, :integer
     update_current_data

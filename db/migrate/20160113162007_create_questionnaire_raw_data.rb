@@ -1,4 +1,4 @@
-class CreateQuestionnaireRawData < ActiveRecord::Migration
+class CreateQuestionnaireRawData < ActiveRecord::Migration[4.2]
   def change
     create_table :questionnaire_raw_data do |t|
       t.integer 'snapshot_id', null: false

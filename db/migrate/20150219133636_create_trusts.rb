@@ -1,4 +1,4 @@
-class CreateTrusts < ActiveRecord::Migration
+class CreateTrusts < ActiveRecord::Migration[4.2]
   def change
     create_table :trusts do |t|
       t.integer :employee_id, null: false

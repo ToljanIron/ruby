@@ -1,4 +1,4 @@
-class AddCompanyStatistics < ActiveRecord::Migration
+class AddCompanyStatistics < ActiveRecord::Migration[4.2]
   def change
     create_table :company_statistics do |t|
       t.integer :snapshot_id

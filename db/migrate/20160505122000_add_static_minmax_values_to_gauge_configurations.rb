@@ -1,4 +1,4 @@
-class AddStaticMinmaxValuesToGaugeConfigurations < ActiveRecord::Migration
+class AddStaticMinmaxValuesToGaugeConfigurations < ActiveRecord::Migration[4.2]
   def self.up
     add_column :gauge_configurations, :static_minimum, :float
     add_column :gauge_configurations, :static_maximum, :float

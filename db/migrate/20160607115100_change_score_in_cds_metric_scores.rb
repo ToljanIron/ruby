@@ -1,4 +1,4 @@
-class ChangeScoreInCdsMetricScores < ActiveRecord::Migration
+class ChangeScoreInCdsMetricScores < ActiveRecord::Migration[4.2]
   def self.up
     postgresql_exists = defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
     is_postgresql = postgresql_exists.nil? ? false : ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)

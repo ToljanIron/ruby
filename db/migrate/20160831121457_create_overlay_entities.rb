@@ -1,4 +1,4 @@
-class CreateOverlayEntities < ActiveRecord::Migration
+class CreateOverlayEntities < ActiveRecord::Migration[4.2]
   def change
     create_table :overlay_entities do |t|
       t.integer :company_id, null: false

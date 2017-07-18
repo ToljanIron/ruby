@@ -1,4 +1,4 @@
-class CreateApiClientTaskDefinitions < ActiveRecord::Migration
+class CreateApiClientTaskDefinitions < ActiveRecord::Migration[4.2]
   def change
     create_table :api_client_task_definitions do |t|
       t.string  :name

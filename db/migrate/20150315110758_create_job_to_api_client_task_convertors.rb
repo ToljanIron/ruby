@@ -1,4 +1,4 @@
-class CreateJobToApiClientTaskConvertors < ActiveRecord::Migration
+class CreateJobToApiClientTaskConvertors < ActiveRecord::Migration[4.2]
   def change
     create_table :job_to_api_client_task_convertors do |t|
       t.integer :job_id

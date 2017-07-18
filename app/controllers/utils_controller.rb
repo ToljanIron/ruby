@@ -5,6 +5,11 @@ require './app/helpers/mobile/companies_helper.rb'
 include Mobile::CompaniesHelper
 
 class UtilsController < ApplicationController
+  def qqq
+    authorize :util, :index?
+    render json: {qqq: 'qqq'}, status: 200
+  end
+
   def list_filters
     authorize :util, :index?
     company_id = current_user.company_id

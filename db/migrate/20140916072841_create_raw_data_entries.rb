@@ -1,4 +1,4 @@
-class CreateRawDataEntries < ActiveRecord::Migration
+class CreateRawDataEntries < ActiveRecord::Migration[4.2]
   def change
     create_table :raw_data_entries do |t|
       t.integer   :company_id,       null: false

@@ -1,4 +1,4 @@
-class ChangeEmailAndExternalIdConstraintsInEmployees < ActiveRecord::Migration
+class ChangeEmailAndExternalIdConstraintsInEmployees < ActiveRecord::Migration[4.2]
   def change
     remove_index :employees, :email
     remove_index :employees, :external_id

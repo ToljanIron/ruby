@@ -1,4 +1,4 @@
-class RawMeetingsDataAddColumns < ActiveRecord::Migration
+class RawMeetingsDataAddColumns < ActiveRecord::Migration[4.2]
   def change
     add_column :raw_meetings_data, :organizer, :string unless column_exists? :raw_meetings_data, :organizer
     add_column :raw_meetings_data, :meeting_type, :integer unless column_exists? :raw_meetings_data, :meeting_type

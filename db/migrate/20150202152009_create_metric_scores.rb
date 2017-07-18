@@ -1,4 +1,4 @@
-class CreateMetricScores < ActiveRecord::Migration
+class CreateMetricScores < ActiveRecord::Migration[4.2]
   def change
     return if table_exists? 'metric_scores'
     create_table :metric_scores do |t|

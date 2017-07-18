@@ -1,4 +1,4 @@
-class DropOldTable < ActiveRecord::Migration
+class DropOldTable < ActiveRecord::Migration[4.2]
   def up
     drop_table :advices_snapshots if (table_exists? :advices_snapshots)
     drop_table :trusts_snapshots if (table_exists? :trusts_snapshots)

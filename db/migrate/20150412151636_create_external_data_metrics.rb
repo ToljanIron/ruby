@@ -1,4 +1,4 @@
-class CreateExternalDataMetrics < ActiveRecord::Migration
+class CreateExternalDataMetrics < ActiveRecord::Migration[4.2]
   def change
     create_table :external_data_metrics do |t|
       t.string :external_metric_name

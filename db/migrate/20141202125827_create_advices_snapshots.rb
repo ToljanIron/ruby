@@ -1,4 +1,4 @@
-class CreateAdvicesSnapshots < ActiveRecord::Migration
+class CreateAdvicesSnapshots < ActiveRecord::Migration[4.2]
 	def change
 		create_table :advices_snapshots do |t|
 			t.integer :employee_id, null: false

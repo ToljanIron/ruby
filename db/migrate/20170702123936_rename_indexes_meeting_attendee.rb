@@ -1,4 +1,4 @@
-class RenameIndexesMeetingAttendee < ActiveRecord::Migration
+class RenameIndexesMeetingAttendee < ActiveRecord::Migration[4.2]
   # Migration for renaming indices after column rename,
   # so indices names will be consistent
   def change

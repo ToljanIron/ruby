@@ -1,4 +1,4 @@
-class CreateRawMeetingsData < ActiveRecord::Migration
+class CreateRawMeetingsData < ActiveRecord::Migration[4.2]
   def change
     create_table :raw_meetings_data do |t|
       t.string :subject

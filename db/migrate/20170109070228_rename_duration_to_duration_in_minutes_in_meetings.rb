@@ -1,4 +1,4 @@
-class RenameDurationToDurationInMinutesInMeetings < ActiveRecord::Migration
+class RenameDurationToDurationInMinutesInMeetings < ActiveRecord::Migration[4.2]
   def up
     rename_column :meetings, :duration, :duration_in_minutes
   end

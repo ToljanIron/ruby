@@ -1,4 +1,4 @@
-class AddOldRelationsColumnToCdsNetworkTable < ActiveRecord::Migration
+class AddOldRelationsColumnToCdsNetworkTable < ActiveRecord::Migration[4.2]
   def change
     add_column :network_names, :optional_relation, :integer
     update_current_networks

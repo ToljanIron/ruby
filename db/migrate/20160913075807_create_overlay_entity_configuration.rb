@@ -1,4 +1,4 @@
-class CreateOverlayEntityConfiguration < ActiveRecord::Migration
+class CreateOverlayEntityConfiguration < ActiveRecord::Migration[4.2]
   def change
     create_table :overlay_entity_configurations do |t|
       t.integer :company_id, null: false

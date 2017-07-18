@@ -1,4 +1,4 @@
-require './lib/tasks/modules/convert_employee_attribute_to_new_attributes_table_helper.rb'
+require './lib/tasks/modules/convert_employee_attribute_to_new_attributes_table_helper.rb'[4.2]
 
 class DropEmployeeAttributes < ActiveRecord::Migration
   def change

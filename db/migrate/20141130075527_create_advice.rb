@@ -1,4 +1,4 @@
-class CreateAdvice < ActiveRecord::Migration
+class CreateAdvice < ActiveRecord::Migration[4.2]
   def change
     create_table :advices do |t|
       t.integer :employee_id, null: false

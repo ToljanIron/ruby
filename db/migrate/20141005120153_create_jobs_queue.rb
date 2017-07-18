@@ -1,4 +1,4 @@
-class CreateJobsQueue < ActiveRecord::Migration
+class CreateJobsQueue < ActiveRecord::Migration[4.2]
   def change
     create_table :jobs_queues do |t|
       t.integer :job_id, null: false

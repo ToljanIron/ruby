@@ -1,4 +1,4 @@
-class CreateEmployeeManagementRelation < ActiveRecord::Migration
+class CreateEmployeeManagementRelation < ActiveRecord::Migration[4.2]
   def change
     create_table :employee_management_relations do |t|
       t.integer       :manager_id,     null: false

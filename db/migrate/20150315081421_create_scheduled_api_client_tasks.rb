@@ -1,4 +1,4 @@
-class CreateScheduledApiClientTasks < ActiveRecord::Migration
+class CreateScheduledApiClientTasks < ActiveRecord::Migration[4.2]
   def change
     create_table :scheduled_api_client_tasks do |t|
       t.integer :api_client_task_definition_id

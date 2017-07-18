@@ -1,4 +1,4 @@
-class CreateGoogleCredentials < ActiveRecord::Migration
+class CreateGoogleCredentials < ActiveRecord::Migration[4.2]
   def change
     create_table :google_credentials do |t|
       t.integer :company_id

@@ -1,4 +1,4 @@
-class AddSignificantLevelToEmailSnapshotData < ActiveRecord::Migration
+class AddSignificantLevelToEmailSnapshotData < ActiveRecord::Migration[4.2]
   include EmailSnapshotDataHelper
   def up
     add_column :email_snapshot_data, :significant_level, :integer

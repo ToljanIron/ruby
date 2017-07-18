@@ -1,4 +1,4 @@
-class CreateApiClientConfigurations < ActiveRecord::Migration
+class CreateApiClientConfigurations < ActiveRecord::Migration[4.2]
   def change
     create_table :api_client_configurations do |t|
       t.integer :api_client_id

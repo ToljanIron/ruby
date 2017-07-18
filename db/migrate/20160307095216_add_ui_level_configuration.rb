@@ -1,4 +1,4 @@
-class AddUiLevelConfiguration < ActiveRecord::Migration
+class AddUiLevelConfiguration < ActiveRecord::Migration[4.2]
   def change
     create_table :ui_level_configurations do |t|
       t.integer  :company_id, null: false

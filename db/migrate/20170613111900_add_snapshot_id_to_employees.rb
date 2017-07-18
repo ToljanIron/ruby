@@ -1,4 +1,4 @@
-class AddSnapshotIdToEmployees < ActiveRecord::Migration
+class AddSnapshotIdToEmployees < ActiveRecord::Migration[4.2]
   def up
     add_column :employees, :snapshot_id, :integer
     Employee.all.each { |emp| set_default_snapshot(emp) }

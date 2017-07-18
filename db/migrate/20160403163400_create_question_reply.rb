@@ -1,4 +1,4 @@
-class CreateQuestionReply < ActiveRecord::Migration
+class CreateQuestionReply < ActiveRecord::Migration[4.2]
   def up
     create_table :question_replies do |t|
       t.integer :questionnaire_id

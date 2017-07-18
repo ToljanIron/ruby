@@ -1,4 +1,4 @@
-class CreateCompanyMetrics < ActiveRecord::Migration
+class CreateCompanyMetrics < ActiveRecord::Migration[4.2]
   def change
     create_table :company_metrics do |t|
       t.integer :company_id

@@ -1,4 +1,4 @@
-class CreateArchivedApiClientTasks < ActiveRecord::Migration
+class CreateArchivedApiClientTasks < ActiveRecord::Migration[4.2]
   def change
     create_table :archived_api_client_tasks do |t|
       t.integer :api_client_task_definition_id

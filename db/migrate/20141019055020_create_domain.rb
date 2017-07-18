@@ -1,4 +1,4 @@
-class CreateDomain < ActiveRecord::Migration
+class CreateDomain < ActiveRecord::Migration[4.2]
   def change
     create_table :domains do |t|
       t.integer :company_id, null: false

@@ -1,4 +1,4 @@
-class CreateQuestionnaireQuestions < ActiveRecord::Migration
+class CreateQuestionnaireQuestions < ActiveRecord::Migration[4.2]
   def up
     create_table :questionnaire_questions do |t|
       t.integer :company_id

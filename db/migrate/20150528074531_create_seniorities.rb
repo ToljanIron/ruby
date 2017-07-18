@@ -1,4 +1,4 @@
-class CreateSeniorities < ActiveRecord::Migration
+class CreateSeniorities < ActiveRecord::Migration[4.2]
   def change
     create_table :seniorities do |t|
       t.string :name

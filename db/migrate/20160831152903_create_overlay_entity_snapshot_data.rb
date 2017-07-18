@@ -1,4 +1,4 @@
-class CreateOverlayEntitySnapshotData < ActiveRecord::Migration
+class CreateOverlayEntitySnapshotData < ActiveRecord::Migration[4.2]
   def change
     create_table :overlay_entity_snapshot_data do |t|
       t.integer :snapshot_id, null: false

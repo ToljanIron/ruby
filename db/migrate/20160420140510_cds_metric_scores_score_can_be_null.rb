@@ -1,4 +1,4 @@
-class CdsMetricScoresScoreCanBeNull < ActiveRecord::Migration
+class CdsMetricScoresScoreCanBeNull < ActiveRecord::Migration[4.2]
   def change
     # change_table :cds_metric_scores do |t|
     #   t.change :score, null: true

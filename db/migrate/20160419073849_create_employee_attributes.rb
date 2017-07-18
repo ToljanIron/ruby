@@ -1,4 +1,4 @@
-class CreateEmployeeAttributes < ActiveRecord::Migration
+class CreateEmployeeAttributes < ActiveRecord::Migration[4.2]
   def change
     create_table :employee_attributes do |t|
       t.integer :employee_id

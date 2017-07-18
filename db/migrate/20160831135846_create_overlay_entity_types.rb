@@ -1,4 +1,4 @@
-class CreateOverlayEntityTypes < ActiveRecord::Migration
+class CreateOverlayEntityTypes < ActiveRecord::Migration[4.2]
   def change
     create_table :overlay_entity_types do |t|
       t.integer :overlay_entity_type

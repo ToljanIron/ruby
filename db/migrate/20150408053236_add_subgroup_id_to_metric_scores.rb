@@ -1,4 +1,4 @@
-class AddSubgroupIdToMetricScores < ActiveRecord::Migration
+class AddSubgroupIdToMetricScores < ActiveRecord::Migration[4.2]
   def change
     return unless table_exists? 'metric_scores'
     add_column :metric_scores, :subgroup_id, :integer
