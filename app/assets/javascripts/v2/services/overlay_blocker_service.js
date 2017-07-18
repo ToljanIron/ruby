@@ -49,6 +49,9 @@ angular.module('workships.services').factory('overlayBlockerService',
         name: 'resend_emp_modal',
         displayed: false
       }, {
+        name: 'reset_emp_quest_modal',
+        displayed: false
+      }, {
         name: 'choose_layer_filter',
         displayed: false
       }

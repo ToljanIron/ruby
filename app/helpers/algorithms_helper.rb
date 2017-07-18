@@ -1458,7 +1458,7 @@ module AlgorithmsHelper
   end
 
   def avg_num_of_ppl_in_meetings(sid, gid, pid)
-    return calc_num_of_ppl_in_meetings(sid, gid, pid)
+    return calc_avg_num_of_ppl_in_meetings(sid, gid, pid)
   end
 
   def avg_time_spent_in_meetings_per_group(sid, gid, pid)
@@ -2109,11 +2109,23 @@ module AlgorithmsHelper
     return res
   end
   
-  def calc_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
+  def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
 
     res = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    # sqlstr = "SELECT AVG(cnt) as measure
+    #           FROM (
+    #             SELECT count(meeting_id) as cnt
+    #             FROM meeting_attendees
+    #             WHERE meeting_id in (
+    #               SELECT meeting_id 
+    #               FROM meeting_attendees
+    #               WHERE employee_id in (#{employee_ids.join(',')}) AND NOT
+    #               response = #{DECLINE}) AND NOT
+    #               response = #{DECLINE}
+    #             GROUP BY meeting_id) MyAlias;"
 
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees

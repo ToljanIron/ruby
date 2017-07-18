@@ -5,7 +5,7 @@
       <span>Back</span>
     </div>
     <div>QUESTIONNAIRE MANAGMENT</div>
-    <div class='submit-results' ng-show='questionnaire_table && isQuestionnaireOnly()' ng-click='freezeQuestionnaire()'>{{freezeState}}</div>
+    <div class="submit-results" ng-show='questionnaire_table && isQuestionnaireOnly()' ng-click='freezeQuestionnaire()' ng-class="{disabled: inFreezQuestionnaireState}">{{freezeState}}</div>
   </div>
   <div ng-if='questionnaires.length === 0'>
     <div class='empty-questionnaire-page'> <img src="<%= asset_path 'settings-empty-questionnairs.png' %>"> </div>

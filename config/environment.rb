@@ -8,7 +8,7 @@ require File.expand_path('../application', __FILE__)
 # Initialize the Rails application.
 Workships::Application.initialize!
 
-Dotenv.load if Rails.env.onpremise?
+Dotenv.load
 ActionMailer::Base.smtp_settings = {
   :address        => ENV['MAILGUN_ADDRESS'],
   :port           => ENV['MAILGUN_PORT'],

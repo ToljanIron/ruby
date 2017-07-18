@@ -13,6 +13,6 @@
         <questionnaire-statistic-info heading-name="'last submitted'" value="q.last_submitted" value-color="'#4a55e5'" seperate-color="'rgba(74, 85, 229, 0.3)'" seprate="false" ></questionnaire-statistic-info>
       </div>
     </div>
-    <filter-employee-table employees='questionnaire_participant.participants_employees' freeze-state='freezeState' resend='openResendModal(q_id, qp)' resend-all='openResendModal(q_id)' freeze='freezeQuestionnaire()' q-id='questionnaire_participant.q_id'></filter-employee-table>
+    <filter-employee-table employees='questionnaire_participant.participants_employees' freeze-state='freezeState' resend='openResendEmpModal(q_id, qp)' resend-all='openResendAllModal(q_id)' gen-report='generateQuestReport(q_id)' reset="openResetEmpQuestionnaireModal(q_id, qp)" freeze='freezeQuestionnaire()' q-id='questionnaire_participant.q_id'></filter-employee-table>
   </div>
 </scrolling-panel>

@@ -263,11 +263,11 @@ describe AlgorithmsHelper, type: :helper do
 
       MeetingAttendee.create!(meeting_id: meeting12.id, employee_id: @e2.id)
 
-      @res = calc_num_of_ppl_in_meetings(@s.id)
+      @res = calc_avg_num_of_ppl_in_meetings(@s.id)
       # @res.each {|r| puts "#{r}\n"}
     end
 
-    it 'should test number of ppl in a meeting' do
+    it 'should test average number of ppl in meetings' do
       expect(@res[0][:measure] - 2.33).to be < 0.001
     end
   end

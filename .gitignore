@@ -52,6 +52,8 @@ spec/helpers/*.csv
 !/public/assets/m*
 !/public/assets/T*
 
+questionnaire_reports
+
 public/assets-backup
 vendor/bundle
 log

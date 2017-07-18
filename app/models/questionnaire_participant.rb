@@ -162,8 +162,8 @@ class QuestionnaireParticipant < ActiveRecord::Base
     QuestionnaireQuestion.find(current_questiannair_question_id)[:order] - (status == 'in_process' ? 1 : 0)
   end
 
-  def last_action
-    question_replies.try(:pluck, :updated_at).max
+  def last_action(q_id)
+    question_replies.where(questionnaire_id: q_id).try(:pluck, :updated_at).max
   end
 
   def gt_locale
