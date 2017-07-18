@@ -8,7 +8,8 @@ class SessionsController < ApplicationController
     if current_user
       check_user_role(current_user)
     else
-      render json: {res: 'Not Authenticated'}, status: 401
+      render json: {res: 'Not Authenticated'}, status: 401 if v3_login?
+      render 'signin', layout: 'signin_layout' if !v3_login?
     end
   end
 
@@ -33,7 +34,6 @@ class SessionsController < ApplicationController
   end
 
   def api_signin
-    params.permit(:email, :password)
     authorize :application, :passthrough
     user = User.find_by(email: params[:email].downcase)
     if user
@@ -53,7 +53,8 @@ class SessionsController < ApplicationController
       return
     end
     begin
-      render json: payload(user), status: 200
+      render json: payload(user), status: 200 if v3_login?
+      render json: { token: user.remember_token }, status: 200 if !v3_login?
       return
     rescue
       flash[:error] = 'error'
@@ -143,8 +144,6 @@ class SessionsController < ApplicationController
   end
 
   def services_with_missing_token(user)
-    company_id = user[:company_id]
-    domain_ids = Domain.where(company_id: company_id).pluck(:id)
     return []
   end
 end

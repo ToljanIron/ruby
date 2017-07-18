@@ -8,7 +8,10 @@ include CdsUtilHelper
 class ApplicationController < ActionController::Base
   DYNAMIC_LOCALE = false
 
-  protect_from_forgery with: :null_session
+  if ENV['USE_V3_LOGIN'] == 'false'
+    protect_from_forgery with: :null_session
+  end
+
   around_action :global_error_handler
 
   before_action :set_locale, except: [:signin, :api_signin]

@@ -45,10 +45,6 @@ module SessionsHelper
     return  @Companies
   end
 
-  def logged_in?
-    !current_user.nil?
-  end
-
   def employee_role?
     !current_user.nil? && current_user.employee?
   end
@@ -78,6 +74,23 @@ def log_in(user)
 end
 
 def current_user
+  return current_user_v2 if !v3_login?
+  return current_user_v3 if v3_login?
+end
+
+def current_user_v2
+  if (user_id = session[:user_id])
+    @current_user ||= User.find_by(id: user_id)
+  elsif (user_id = cookies.signed[:user_id])
+    user = User.find_by(id: user_id)
+    if user && user.authenticated?(cookies[:remember_token])
+      log_in user
+      @current_user = user
+    end
+  end
+end
+
+def current_user_v3
   unless user_id_in_token?
     puts "JWT could not find user in token - not authenticated"
     return
@@ -115,4 +128,8 @@ def log_out
   forget(current_user)
   session.delete(:user_id)
   @current_user = nil
+end
+
+def v3_login?
+  return ENV['USE_V3_LOGIN'] == 'true'
 end
