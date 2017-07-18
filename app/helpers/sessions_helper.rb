@@ -77,43 +77,13 @@ def log_in(user)
   session[:user_id] = user.id
 end
 
-def current_user2
-  puts "@@@@@@@@@@@@@@@@@@@@ 1"
-  if (user_id = session[:user_id])
-    @current_user ||= User.find_by(id: user_id)
-  elsif (user_id = cookies.signed[:user_id])
-    user = User.find_by(id: user_id)
-    if user && user.authenticated?(cookies[:remember_token])
-      log_in user
-      @current_user = user
-    end
-  end
-end
-
-def current_user2
-  puts "@@@@@@@@@@@@@@@@@@@@ 1"
-  if (user_id = session[:user_id])
-    @current_user ||= User.find_by(id: user_id)
-  elsif (user_id = cookies.signed[:user_id])
-    user = User.find_by(id: user_id)
-    if user && user.authenticated?(cookies[:remember_token])
-      log_in user
-      @current_user = user
-    end
-  end
-end
-#########################################
 def current_user
-  puts "^^^^^^^^^^^^^^^^^^^^^^^^"
-  puts "In new current_user"
   unless user_id_in_token?
-    #render json: { errors: ['Not Authenticated'] }, status: :unauthorized
     puts "JWT could not find user in token - not authenticated"
     return
   end
   @current_user = User.find(auth_token[:user_id])
 rescue JWT::VerificationError, JWT::DecodeError
-  #render json: { errors: ['Not Authenticated'] }, status: :unauthorized
   puts "JWT exception - not authenticated"
 end
 
@@ -130,7 +100,6 @@ end
 def user_id_in_token?
   http_token && auth_token && auth_token[:user_id].to_i
 end
-#########################################
 
 def forget(user)
   user.forget
@@ -147,4 +116,3 @@ def log_out
   session.delete(:user_id)
   @current_user = nil
 end
-

@@ -5,9 +5,6 @@ class SessionsController < ApplicationController
 
   def signin
     authorize :application, :passthrough
-    puts "********************************* 1"
-    puts params.to_unsafe_h
-    puts "********************************* 2"
     if current_user
       check_user_role(current_user)
     else
@@ -38,44 +35,31 @@ class SessionsController < ApplicationController
   def api_signin
     params.permit(:email, :password)
     authorize :application, :passthrough
-    puts "********************************* 1"
-    puts params.to_unsafe_h
-    puts "********************************* 2"
     user = User.find_by(email: params[:email].downcase)
-    puts "user: #{user.email}"
     if user
-    puts "********************************* 3"
       if authenticate_by_email_and_temporary_password(params[:email], params[:password])
-    puts "********************************* 4"
         log_in user
         render json: { tmp_password: true }, status: 200
         return
       end
     end
-    puts "********************************* 5"
     logged = log_in user if user && user.authenticate(params[:password])
     if logged && params[:remember_me]
-    puts "********************************* 6"
       remember(user)
     end
     unless logged
-    puts "********************************* 7"
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
     end
     begin
-    puts "********************************* 8"
-      # Create JWT here <====================
       render json: payload(user), status: 200
       return
     rescue
-    puts "********************************* 9"
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
     end
-    puts "********************************* 10"
   end
 
   def payload(user)
@@ -85,7 +69,6 @@ class SessionsController < ApplicationController
         user: {id: user.id, email: user.email}
       }
   end
-
 
   def forgot_password
     authorize :application, :passthrough
@@ -164,5 +147,4 @@ class SessionsController < ApplicationController
     domain_ids = Domain.where(company_id: company_id).pluck(:id)
     return []
   end
-
 end
