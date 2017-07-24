@@ -22,7 +22,11 @@ class MeasuresController < ApplicationController
     companyid = current_user.company_id
     pinid = params[:pid].to_i
     groupid = params[:gid].to_i
+
     groupid = -1 if groupid.zero?
+    
+    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+    
     snapshot_type = params[:snapshot_type].to_i
     snapshot_type = 1 if snapshot_type.zero?
     measure_types = params[:measure_types]
@@ -37,19 +41,23 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  def volume_of_emails
-    include AlgorithmsHelper
-    snapshot = Snapshot.where(company_id: params[:company_id].to_i).last.id
-    volume = AlgorithmsHelper.volume_of_emails(snapshot, -1, -1) unless snapshot.nil?
-    render json: volume
-  end
+  # def volume_of_emails
+  #   include AlgorithmsHelper
+  #   snapshot = Snapshot.where(company_id: params[:company_id].to_i).last.id
+  #   volume = AlgorithmsHelper.volume_of_emails(snapshot, -1, -1) unless snapshot.nil?
+  #   render json: volume
+  # end
 
   def cds_show
     authorize :measure, :index?
     companyid = current_user.company_id
     pinid = params[:pid].to_i
     groupid = params[:gid].to_i
+    
     groupid = -1 if groupid.zero?
+    
+    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     snapshot_type = params[:snapshot_type].to_i
     snapshot_type = 1 if snapshot_type.zero?
     algorithms = Algorithm.where(algorithm_type_id: 1).pluck(:id)
@@ -79,6 +87,9 @@ class MeasuresController < ApplicationController
                else
                  NO_GROUP
                end
+
+    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     flag_types = params[:measure_types]
     snapshot_type = params[:snapshot_type].to_i
     snapshot_type = 1 if snapshot_type.zero?
@@ -111,6 +122,9 @@ class MeasuresController < ApplicationController
                else
                  NO_GROUP
                end
+
+    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     company_metrics = CompanyMetric.where(company_id: companyid, algorithm_type_id: FLAG)
     res = {}
     company_metrics.each do |cm|
@@ -164,6 +178,9 @@ class MeasuresController < ApplicationController
                else
                  NO_GROUP
                end
+
+    group_id = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     company_metrics = nil
 
     if !params[:type].nil? && params[:type] == 'level1'
@@ -199,6 +216,9 @@ class MeasuresController < ApplicationController
     sid = params[:sid].to_i
     gid = params[:gid].to_i
     gid = -1 if gid.zero?
+
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     if params[:measure_type]
       index = params[:measure_type].to_i
       metrics = Metric.where(metric_type: 'analyze', index: index)
@@ -229,6 +249,9 @@ class MeasuresController < ApplicationController
     oegid = params[:oegid].try(:to_i)
     oeid = params[:oeid].try(:to_i)
     gid = -1 if gid.zero?
+    
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
+
     lgid = Group.find_group_in_snapshot(gid, sid)
 
     company_metrics = find_company_metrics(cid)
@@ -283,6 +306,7 @@ class MeasuresController < ApplicationController
     cid = current_user.company_id
     sid = params[:sid].to_i
     gid = params[:gid].to_i
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
     company_metric_id = params[:company_metric_id].to_i
     res = cds_get_flagged_employees(cid, gid, company_metric_id, sid)
     render json: Oj.dump(flagged_employees: res)
@@ -293,6 +317,7 @@ class MeasuresController < ApplicationController
     cid = current_user.company_id
     pid = params[:pid].to_i
     gid = params[:gid].to_i
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
     network_id = params[:network_id].to_i
     measure_id = params[:measure_id].to_i
     cache_key = "show_play_session-#{cid}-#{pid}-#{gid}-#{network_id}-#{measure_id}"
@@ -308,6 +333,7 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     cid = current_user.company_id
     gid = params[:gid].to_i
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
     gid = nil if gid.zero?
     res = []
     metrics = Metric.where(metric_type: 'group_measure')
@@ -328,6 +354,7 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     cid = current_user.company_id
     gid = params[:gid].to_i
+    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
     gid = nil if gid.zero?
     res = []
     company_metrics = CompanyMetric.where(company_id: cid, algorithm_type_id: GROUP)
@@ -349,6 +376,9 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     cid = current_user.company_id
     employee_id = params[:employee_id].to_i
+    
+    render(json: Oj.dump(error: 'Forbidden'), status: 403) if !is_user_allowed_to_view_emp(employee_id, current_user.group_id)
+
     cache_key = "show_employee_measures-#{cid}-#{employee_id}"
     res = cache_read(cache_key)
     if res.nil?
@@ -365,31 +395,6 @@ class MeasuresController < ApplicationController
     res = cache_read(cache_key)
     if res.nil?
       res = get_snapshot_list(cid)
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def show_directory
-    authorize :measure, :index?
-    cid = current_user.company_id
-    eid = params[:eid].to_i
-    cache_key = "show_directory-#{cid}-#{eid}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_collaboration_data(cid, eid)
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def show_3rd_line_data
-    authorize :measure, :index?
-    cid = current_user.company_id
-    cache_key = "show_3rd_line_data-#{cid}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_external_data(cid)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

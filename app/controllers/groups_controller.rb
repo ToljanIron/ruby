@@ -31,7 +31,10 @@ class GroupsController < ApplicationController
     cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
-      groups = Group.by_snapshot(sid)
+      
+      # groups = Group.by_snapshot(sid)
+      groups = policy_scope(Group).by_snapshot(sid)
+      
       res = []
       groups.each do |g|
         res.push g.pack_to_json

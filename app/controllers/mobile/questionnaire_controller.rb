@@ -8,15 +8,15 @@ module Mobile
       render json: { questionnaire_status: state }
     end
 
-    # def send_questionnaire
-    #   questionnaire_id = params[:questionnaire_id].to_i
-    #   send_only_to_unstarted = params[:send_only_to_unstarted]
-    #   sender_type = params[:sender_type]
-    #   q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
-    #   raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
-    #   q.send_q(send_only_to_unstarted, sender_type)
-    #   redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
-    # end
+    def send_questionnaire
+      questionnaire_id = params[:questionnaire_id].to_i
+      send_only_to_unstarted = params[:send_only_to_unstarted]
+      sender_type = params[:sender_type]
+      q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
+      raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
+      q.send_q(send_only_to_unstarted, sender_type)
+      redirect_to select_company_path(tab: 3, questionnaire_id: questionnaire_id)
+    end
 
     def reset_questionnaire_for_emp
       questionnaire_id = params[:questionnaire_id].to_i
