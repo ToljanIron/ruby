@@ -1,8 +1,9 @@
 require 'line_processing_context.rb'
 require 'csv'
+require 'roo'
 
 module ImportDataHelper
-  #
+  
   # accepts the company_id of the company in question
   # and a csv string with lines describing company
   # structure, personal info or management structure
@@ -10,7 +11,7 @@ module ImportDataHelper
   # creates and/or connects the objects in the database
   #
   # returns an array of string error messages
-  #
+  
   EMPLOYEES_CSV  = 1
   MANAGMENT_RELATION_CSV = 3
   NETWORK        = 4
@@ -97,7 +98,7 @@ module ImportDataHelper
     ii = 0
     context_list.each do |co|
       ii += 1
-      puts "Woring on context number: #{ii}" if (ii % 50 == 0)
+      puts "Working on context number: #{ii}" if (ii % 50 == 0)
       if co.attrs[:delete]
         co.delete
       else
@@ -129,7 +130,7 @@ module ImportDataHelper
   end
 
   def process_xls_employee(parsed, company_id, csv_line, csv_line_number)
-    puts "ERROR: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, will proceed anyway." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
+    puts "ERROR: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, should be #{VALID_EMPLOYEE_CSV_LINE_SIZE} - will proceed anyway." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
 
     employee_context = EmployeeLineProcessingContext.new(csv_line, csv_line_number, company_id)
     email = parsed[4]
@@ -276,7 +277,7 @@ module ImportDataHelper
 
   def is_delete?(parsed)
     return false if (parsed.nil? || parsed[18].nil?)
-    return !parsed[18].empty?
+    return !parsed[18].is_a?(Integer) && !parsed[18].empty?
   end
 
   def process_groups(parsed, company_id, csv_line, csv_line_number)
