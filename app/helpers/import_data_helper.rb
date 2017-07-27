@@ -129,9 +129,13 @@ module ImportDataHelper
     return d.strftime("%Y-%m-%d")
   end
 
-  def process_xls_employee(parsed, company_id, csv_line, csv_line_number)
-    puts "ERROR: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, should be #{VALID_EMPLOYEE_CSV_LINE_SIZE} - will proceed anyway." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
+  def process_xls_employee(parsed, company_id, csv_line, csv_line_number)    
 
+    puts "Warning: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, 
+    should be #{VALID_EMPLOYEE_CSV_LINE_SIZE} - will proceed anyway.\n*This warning can heppen also
+    when there are empty cells at the end of each row. This is something with excel - it sometimes
+    considers empty cells to be included in the sheet." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
+    
     employee_context = EmployeeLineProcessingContext.new(csv_line, csv_line_number, company_id)
     email = parsed[4]
     return nil if (email.nil?)
@@ -156,29 +160,29 @@ module ImportDataHelper
       id_number = format_string(parsed[18])
       del = is_delete?(parsed[19])
 
-        employee_context.attrs.merge!(
-          company_id:       company_id,
-          external_id:      external_id,
-          first_name:       first_name,
-          middle_name:      middle_name,
-          last_name:        last_name,
-          email:            email,
-          #alias_email:     format_string(parsed[5]),
-          role:             role,
-          rank:             parsed[7],
-          job_title:        job_title,
-          date_of_birth:    birth_date,
-          gender:           gender,
-          marital_status:   marital_status,
-          work_start_date:  work_start_date,
-          qualifications:   qual,
-          home_address:     home_address,
-          office_address:   office_address,
-          position_scope:   pos,
-          group_name:       group_name,
-          id_number:        id_number,
-          delete:           del
-        )
+      employee_context.attrs.merge!(
+        company_id:       company_id,
+        external_id:      external_id,
+        first_name:       first_name,
+        middle_name:      middle_name,
+        last_name:        last_name,
+        email:            email,
+        #alias_email:     format_string(parsed[5]),
+        role:             role,
+        rank:             parsed[7],
+        job_title:        job_title,
+        date_of_birth:    birth_date,
+        gender:           gender,
+        marital_status:   marital_status,
+        work_start_date:  work_start_date,
+        qualifications:   qual,
+        home_address:     home_address,
+        office_address:   office_address,
+        position_scope:   pos,
+        group_name:       group_name,
+        id_number:        id_number,
+        delete:           del
+      )
     rescue => e
       puts "Exception loading employee with email: #{email} with error: #{e.message}"
       puts e.backtrace[0..20]
