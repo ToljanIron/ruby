@@ -76,7 +76,6 @@ module LineProcessingContextClasses
     end
 
     def connect
-      # puts "connect()"
       begin
         cid = @attrs[:company_id]
 
