@@ -2115,6 +2115,9 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
+    # This query returns average people in meeting - but for all groups
+    # and not inside a specific group as below. This is for the future, if we want to
+    # expand the algorithm to give more info.
     # sqlstr = "SELECT AVG(cnt) as measure
     #           FROM (
     #             SELECT count(meeting_id) as cnt

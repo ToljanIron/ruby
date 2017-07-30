@@ -40,6 +40,32 @@ class Group < ActiveRecord::Base
     res
   end
 
+  def extract_employees_records
+    cache_key = "Group.extract_employees_records-#{id}"
+    res = cache_read(cache_key)
+    if res.nil?
+      res = Employee.by_snapshot(snapshot_id).where(group_id: extract_descendants_ids_and_self, active: true)
+      cache_write(cache_key, res)
+    end
+    res
+  end
+
+  def is_emp_in_subgroup(emp_id)
+    sid = Snapshot.last_snapshot_of_company(company_id)
+    subgroups = extract_descendants_ids
+
+    # sql = "SELECT id FROM employees
+    #        WHERE id=#{emp_id} AND
+    #        snapshot_id=#{sid} AND
+    #        WHERE group_id IN {subgroups.join(',')}
+    #        LIMIT 1"
+
+    # Same as above raw sql - just implemented in ruby
+    res = Employee.where(id: emp_id, snapshot_id: sid, group_id: subgroups).limit(1)
+
+    return res.count == 1
+  end
+
   #Returns all managers in group and sub-groups
   def get_managers
     res = extract_employees
@@ -89,6 +115,11 @@ class Group < ActiveRecord::Base
     end
     res.delete(id)
     res
+  end
+
+  def extract_descendants_as_active_record_relation
+    groups = Group.by_snapshot(snapshot_id).where(id: extract_descendants_ids)
+    return groups
   end
 
   def root_group?

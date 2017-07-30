@@ -34,4 +34,7 @@ Workships::Application.configure do
   if ENV['MAILER_ENABLED']
     config.action_mailer.perform_deliveries = (ENV['MAILER_ENABLED'] == 'true')
   end
+
+  # Disable rails server logging  - sql query results etc.
+  #config.active_record.logger = nil
 end

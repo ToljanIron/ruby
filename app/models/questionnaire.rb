@@ -21,6 +21,25 @@ class Questionnaire < ActiveRecord::Base
     return :en
   end
 
+  def send_q(send_only_to_unstarted, sender_type, eid = nil)
+    pending_send =  if eid
+                      if self[:pending_send] && self[:pending_send].start_with?('single_employee=')
+                        parts = self[:pending_send].split('|')
+                        parts.first + ",#{eid}"
+                      else
+                        "single_employee=#{eid}"
+                      end
+                    elsif send_only_to_unstarted == 'true'
+                      'unstarted'
+                    else
+                      'all'
+                    end
+    pending_send += "|#{sender_type}"
+    update(pending_send: pending_send)
+    self.state = :sent
+    save!
+  end
+
   # Reset the questionnaire for this employee. Next time he will enter the questionnaire
   # he will be able to start over.
   def reset_questionnaire_for_emp(emp_id)

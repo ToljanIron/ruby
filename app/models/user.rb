@@ -2,6 +2,7 @@ class User < ActiveRecord::Base
   ROLE_ADMIN   = 'admin'
   ROLE_HR      = 'hr'
   ROLE_EMP     = 'emp'
+  ROLE_MANAGER     = 'manager'
 
   attr_accessor :undigest_token
 
@@ -17,7 +18,13 @@ class User < ActiveRecord::Base
   validates :first_name, length: { maximum: 50 }
   validates :last_name, length: { maximum: 40 }
 
-  enum role: [:admin, :hr, :emp]
+  enum role: [:admin, :hr, :emp, :manager]
+  
+  validates :group_id, presence: true, if: :is_manager?
+  
+  def is_manager?
+    return role == ROLE_MANAGER
+  end
 
   scope :not_expired, -> { where('tmp_password_expiry > ?', DateTime.now) }
 

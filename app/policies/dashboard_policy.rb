@@ -1,6 +1,6 @@
 class DashboardPolicy < ApplicationPolicy
   def index?
-    true if user.admin? || user.hr?
+    true if user.admin? || user.hr? || user.manager?
   end
 
   class Scope < Scope

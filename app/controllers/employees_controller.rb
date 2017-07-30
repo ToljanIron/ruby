@@ -14,14 +14,21 @@ class EmployeesController < ApplicationController
     res = cache_read(cache_key)
     if res.nil?
       res = []
-      emp_arr = Employee.by_company(cid, sid).includes(:role).includes(:rank).includes(:age_group).includes(:group).includes(:job_title).includes(:marital_status).includes(:office).includes(:seniority)
+
+      # emp_arr = Employee.by_company(cid, sid).includes(:role).includes(:rank).includes(:age_group).includes(:group).includes(:job_title).includes(:marital_status).includes(:office).includes(:seniority)
+      emp_arr = policy_scope(Employee).by_company(cid, sid).includes(:role).includes(:rank).includes(:age_group).includes(:group).includes(:job_title).includes(:marital_status).includes(:office).includes(:seniority)
+      emp_ids = emp_arr.pluck(:id)
 
       sqlstr =
-        "select emp.id, CONCAT(man.first_name, ' ', man.last_name) as manager_name, man.id as manager_id
-         from employees as emp
-         join employee_management_relations as emr on emr.employee_id = emp.id
-         join employees as man on man.id = emr.manager_id
-         where emp.company_id = #{cid} and relation_type = #{DIRECT} and emp.snapshot_id = #{sid}"
+        "SELECT emp.id, CONCAT(man.first_name, ' ', man.last_name) AS manager_name, man.id AS manager_id
+         FROM employees AS emp
+         JOIN employee_management_relations AS emr ON emr.employee_id = emp.id
+         JOIN employees AS man ON man.id = emr.manager_id
+         WHERE emp.id IN (#{emp_ids.join(',')}) AND
+               emp.company_id = #{cid} AND
+               relation_type = #{DIRECT} AND
+               emp.snapshot_id = #{sid}"
+
       sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
       managers_hash = {}
       sqlres.each do |e|
@@ -45,9 +52,14 @@ class EmployeesController < ApplicationController
     res = cache_read(cache_key)
     if res.nil?
       res = []
+
+      # managers = EmployeeManagementRelation.where(
+      #              employee_id: Employee.by_company(cid, sid).ids,
+      #              relation_type: DIRECT)
       managers = EmployeeManagementRelation.where(
-                   employee_id: Employee.by_company(cid, sid).ids,
+                   employee_id: policy_scope(Employee).by_company(cid, sid).ids,
                    relation_type: DIRECT)
+      
       managers.each do |m|
         res.push m.pack_to_json
       end

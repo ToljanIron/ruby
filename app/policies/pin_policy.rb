@@ -1,6 +1,6 @@
 class PinPolicy < ApplicationPolicy
   def index?
-    true if user.admin? or user.hr?
+    true if user.admin? or user.hr? or user.manager?
   end
 
   def update?

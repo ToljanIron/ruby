@@ -158,6 +158,7 @@ Workships::Application.routes.draw do
   post  'question/create' => 'mobile/questions#create'
   post  'question/remove' => 'mobile/questions#remove'
 
+  post  'questionnaire/send_questionnaire'             => 'mobile/questionnaire#send_questionnaire'
   post  'questionnaire/resend_questionnaire_for_emp'   => 'mobile/questionnaire#send_questionnaire_for_emp'
   post  'questionnaire/reset_questionnaire_for_emp'    => 'mobile/questionnaire#reset_questionnaire_for_emp'
   post  'questionnaire/generate_questionnaire_report'  => 'mobile/questionnaire#generate_questionnaire_report'
