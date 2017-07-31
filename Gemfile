@@ -15,9 +15,8 @@ gem 'uglifier'
 gem 'pg'
 gem 'ejs'
 #gem 'zipruby'
-gem "zipruby-compat", :require => 'zipruby', :git => "https://github.com/jawspeak/zipruby-compatibility-with-rubyzip-fork.git", :tag => "v0.3.7"
+#gem "zipruby-compat", :require => 'zipruby', :git => "https://github.com/jawspeak/zipruby-compatibility-with-rubyzip-fork.git", :tag => "v0.3.7"
 gem 'yui-compressor'
-#gem 'aws-sdk', '1.36.0'
 gem 'aws-sdk', '~> 3.0.0.rc1'
 gem 'awesome_print'
 gem 'database_cleaner'
@@ -43,7 +42,6 @@ gem 'dotenv'
 gem 'meta_request'
 gem "jqcloud-rails"
 gem 'literate_randomizer', '~> 0.4.0'
-#gem "roo"
 gem 'roo-xls', '~>1.1.0'
 gem 'hirb'
 gem 'rack-cors'
@@ -54,7 +52,6 @@ group :development, :test do
   gem 'guard-rspec'
   gem 'erd'
   gem 'spork'
-#  gem 'spork-rails'
   gem 'byebug'
   gem 'guard-spork'
   gem 'jasmine-rails'
@@ -69,7 +66,6 @@ end
 group :test do
   gem 'faker'
   gem 'ruby-prof'
-  #gem 'selenium-webdriver', '2.35.1'
   gem 'capybara'
   gem 'libnotify'
   gem 'factory_girl_rails', '4.2.0'
