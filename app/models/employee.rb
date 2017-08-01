@@ -229,7 +229,7 @@ class Employee < ActiveRecord::Base
     prev_sid = -1 if Employee.where(snapshot_id: prev_sid).count == 0
     raise 'Groups have to be bumped into new snapshot before employees' if (Group.by_snapshot(sid).count == 0)
     create_snapshot_employees(cid, prev_sid, sid)
-    create_snapshot_managers(cid, prev_sid, sid)
+    #create_snapshot_managers(cid, prev_sid, sid)
   end
 
   private

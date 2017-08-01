@@ -15,6 +15,7 @@ namespace :db do
       # do stuff with cid
       PopulateQuestionnaireHelper.run(cid)
       finish_job(t_id) if t_id != 0
+      puts "Done .."
     rescue => e
       puts e.message
       puts e.backtrace.join("\n")

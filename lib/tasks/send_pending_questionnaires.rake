@@ -62,8 +62,8 @@ namespace :db do
           employee = QuestionnaireParticipant.find(email.questionnaire_participant_id).employee
 
           # ExampleMailer.sample_email(email).deliver if VALID_EMAIL_REGEX.match employee.email
-          # email.send_email
-          puts "\n\nWARNING: EMail will not be sent. Check MAILER_ENABLED env var\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
+          email.send_email
+          # puts "\n\nWARNING: EMail will not be sent. Check MAILER_ENABLED env var\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
           
           count += 1
           ap "[#{count}] sent email to #{email.questionnaire_participant.employee.email}: #{email.message}"

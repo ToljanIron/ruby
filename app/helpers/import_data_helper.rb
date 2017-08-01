@@ -1,9 +1,9 @@
 require 'line_processing_context.rb'
 require 'csv'
-require 'roo'
+#require 'roo'
 
 module ImportDataHelper
-  
+  #
   # accepts the company_id of the company in question
   # and a csv string with lines describing company
   # structure, personal info or management structure
@@ -11,7 +11,7 @@ module ImportDataHelper
   # creates and/or connects the objects in the database
   #
   # returns an array of string error messages
-  
+  #
   EMPLOYEES_CSV  = 1
   MANAGMENT_RELATION_CSV = 3
   NETWORK        = 4
@@ -195,7 +195,7 @@ module ImportDataHelper
   def process_xls_groups(parsed, company_id, csv_line, csv_line_number)
     date = parsed[4] || Time.now
     date = date.strftime('%Y-%m-%d')
-    name = safe_titleize(format_string(parsed[1]))
+    name = safe_titleize(parsed[1])
     english_name = safe_titleize(format_string(parsed[5]))
     group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
     group_context.attrs.merge!(
