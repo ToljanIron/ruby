@@ -185,6 +185,10 @@ class Employee < ActiveRecord::Base
   def self.build_from_hash(attrs)
     errors = []
     processed_attrs = attrs.clone
+
+    sid = Snapshot.last_snapshot_of_company(processed_attrs[:company_id])
+    processed_attrs[:snapshot_id] = sid
+
     alias_emails  = processed_attrs.delete(:alias_emails)   if processed_attrs[:alias_emails]
     qualifications = processed_attrs.delete(:qualifications) if processed_attrs[:qualifications]
 
@@ -195,14 +199,14 @@ class Employee < ActiveRecord::Base
     rank = processed_attrs.delete(:rank) if  processed_attrs[:rank]
     role = processed_attrs.delete(:role) if  processed_attrs[:role]
     job_title = processed_attrs.delete(:job_title) if  processed_attrs[:job_title]
-    office_address = processed_attrs.delete(:office_address) if  processed_attrs[:office_address]
+    office_address = processed_attrs.delete(:office_address) || ''
 
     processed_attrs[:work_start_date] = CdsUtilHelper.convert_str_to_date(processed_attrs[:work_start_date]) if valid_attr_field processed_attrs[:work_start_date]
     processed_attrs[:date_of_birth] = CdsUtilHelper.convert_str_to_date(processed_attrs[:date_of_birth]) if valid_attr_field processed_attrs[:alias_emails]
 
     check_enums(processed_attrs, errors)
     begin
-      e = Employee.find_by(external_id: processed_attrs[:external_id], company_id: processed_attrs[:company_id])
+      e = Employee.find_by(external_id: processed_attrs[:external_id], company_id: processed_attrs[:company_id], snapshot_id: sid)
       e.update(processed_attrs) if e
       e = Employee.create!(processed_attrs) unless e
     rescue => e

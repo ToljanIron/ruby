@@ -145,7 +145,7 @@ module ImportDataHelper
       first_name = safe_titleize(parsed[1])
       middle_name = safe_titleize(parsed[2])
       last_name = safe_titleize(parsed[3])
-      email = format_string(email)
+      email = format_string(email.downcase)
       role = format_string(parsed[6])
       job_title = format_string(parsed[8])
       birth_date = parse_date_for_xls(parsed[9])
@@ -215,7 +215,7 @@ module ImportDataHelper
     return nil if (s.nil? || s == '')
     s = s.to_s
     s = s.strip
-    return s.strip.downcase
+    return s.strip
   end
   #################################################################################
 

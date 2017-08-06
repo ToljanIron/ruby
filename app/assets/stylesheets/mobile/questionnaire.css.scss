@@ -201,6 +201,10 @@
               bottom: 15px;
               color: gray;
               margin-top: 5px;
+              overflow: hidden;
+              max-height: 127px;
+              min-height: 55px;
+              text-overflow: ellipsis;
             }
           }
           &.swipe-right {
@@ -220,7 +224,7 @@
           height: 550px;
           .option {
             position: relative;
-            font-size: 60px;
+            font-size: 50px;
             i {
               border: 2px solid rgb(198, 206, 218);
               padding: 15px;
