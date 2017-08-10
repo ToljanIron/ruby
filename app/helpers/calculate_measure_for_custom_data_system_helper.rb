@@ -21,6 +21,139 @@ module CalculateMeasureForCustomDataSystemHelper
   GAUGE   ||= 5
   QUESTIONNAIRE_ONLY ||= 8
 
+  def get_emails_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
+
+    prevgids = Group.find_groups_in_snapshot(currgids, prevsid)
+    curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{calculate_group_top_scores(cid, currsid, currgids).join(',')})" : '1 = 1'
+    prev_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{calculate_group_top_scores(cid, prevsid, prevgids).join(',')})" : '1 = 1'
+    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
+    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
+
+    curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart)
+    prevscores = cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart)
+
+    res = collect_cur_and_prev_results(curscores, prevscores)
+    res = format_emails_scores(res)
+    return res
+  end
+
+  def format_emails_scores(email_scores)
+    res = []
+    email_scores.each do |e|
+      res << {
+        gid: e['group_id'],
+        groupName: e['group_name'],
+        aid: e['algorithm_id'],
+        algoName: e['algorithm_name'],
+        officeName: e['office_name'],
+        curScore: e['cursum'],
+        prevScore: e['prevsum']
+      }
+    end
+    return res
+  end
+
+  def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart)
+    sqlstr = "
+      SELECT sum(cds.score), cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, al.name AS algorithm_name, emps.office_id, off.name AS office_name
+      FROM cds_metric_scores AS cds
+      JOIN groups AS g ON g.id = cds.group_id
+      JOIN algorithms AS al ON al.id = cds.algorithm_id
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN offices AS off ON off.id = emps.office_id
+      WHERE
+        #{group_wherepart} AND
+        #{algo_wherepart} AND
+        #{office_wherepart} AND
+        cds.snapshot_id = #{sid} AND
+        cds.company_id = #{cid}
+      GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
+      ORDER BY sum DESC"
+    return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+  end
+
+  def collect_cur_and_prev_results(curscores, prevscores)
+    res_hash = {}
+    curscores.each do |s|
+      key = s
+      cursum = key.delete('sum')
+      gid = key.delete('group_id')          # Remove group_id and group_name from the key because they
+      group_name = key.delete('group_name') # change every snapshot.
+      res_hash[key] = [cursum, gid, group_name]
+    end
+    res_arr = []
+    prevscores.each do |s|
+      key = s
+      entry = s.dup
+      prevsum = key.delete('sum')
+      key.delete('group_id')     # Remove group_id and group_name from the key because they
+      key.delete('group_name')   # change every snapshot.
+      entry['gid'] = res_hash[key][1]
+      entry['group_name'] = res_hash[key][2]
+      entry['cursum'] = res_hash[key][0].to_i
+      entry['prevsum'] = prevsum.to_i
+      res_arr << entry
+    end
+    return res_arr
+  end
+
+  def calculate_group_top_scores(cid, sid, gids)
+    sqlstr = "
+      SELECT sum(score) AS sum, group_id
+      FROM cds_metric_scores AS cds
+      JOIN groups AS g ON g.id = cds.group_id
+      where
+        g.id IN (#{gids.join(',')}) AND
+        cds.snapshot_id = #{sid} AND
+        cds.company_id = #{cid}
+      GROUP BY group_id
+      ORDER BY sum DESC
+      LIMIT 10"
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return cds_scores.map do |s|
+      s['group_id']
+    end
+  end
+
+  def calculate_algo_top_scores(cid, sid, gids)
+    sqlstr = "
+      SELECT sum(score) AS sum, algorithm_id
+      FROM cds_metric_scores AS cds
+      JOIN groups AS g ON g.id = cds.group_id
+      where
+        g.id IN (#{gids.join(',')}) AND
+        cds.snapshot_id = #{sid} AND
+        cds.company_id = #{cid}
+      GROUP BY algorithm_id
+      ORDER BY sum DESC
+      LIMIT 10"
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return cds_scores.map do |s|
+      s['algorithm_id']
+    end
+  end
+
+  def calculate_office_top_scores(cid, sid, gids)
+    sqlstr = "
+      SELECT sum(score) AS sum, off.id AS office_id
+      FROM cds_metric_scores AS cds
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN offices AS off ON off.id = emps.office_id
+      JOIN groups AS g ON g.id = cds.group_id
+      where
+        g.id IN (#{gids.join(',')}) AND
+        cds.snapshot_id = #{sid} AND
+        cds.company_id = #{cid}
+      GROUP BY off.id
+      ORDER BY sum DESC
+      LIMIT 10"
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    office_ids = cds_scores.map do |s|
+      s['office_id']
+    end
+    return Employee.where(office_id: office_ids).pluck(:id)
+  end
+
   def cds_get_measure_data_for_questionnaire_only(cid, gid)
     groupid_condition = "group_id = #{gid} AND "
     sid = Snapshot.where(company_id: cid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order('id ASC').pluck(:id).last
@@ -152,100 +285,6 @@ module CalculateMeasureForCustomDataSystemHelper
     }
   end
 
-  def cds_get_flag_data(companyid, pinid, gid, cm)
-    raise 'Ambiguous sub-group request with both pin-id and group-id' if pinid != -1 && gid != -1
-    recent_snapshot = Snapshot.where(company_id: companyid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order(id: :asc).last
-    raise "No snapshots in system. can't calculate measure" if recent_snapshot.nil?
-    graph_data = cds_flag_init_graph_data(cm.metric_id, 'flag')
-    data = { ret_list: {}, graph_data: graph_data }
-    groups = [gid]
-    db_data = CdsMetricScore.where(company_id: companyid, algorithm_id: cm.algorithm_id, snapshot_id: recent_snapshot.id).select do |row|
-      if pinid != NO_PIN
-        row[:pin_id] == pinid && row[:score] != 0.to_f
-      elsif gid != NO_GROUP # && (gid != top_group_id)
-        groups.include?(row[:group_id]) && row[:score] != 0.to_f
-      else
-        row[:pin_id].nil? && row[:group_id].nil? && row[:score] != 0.to_f
-      end
-    end
-    data[:company_metric_id] = cm.id
-    data[:analyze_company_metric_id] = cm.analyze_company_metric_id
-    data[:graph_data] = graph_data
-    data[:name] = graph_data[:measure_name]
-    pos_doubles = db_data.map { |row| { id: row[:employee_id].to_i } }
-    data[:ret_list] = screen_doubles(pos_doubles)
-    data[:ret_list] = data[:ret_list].take(50)
-    return data
-  end
-
-  def screen_doubles(arr)
-    new_arr = []
-    arr.each do |doub|
-      new_arr.push(doub) unless new_arr.include?(doub)
-    end
-    return new_arr
-  end
-
-  def cds_get_gauge_data(companyid, pinid, gid, cm)
-    raise 'Ambiguous sub-group request with both pin-id and group-id' if pinid != -1 && gid != -1
-    recent_snapshot = Snapshot.where(company_id: companyid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order(id: :asc).last
-    raise "No snapshots in system. can't calculate measure" if recent_snapshot.nil?
-    graph_data = cds_flag_init_graph_data(cm.metric_id, 'gauge')
-    data = { graph_data: graph_data }
-    group_id = (gid == NO_GROUP ? pinid : gid)
-    gauge_value = get_gauge_value(companyid, cm, cm.algorithm_id, recent_snapshot.id, group_id)
-    gauge_params = calculate_and_save_gauge_parameters(companyid, cm.algorithm_id, recent_snapshot.id, cm)
-    data[:company_metric_id] = cm.id
-    data[:analyze_company_metric_id] = cm.analyze_company_metric_id
-    data[:rate]             = gauge_value.nil? ? -1 : gauge_value[:score]
-    data[:min_range]        = gauge_params[:min_range]
-    data[:min_range_wanted] = gauge_params[:min_range_wanted]
-    data[:max_range]        = gauge_params[:max_range]
-    data[:max_range_wanted] = gauge_params[:max_range_wanted]
-    data[:background_color] = gauge_params[:background_color]
-    data[:algorithm_id]     = cm.algorithm_id
-    data[:algorithm_name]   = cm.algorithm.name
-    return data
-  end
-
-  def get_gauge_value(cid, cm, aid, sid, gid)
-    gauge_value = CdsMetricScore.where(company_id: cid, company_metric_id: cm.id, algorithm_id: aid, snapshot_id: sid, group_id: gid).last
-    return gauge_value
-  end
-
-  # If the gauge parameters are already in the database then return them
-  # Otherwise calculate them, save in db and return
-  def calculate_and_save_gauge_parameters(cid, aid, sid, company_metric)
-    gauge_configuration = company_metric.gauge_configuration
-    # if gauge_configuration.configuration_is_empty?
-    gauge_params = AlgorithmsHelper.calculate_gauge_parameters(cid, aid, sid, company_metric.id)
-    # If the minimum and maximum settings are set in the database then we need
-    # to copy them and re-scale the mid-range values
-    if gauge_configuration.configuration_is_preconfigured?
-      oldmin    = gauge_params[:min_range]
-      oldmax    = gauge_params[:max_range]
-      oldmidmin = gauge_params[:min_range_wanted]
-      oldmidmax = gauge_params[:max_range_wanted]
-
-      newmin = gauge_configuration.static_minimum
-      newmax = gauge_configuration.static_maximum
-
-      gauge_params[:min_range] = gauge_configuration.static_minimum
-      gauge_params[:max_range] = gauge_configuration.static_maximum
-      min_range_wanted = newmin + ((oldmidmin - oldmin).to_f * (newmax - newmin).to_f / (oldmax - oldmin).to_f).round(2)
-      max_range_wanted = newmin + ((oldmidmax - oldmin).to_f * (newmax - newmin).to_f / (oldmax - oldmin).to_f).round(2)
-      if min_range_wanted.nan?
-        min_range_wanted = -0.5
-        max_range_wanted = 0.5
-      end
-      gauge_params[:min_range_wanted] = min_range_wanted
-      gauge_params[:max_range_wanted] = max_range_wanted
-    end
-    gauge_configuration.populate(gauge_params, cid)
-    return gauge_params
-    # end
-  end
-
   def cds_get_analyze_data_questionnaire_only(cid, pid, gid, company_metrics, sid)
     res = {}
     all_scores_data = cds_fetch_analyze_scores(cid, sid, pid, gid, company_metrics.pluck(:id))
@@ -274,58 +313,6 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
-  def cds_get_analyze_data(cid, pid, gid, company_metrics, sid)
-    
-    res = {}
-    all_scores_data = cds_fetch_analyze_scores(cid, sid, pid, gid, company_metrics.pluck(:id))
-    snapshot = Snapshot.find(sid)
-    raise "No snapshots in system. can't calculate measure" if snapshot.nil?
-    dt = snapshot.timestamp.to_i
-    snapshot_date = snapshot.timestamp.strftime('%b %Y')
-
-    company_metrics.each do |cm|
-      scores_data = all_scores_data.select { |m| m[:company_metric_id] == cm.id }
-      employee_scores_hash = scores_data.map { |row| { id: row[:employee_id], rate: row[:score].to_f * 10 } }
-      employee_scores_hash = normalize_by_attribute(employee_scores_hash, :rate, 100)
-      network_ids = get_network_list_to_compay_mertic(cm)
-      metric_names = get_ui_level_names(cm)
-      metric_names.each do |uil_id, metric_name|
-        data = if employee_scores_hash.empty?
-                 { degree_list: [], measure_name: metric_name, measure_id: cm.algorithm_id, network_ids: network_ids }
-               else
-                 { degree_list: employee_scores_hash, dt: dt * 1000, date: snapshot_date, measure_name: metric_name, measure_id: cm.id, network_ids: network_ids }
-               end
-        res[uil_id] = data if !data.nil? && !data[:degree_list].empty?
-      end
-    end
-    return res
-  end
-
-  def get_questionnaire_algorithms(algorithm_id)
-    algorithm = Algorithm.find_by(id: algorithm_id)
-    return !algorithm.nil? && algorithm.algorithm_type_id == 3 && algorithm.algorithm_flow_id == 1
-  end
-
-  def cds_get_network_and_metric_names(cid, algorithm_type_id)
-    res = {}
-    relevant_company_metrics = CompanyMetric.where(company_id: cid, algorithm_type_id: algorithm_type_id)
-    relevant_company_metrics.each do |company_metric|
-      network_name = get_network_name(company_metric.network_id)
-      metric_name = get_metric_name(company_metric.metric_id)
-      if res.keys.include?(network_name)
-        next if res[network_name].include?(metric_name)
-        res[network_name] = res[network_name].push(metric_name)
-        next
-      end
-      res[network_name] = [metric_name]
-    end
-    return res
-  end
-
-  def cds_get_flagged_employees(cid, gid, company_metric_id, sid)
-    algorithm_id = CompanyMetric.find(company_metric_id).algorithm_id
-    return CdsMetricScore.where(algorithm_id: algorithm_id, company_id: cid, group_id: gid, snapshot_id: sid).where('score != ?', 0).pluck(:employee_id).uniq
-  end
 
   def get_network_name(network_id)
     return NetworkName.where(id: network_id).first.name
@@ -376,59 +363,6 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
-  def cds_get_group_measure_data(cid, gid, cm)
-    algorithm_id = cm.algorithm_id
-    result = { snapshots: {}, graph_data: { data: { values: [] } } }
-    gid = Group.get_parent_group(cid).pluck(:id) if gid.nil?
-    subgroups = Group.where(parent_group_id: gid).pluck(:id)
-    return nil if subgroups.empty?
-    data = CdsMetricScore.where(algorithm_id: algorithm_id, company_id: cid, subgroup_id: subgroups.to_a).order('score DESC')
-    return nil if data.map { |row| row[:score] }.max.zero?
-    Snapshot.where(company_id: cid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order(id: :asc).pluck(:id).each do |snapshot_id|
-      snapshot_data = data.select { |record| record[:snapshot_id] == snapshot_id }.map do |record|
-        { main_group_id: record[:group_id], group_id: record[:subgroup_id], score: record[:score].to_f }
-      end
-      next if snapshot_data.empty?
-      company_data = snapshot_data.select { |record| record[:main_group_id].nil? }
-      snapshot_data.delete_if { |record| record[:main_group_id].nil? }
-      snapshot_average = snapshot_data.inject(0) { |a, e| a + e[:score] } / snapshot_data.length
-      company_snapshot_average = company_data.inject(0) { |a, e| a + e[:score] } / company_data.length
-      result[:snapshots][snapshot_id.to_s] = snapshot_data
-      result[:graph_data][:data][:values] << [snapshot_id, snapshot_average.round(2), company_snapshot_average.round(2)]
-    end
-    result[:graph_data][:measure_name] = MetricName.find(cm.metric_id).name
-    return result unless result[:snapshots].empty?
-    return
-  end
-
-  def cds_get_network_dropdown_list_for_tab_for_questionnaire_only(cid)
-    ret = []
-    cms = CompanyMetric.where(algorithm_type_id: QUESTIONNAIRE_ONLY, company_id: cid)
-    cms.each do |cm|
-      ret << CompanyMetric.generate_metric_name_for_questionnaire_only(cm.network.name, cm.algorithm_id)
-    end
-    return ret
-  end
-
-  def cds_get_network_dropdown_list_for_tab(cid, tab)
-    company_metrics_with_analyzed_company_metric_id = CompanyMetric.where("company_id = #{cid} AND analyze_company_metric_id IS NOT null").pluck(:id)
-    query = "select ulc4.name, company_metric_id from ui_level_configurations as ulc4
-             where company_id = #{cid} AND ulc4.level = 4 AND ulc4.parent_id IN
-              (select id from ui_level_configurations as ulc3
-               where ulc3.level = 3 AND ulc3.parent_id IN
-               (select id from ui_level_configurations as ulc2
-                where ulc2.level = 2 and ulc2.parent_id = #{tab.id}
-              )
-             ) and ulc4.company_metric_id in (#{company_metrics_with_analyzed_company_metric_id.join(',')})
-             order by ulc4.name"
-    res = []
-    if company_metrics_with_analyzed_company_metric_id.any?
-      ans = ActiveRecord::Base.connection.select_all(query)
-      ans.map { |t| res.push(t['name']) }
-    end
-    return res
-  end
-
   private
 
   def cds_get_data_to_relation(company_metric, algorithm_flow_id, sid, pid, gid)
@@ -447,35 +381,11 @@ module CalculateMeasureForCustomDataSystemHelper
     cds_create_edges_array_for_email_analyze(emps_in_pin, true, dt)
   end
 
-  def cds_fetch_analyze_scores(cid, sid, pid, gid, company_metric_ids)
-    pid = nil if pid == NO_PIN
-    unless Company.find(cid).questionnaire_only?
-      #gid = nil if gid == NO_GROUP || Group.find(gid).parent_group_id.nil?
-    end
-    other_emp_id = Employee.where(email: 'other@mail.com').first.try(:id)
-    db_data = CdsMetricScore.where(
-      company_id: cid,
-      snapshot_id: sid,
-      company_metric_id: company_metric_ids,
-      pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
-    return db_data
-  end
-
   def cds_empty_snapshots?(snapshots)
     snapshots.each do |_key, snapshot|
       return false if !snapshot.empty? && snapshot.map { |el| el[:measure] }.max.nonzero?
     end
     return true
-  end
-
-  def cds_flag_init_graph_data(metric_id, type='na')
-    time = DateTime.parse(Time.now.to_s).strftime('%B %d, %Y')
-    metric_name = get_metric_name(metric_id)
-    return {
-      measure_name: metric_name,
-      last_updated: time,
-      type: type
-    }
   end
 
   def number_of_employees(cid, pid, gid, sid=nil)
@@ -496,33 +406,11 @@ module CalculateMeasureForCustomDataSystemHelper
     end
   end
 
-  def cds_create_edges_array_for_email_analyze(emps, normalize = true, dt = nil)
-    relation_arr = []
-    snapshots_as_hash = emps.to_hash
-    weights = weight_algorithm(emps, normalize)
-    snapshots_as_hash.each_with_index do |node, index|
-      from_emp = node['from_employee_id'].to_i
-      to_emp = node['to_employee_id'].to_i
-      weight = weights[index]
-      relation_arr << { from_emp_id: from_emp, to_emp_id: to_emp, weight: weight, dt: dt }
-    end
-    return relation_arr
-  end
-
   def get_relevant_company_metrics(cid)
     if Company.find(cid).questionnaire_only?
       return CompanyMetric.where(company_id: cid, algorithm_type_id: QUESTIONNAIRE_ONLY)
     else
       return CompanyMetric.where(company_id: cid, algorithm_type_id: ANALYZE)
     end
-  end
-
-  def filter_by_overlay_connections(data, oegid, oeid, sid)
-    employee_ids = OverlaySnapshotData.pick_employees_by_group_and_snapshot(oegid, sid) unless oegid.nil?
-    employee_ids = OverlaySnapshotData.pick_employees_by_id_and_snapshot(oeid, sid) unless oeid.nil?
-    data.keys.each do |metric|
-      data[metric.to_i][:degree_list] = data[metric.to_i][:degree_list].select { |obj| employee_ids.include? obj[:id] }
-    end
-    data
   end
 end

@@ -376,7 +376,6 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     cid = current_user.company_id
     employee_id = params[:employee_id].to_i
-    
     render(json: Oj.dump(error: 'Forbidden'), status: 403) if !is_user_allowed_to_view_emp(employee_id, current_user.group_id)
 
     cache_key = "show_employee_measures-#{cid}-#{employee_id}"
@@ -386,6 +385,40 @@ class MeasuresController < ApplicationController
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
+  end
+
+  def get_emails_scores
+    puts 'Need to implement group level authorization !!!!!!'
+    authorize :measure, :index?
+
+    permitted = params.permit(:gids, :currsid, :prevsid, :limit, :offset, :agg_method)
+
+    cid = current_user.company_id
+    gids = permitted[:gids].split(',')
+    currsid = permitted[:currsid]
+    prevsid = permitted[:prevsid]
+    limit = permitted[:limit] || 10
+    offset = permitted[:offset] || 0
+    agg_method = format_aggregation_method( permitted[:agg_method] )
+
+
+    raise 'currsid and prevsid can not be empty' if (currsid == nil || prevsid == nil)
+
+    cache_key = "get_emails_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
+    res = cache_read(cache_key)
+    if res.nil?
+      res = get_emails_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method)
+      cache_write(cache_key, res)
+    end
+    render json: Oj.dump(res)
+
+  end
+
+  def format_aggregation_method(agg_method)
+    return 'group_id'     if agg_method == 'groupName'
+    return 'office_id'    if agg_method == 'officeName'
+    return 'algorithm_id' if agg_method == 'algoName'
+    raise 'Unrecognized aggregation method'
   end
 
   def show_snapshot_list

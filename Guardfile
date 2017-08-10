@@ -12,31 +12,9 @@ group :specs, halt_on_fail: true do
     watch(%r{^lib/(.+)(\.rb|\.rake)$})                  { |m| "spec/lib/#{m[1]}_spec.rb" }
     watch(%r{^app/controllers/(.+)_(controller)\.rb$})  { |m| ["spec/routing/#{m[1]}_routing_spec.rb", "spec/#{m[2]}s/#{m[1]}_#{m[2]}_spec.rb", "spec/acceptance/#{m[1]}_spec.rb"] }
   end
-
-  guard :shell do
-   watch(%r{.+\.rb$}) do |m|
-      res = `rubocop #{m[0]}`
-      if !res.include? 'no offenses detected'
-        puts `rubocop #{m[0]}`.red if res.include? 'E:'
-        puts `rubocop #{m[0]}`.yellow if res.include? 'C:'
-        puts `rubocop #{m[0]}`.yellow if res.include? 'W:'
-      end
-    end
-  end
-
 end
 
 =begin
-guard 'spork', rspec_env: { 'RAILS_ENV' => 'test' } do
-  watch('config/application.rb')
-  watch('config/environment.rb')
-  watch('config/environments/test.rb')
-  watch(%r{^config/initializers/.+\.rb$})
-  watch('Gemfile.lock')
-  watch('spec/spec_helper.rb') { :rspec }
-end
-=end
-
 guard :shell do
 
   watch(/assets\/javascripts\/(.*)\.js$/) do
@@ -99,7 +77,7 @@ guard :shell do
     if `jslint #{args} #{m[0]}|grep 'is OK.'`.length == 0
       n "#{m[0]} is incorrect", 'JavaScript Syntax', :failed
       puts `jslint #{args} #{m[0]}`.yellow
-    end 
+    end
   end
 
   watch(%r{^spec/javascripts/(.*)\.js$}) do |m|
@@ -109,14 +87,5 @@ guard :shell do
       puts `jslint #{args} #{m[0]}`.yellow
     end
   end
-
-=begin
-  watch(%r{^app/assets/(.*)\.(.*)css$}) do |m|
-    if `scss-lint #{m[0]}`.length != 0
-      n "#{m[0]} is incorrect", 'css Syntax', :failed
-      `scss-lint #{m[0]}`.yellow
-    end
-  end
-=end
-
 end
+=end

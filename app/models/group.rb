@@ -185,4 +185,22 @@ class Group < ActiveRecord::Base
     new_group = Group.where(external_id: external_id, snapshot_id: sid).last
     return new_group.id
   end
+
+  ## Same as above, only for multiple groups at once
+  def self.find_groups_in_snapshot(gids, sid)
+    return [] if gids.length == 0
+    sqlstr = "
+      SELECT yg.id
+      FROM groups AS xg
+      JOIN groups AS yg on xg.external_id = yg.external_id
+      WHERE
+        xg.id IN (#{gids.join(',')}) AND
+        yg.snapshot_id = #{sid}"
+   sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_a
+   res = []
+   sqlres.each do |e|
+     res << e['id']
+   end
+   return res
+  end
 end
