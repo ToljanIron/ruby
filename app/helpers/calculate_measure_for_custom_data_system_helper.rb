@@ -23,9 +23,11 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_emails_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
 
-    prevgids = Group.find_groups_in_snapshot(currgids, prevsid)
-    curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{calculate_group_top_scores(cid, currsid, currgids).join(',')})" : '1 = 1'
-    prev_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{calculate_group_top_scores(cid, prevsid, prevgids).join(',')})" : '1 = 1'
+    currtopgids = calculate_group_top_scores(cid, currsid, currgids)
+    prevtopgids = Group.find_groups_in_snapshot(currtopgids, prevsid)
+
+    curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
+    prev_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
     algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
     office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
 
