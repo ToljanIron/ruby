@@ -74,4 +74,81 @@ module CdsGroupsHelper
     end
     return level
   end
+
+  def self.groups_with_sizes(gids)
+    sqlstr = "
+      SELECT g.id AS group_id, g.name AS group_name, g.parent_group_id AS parent_id,
+        (SELECT count(*)
+         FROM employees AS emps
+         WHERE emps.group_id = g.id) AS num_of_emps
+      FROM groups AS g
+      WHERE g.id in (#{gids.join(',')})"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    ret = format_names_and_child_groups(res)
+    return ret
+  end
+
+  ## 1st pass - Create all linear time properties and create an index
+  ## 2nd pass - Use index to get children list
+  ## 3rd pass - Use index to calculate group's depth
+  ## 4th pass - Use index to calculate group's accumulated size
+  def self.format_names_and_child_groups(groups_hash)
+    is_investigation_mode = CompanyConfigurationTable::is_investigation_mode?
+    groups_inx = {}
+    root_gid = nil
+    groups_hash.each do |g|
+      group = {}
+      gid = g['group_id']
+      pgid = g['parent_id']
+      group[:gid] = gid
+      root_gid = gid if pgid.nil?
+      group[:name] = !is_investigation_mode ? g['group_name'] : "#{g['group_id']}-#{g['group_name']}"
+      group[:parentId] = pgid
+      group[:size] = g['num_of_emps']
+      group[:childrenIds] = []
+      group[:accumulatedSize] = -1
+      groups_inx[gid] = group
+    end
+
+    ## find children ids
+    groups_inx.each do |k, g|
+      pgid = g[:parentId]
+      next if pgid.nil?
+      groups_inx[pgid][:childrenIds] << g[:gid]
+    end
+
+    ## calculate depth
+    group_depth(groups_inx, root_gid, 0)
+
+    ## Recursively calculate groups accoumulated sizes
+    group_accoumulated_size(groups_inx, root_gid)
+
+    return groups_inx
+  end
+
+  def self.group_depth(groups_inx, gid, depth)
+    groups_inx[gid][:depth] = depth
+    child_ids = groups_inx[gid][:childrenIds]
+    child_ids.each do |cgid|
+      group_depth(groups_inx, cgid, depth + 1)
+    end
+  end
+
+  def self.group_accoumulated_size(groups_inx, gid)
+    group = groups_inx[gid]
+    accsize = group[:size]
+    group[:childrenIds].each do |cgid|
+      child_group = groups_inx[cgid]
+      if (child_group[:accumulatedSize] > -1)
+        accsize += child_group[:accumulatedSize]
+      elsif (child_group[:childrenIds].length == 0)
+        accsize += child_group[:size]
+        child_group[:accumulatedSize] = child_group[:size]
+      else
+        accsize += group_accoumulated_size(groups_inx, cgid)
+      end
+    end
+    group[:accumulatedSize] = accsize == -1 ? group[:size] : accsize
+    return accsize
+  end
 end

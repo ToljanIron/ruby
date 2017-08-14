@@ -24,9 +24,9 @@ class MeasuresController < ApplicationController
     groupid = params[:gid].to_i
 
     groupid = -1 if groupid.zero?
-    
+
     groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-    
+
     snapshot_type = params[:snapshot_type].to_i
     snapshot_type = 1 if snapshot_type.zero?
     measure_types = params[:measure_types]

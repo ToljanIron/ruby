@@ -1,3 +1,6 @@
+require 'oj'
+require 'oj_mimic_json'
+
 include SessionsHelper
 include CdsGroupsHelper
 include CdsUtilHelper
@@ -18,7 +21,8 @@ class GroupsController < ApplicationController
       res.push CdsGroupsHelper.convert_formal_structure_to_group_id_child_groups_pairs(parent_group_id)
       cache_write(cache_key, res)
     end
-    render json: { formal_structure: res }, status: 200
+    res = { formal_structure: res }
+    render json: Oj.dump(res), status: 200
   end
 
   def groups
@@ -31,19 +35,12 @@ class GroupsController < ApplicationController
     cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
-      
-      # groups = Group.by_snapshot(sid)
-      groups = policy_scope(Group).by_snapshot(sid)
-      
-      res = []
-      groups.each do |g|
-        res.push g.pack_to_json
-      end
+      groups_ids = policy_scope(Group).by_snapshot(sid).select(:id).pluck(:id)
+      rails 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
+      res = CdsGroupsHelper.groups_with_sizes(groups_ids)
       cache_write(cache_key, res)
     end
-    (0..res.length).each do |index|
-      res[index].merge!({selected: false }) unless res[index].nil?
-    end
-    render json: { groups: res }, status: 200
+    res = { groups: res }
+    render json: Oj.dump(res), status: 200
   end
 end
