@@ -1,8 +1,31 @@
+require 'oj'
+require 'oj_mimic_json'
+
+include CdsUtilHelper
+
 class SnapshotsController < ApplicationController
   def list_snapshots
     authorize :snapshot, :index?
     res = build_json
     render json: { snapshots: res }, status: 200
+  end
+
+  def get_snapshots
+    authorize :snapshot, :index?
+    limit = params[:limit] || 20
+    cid = current_user.company_id
+    cache_key = "get_snapshots-lim#{limit}-cid#{cid}"
+    res = cache_read(cache_key)
+    if res.nil?
+      snapshots = Snapshot.where(company_id: 11, status: :active).order('timestamp DESC').limit(20)
+      res = []
+      snapshots.each do |s|
+        res << {sid: s.id, name: s.name}
+      end
+      res = Oj.dump(res)
+      cache_write(cache_key, res)
+    end
+    render json: res
   end
 
   private

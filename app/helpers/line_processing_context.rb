@@ -80,7 +80,7 @@ module LineProcessingContextClasses
         cid = @attrs[:company_id]
 
         g = Group.find_by(company_id: cid, external_id: @attrs[:external_id], snapshot_id: @sid)
-        
+
         g.update(name: @attrs[:name]) if (@attrs[:name] && !g.nil? && g.name != @attrs[:name])
         g.update(color_id: choose_random_color) if (!g.nil? && g.color_id.nil?)
 

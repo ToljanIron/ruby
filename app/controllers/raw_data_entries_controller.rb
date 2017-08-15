@@ -1,5 +1,5 @@
 class RawDataEntriesController < ApiController
-  require 'zipruby'
+  require 'zip'
   include RawDataEntriesHelper
 
   def new

@@ -40,6 +40,7 @@ class Questionnaire < ActiveRecord::Base
     save!
   end
 
+
   # Reset the questionnaire for this employee. Next time he will enter the questionnaire
   # he will be able to start over.
   def reset_questionnaire_for_emp(emp_id)

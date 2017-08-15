@@ -173,4 +173,39 @@ describe Group, type: :model do
       expect(Group.where(snapshot_id: 100).first.name).to eq('group_1')
     end
   end
+
+  describe 'find_groups_in_snapshot' do
+
+    before do
+      FactoryGirl.create_list(:group, 4, snapshot_id: 3)
+      Group.create_snapshot(1, 3, 4)
+      @gids = Group.where(snapshot_id: 3).pluck(:id)
+    end
+
+    it 'should return array of same size and values of type Integer' do
+      res = Group.find_groups_in_snapshot(@gids, 4)
+      expect(res.length).to eq(4)
+      expect(res[0].class).to eq(Integer)
+    end
+
+    it 'should return empty if groups argument is empty' do
+      res = Group.find_groups_in_snapshot([], 4)
+      expect(res.length).to eq(0)
+    end
+
+    it 'should return nil if target snapshot does not exist' do
+      res = Group.find_groups_in_snapshot([], 5)
+      expect(res.length).to eq(0)
+    end
+
+    it 'should return an empty list if gids do not exist in sid' do
+      res = Group.find_groups_in_snapshot([200, 201], 4)
+      expect(res.length).to eq(0)
+    end
+
+    it 'should return a partial list if some gids do not exist in sid' do
+      res = Group.find_groups_in_snapshot(@gids + [200], 4)
+      expect(res.length).to eq(4)
+    end
+  end
 end

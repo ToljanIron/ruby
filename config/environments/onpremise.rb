@@ -23,7 +23,7 @@ Workships::Application.configure do
   config.serve_static_files = false
 
   # Compress JavaScripts and CSS.
-  config.assets.js_compressor = Uglifier.new(compress: { unsafe: true, hoist_vars: true }, screw_ie8: true) if defined? Uglifier # TODO: on premise doesnt know Uglifier
+  config.assets.js_compressor = Uglifier.new(mangle: false, compress: { unsafe: true, hoist_vars: true }, screw_ie8: true)
   config.assets.css_compressor = :yui
 
   # Disable debug mode that falls back on uncompressed assets

@@ -14,6 +14,7 @@ module CreateSnapshotHelper
 
   def create_company_snapshot_by_weeks(cid, date, create_measures_snapshots = true)
     end_date = calculate_end_date_of_snapshot(date, cid)
+    prev_sid = Snapshot.last_snapshot_of_company(cid)
     name = create_snapshot_by_week_name(end_date, cid)
     if !exist_snapshot?(cid, name)
       snapshot = Snapshot.create(name: name, snapshot_type: nil, timestamp: end_date, company_id: cid)
@@ -22,7 +23,7 @@ module CreateSnapshotHelper
     end
 
     sid = snapshot.id
-    prev_sid = Snapshot.last_snapshot_of_company(cid)
+    puts "Current sid: #{sid}, prev_sid: #{prev_sid}"
 
     puts "Creating groups snapshot"
     Group.create_snapshot(cid, prev_sid, sid)
@@ -208,6 +209,7 @@ module CreateSnapshotHelper
   end
 
   def process_out_of_domain_transactions(raw_data_entries, sid)
+    return
     cid = Snapshot.where(id: sid).first.try(:company_id)
     emps = Employee.by_snapshot(sid)
     emps_hash = Hash.new(emps.length)

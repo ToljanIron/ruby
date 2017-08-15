@@ -178,4 +178,9 @@ Workships::Application.routes.draw do
   post 'v2/mobile_questionnaire/create', to: 'mobile/questionnaire#create_new_questionnaire'
 
   post 'receive_sms', to: 'sms#receive_and_respond'
+
+  ############## v3 #################
+  get 'v3/get_email_scores'                  ,to: 'measures#get_emails_scores'
+  get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'
+  get 'v3/get_groups'                        ,to: 'groups#groups'
 end

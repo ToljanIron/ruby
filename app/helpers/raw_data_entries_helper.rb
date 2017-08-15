@@ -10,7 +10,7 @@ module RawDataEntriesHelper
       raise "process_request: Cannot find company by name '#{company}'"
     end
     return if zipped_str.empty?
-    csv = zip_to_csv(zipped_str)
+    csv = zipped_str #zip_to_csv(zipped_str)
     data = CSV.parse(csv)
     data.shift
     data.each do |element|

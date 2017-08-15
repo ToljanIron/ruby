@@ -131,13 +131,13 @@ module PopulateQuestionnaireHelper
     network = NetworkSnapshotData.emails(company_id)
     emp_array = NetworkSnapshotData.select("to_employee_id, count(id) as sm")
                                    .where(network_id: network, snapshot_id: last_snapshot.id, from_employee_id: emp.id)
-                                   .group(to_employee_id)
-    emp_array = emp_array.map {|e| {employee_to_id: e.employee_to_id, sum: e.sm}}
+                                   .group(:to_employee_id)
+    emp_array = emp_array.map {|e| {to_employee_id: e.to_employee_id, sum: e.sm}}
     emp_array = emp_array.sort {|a,b| b[:sum] <=> a[:sum] }
     res = {}
-    res =            emp_array[0..4].map   { |e| [e[:employee_to_id], PEER_RECEIVER * 3] }.to_h
-    res = res.merge( emp_array[5..15].map  { |e| [e[:employee_to_id], PEER_RECEIVER * 2] }.to_h ) if !emp_array[5..15].nil?
-    res = res.merge( emp_array[16..-1].map { |e| [e[:employee_to_id], PEER_RECEIVER]     }.to_h )     if !emp_array[16..-1].nil?
+    res =            emp_array[0..4].map   { |e| [e[:to_employee_id], PEER_RECEIVER * 3] }.to_h
+    res = res.merge( emp_array[5..15].map  { |e| [e[:to_employee_id], PEER_RECEIVER * 2] }.to_h ) if !emp_array[5..15].nil?
+    res = res.merge( emp_array[16..-1].map { |e| [e[:to_employee_id], PEER_RECEIVER]     }.to_h )     if !emp_array[16..-1].nil?
     puts "Emps who are email peers for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
     ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
     return res
