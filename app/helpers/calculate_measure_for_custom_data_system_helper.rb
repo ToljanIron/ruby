@@ -57,12 +57,14 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart)
     sqlstr = "
-      SELECT sum(cds.score), cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, al.name AS algorithm_name, emps.office_id, off.name AS office_name
+      SELECT sum(cds.score), cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name, emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
       JOIN groups AS g ON g.id = cds.group_id
-      JOIN algorithms AS al ON al.id = cds.algorithm_id
+      JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
+      JOIN algorithms AS al ON al.id = cm.algorithm_id
+      INNER JOIN metric_names AS mn ON mn.id = cm.metric_id
       JOIN employees AS emps ON emps.id = cds.employee_id
-      JOIN offices AS off ON off.id = emps.office_id
+      INNER JOIN offices AS off ON off.id = emps.office_id
       WHERE
         #{group_wherepart} AND
         #{algo_wherepart} AND
