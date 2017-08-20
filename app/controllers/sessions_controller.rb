@@ -65,9 +65,19 @@ class SessionsController < ApplicationController
 
   def payload(user)
     return nil unless user and user.id
-      {
-        auth_token: JsonWebToken.encode({user_id: user.id}),
-        user: {id: user.id, email: user.email}
+
+    return  {
+        login_token: {
+            auth_token: JsonWebToken.encode({user_id: user.id}),
+            user: {id: user.id, email: user.email}
+          },
+        user_info: {
+            email: user.email,
+            first_name: user.first_name,
+            last_name: 'NA',
+            user_type: user.role,
+            reports_encryption_key: user.document_encryption_password
+          }
       }
   end
 

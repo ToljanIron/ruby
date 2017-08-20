@@ -75,4 +75,17 @@ class UsersController < ApplicationController
       render 'sessions/signin', layout: 'signin_layout'
     end
   end
+
+  def user_details
+    authorize :application, :passthrough
+    user = current_user
+    ret = {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: 'NA',
+        user_type: user.role,
+        reports_encryption_key: user.document_encryption_password
+      }
+    render json: ret, status: 200
+  end
 end
