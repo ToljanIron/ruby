@@ -17,7 +17,7 @@ class SettingsController < ApplicationController
 
 		current_user.update_user_info(first_name, last_name, doc_encryption_pass)
 
-  	render status: 200
+  	head :ok
   end
 
   def edit_password
@@ -37,7 +37,7 @@ class SettingsController < ApplicationController
     company = Company.find(current_user.company_id)
 
     if(company.nil?)
-      render render json: { message: 'Cannot find company' }, status:  500
+      render json: { message: 'Cannot find company' }, status:  500
       return
     end
 
@@ -46,6 +46,6 @@ class SettingsController < ApplicationController
     max_login_attempts = params[:login_attempts]
     
     company.update_security_settings(session_timeout, password_update_time_interval, max_login_attempts)
-    render status: 200
+    head :ok
   end
 end
