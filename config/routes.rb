@@ -189,4 +189,5 @@ Workships::Application.routes.draw do
   get 'v3/get_email_scores'                  ,to: 'measures#get_emails_scores'
   get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'
   get 'v3/get_groups'                        ,to: 'groups#groups'
+  get 'v3/get_user_details'                  ,to: 'users#user_details'
 end
