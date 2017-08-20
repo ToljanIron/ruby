@@ -5,7 +5,7 @@ class User < ActiveRecord::Base
   ROLE_MANAGER     = 'manager'
 
   attr_accessor :undigest_token
-
+  
   before_save { self.email = email.downcase }
   before_create :create_remember_token
 
@@ -21,7 +21,9 @@ class User < ActiveRecord::Base
   enum role: [:admin, :hr, :emp, :manager]
   
   validates :group_id, presence: true, if: :is_manager?
-  
+
+  validates :document_encryption_password, length: { minimum: 7 }, :allow_blank => true
+
   def is_manager?
     return role == ROLE_MANAGER
   end
@@ -102,5 +104,22 @@ class User < ActiveRecord::Base
 
   def create_remember_token
     self.remember_token = User.digest(User.new_remember_token)
+  end
+
+  public
+
+  def update_user_info(first_name, last_name, doc_encryption_pass)
+    update_attribute(:first_name, first_name)
+    update_attribute(:last_name, last_name)
+    update_attribute(:document_encryption_password, doc_encryption_pass)
+    return
+  end
+
+  def update_password(old_password, new_password)
+    if(BCrypt::Password.new(password_digest).is_password?(old_password))
+      update!(email: email, password: new_password)
+      return true
+    end
+    return false
   end
 end

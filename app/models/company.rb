@@ -90,4 +90,8 @@ class Company < ActiveRecord::Base
   def questionnaire_only?
     product_type == 'questionnaire_only'
   end
+
+  def update_security_settings(session_timeout, password_update_interval, max_login_attempts)
+    update!(session_timeout: session_timeout, password_update_interval: password_update_interval, max_login_attempts: max_login_attempts)
+  end
 end

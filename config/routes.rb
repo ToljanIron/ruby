@@ -128,14 +128,20 @@ Workships::Application.routes.draw do
   post    'company/diactivate',         to: 'companies#diactivate'
   post    'company/create',             to: 'companies#create'
 
-  post    'setting/set_external_data',  to: 'settings#create_or_update_external_data'
 
-  get     'setting/get_group_individual_state', to: 'utils#fetch_group_individual_state'
-  post     'setting/save_group_individual_state', to: 'utils#save_group_individual_state'
+
+  post    'setting/set_external_data',        to: 'settings#create_or_update_external_data'
+  get     'setting/update_user_info',         to: 'settings#update_user_info'
+  get     'setting/update_security_settings', to: 'settings#update_security_settings'
+  get     'setting/edit_password',            to: 'settings#edit_password'
+
+  get     'setting/get_group_individual_state',  to: 'utils#fetch_group_individual_state'
+  post    'setting/save_group_individual_state', to: 'utils#save_group_individual_state'
+  
   ############ algorithms tests ####
-  get 'algorithms_test/company_reset',           to: 'backend_v_two#company_reset'
-  get 'algorithms_test/company_structure_reset', to: 'backend_v_two#company_structure_reset'
-  get 'algorithms_test/precalculate',            to: 'backend_v_two#precalculate'
+  get     'algorithms_test/company_reset',           to: 'backend_v_two#company_reset'
+  get     'algorithms_test/company_structure_reset', to: 'backend_v_two#company_structure_reset'
+  get     'algorithms_test/precalculate',            to: 'backend_v_two#precalculate'
 
   ############ mobile ###############
 
