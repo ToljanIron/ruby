@@ -74,7 +74,7 @@ class SessionsController < ApplicationController
         user_info: {
             email: user.email,
             first_name: user.first_name,
-            last_name: 'NA',
+            last_name: user.last_name,
             user_type: user.role,
             reports_encryption_key: user.document_encryption_password
           }
