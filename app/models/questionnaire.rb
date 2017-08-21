@@ -1,6 +1,11 @@
 # frozen_string_literal: true
+require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
+require './lib/tasks/modules/create_snapshot_helper.rb'
+
 include Mobile::QuestionnaireHelper
 include XlsHelper
+include PrecalculateMetricScoresForCustomDataSystemHelper
+include CreateSnapshotHelper
 
 class Questionnaire < ActiveRecord::Base
   belongs_to :company
@@ -187,6 +192,7 @@ class Questionnaire < ActiveRecord::Base
     end
 
     update(state: 2)
+    CreateSnapshotHelper::create_company_snapshot_by_weeks(company_id, Time.now.strftime('%Y-%m-%d'), false)
     sid = Mobile::QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
 
     puts "Working on Snapshot: #{sid}"
@@ -215,7 +221,7 @@ class Questionnaire < ActiveRecord::Base
 
     quest_report_raw = ReportHelper.get_questionnaire_report_raw(company_id)
     sheets << quest_report_raw unless quest_report_raw.nil? || quest_report_raw.count == 0
-    
+
     quest_scores_report_raw = parse_gender(ReportHelper.create_interact_report(company_id))
     sheets << hashes_to_arr(quest_scores_report_raw) unless quest_scores_report_raw.nil? || quest_scores_report_raw.count == 0
 

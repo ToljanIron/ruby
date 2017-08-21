@@ -19,7 +19,7 @@ angular.module('workships.directives').directive('filterEmployeeTable', function
       scope.state = StateService;
       function selectedGroups(group_id) {
         if (!group_id) { group_id = scope.state.get("Settings_selected"); }
-        return _.union(_.find(scope.groups, {id: group_id}).child_groups, [group_id]);
+        return _.union(_.find(scope.groups, {gid: group_id}).child_groups, [group_id]);
       }
       function setGroups(res) {
         scope.groups = res;

@@ -101,6 +101,7 @@ module CdsGroupsHelper
       gid = g['group_id']
       pgid = g['parent_id']
       group[:gid] = gid
+      group[:id] = gid
       root_gid = gid if pgid.nil?
       group[:name] = !is_investigation_mode ? g['group_name'] : "#{g['group_id']}-#{g['group_name']}"
       group[:parentId] = pgid
