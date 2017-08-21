@@ -1,6 +1,6 @@
 /*globals angular, document */
 
-angular.module('workships-mobile.directives').directive('stretch', function ($timeout) {
+angular.module('workships-mobile.directives').directive('stretch', ['$timeout', function ($timeout) {
   'use strict';
 
   return {
@@ -13,5 +13,4 @@ angular.module('workships-mobile.directives').directive('stretch', function ($ti
       }, 0);
     }
   };
-
-});
+}]);

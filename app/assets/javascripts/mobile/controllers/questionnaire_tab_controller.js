@@ -1,5 +1,5 @@
 /*globals angular, unused, goBack */
-angular.module('workships-mobile').controller('questionnaireTabController', function ($scope) {
+angular.module('workships-mobile').controller('questionnaireTabController', ['$scope', function ($scope) {
   'use strict';
 
   $scope.init = function (status) {
@@ -28,4 +28,4 @@ angular.module('workships-mobile').controller('questionnaireTabController', func
   $scope.requestResendquestionnaire = function () {
     $scope.status = $scope.RESEND_REQUEST;
   };
-});
+}]);

@@ -1,5 +1,5 @@
 /*globals angular, unused */
-angular.module('workships-mobile').controller('backendQuestionnaireController', function ($scope) {
+angular.module('workships-mobile').controller('backendQuestionnaireController', ['$scope', function ($scope) {
   'use strict';
 
   $scope.init = function (questionnaire) {
@@ -20,4 +20,4 @@ angular.module('workships-mobile').controller('backendQuestionnaireController', 
     $scope.company_in_delete_state[i] = !$scope.company_in_delete_state[i];
   };
 
-});
+}]);

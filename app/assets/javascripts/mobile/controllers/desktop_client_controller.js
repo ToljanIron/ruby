@@ -1,5 +1,5 @@
 /*globals angular, unused, navigator, _, document */
-angular.module('workships-mobile').controller('desktopClientController', function ($scope, ajaxService, mobileAppService, $timeout) {
+angular.module('workships-mobile').controller('desktopClientController', ['$scope', 'ajaxService', 'mobileAppService', '$timeout' ,function ($scope, ajaxService, mobileAppService, $timeout) {
   'use strict';
 
   var WIDTH = 640;
@@ -368,4 +368,4 @@ angular.module('workships-mobile').controller('desktopClientController', functio
       });
     });
   };
-});
+}]);

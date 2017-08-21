@@ -1,5 +1,5 @@
 /*globals angular, _, window, unused */
-angular.module('workships-mobile').controller('companiesDataController', function ($scope, $http) {
+angular.module('workships-mobile').controller('companiesDataController', ['$scope', '$http', function ($scope, $http) {
   'use strict';
 
   function initTabs(selected_tab) {
@@ -98,4 +98,4 @@ angular.module('workships-mobile').controller('companiesDataController', functio
     $scope.question_in_delete_state[i] = !$scope.question_in_delete_state[i];
   };
 
-});
+}]);

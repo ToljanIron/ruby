@@ -1,5 +1,5 @@
 /*globals angular, unused, navigator */
-angular.module('workships-mobile').controller('mobileClientController', function ($scope, ajaxService, mobileAppService) {
+angular.module('workships-mobile').controller('mobileClientController', ['$scope', 'ajaxService', 'mobileAppService', function ($scope, ajaxService, mobileAppService) {
   'use strict';
 
   function initFromParams(data) {
@@ -41,4 +41,4 @@ angular.module('workships-mobile').controller('mobileClientController', function
       initFromParams(response.data);
     });
   };
-});
+}]);

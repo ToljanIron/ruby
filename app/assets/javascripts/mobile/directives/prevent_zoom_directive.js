@@ -1,6 +1,6 @@
 /*globals angular, document */
 
-angular.module('workships-mobile.directives').directive('preventZoom', function ($timeout) {
+angular.module('workships-mobile.directives').directive('preventZoom', ['$timeout', function ($timeout) {
   'use strict';
 
   return {
@@ -21,4 +21,4 @@ angular.module('workships-mobile.directives').directive('preventZoom', function 
     }
   };
 
-});
+}]);

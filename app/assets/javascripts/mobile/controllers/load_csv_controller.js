@@ -1,5 +1,5 @@
 /*globals angular, unused */
-angular.module('workships-mobile').controller('loadCsvController', function ($scope, ajaxService) {
+angular.module('workships-mobile').controller('loadCsvController', ['$scope', 'ajaxService', function ($scope, ajaxService) {
   'use strict';
 
   $scope.init = function () {
@@ -16,4 +16,4 @@ angular.module('workships-mobile').controller('loadCsvController', function ($sc
   };
 
 
-});
+}]);

@@ -1,5 +1,5 @@
 /*globals angular, unused */
-angular.module('workships-mobile').controller('companiesController', function ($scope) {
+angular.module('workships-mobile').controller('companiesController', ['$scope', function ($scope) {
   'use strict';
 
   $scope.init = function (companies_count) {
@@ -20,4 +20,4 @@ angular.module('workships-mobile').controller('companiesController', function ($
     $scope.company_in_delete_state[i] = !$scope.company_in_delete_state[i];
   };
 
-});
+}]);

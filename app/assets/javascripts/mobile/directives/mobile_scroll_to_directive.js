@@ -1,5 +1,5 @@
 /*globals angular, unused, localStorage, _, $, document */
-angular.module('workships-mobile.directives').directive('mobileScrollToDirective', function ($document) {
+angular.module('workships-mobile.directives').directive('mobileScrollToDirective', ['$document', function ($document) {
   'use strict';
   return {
     scope: {
@@ -23,4 +23,4 @@ angular.module('workships-mobile.directives').directive('mobileScrollToDirective
     }
 
   };
-});
+}]);

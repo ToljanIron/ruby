@@ -1,5 +1,5 @@
 /*globals angular, unused */
-angular.module('workships-mobile').controller('firstEnterController', function ($scope) {
+angular.module('workships-mobile').controller('firstEnterController', ['$scope', function ($scope) {
   'use strict';
 
   $scope.init = function () {
@@ -8,4 +8,4 @@ angular.module('workships-mobile').controller('firstEnterController', function (
     $scope.container_height = textContainerSize.height + 'px';
     $scope.container_width = textContainerSize.width - 80 + 'px';
   };
-});
+}]);

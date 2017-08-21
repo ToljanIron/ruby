@@ -1,6 +1,6 @@
 /*globals angular, document */
 
-angular.module('workships-mobile.directives').directive('slotMachineDirective', function ($timeout) {
+angular.module('workships-mobile.directives').directive('slotMachineDirective', ['$timeout', function ($timeout) {
   'use strict';
 
   function transformElemOnY(elem, offset) {
@@ -248,4 +248,4 @@ angular.module('workships-mobile.directives').directive('slotMachineDirective', 
       }, true);
     },
   };
-});
+}]);
