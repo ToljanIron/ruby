@@ -61,24 +61,30 @@ class SessionsController < ApplicationController
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
     end
+
   end
 
   def payload(user)
     return nil unless user and user.id
-
+    
+    company = Company.find(user.company_id)
     return  {
-        login_token: {
-            auth_token: JsonWebToken.encode({user_id: user.id}),
-            user: {id: user.id, email: user.email}
-          },
-        user_info: {
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            user_type: user.role,
-            reports_encryption_key: user.document_encryption_password
-          }
+      login_token: {
+        auth_token: JsonWebToken.encode({user_id: user.id}),
+        user: {id: user.id, email: user.email}
+      },
+      user_info: {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        user_type: user.role,
+        reports_encryption_key: user.document_encryption_password,
+        session_timeout: company.session_timeout,
+        password_update_interval: company.password_update_interval,
+        max_login_attempts: company.max_login_attempts,
+        required_chars_in_password: company.get_required_password_chars
       }
+    }
   end
 
   def forgot_password

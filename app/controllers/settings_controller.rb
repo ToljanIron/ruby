@@ -40,12 +40,13 @@ class SettingsController < ApplicationController
       render json: { message: 'Cannot find company' }, status:  500
       return
     end
-
+    
     session_timeout = params[:session_timeout]
     password_update_time_interval = params[:password_update_time]
     max_login_attempts = params[:login_attempts]
-    
-    company.update_security_settings(session_timeout, password_update_time_interval, max_login_attempts)
+    required_password_chars = params[:required_characters]
+
+    company.update_security_settings(session_timeout, password_update_time_interval, max_login_attempts, required_password_chars)
     head :ok
   end
 end

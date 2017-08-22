@@ -1,5 +1,6 @@
 require 'csv'
 class Company < ActiveRecord::Base
+
   has_many :groups
   has_many :offices
   has_many :domains
@@ -22,6 +23,10 @@ class Company < ActiveRecord::Base
   }
 
   enum product_type: [:full, :questionnaire_only]
+
+  def self.required_chars_options
+    return ['AB', 'ab', '123', '#$%^&']
+  end
 
   def last_snapshot
     snapshots.order(timestamp: :desc).first
@@ -91,7 +96,17 @@ class Company < ActiveRecord::Base
     product_type == 'questionnaire_only'
   end
 
-  def update_security_settings(session_timeout, password_update_interval, max_login_attempts)
-    update!(session_timeout: session_timeout, password_update_interval: password_update_interval, max_login_attempts: max_login_attempts)
+  def update_security_settings(session_timeout, password_update_interval, max_login_attempts, required_password_chars)
+    update!(session_timeout: session_timeout, password_update_interval: password_update_interval, max_login_attempts: max_login_attempts, required_chars_in_password: required_password_chars)
+  end
+
+  def get_required_password_chars
+    arr = required_chars_in_password.split('')
+
+    res  = []
+    Company.required_chars_options.each_with_index { 
+      |type, i| res.push({text: type, enabled: arr[i] ==='1' ? true : false})
+    }
+    return res
   end
 end
