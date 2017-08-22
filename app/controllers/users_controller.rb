@@ -84,7 +84,7 @@ class UsersController < ApplicationController
     ret = {
         email: user.email,
         first_name: user.first_name,
-        last_name: 'NA',
+        last_name: user.last_name,
         user_type: user.role,
         reports_encryption_key: user.document_encryption_password,
         session_timeout: company.session_timeout,
