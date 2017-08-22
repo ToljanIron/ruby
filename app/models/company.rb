@@ -101,10 +101,10 @@ class Company < ActiveRecord::Base
   end
 
   def get_required_password_chars
-    arr = required_chars_in_password.split('')
+    arr = !required_chars_in_password.nil? ? required_chars_in_password.split('') : '0000'
 
     res  = []
-    Company.required_chars_options.each_with_index { 
+    Company.required_chars_options.each_with_index {
       |type, i| res.push({text: type, enabled: arr[i] ==='1' ? true : false})
     }
     return res

@@ -80,7 +80,7 @@ class UsersController < ApplicationController
     authorize :application, :passthrough
     user = current_user
     company = Company.find(current_user.company_id)
-    
+
     ret = {
         email: user.email,
         first_name: user.first_name,
