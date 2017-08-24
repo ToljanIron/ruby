@@ -43,13 +43,13 @@ module CalculateMeasureForCustomDataSystemHelper
     res = []
     email_scores.each do |e|
       res << {
-        gid: e['group_id'],
+        gid: e['gid'],
         groupName: e['group_name'],
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
-        curScore: e['cursum'],
-        prevScore: e['prevsum']
+        curScore: e['cursum'].to_f,
+        prevScore: e['prevsum'].to_f
       }
     end
     return res
