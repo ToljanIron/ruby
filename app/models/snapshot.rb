@@ -8,10 +8,14 @@ class Snapshot < ActiveRecord::Base
   enum snapshot_type: { weekly: 1, monthly: 2, yearly: 3 }
   enum status: [:inactive, :before_precalculate, :active]
   belongs_to :company
-  has_many :friendships_snapshot
-  has_many :advices_snapshot
-  has_many :trusts_snapshots
   has_many :network_snapshot_data
+
+  before_save do
+    self.month = get_month
+    self.quarter = get_quarter
+    self.half_year = get_half_year
+    self.year = get_year
+  end
 
   def pack_to_json
     res = {
@@ -95,4 +99,29 @@ class Snapshot < ActiveRecord::Base
     snapshot.delete
   end
 
+  ######################## Intervals ####################
+
+  def get_month
+    timestamp.strftime('%b%y')
+  end
+
+  def get_quarter
+    month = timestamp.strftime('%m').to_i
+    year = timestamp.strftime('%y')
+    return "Q1/#{year}" if ( [1,2,3].include?(month) )
+    return "Q2/#{year}" if ( [4,5,6].include?(month) )
+    return "Q3/#{year}" if ( [7,8,9].include?(month) )
+    return "Q4/#{year}" if ( [10,11,12].include?(month) )
+  end
+
+  def get_half_year
+    month = timestamp.strftime('%m').to_i
+    year = timestamp.strftime('%y')
+    return "H1/#{year}" if ( [1,2,3,4,5,6].include?(month) )
+    return "H2/#{year}" if ( [7,8,9,10,11,12].include?(month) )
+  end
+
+  def get_year
+    timestamp.strftime('%Y')
+  end
 end
