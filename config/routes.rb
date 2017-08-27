@@ -131,13 +131,10 @@ Workships::Application.routes.draw do
 
 
   post    'setting/set_external_data',        to: 'settings#create_or_update_external_data'
-  get     'setting/update_user_info',         to: 'settings#update_user_info'
-  get     'setting/update_security_settings', to: 'settings#update_security_settings'
-  get     'setting/edit_password',            to: 'settings#edit_password'
 
   get     'setting/get_group_individual_state',  to: 'utils#fetch_group_individual_state'
   post    'setting/save_group_individual_state', to: 'utils#save_group_individual_state'
-  
+
   ############ algorithms tests ####
   get     'algorithms_test/company_reset',           to: 'backend_v_two#company_reset'
   get     'algorithms_test/company_structure_reset', to: 'backend_v_two#company_structure_reset'
@@ -190,4 +187,7 @@ Workships::Application.routes.draw do
   get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'
   get 'v3/get_groups'                        ,to: 'groups#groups'
   get 'v3/get_user_details'                  ,to: 'users#user_details'
+  post 'v3/setting/update_user_info'         ,to: 'settings#update_user_info'
+  post 'v3/setting/update_security_settings' ,to: 'settings#update_security_settings'
+  post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
 end

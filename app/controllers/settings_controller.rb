@@ -7,12 +7,13 @@ class SettingsController < ApplicationController
     res = save_external_data(JSON.parse(params[:data]), cid)
     render json: res
   end
-  
+
   def update_user_info
     authorize :setting, :index?
 
   	first_name = params[:first_name]
   	last_name = params[:last_name]
+
   	doc_encryption_pass = params[:reports_encryption_key]
 
 		current_user.update_user_info(first_name, last_name, doc_encryption_pass)
@@ -40,7 +41,7 @@ class SettingsController < ApplicationController
       render json: { message: 'Cannot find company' }, status:  500
       return
     end
-    
+
     session_timeout = params[:session_timeout]
     password_update_time_interval = params[:password_update_time]
     max_login_attempts = params[:login_attempts]
