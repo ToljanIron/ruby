@@ -21,25 +21,35 @@ module CalculateMeasureForCustomDataSystemHelper
   GAUGE   ||= 5
   QUESTIONNAIRE_ONLY ||= 8
 
-  def get_emails_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
 
-    currtopgids = calculate_group_top_scores(cid, currsid, currgids)
+  def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
+    aids = [800, 801, 802, 803, 804, 805, 806]
+    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+  end
+
+  def get_email_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
+    aids = [700, 701, 702, 703, 704, 705, 706, 707, 708]
+    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+  end
+
+  def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+    currtopgids = calculate_group_top_scores(cid, currsid, currgids, aids)
     prevtopgids = Group.find_groups_in_snapshot(currtopgids, prevsid)
 
     curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
     prev_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
-    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
-    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, gids).join(',')})" : '1 = 1'
+    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
+    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
 
-    curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart)
-    prevscores = cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart)
+    curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart, aids)
+    prevscores = cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
 
     res = collect_cur_and_prev_results(curscores, prevscores)
-    res = format_emails_scores(res)
+    res = format_scores(res)
     return res
   end
 
-  def format_emails_scores(email_scores)
+  def format_scores(email_scores)
     res = []
     email_scores.each do |e|
       res << {
@@ -55,7 +65,7 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
-  def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart)
+  def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart, aids)
     sqlstr = "
       SELECT sum(cds.score), cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name, emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
@@ -70,7 +80,8 @@ module CalculateMeasureForCustomDataSystemHelper
         #{algo_wherepart} AND
         #{office_wherepart} AND
         cds.snapshot_id = #{sid} AND
-        cds.company_id = #{cid}
+        cds.company_id = #{cid} AND
+        cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
     return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -101,7 +112,7 @@ module CalculateMeasureForCustomDataSystemHelper
     return res_arr
   end
 
-  def calculate_group_top_scores(cid, sid, gids)
+  def calculate_group_top_scores(cid, sid, gids, aids)
     sqlstr = "
       SELECT sum(score) AS sum, group_id
       FROM cds_metric_scores AS cds
@@ -109,7 +120,8 @@ module CalculateMeasureForCustomDataSystemHelper
       where
         g.id IN (#{gids.join(',')}) AND
         cds.snapshot_id = #{sid} AND
-        cds.company_id = #{cid}
+        cds.company_id = #{cid} AND
+        cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY group_id
       ORDER BY sum DESC
       LIMIT 10"
@@ -119,7 +131,7 @@ module CalculateMeasureForCustomDataSystemHelper
     end
   end
 
-  def calculate_algo_top_scores(cid, sid, gids)
+  def calculate_algo_top_scores(cid, sid, gids, aids)
     sqlstr = "
       SELECT sum(score) AS sum, algorithm_id
       FROM cds_metric_scores AS cds
@@ -127,7 +139,8 @@ module CalculateMeasureForCustomDataSystemHelper
       where
         g.id IN (#{gids.join(',')}) AND
         cds.snapshot_id = #{sid} AND
-        cds.company_id = #{cid}
+        cds.company_id = #{cid} AND
+        cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY algorithm_id
       ORDER BY sum DESC
       LIMIT 10"
@@ -137,7 +150,7 @@ module CalculateMeasureForCustomDataSystemHelper
     end
   end
 
-  def calculate_office_top_scores(cid, sid, gids)
+  def calculate_office_top_scores(cid, sid, gids, aids)
     sqlstr = "
       SELECT sum(score) AS sum, off.id AS office_id
       FROM cds_metric_scores AS cds
@@ -147,7 +160,8 @@ module CalculateMeasureForCustomDataSystemHelper
       where
         g.id IN (#{gids.join(',')}) AND
         cds.snapshot_id = #{sid} AND
-        cds.company_id = #{cid}
+        cds.company_id = #{cid} AND
+        cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY off.id
       ORDER BY sum DESC
       LIMIT 10"

@@ -183,7 +183,8 @@ Workships::Application.routes.draw do
   post 'receive_sms', to: 'sms#receive_and_respond'
 
   ############## v3 #################
-  get 'v3/get_email_scores'                  ,to: 'measures#get_emails_scores'
+  get 'v3/get_email_scores'                  ,to: 'measures#get_email_scores'
+  get 'v3/get_meetings_scores'               ,to: 'measures#get_meetings_scores'
   get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'
   get 'v3/get_groups'                        ,to: 'groups#groups'
   get 'v3/get_user_details'                  ,to: 'users#user_details'

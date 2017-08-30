@@ -1,11 +1,11 @@
 
 
 cid = 11
-sid = 96
+sid = 94
 
 CdsMetricScore.where(snapshot_id: sid).delete_all
 groups = Group.by_snapshot(sid)
-algorithms = CompanyMetric.where(company_id: 11).where("algorithm_id >= 700 and algorithm_id < 800").select(:id, :algorithm_id)
+algorithms = CompanyMetric.where(company_id: 11).where("algorithm_id >= 700 and algorithm_id < 900").select(:id, :algorithm_id)
 
 heading = 'insert into cds_metric_scores (company_id, employee_id, group_id, snapshot_id, company_metric_id, score, algorithm_id) values'
 values = ''

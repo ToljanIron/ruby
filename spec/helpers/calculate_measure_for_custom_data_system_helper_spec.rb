@@ -382,29 +382,29 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
 
     describe 'calculate_group_top_scores' do
       it 'calculate_top_scores should return a list of groups when given group_id' do
-        res = calculate_group_top_scores(1, 2, [@g1, @g2], 'group_id')
+        res = calculate_group_top_scores(1, 2, [@g3, @g4], [701, 702])
         expect(res.length).to eq(2)
       end
 
       it 'calculate_top_scores should return a list of groups when given algorithm_id' do
-        res = calculate_group_top_scores(1, 2, [@g1, @g2], 'algorithm_id')
+        res = calculate_group_top_scores(1, 2, [@g3, @g4], [701, 702])
         expect(res.length).to eq(2)
-        expect(res[0]).to eq(29)
+        expect(res[0]).to eq(4)
       end
     end
 
     it 'should work with group_id' do
-      res = get_emails_scores_from_helper(1, [@g1, @g2], 2, 1, 10, 0, 'group_id')
+      res = get_email_scores_from_helper(1, [@g3, @g4], 2, 1, 10, 0, 'group_id')
       expect(res.length).to eq(8)
     end
 
     it 'should work with algorithm_id' do
-      res = get_emails_scores_from_helper(1, [@g1, @g2], 2, 1, 10, 0, 'algorithm_id')
+      res = get_email_scores_from_helper(1, [@g3, @g4], 2, 1, 10, 0, 'algorithm_id')
       expect(res.length).to eq(8)
     end
 
     it 'should work with office_id' do
-      res = get_emails_scores_from_helper(1, [@g1, @g2], 2, 1, 10, 0, 'office_id')
+      res = get_email_scores_from_helper(1, [@g3, @g4], 2, 1, 10, 0, 'office_id')
       expect(res.length).to eq(8)
     end
   end
@@ -417,17 +417,19 @@ def generate_data_for_acme
   AlgorithmType.create(id: 1, name: 'measure')
   FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
   FactoryGirl.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)
-  FactoryGirl.create(:algorithm, id: 28, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
-  FactoryGirl.create(:algorithm, id: 29, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
+  FactoryGirl.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
+  FactoryGirl.create(:algorithm, id: 702, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
   CompanyWithMetricsFactory.create_network_names
   FactoryGirl.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
   FactoryGirl.create(:metric_name, id: 2, name: 'Funny', company_id: 1)
 
-  FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 28, algorithm_type_id: 1)
-  FactoryGirl.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 29, algorithm_type_id: 1)
+  FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
+  FactoryGirl.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 702, algorithm_type_id: 1)
 
-  @g1 = FactoryGirl.create(:group, name: 'group_1', company_id: 1).id
-  @g2 = FactoryGirl.create(:group, name: 'group_2', company_id: 1, parent_group_id: @g1).id
+  @g1 = FactoryGirl.create(:group, name: 'group_1', snapshot_id: 1, external_id: 'group_1', company_id: 1).id
+  @g2 = FactoryGirl.create(:group, name: 'group_2', snapshot_id: 1, external_id: 'group_2', company_id: 1, parent_group_id: @g1).id
+  @g3 = FactoryGirl.create(:group, name: 'group_1', snapshot_id: 2, external_id: 'group_1', company_id: 1).id
+  @g4 = FactoryGirl.create(:group, name: 'group_2', snapshot_id: 2, external_id: 'group_2', company_id: 1, parent_group_id: @g3).id
 
   @of1 = Office.create!(company_id: 1, name: 'Mishmeret').id
   @of2 = Office.create!(company_id: 1, name: 'Drorim').id
@@ -440,25 +442,25 @@ def generate_data_for_acme
 
   ## At long last we can fill cds_metric_scores
   ## Groups data
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 1, score: 1, employee_id: @emp1, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 2, score: 2, employee_id: @emp1, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g2, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 28, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g2, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 1, employee_id: @emp1, group_id: @g1, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 2, employee_id: @emp1, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g4, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g4, company_metric_id: 7, company_id: 1)
 
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 1, score: 3, employee_id: @emp1, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 2, score: 3, employee_id: @emp1, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g1, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g2, company_metric_id: 8, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 29, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g2, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 3, employee_id: @emp1, group_id: @g1, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 3, employee_id: @emp1, group_id: @g3, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g3, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g3, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g4, company_metric_id: 8, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g4, company_metric_id: 8, company_id: 1)
 end

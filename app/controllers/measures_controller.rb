@@ -53,9 +53,9 @@ class MeasuresController < ApplicationController
     companyid = current_user.company_id
     pinid = params[:pid].to_i
     groupid = params[:gid].to_i
-    
+
     groupid = -1 if groupid.zero?
-    
+
     groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
 
     snapshot_type = params[:snapshot_type].to_i
@@ -387,7 +387,7 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  def get_emails_scores
+  def get_email_scores
     puts 'Need to implement group level authorization !!!!!!'
     authorize :measure, :index?
 
@@ -401,17 +401,40 @@ class MeasuresController < ApplicationController
     offset = permitted[:offset] || 0
     agg_method = format_aggregation_method( permitted[:agg_method] )
 
-
     raise 'currsid and prevsid can not be empty' if (currsid == nil || prevsid == nil)
 
-    cache_key = "get_emails_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
+    cache_key = "get_email_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_emails_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method)
+      res = get_email_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
+  end
 
+  def get_meetings_scores
+    puts 'Need to implement group level authorization !!!!!!'
+    authorize :measure, :index?
+
+    permitted = params.permit(:gids, :currsid, :prevsid, :limit, :offset, :agg_method)
+
+    cid = current_user.company_id
+    gids = permitted[:gids].split(',')
+    currsid = permitted[:currsid]
+    prevsid = permitted[:prevsid]
+    limit = permitted[:limit] || 10
+    offset = permitted[:offset] || 0
+    agg_method = format_aggregation_method( permitted[:agg_method] )
+
+    raise 'currsid and prevsid can not be empty' if (currsid == nil || prevsid == nil)
+
+    cache_key = "get_meetings_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
+    res = cache_read(cache_key)
+    if res.nil?
+      res = get_meetings_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method)
+      cache_write(cache_key, res)
+    end
+    render json: Oj.dump(res)
   end
 
   def format_aggregation_method(agg_method)
