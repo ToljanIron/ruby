@@ -319,5 +319,34 @@ describe Employee, type: :model do
     it 'should throw an exception if creating a snapshot which dont have groups yet' do
       expect{ Employee.create_snapshot(1, 102) }.to raise_error(RuntimeError, 'Groups have to be bumped into new snapshot before employees')
     end
+
+    describe 'id_in_snapshot' do
+      emp = nil
+      before do
+        FactoryGirl.create(:employee)
+        FactoryGirl.create(:employee)
+        FactoryGirl.create(:employee)
+        emp = FactoryGirl.create(:employee)
+        Snapshot.create!(id: 100, company_id: 1, timestamp: Time.now + 1.week)
+        Snapshot.create!(id: 101, company_id: 1, timestamp: Time.now + 2.weeks)
+        Employee.create_snapshot(1, 1, 100)
+        Employee.create_snapshot(1, 100, 101)
+      end
+
+      it 'should get correct new id' do
+        emp2id = Employee.id_in_snapshot(emp.id, 100)
+        emp2 = Employee.find(emp2id)
+        expect(emp2.external_id).to eq(emp.external_id)
+      end
+
+      it 'should get id from last snapshot if none is given' do
+        emp2id = Employee.id_in_snapshot(emp.id, 101)
+        emp2   = Employee.find(emp2id)
+        emp3id = Employee.id_in_snapshot(emp.id)
+        emp3   = Employee.find(emp3id)
+        expect(emp2.external_id).to eq(emp3.external_id)
+        expect(emp3.snapshot_id).to eq(101)
+      end
+    end
   end
 end
