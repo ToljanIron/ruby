@@ -191,4 +191,5 @@ Workships::Application.routes.draw do
   post 'v3/setting/update_user_info'         ,to: 'settings#update_user_info'
   post 'v3/setting/update_security_settings' ,to: 'settings#update_security_settings'
   post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
+  get 'v3/get_snapshots_email_volume'        ,to: 'snapshots#get_snapshots_email_volume'
 end
