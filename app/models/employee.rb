@@ -291,4 +291,39 @@ class Employee < ActiveRecord::Base
   def self.valid_attr_field(attr_field)
     return attr_field && !attr_field.empty?
   end
+
+  def self.id_in_snapshot(eid, sid=nil)
+    old_sid = Employee.find(eid).try(:snapshot_id)
+    raise "No such employee for ID: #{eid}" if old_sid.nil?
+    key = "employee-id_in_snapshot-old_sid-#{old_sid}-new_sid-#{sid}"
+    ids_map = cache_read(key)
+    if (ids_map.nil?)
+      if (sid.nil?)
+        cid = Snapshot.find(old_sid).try(:company_id)
+        sid = Snapshot.last_snapshot_of_company(cid)
+      end
+      ids_map = create_id_map(old_sid, sid)
+      cache_write(key, ids_map)
+    end
+    return ids_map[eid]
+  end
+
+  def self.create_id_map(old_sid, new_sid)
+    cid = Snapshot.find(new_sid).company_id
+    sqlstr =
+      "select pre.id as oldid, post.id as newid
+      from employees as pre
+      join employees as post on post.external_id = pre.external_id
+      where
+        pre.snapshot_id  = #{old_sid} and
+        post.snapshot_id = #{new_sid} and
+        pre.company_id   = #{cid} and
+        post.company_id  = #{cid}"
+    res = ActiveRecord::Base.connection.execute(sqlstr)
+    ret = {}
+    res.each do |e|
+      ret[e['oldid']] = e['newid']
+    end
+    return ret
+  end
 end
