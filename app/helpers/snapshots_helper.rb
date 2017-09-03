@@ -10,7 +10,11 @@ module SnapshotsHelper
   	
   	interval_str = get_interval_type_string(interval_type)
 		
-    gids = gids.map(&:to_i)
+    gids = gids.map(&:to_i) if !gids.nil?
+    ############################################
+    # Fix this to work with real groups
+    gids = [1] if gids.nil? || gids.length === 0
+    ############################################
     
 		sqlstr = "SELECT *
 							FROM (
@@ -38,7 +42,7 @@ module SnapshotsHelper
         'gid' => entry['group_id']
   		}
   	}
-    
+
     ##################
     # Add here average on groups - reduce to single number and then continue with 
     # rest of average calculations 
