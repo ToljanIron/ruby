@@ -1,8 +1,8 @@
 require 'oj'
 require 'oj_mimic_json'
 
-require 'snapshots_helper.rb'
-
+# require 'snapshots_helper.rb'
+include SnapshotsHelper
 include CdsUtilHelper
 
 class SnapshotsController < ApplicationController
@@ -34,19 +34,20 @@ class SnapshotsController < ApplicationController
     authorize :snapshot, :index?
     
     interval_type = params[:interval_type].to_i
+    
+    gids = params[:gids].split(',')
+    
     cid = current_user.company_id
 
     cache_key = "get_snapshots_email_volume-cid#{cid}-interval#{interval_type}"
     res = cache_read(cache_key)
     
     if res.nil?
-      res = SnapshotsHelper.get_emails_volume_scores(interval_type)
+      res = get_emails_volume_scores(interval_type, gids)
       res = Oj.dump(res)
       cache_write(cache_key, res)
     end
 
-    res = SnapshotsHelper.get_emails_volume_scores(interval_type)
-    res = Oj.dump(res)
     render json: res
   end
 

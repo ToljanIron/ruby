@@ -2,7 +2,7 @@ module SnapshotsHelper
 
 	EMAILS_VOLUME_ALGORITHM_ID = 707
 
-  def get_emails_volume_scores(interval_type)
+  def get_emails_volume_scores(interval_type, gids)
   	
   	# Contains score for month - last snapshot of each month - each snapshot is calculating measures 4 weeks back
   	scores_per_month = []
@@ -10,6 +10,8 @@ module SnapshotsHelper
   	
   	interval_str = get_interval_type_string(interval_type)
 		
+    gids = gids.map(&:to_i)
+    
 		sqlstr = "SELECT *
 							FROM (
 						  SELECT 
@@ -17,8 +19,11 @@ module SnapshotsHelper
 				 				#{interval_str},
 							  timestamp,
 							  score,
+                group_id,  
 			          max(timestamp) OVER (PARTITION BY month) AS max_timestamp
-						  FROM snapshots JOIN cds_metric_scores ON snapshots.id = cds_metric_scores.snapshot_id
+						  FROM snapshots 
+              JOIN cds_metric_scores ON snapshots.id = cds_metric_scores.snapshot_id AND
+              cds_metric_scores.group_id = ANY(ARRAY#{gids})
 							) t
 							WHERE timestamp = max_timestamp
 							ORDER BY timestamp ASC
@@ -29,14 +34,21 @@ module SnapshotsHelper
   	sqlres.each {|entry|
   		scores_per_month << {
   			'score'       => entry['score'],
-  			'time_period' => entry["#{interval_str}"]
+  			'time_period' => entry["#{interval_str}"],
+        'gid' => entry['group_id']
   		}
   	}
+    
+    ##################
+    # Add here average on groups - reduce to single number and then continue with 
+    # rest of average calculations 
+    ##################
+
 
   	if(interval_type === 0)
   		res = scores_per_month
   	else
-  		res = get_average_for_time_interval(scores_per_month) 
+  		res = get_average_for_time_interval(scores_per_month)
   	end
   	return res
   end
