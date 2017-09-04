@@ -34,19 +34,11 @@ class SnapshotsController < ApplicationController
     authorize :snapshot, :index?
 
     interval_type = params[:interval_type].to_i
-
     gids = params[:gids].split(',')
-
     cid = current_user.company_id
 
-    cache_key = "get_snapshots_email_volume-cid#{cid}-interval#{interval_type}"
-    res = cache_read(cache_key)
-
-    if res.nil?
-      res = get_emails_volume_scores(interval_type, gids)
-      res = Oj.dump(res)
-      cache_write(cache_key, res)
-    end
+    res = get_emails_volume_scores(interval_type, gids, cid)
+    res = Oj.dump(res)
 
     render json: res
   end
