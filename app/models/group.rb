@@ -126,8 +126,10 @@ class Group < ActiveRecord::Base
     return parent_group_id.nil?
   end
 
-  def self.get_root_group(cid)
-    return Group.by_snapshot(snapshot_id).where(company_id: cid).where('parent_group_id is null').first.id
+  def self.get_root_group(cid, sid=nil)
+    raise "Company ID cant be nil" if cid.nil?
+    sid = Snapshot.last_snapshot_of_company(cid) if (sid.nil? || sid == -1)
+    return Group.by_snapshot(sid).where(company_id: cid).where('parent_group_id is null').first.id
   end
 
   def self.get_parent_group(cid, sid=nil)

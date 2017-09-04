@@ -5,6 +5,7 @@ describe DashboardHelper, type: :helper do
     NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
 
     @company = FactoryGirl.create(:company)
+    FactoryGirl.create(:snapshot, id: 1, company_id: 1, snapshot_type: nil)
     @parent_group = FactoryGirl.create(:group, name: 'parent_group', company_id: 1)
     @g1 = FactoryGirl.create(:group, name: 'group_1', company_id: 1, parent_group_id:  @parent_group.id)
     @g2 = FactoryGirl.create(:group, name: 'group_2', company_id: 1, parent_group_id:  @parent_group.id)
@@ -15,30 +16,29 @@ describe DashboardHelper, type: :helper do
     @emp_3 = FactoryGirl.create(:employee, company_id: 1, group_id: @g2.id)
     @emp_4 = FactoryGirl.create(:employee, company_id: 1, group_id: @g3.id)
     @emp_5 = FactoryGirl.create(:employee, company_id: 1, group_id: @g4.id)
-    FactoryGirl.create(:snapshot, id: 1, company_id: 1, snapshot_type: nil)
-    @network_nodes_1 = {employee_from_id: @emp_1.id, employee_to_id: @emp_3.id, snapshot_id: 1}
+    @network_nodes_1 = {employee_from_id: @emp_1.id, employee_to_id: @emp_3.id, snapshot_id: 1, company_id: @company.id}
     (1..18).each do |i|
       @network_nodes_1['n' + i.to_s] = i
     end
     NetworkSnapshotData.create_email_adapter(@network_nodes_1)
     # @network_nodes_1.save!
-    @network_nodes_2 = {employee_from_id: @emp_3.id, employee_to_id: @emp_1.id, snapshot_id: 1}
+    @network_nodes_2 = {employee_from_id: @emp_3.id, employee_to_id: @emp_1.id, snapshot_id: 1, company_id: @company.id}
     (1..18).each do |i|
       @network_nodes_2['n' + i.to_s] = i + 2
     end
     NetworkSnapshotData.create_email_adapter(@network_nodes_2)
     # @network_nodes_2.save!
 
-    @network_nodes_3 = {employee_from_id: @emp_1.id, employee_to_id: @emp_4.id, snapshot_id: 1}
+    @network_nodes_3 = {employee_from_id: @emp_1.id, employee_to_id: @emp_4.id, snapshot_id: 1, company_id: @company.id}
     (1..18).each do |i|
       @network_nodes_3['n' + i.to_s] = i + 1
     end
     NetworkSnapshotData.create_email_adapter(@network_nodes_3)
     # @network_nodes_3.save!
-    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_4.id, employee_to_id: @emp_5.id, snapshot_id: 1, n1: 10, n2: 50, significant_level: :not_significant)
-    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_4.id, employee_to_id: @emp_2.id, snapshot_id: 1, n1: 10, n2: 0, significant_level: :meaningfull)
-    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_1.id, employee_to_id: @emp_4.id, snapshot_id: 1, n1: 10, n2: 10, significant_level: :meaningfull)
-    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_3.id, employee_to_id: @emp_4.id, snapshot_id: 1, n1: 35, n2: 50, significant_level: :meaningfull)
+    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_4.id, employee_to_id: @emp_5.id, snapshot_id: 1, n1: 10, n2: 50, significant_level: :not_significant, company_id: @company.id)
+    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_4.id, employee_to_id: @emp_2.id, snapshot_id: 1, n1: 10, n2: 0, significant_level: :meaningfull, company_id: @company.id)
+    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_1.id, employee_to_id: @emp_4.id, snapshot_id: 1, n1: 10, n2: 10, significant_level: :meaningfull, company_id: @company.id)
+    NetworkSnapshotData.create_email_adapter(employee_from_id: @emp_3.id, employee_to_id: @emp_4.id, snapshot_id: 1, n1: 35, n2: 50, significant_level: :meaningfull, company_id: @company.id)
 
     @snapshot_list = NetworkSnapshotData.all
   end

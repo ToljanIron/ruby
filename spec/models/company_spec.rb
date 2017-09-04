@@ -35,23 +35,6 @@ describe Company, type: :model do
     expect(res.count).to eq(10)
   end
 
-  describe 'monitored_user_names' do
-    before(:each) do
-      @company = Company.create(name: 'company')
-      FactoryGirl.create_list(:employee, 10, company_id: @company.id)
-    end
-
-    after(:each) do
-      DatabaseCleaner.clean_with(:truncation)
-    end
-
-    it 'should extrat user names from emails' do
-      expected_res = Employee.where(company_id: @company.id).pluck(:email).map { |e| e.split('@')[0] }
-      res = @company.monitored_user_names
-      expect(res).to eq expected_res
-    end
-  end
-
   describe 'emails' do
     before do
       @company = Company.create(id: 1, name: 'test_class')
@@ -90,14 +73,6 @@ describe Company, type: :model do
         token: 'd65028a43e33af193de01e796d576e1b7e6cac318b15151ea7bba3b84ab6',
         expires_on: Time.now + 1.year
       )
-    end
-
-    xit 'should create an entry as it shoud' do
-      expect(Job.count).to eq 0
-      expect(ScheduledApiClientTask.count).to eq 0
-      @company.schedule_recovery_job('2015-08-01 16:09:49', '2015-08-07 16:09:49', 'exchange email collector')
-      expect(Job.count).to eq 1
-      expect(ScheduledApiClientTask.count).to eq 12
     end
   end
 end

@@ -17,9 +17,9 @@ class Company < ActiveRecord::Base
   validates_uniqueness_of :name
 
   scope :domains, ->(id) { Domain.where(company_id: id) }
-  scope :employees, ->(sid=nil) {
+  scope :employees, ->(cid, sid=nil) {
     sid ||= Snapshot.last_snapshot_of_company(cid)
-    Employee.where(company_id: id, snapshot_id: sid, active: true)
+    Employee.where(company_id: cid, snapshot_id: sid, active: true)
   }
 
   enum product_type: [:full, :questionnaire_only]
@@ -46,7 +46,7 @@ class Company < ActiveRecord::Base
   end
 
   def emails(sid=nil)
-    emails = Company.employees(sid).pluck(:email)
+    emails = Company.employees(id, sid).pluck(:email)
     aliases = Employee.aliases(Company.employees(id)).pluck(:email_alias)
     return emails + aliases
   end

@@ -44,13 +44,6 @@ describe 'Routes', type: :routing do
       )
     end
 
-    it 'route get_filters_values to utils/' do
-      expect(get: '/get_filters_values').to route_to(
-        controller: 'utils',
-        action: 'list_filters'
-      )
-    end
-
     it 'route /API/get_directory_data to measures/' do
       expect(get: '/API/get_directory_data').to route_to(
         controller: 'measures',
@@ -117,13 +110,6 @@ describe 'Routes', type: :routing do
       expect(get: '/API/signout').to route_to(
         controller: 'sessions',
         action: 'destroy'
-      )
-    end
-
-    it 'route get_snapshot to email_snapshot_data/network_snapshot' do
-      expect(get: '/API/get_snapshot').to route_to(
-        controller: 'email_snapshot_data',
-        action: 'network_snapshot'
       )
     end
 

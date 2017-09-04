@@ -207,7 +207,7 @@ module AlgorithmsHelper
     cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, sid)
     groups = get_group_and_all_its_descendants(gid)
-    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
+    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid, sid)) : groups)
     sqlstrdenom =  "SELECT COUNT(DISTINCT meeting_id) AS count
                     FROM meetings           AS mee
                     JOIN meeting_attendees  AS mee_att    ON mee_att.meeting_id = mee.id
@@ -233,7 +233,7 @@ module AlgorithmsHelper
     cid = Snapshot.where(id: sid).first.company_id
     emps = get_members_in_group(pid, gid, sid)
     groups = get_group_and_all_its_descendants(gid)
-    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid)) : groups)
+    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid, sid)) : groups)
     weekly_hours = 50
     sqlstrnumer = "SELECT SUM(duration_in_minutes) AS sum
                   FROM meetings as mee
