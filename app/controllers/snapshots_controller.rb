@@ -19,7 +19,7 @@ class SnapshotsController < ApplicationController
     cache_key = "get_snapshots-lim#{limit}-cid#{cid}"
     res = cache_read(cache_key)
     if res.nil?
-      snapshots = Snapshot.where(company_id: 2, status: :active).order('timestamp DESC').limit(20)
+      snapshots = Snapshot.where(company_id: cid, status: :active).order('timestamp DESC').limit(20)
       res = []
       snapshots.each do |s|
         res << {sid: s.id, name: s.name}
@@ -32,16 +32,16 @@ class SnapshotsController < ApplicationController
 
   def get_snapshots_email_volume
     authorize :snapshot, :index?
-    
+
     interval_type = params[:interval_type].to_i
-    
+
     gids = params[:gids].split(',')
-    
+
     cid = current_user.company_id
 
     cache_key = "get_snapshots_email_volume-cid#{cid}-interval#{interval_type}"
     res = cache_read(cache_key)
-    
+
     if res.nil?
       res = get_emails_volume_scores(interval_type, gids)
       res = Oj.dump(res)
