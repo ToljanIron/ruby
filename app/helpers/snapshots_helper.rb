@@ -2,36 +2,41 @@ module SnapshotsHelper
 
 	EMAILS_VOLUME_ALGORITHM_ID = 707
 
-  def get_emails_volume_scores(interval_type, gids)
+  def get_emails_volume_scores(interval_type, current_gids, cid)
   	
   	# Contains score for month - last snapshot of each month - each snapshot is calculating measures 4 weeks back
   	scores_per_month = []
   	res = []
-  	
+  	gids = []
+
   	interval_str = get_interval_type_string(interval_type)
 		
-    gids = gids.map(&:to_i) if !gids.nil?
-    ############################################
-    # Fix this to work with real groups
-    gids = [1] if gids.nil? || gids.length === 0
-    ############################################
+    sids = get_relevant_snapshot_ids(cid, 20)
+    
+    if (current_gids.nil? || current_gids.length === 0)
+      gids << Group.get_root_group(cid)
+    else
+      gids = get_relevant_group_ids(sids, current_gids)
+      gids = gids.map(&:to_i)
+    end
     
 		sqlstr = "SELECT *
 							FROM (
-						  SELECT 
+						  SELECT
 						  	snapshots.id,
+                algorithm_id,
 				 				#{interval_str},
 							  timestamp,
 							  score,
-                group_id,  
+                group_id,
 			          max(timestamp) OVER (PARTITION BY month) AS max_timestamp
-						  FROM snapshots 
+						  FROM snapshots
               JOIN cds_metric_scores ON snapshots.id = cds_metric_scores.snapshot_id AND
+              snapshots.id = ANY(ARRAY#{sids}) AND
               cds_metric_scores.group_id = ANY(ARRAY#{gids})
 							) t
-							WHERE timestamp = max_timestamp
-							ORDER BY timestamp ASC
-							LIMIT 20"
+							WHERE timestamp = max_timestamp AND algorithm_id = #{EMAILS_VOLUME_ALGORITHM_ID}
+							ORDER BY timestamp ASC"
 
 		sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
   	
@@ -43,18 +48,37 @@ module SnapshotsHelper
   		}
   	}
 
-    ##################
-    # Add here average on groups - reduce to single number and then continue with 
-    # rest of average calculations 
-    ##################
-
-
-  	if(interval_type === 0)
-  		res = scores_per_month
-  	else
-  		res = get_average_for_time_interval(scores_per_month)
-  	end
+    res = get_average_for_time_interval(scores_per_month)
   	return res
+  end
+
+  def get_relevant_snapshot_ids(cid, limit)
+    sqlstr = "SELECT id FROM (
+              SELECT 
+              snapshots.id,
+              company_id,
+              month,
+              timestamp,
+              max(timestamp) OVER (PARTITION BY month) AS max_timestamp
+              FROM snapshots
+              ) t
+              WHERE timestamp = max_timestamp AND company_id = #{cid}
+              ORDER BY timestamp ASC
+              LIMIT #{limit}"
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).pluck('id')
+    return sqlres
+  end
+
+  def get_relevant_group_ids(sids, current_gids)
+
+    res = []
+
+    sids.each do |sid|
+      current_gids.each do |gid|
+        res << Group.find_group_in_snapshot(gid, sid)
+      end
+    end
+    return res
   end
 
   def get_average_for_time_interval(data)
@@ -75,13 +99,13 @@ module SnapshotsHelper
 
   def get_interval_type_string(interval_type)
   	str = ''
-  	if(interval_type === 0)
+  	if(interval_type === 1)
   		str = 'month'
-  	elsif (interval_type === 1)
+  	elsif (interval_type === 2)
   		str = 'quarter'
-		elsif (interval_type === 2)
-			str = 'half_year'
 		elsif (interval_type === 3)
+			str = 'half_year'
+		elsif (interval_type === 4)
 			str = 'year'
   	end
   	return str

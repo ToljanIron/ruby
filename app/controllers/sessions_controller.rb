@@ -56,7 +56,9 @@ class SessionsController < ApplicationController
       render json: payload(user), status: 200 if v3_login?
       render json: { token: user.remember_token }, status: 200 if !v3_login?
       return
-    rescue
+    rescue => e
+      puts e.message
+      puts e.backtrace
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
