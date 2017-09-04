@@ -102,7 +102,7 @@ class Snapshot < ActiveRecord::Base
   ######################## Intervals ####################
 
   def get_month
-    timestamp.strftime('%b%y')
+    timestamp.strftime('%b/%y')
   end
 
   def get_quarter
