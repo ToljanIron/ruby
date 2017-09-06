@@ -182,7 +182,7 @@ class Group < ActiveRecord::Base
   ## method will return the updated group id, based on it's external id.
   def self.find_group_in_snapshot(gid, sid)
     orig_group = Group.find(gid)
-    return gid if orig_group.snapshot_id == sid
+    return gid.to_i if orig_group.snapshot_id == sid
     external_id = orig_group.external_id
     new_group = Group.where(external_id: external_id, snapshot_id: sid).last
     return new_group.id if !new_group.nil?
