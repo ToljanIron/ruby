@@ -11,6 +11,7 @@ class Snapshot < ActiveRecord::Base
   has_many :network_snapshot_data
 
   before_save do
+    return if timestamp.nil?
     self.month = get_month
     self.quarter = get_quarter
     self.half_year = get_half_year
