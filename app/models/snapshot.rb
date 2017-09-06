@@ -11,7 +11,6 @@ class Snapshot < ActiveRecord::Base
   has_many :network_snapshot_data
 
   before_save do
-    return if timestamp.nil?
     self.month = get_month
     self.quarter = get_quarter
     self.half_year = get_half_year
@@ -103,10 +102,12 @@ class Snapshot < ActiveRecord::Base
   ######################## Intervals ####################
 
   def get_month
+    timestamp = DateTime.now if timestamp.nil?
     timestamp.strftime('%b/%y')
   end
 
   def get_quarter
+    timestamp = DateTime.now if timestamp.nil?
     month = timestamp.strftime('%m').to_i
     year = timestamp.strftime('%y')
     return "Q1/#{year}" if ( [1,2,3].include?(month) )
@@ -116,6 +117,7 @@ class Snapshot < ActiveRecord::Base
   end
 
   def get_half_year
+    timestamp = DateTime.now if timestamp.nil?
     month = timestamp.strftime('%m').to_i
     year = timestamp.strftime('%y')
     return "H1/#{year}" if ( [1,2,3,4,5,6].include?(month) )
@@ -123,6 +125,7 @@ class Snapshot < ActiveRecord::Base
   end
 
   def get_year
+    timestamp = DateTime.now if timestamp.nil?
     timestamp.strftime('%Y')
   end
 end
