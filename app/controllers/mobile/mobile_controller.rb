@@ -30,7 +30,7 @@ class Mobile::MobileController < ActionController::Base
       @name = employee.first_name
       render 'mobile'
     else
-      render text: 'Failed to load app, unkown employee.'
+      render plain: 'Failed to load app, unkown employee.'
     end
   end
 
@@ -41,7 +41,7 @@ class Mobile::MobileController < ActionController::Base
       @name = employee.first_name
       render 'desk'
     else
-      render text: 'Failed to load app, unkown employee.'
+      render plain: 'Failed to load app, unkown employee.'
     end
   end
 
