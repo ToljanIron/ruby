@@ -372,16 +372,22 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  def show_employee_measures
+  def get_employees_emails_scores
+    puts 'Need to implement group level authorization !!!!!!'
     authorize :measure, :index?
-    cid = current_user.company_id
-    employee_id = params[:employee_id].to_i
-    render(json: Oj.dump(error: 'Forbidden'), status: 403) if !is_user_allowed_to_view_emp(employee_id, current_user.group_id)
 
-    cache_key = "show_employee_measures-#{cid}-#{employee_id}"
+    permitted = params.permit(:gids, :sid)
+
+    cid = current_user.company_id
+    gids = permitted[:gids].split(',')
+    sid = permitted[:sid]
+
+    raise 'sid cant be empty' if sid == nil
+
+    cache_key = "get_email_scores-#{cid}-#{gids}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_measures_per_employee(cid, employee_id)
+      res = get_employees_scores_from_helper(cid, gids, sid)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

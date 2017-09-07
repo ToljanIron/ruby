@@ -22,6 +22,20 @@ module CalculateMeasureForCustomDataSystemHelper
   QUESTIONNAIRE_ONLY ||= 8
 
 
+  def get_employees_scores_from_helper(cid, gids, sid)
+    ret = CdsMetricScore
+            .select("score, emps.first_name || ' ' || emps.last_name AS name, g.id AS gid, g.name AS group_name, o.name AS office_name")
+            .from('cds_metric_scores AS cds')
+            .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
+            .joins('JOIN groups AS g ON g.id = cds.group_id')
+            .joins('JOIN offices AS o ON o.id = emps.office_id')
+            .where('cds.company_id = %s AND cds.snapshot_id = %s AND cds.group_id in (%s)', cid, sid, gids.join(','))
+            .order('cds.score DESC')
+            .limit(20)
+
+    return ret
+  end
+
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
     aids = [800, 801, 802, 803, 804, 805, 806]
     return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
