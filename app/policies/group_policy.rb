@@ -1,7 +1,10 @@
 class GroupPolicy < ApplicationPolicy
 
   def index?
-    true if user.admin? || user.hr? || user.manager?
+    if user.admin? || user.hr? || user.manager?
+      return true
+    end
+    return false
   end
 
   # Return max group this user is allowed to view, according
