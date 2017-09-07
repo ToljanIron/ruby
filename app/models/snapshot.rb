@@ -5,6 +5,7 @@ class Snapshot < ActiveRecord::Base
   STATUS_ACTIVE              = 2
 
   validates :company_id, presence: true
+  validates :timestamp, presence: true
   enum snapshot_type: { weekly: 1, monthly: 2, yearly: 3 }
   enum status: [:inactive, :before_precalculate, :active]
   belongs_to :company

@@ -185,7 +185,8 @@ class Group < ActiveRecord::Base
     return gid.to_i if orig_group.snapshot_id == sid
     external_id = orig_group.external_id
     new_group = Group.where(external_id: external_id, snapshot_id: sid).last
-    return new_group.id
+    return new_group.id if !new_group.nil?
+    return gid
   end
 
   ## Same as above, only for multiple groups at once
