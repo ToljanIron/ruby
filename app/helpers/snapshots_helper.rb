@@ -20,35 +20,30 @@ module SnapshotsHelper
       gids = gids.map(&:to_i)
     end
 
-		sqlstr = "SELECT *
-							FROM (
-						  SELECT
-						  	snapshots.id,
-                algorithm_id,
-				 				#{interval_str},
-							  timestamp,
-							  score,
-                group_id,
-			          max(timestamp) OVER (PARTITION BY month) AS max_timestamp
-						  FROM snapshots
-              JOIN cds_metric_scores ON snapshots.id = cds_metric_scores.snapshot_id AND
-              snapshots.id = ANY(ARRAY#{sids}) AND
-              cds_metric_scores.group_id = ANY(ARRAY#{gids})
-							) t
-							WHERE timestamp = max_timestamp AND algorithm_id = #{EMAILS_VOLUME_ALGORITHM_ID}
-							ORDER BY timestamp ASC"
+    sqlstr = "SELECT avg(score) as score, s.month, s.#{interval_str} as period
+              FROM cds_metric_scores
+              JOIN snapshots AS s ON snapshot_id = s.id
+              WHERE 
+              snapshot_id IN (#{sids.join(',')}) AND
+              group_id IN (#{gids.join(',')}) AND
+              algorithm_id = #{EMAILS_VOLUME_ALGORITHM_ID}
+              GROUP BY snapshot_id, s.month, s.timestamp, period
+              ORDER BY s.timestamp ASC"
+    
+    # query is for time period other than month - average over months. Wrap above query.
+    if(interval_str != 'month')
+      sqlstr = "SELECT avg(score) as score, period FROM (#{sqlstr}) t
+                GROUP BY period"
+    end
 
 		sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
-  	sqlres.each {|entry|
-  		scores_per_month << {
-  			'score'       => entry['score'],
-  			'time_period' => entry["#{interval_str}"],
-        'gid' => entry['group_id']
-  		}
-  	}
-
-    res = get_average_for_time_interval(scores_per_month)
+    sqlres.each do |entry|
+      res << {
+        'score'       => entry['score'],
+        'time_period' => entry["period"]
+      }
+    end
   	return res
   end
 
@@ -77,22 +72,6 @@ module SnapshotsHelper
       res += grp
     end
     return res
-  end
-
-  def get_average_for_time_interval(data)
-  	averages = []
-  	values = []
-
-  	data.each_with_index do |v, i|
-  		values << v['score'].to_f
-
-  		# If next element is from a different interval OR this is the last - calc the average
-  		if((i < data.length - 1 && data[i]['time_period'] != data[i+1]['time_period']) || i === data.length - 1 )
-  			averages << {time_period: data[i]['time_period'], score: (values.sum / values.size.to_f).round(2)}
-				values = []
-  		end
-  	end
-  	return averages
   end
 
   def get_interval_type_string(interval_type)
