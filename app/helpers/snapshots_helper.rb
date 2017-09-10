@@ -20,7 +20,7 @@ module SnapshotsHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT avg(score) as score, s.month, s.#{interval_str} as period
+    sqlstr = "SELECT avg(score) as score, s.month, s.#{interval_str} as period 
               FROM cds_metric_scores
               JOIN snapshots AS s ON snapshot_id = s.id
               WHERE 
@@ -30,21 +30,27 @@ module SnapshotsHelper
               GROUP BY snapshot_id, s.month, s.timestamp, period
               ORDER BY s.timestamp ASC"
     
-    # query is for time period other than month - average over months. Wrap above query.
+    # Query is for time period other than month - average over months. Wrap above query.
     if(interval_str != 'month')
       sqlstr = "SELECT avg(score) as score, period FROM (#{sqlstr}) t
-                GROUP BY period"
+                GROUP BY period
+                ORDER BY period"
     end
 
 		sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
     sqlres.each do |entry|
       res << {
-        'score'       => entry['score'],
-        'time_period' => entry["period"]
+        'score'       => entry['score'].to_f.round(2),
+        'time_period' => entry['period']
       }
     end
   	return res
+  end
+
+  def get_time_spent_in_meetings(interval_type, current_gids, cid)
+    res = [{time_period: 'Aug/18', score: 999.9}]
+    return res
   end
 
   def get_relevant_snapshot_ids(cid, limit)
@@ -87,4 +93,6 @@ module SnapshotsHelper
   	end
   	return str
   end
+
+
 end
