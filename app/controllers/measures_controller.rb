@@ -373,7 +373,7 @@ class MeasuresController < ApplicationController
   end
 
   def get_employees_emails_scores
-    puts 'Need to implement group level authorization !!!!!!'
+    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
     permitted = params.permit(:gids, :sid)
@@ -394,7 +394,7 @@ class MeasuresController < ApplicationController
   end
 
   def get_email_scores
-    puts 'Need to implement group level authorization !!!!!!'
+    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
     permitted = params.permit(:gids, :currsid, :prevsid, :limit, :offset, :agg_method)
@@ -419,7 +419,7 @@ class MeasuresController < ApplicationController
   end
 
   def get_meetings_scores
-    puts 'Need to implement group level authorization !!!!!!'
+    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
     permitted = params.permit(:gids, :currsid, :prevsid, :limit, :offset, :agg_method)

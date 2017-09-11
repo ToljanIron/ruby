@@ -192,6 +192,6 @@ Workships::Application.routes.draw do
   post 'v3/setting/update_security_settings' ,to: 'settings#update_security_settings'
   post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
   get 'v3/get_snapshots_email_volume'        ,to: 'snapshots#get_snapshots_email_volume'
-  get 'v3/get_time_spent_in_meetings'        ,to: 'snapshots#get_time_spent_in_meetings'
+  get 'v3/get_time_spent_in_meetings'        ,to: 'snapshots#get_snapshots_time_spent_in_meetings'
   get 'v3/get_employees_emails_scores'       ,to: 'measures#get_employees_emails_scores'
 end
