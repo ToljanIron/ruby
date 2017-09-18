@@ -1,3 +1,6 @@
+require 'oj'
+require 'oj_mimic_json'
+
 include SessionsHelper
 include CdsUtilHelper
 
@@ -40,7 +43,7 @@ class EmployeesController < ApplicationController
       end
       cache_write(cache_key, res)
     end
-    render json: { employees: res }, status: 200
+    render json: Oj.dump({ employees: res }), status: 200
   end
 
   def list_managers

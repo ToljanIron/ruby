@@ -2303,6 +2303,11 @@ module AlgorithmsHelper
     end
     return false
   end
+
+  def self.get_relation_arr(_pid, _gid, snapshot, network_id)
+    return "select from_employee_id, to_employee_id from network_snapshot_data where value = 1
+    AND snapshot_id = #{snapshot} AND network_id = #{network_id}"
+  end
 end
 
 def find_company_by_snapshot(snapshot_id)

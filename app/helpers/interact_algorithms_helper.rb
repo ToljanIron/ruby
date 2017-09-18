@@ -9,14 +9,14 @@ module InteractAlgorithmsHelper
       "SELECT emp.id AS employee_id, coalesce(sum(value), 0) AS score
        FROM employees AS emp
        LEFT JOIN (
-                  SELECT from_employee_id, value
+                  SELECT to_employee_id, value
                   FROM network_snapshot_data AS nsd
                   WHERE
                   nsd.network_id  = #{nid} AND
                   nsd.snapshot_id = #{sid} AND
                   nsd.from_employee_id IN (#{emps.join(',')}) AND
                   nsd.to_employee_id   IN (#{emps.join(',')})
-                  ) AS nsdjoin ON nsdjoin.from_employee_id = emp.id
+                  ) AS nsdjoin ON nsdjoin.to_employee_id = emp.id
        WHERE emp.id IN (#{emps.join(',')}) AND
              emp.snapshot_id = #{sid}
        GROUP BY emp.id"
@@ -32,14 +32,14 @@ module InteractAlgorithmsHelper
       "SELECT emp.id AS employee_id, coalesce(sum(value), 0) AS score
        FROM employees AS emp
        LEFT JOIN (
-                  SELECT to_employee_id, value
+                  SELECT from_employee_id, value
                   FROM network_snapshot_data AS nsd
                   WHERE
                   nsd.network_id  = #{nid} AND
                   nsd.snapshot_id = #{sid} AND
                   nsd.from_employee_id IN (#{emps.join(',')}) AND
                   nsd.to_employee_id   IN (#{emps.join(',')})
-                  ) AS nsdjoin ON nsdjoin.to_employee_id = emp.id
+                  ) AS nsdjoin ON nsdjoin.from_employee_id = emp.id
        WHERE emp.id IN (#{emps.join(',')}) AND
              emp.snapshot_id = #{sid}
        GROUP BY emp.id"

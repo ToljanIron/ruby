@@ -201,7 +201,7 @@ class UtilsController < ApplicationController
   private
 
   def groups_colors
-    dbgroups = Employee.by_company(current_user.company_id)
+    dbgroups = Group.by_company(current_user.company_id).includes(:color)
     groups = {}
     default_color = Color.find(8)[:rgb]
     dbgroups.each do |g|
@@ -211,7 +211,7 @@ class UtilsController < ApplicationController
   end
 
   def emp_colors
-    dbemps = Employee.by_company(current_user.company_id)
+    dbemps = Employee.by_company(current_user.company_id).includes(:color)
     emps = {}
     default_color = Color.find(3)[:rgb]
     dbemps.each do |emp|

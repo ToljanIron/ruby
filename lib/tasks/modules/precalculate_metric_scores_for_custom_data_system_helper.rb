@@ -55,9 +55,10 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   ## This function should only be used for the InterAct product, meaning that
   ## company_metrics do not count, only networks, and these networks should
   ## produce indegree/outdegree calcuations per each.
-  def cds_calculate_scores_for_generic_networks(cid, sid)
+  def cds_calculate_scores_for_generic_networks(cid, sid, gid = -1)
     CdsMetricScore.where(snapshot_id: sid).delete_all
-    networks = NetworkName.where(company_id: cid)
+    puts "cid: #{cid}, sid: #{sid}, gid: #{gid}"
+    networks = NetworkName.where(company_id: cid).where(id: [9, 10])
     fail 'No networks found' if networks.empty?
     networks.each do |n|
       puts "Working on network: #{n.name}"
@@ -66,12 +67,12 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       cmin  = generate_company_metrics_for_network_in(cid, nid)
       cmout = generate_company_metrics_for_network_out(cid, nid)
 
-      groups = Group.by_snapshot(sid)
+      groups = gid == -1 ? Group.by_snapshot(sid) : [Group.find(gid)]
       fail 'No networks found' if networks.empty?
       groups.each do |g|
         puts "Working on group: #{g.name}"
-        gid = g.id
-        cds_calculate_scores_for_generic_network(cid, sid, nid, gid, cmin, cmout)
+        lgid = g.id
+        cds_calculate_scores_for_generic_network(cid, sid, nid, lgid, cmin, cmout)
       end
     end
   end

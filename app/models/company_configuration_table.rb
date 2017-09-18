@@ -17,11 +17,11 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return false if entry.nil?
     return false if entry.first.nil?
     ret = entry.first.value
-    return (ret == 'true')
+    return (ret == 'true' || ret == 't')
   end
 
   def self.is_investigation_mode?
-    cache_key = "CompanyConfigurationTable-#{DEFAULT_LOCALE}"
+    cache_key = "CompanyConfigurationTable-#{INVESTIGATION_MODE}"
     return read_or_calculate_and_write(cache_key) do
       is_investigation_mode_configured_in_db?
     end
@@ -34,6 +34,6 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return false if entry.nil?
     return false if entry.first.nil?
     ret = entry.first.value
-    return (ret == 'true')
+    return (ret == 'true' || ret == 't')
   end
 end

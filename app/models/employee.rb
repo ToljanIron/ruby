@@ -143,8 +143,8 @@ class Employee < ActiveRecord::Base
     h[:rank] = rank.name if rank
     h[:role_type] = role.name if role
     h[:gender] = gender
-    h[:subordinates] = EmployeeManagementRelation.where(manager_id: id, relation_type: 2).pluck(:employee_id)
-    h[:age] = CdsUtilHelper.calc_age_from_now(date_of_birth)
+    h[:subordinates] = nil # EmployeeManagementRelation.where(manager_id: id, relation_type: 2).pluck(:employee_id)
+    h[:age] = 35 # CdsUtilHelper.calc_age_from_now(date_of_birth)
     h[:age_group] = age_group.name if age_group
     h[:group_name] = group.name if group
     h[:job_title] = job_title.name if job_title
@@ -319,7 +319,7 @@ class Employee < ActiveRecord::Base
         post.snapshot_id = #{new_sid} and
         pre.company_id   = #{cid} and
         post.company_id  = #{cid}"
-    res = ActiveRecord::Base.connection.execute(sqlstr)
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
     ret = {}
     res.each do |e|
       ret[e['oldid']] = e['newid']

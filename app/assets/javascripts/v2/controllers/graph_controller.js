@@ -364,8 +364,9 @@ angular.module('workships')
       }
       if (graphService.inHugeGraphState()) {
         graphService.groupAll();
-        var parent_node = _.find(graphService.getNodes(), { show: true });
-        graphService.getEventHandlerOnDblClick(parent_node.id, parent_node.type);
+        // dannym - deleted in bog - 17/09/2017
+        // var parent_node = _.find(graphService.getNodes(), {show: true});
+        // graphService.getEventHandlerOnDblClick(parent_node.id, parent_node.type);
       }
       $scope.update_in_process = false;
     };

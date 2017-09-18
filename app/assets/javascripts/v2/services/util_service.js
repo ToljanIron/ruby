@@ -84,10 +84,14 @@ angular.module('workships.services').factory('utilService', function (currentUse
   // When the application language is not English we may
   // wish to display the email instead of a name so data analysis
   // will be easier for people not using the local language
-  util.employeeDisplayName = function(name, email) {
+  util.employeeDisplayName = function(name, email, id) {
     var label = name;
     if (currentUserService.getShouldDisplayEmails() ) {
-      label = email.split('@')[0];
+      if (id !== undefined) {
+        label = email.split('@')[0] + '-' + id;
+      } else {
+        label = email.split('@')[0];
+      }
     }
     return label;
   };

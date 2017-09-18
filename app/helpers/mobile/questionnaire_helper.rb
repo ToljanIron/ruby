@@ -1,4 +1,5 @@
-module Mobile::QuestionnaireHelper
+module Mobile
+module QuestionnaireHelper
   require 'csv'
 
   EVENT_TYPE = 'QUESTIONNAIRE'
@@ -195,9 +196,7 @@ module Mobile::QuestionnaireHelper
     cid = questionnaire.company.id
 
     replies = QuestionReply.where(questionnaire_id: quest_id)
-    ActiveRecord::Base.transaction do
       begin
-
         prev_sid = questionnaire.last_snapshot_id
         puts "prev_sid is: #{prev_sid}"
         sid = Snapshot.create_snapshot_by_weeks(cid, date).id
@@ -208,7 +207,11 @@ module Mobile::QuestionnaireHelper
         Employee.create_snapshot(cid, prev_sid, sid)
 
         EventLog.log_event(event_type_name: EVENT_TYPE, message: "with name: #{questionnaire.name} copied to snapshot: #{sid}")
+
+        ii = 0
         replies.select { |reply| !reply.answer.nil? }.each do |reply|
+          puts "Batch #{ii}" if ((ii % 200) == 0)
+          ii += 1
           qqid = reply.questionnaire_question_id
           qq = QuestionnaireQuestion.find_by_id(qqid)
           nid = qq.network_id
@@ -220,6 +223,8 @@ module Mobile::QuestionnaireHelper
 
           newfromid = Employee.id_in_snapshot(from.employee.id, sid)
           newtoid   = Employee.id_in_snapshot(  to.employee.id, sid)
+
+          next if (newfromid == nil || newtoid == nil)
 
           NetworkSnapshotData.find_or_create_by(
             snapshot_id:               sid,
@@ -240,7 +245,6 @@ module Mobile::QuestionnaireHelper
         puts e.backtrace
         raise ActiveRecord::Rollback
       end
-    end
   end
 
   def self.convert_answer(answer)
@@ -294,4 +298,5 @@ module Mobile::QuestionnaireHelper
     email.update(pending: true, message: participant.create_link)
   end
 
+end
 end

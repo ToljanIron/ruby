@@ -33,6 +33,13 @@ class ApplicationController < ActionController::Base
     @token = params['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
     if qp
+      # Added message when questionnaire is closed - Michael K. - 12.9.17
+      questionnaire = Questionnaire.find(qp.questionnaire_id)
+      if (questionnaire.state === 'completed')
+        render plain: 'Questionnaire is closed.'
+	return
+      end
+      
       I18n.locale = qp.gt_locale
       @name = qp.employee.first_name
       if params['desktop'] == 'true' || !mobile?

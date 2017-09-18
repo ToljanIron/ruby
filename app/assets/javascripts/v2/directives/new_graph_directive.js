@@ -89,7 +89,7 @@ angular.module('workships.directives')
           var data = {};
           if (node.type === SINGLE) {
             icon = 'assets/analyze_color/' + (node.gender || 'male') + '_employee.svg';
-            label = utilService.employeeDisplayName(node.first_name, node.email);
+            label = utilService.employeeDisplayName(node.first_name, node.email, node.id);
             data = {
               type: SINGLE,
               id: node.id
