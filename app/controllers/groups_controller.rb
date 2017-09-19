@@ -37,7 +37,18 @@ class GroupsController < ApplicationController
     if res.nil?
       groups_ids = policy_scope(Group).by_snapshot(sid).select(:id).pluck(:id)
       rails 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
-      res = CdsGroupsHelper.groups_with_sizes(groups_ids)
+
+      company = Company.find(cid)
+      res = []
+      if (company.questionnaire_only?)
+        groups_ids.each do |gid|
+          g = Group.find(gid)
+          res.push g.pack_to_json
+        end
+      else
+        res = CdsGroupsHelper.groups_with_sizes(groups_ids)
+      end
+
       cache_write(cache_key, res)
     end
     res = { groups: res }

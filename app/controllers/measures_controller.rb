@@ -144,7 +144,6 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     cid = current_user.company_id
     res = {}
-
     if Company.find(cid).questionnaire_only?
       data = cds_get_network_dropdown_list_for_tab_for_questionnaire_only(cid)
       res['Collaboration'] = data

@@ -12,11 +12,11 @@
             <div class='title-user'></div>
 
           <div ng-if ="data.companies.product_type==='questionnaire_only'" ng-repeat="tab in tabService.tab_list">
-            <div ng-if="tab.name!=='Dashboard' && tab.name!=='Workflow' && tab.name!=='Top Talent' && tab.name!=='Productivity'" class="tab_box {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
+            <div ng-if="tab.name!=='Dashboard' && tab.name!=='Workflow' && tab.name!=='Top Talent' && tab.name!=='Productivity' && tab.name!=='Settings'" class="tab_box {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
               <mini-header ng-show='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></mini-header>
               <header-tab ng-hide='tabService.showMiniHeader' atab='tab' ng-click='tabService.selectTab(tab.name); tabService.showExploreSettings = false'></header-tab>
             </div>
-            <div ng-if="tab.name==='Dashboard' || tab.name==='Workflow' || tab.name==='Top Talent' || tab.name==='Productivity'" class="tab_box_inactive {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
+            <div ng-if="tab.name==='Dashboard' || tab.name==='Workflow' || tab.name==='Top Talent' || tab.name==='Productivity' || tab.name==='Settings'" class="tab_box_inactive {{tab.tab_class.toLowerCase().replace(' ', '_')}}_tab">
               <mini-header ng-show='tabService.showMiniHeader' atab='tab' ></mini-header>
               <header-tab ng-hide='tabService.showMiniHeader' atab='tab' ></header-tab>
             </div>

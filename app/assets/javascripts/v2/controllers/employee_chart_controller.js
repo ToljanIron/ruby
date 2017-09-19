@@ -12,11 +12,12 @@ angular.module('workships').controller('employeeChartController', function ($sco
     return delta;
   };
   var createDeltaStyle = function (delta) {
-    var height = HIGHT_PER_UNIT * Math.abs(delta) + 'px';
+    var height = HIGHT_PER_UNIT * Math.abs(delta);
+    height = Math.min(height, 60);
     if (delta >= 0) {
       $scope.number = "+" + delta.toFixed(2);
       $scope.box = {
-        'height': height
+        'height': height + 'px'
       };
     } else {
       $scope.number = delta.toFixed(2);

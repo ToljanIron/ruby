@@ -66,6 +66,7 @@ module UiLevelConfigurationHelper
     i = 1
     measures.each do |m|
       cmid = m['id'].to_i
+      next if m['network_name'].include?('Communication Flow')
       l4s << {
         id:   CompanyMetric.generate_ui_level_id_for_questionnaire_only(m['id']),
         name: CompanyMetric.generate_metric_name_for_questionnaire_only(m['network_name'], m['algorithm_id']),

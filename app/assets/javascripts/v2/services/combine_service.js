@@ -633,6 +633,7 @@ angular.module('workships.services').factory('combineService', function () {
 
   function isLinkSingleToSingle(link_key) {
     var link = getLink(link_key);
+    // if (link === undefined) { return false; }
     var from_node = getNode(link.from_id);
     if (isNodeCombo(from_node)) { return false; }
     var to_node = getNode(link.to_id);
@@ -641,21 +642,21 @@ angular.module('workships.services').factory('combineService', function () {
   }
 
   function recalculateLinksWeights(links_list, measure_type) {
-    logger("In recalculateLinksWeights");
+    everlog("In recalculateLinksWeights");
     if (links_list === undefined) { return; }
     _.forEach( links_list, function(link) {
       var weight = 0;
-      logger("Working on link: ", linkKey(link));
+      everlog("Working on link: ", linkKey(link));
       _.forEach( link.inner_links, function(inner_key) {
         if ( isLinkSingleToSingle(inner_key) ) {
           var inner_link = getLink(inner_key);
-          logger("inner link key: ", inner_key, " with weight: ", inner_link.weight);
+          everlog("inner link key: ", inner_key, " with weight: ", inner_link.weight);
           weight += inner_link.weight;
         }
       });
 
       var count = -1;
-      if (measure_type !== EMAILS) {
+      if ((measure_type !== EMAILS) && !isLinkSingleToSingle(linkKey(link))) {
         weight *= 5;
         var from_group_count = containingGroupCardinality(link.from_id);
         var to_group_count   = containingGroupCardinality(link.to_id);

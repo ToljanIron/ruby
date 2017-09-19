@@ -345,6 +345,24 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
+  def cds_get_network_dropdown_list_for_tab_for_questionnaire_only(cid)
+    ret = []
+    cms = CompanyMetric.where(algorithm_type_id: QUESTIONNAIRE_ONLY, company_id: cid)
+    cms.each do |cm|
+      ret << CompanyMetric.generate_metric_name_for_questionnaire_only(cm.network.name, cm.algorithm_id)
+    end
+    return ret
+  end
+
+  def cds_fetch_analyze_scores(cid, sid, pid, gid, company_metric_ids)
+    pid = nil if pid == NO_PIN
+    unless Company.find(cid).questionnaire_only?
+      gid = nil if gid == NO_GROUP || Group.find(gid).parent_group_id.nil?
+    end
+    other_emp_id = Employee.where(email: 'other@mail.com').first.try(:id)
+    db_data = CdsMetricScore.where(company_id: cid, snapshot_id: sid, company_metric_id: company_metric_ids, pin_id: pid, group_id: gid).where.not(employee_id: other_emp_id)
+    return db_data
+  end
 
   def get_network_name(network_id)
     return NetworkName.where(id: network_id).first.name
