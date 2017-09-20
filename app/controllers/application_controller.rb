@@ -30,16 +30,17 @@ class ApplicationController < ActionController::Base
   def show_mobile
     authorize :application, :passthrough
     # @token = JSON.parse(params[:data])['token']
+
     @token = params['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
+
     if qp
       # Added message when questionnaire is closed - Michael K. - 12.9.17
       questionnaire = Questionnaire.find(qp.questionnaire_id)
       if (questionnaire.state === 'completed')
         render plain: 'Questionnaire is closed.'
-	return
+	      return
       end
-      
       I18n.locale = qp.gt_locale
       @name = qp.employee.first_name
       if params['desktop'] == 'true' || !mobile?
@@ -48,7 +49,7 @@ class ApplicationController < ActionController::Base
         render 'mobile', layout: 'mobile_application'
       end
     else
-      render text: 'Failed to load app, unkown employee.'
+      render plain: 'Failed to load app, unkown employee.'
     end
   end
 
