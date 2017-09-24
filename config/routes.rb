@@ -193,4 +193,5 @@ Workships::Application.routes.draw do
   post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
   get 'v3/get_snapshots_email_volume'        ,to: 'snapshots#get_snapshots_email_volume'
   get 'v3/get_employees_emails_scores'       ,to: 'measures#get_employees_emails_scores'
+  get 'v3/get_dynamics_scores'               ,to: 'measures#get_dynamics_scores'
 end

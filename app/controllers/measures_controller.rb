@@ -461,6 +461,14 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
+  def get_dynamics_scores
+    authorize :measure, :index?
+    puts "**************************"
+    puts "get_groups_dynamics_scores()"
+    puts "**************************"
+    render json: {body: 'This is my body'}, status: 200
+  end
+
   private
 
   def get_snapshot_list(cid)

@@ -1,7 +1,6 @@
 require 'oj'
 require 'oj_mimic_json'
 
-# require 'snapshots_helper.rb'
 include SnapshotsHelper
 include CdsUtilHelper
 
