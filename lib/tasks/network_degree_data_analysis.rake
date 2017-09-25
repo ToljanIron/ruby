@@ -1,5 +1,5 @@
 require './app/helpers/network_degree_data_analysis_helper.rb'
-include NetworkInDegreeDataAnalysisHelper
+include NetworkDegreeDataAnalysisHelper
 
 namespace :db do
   desc ''
