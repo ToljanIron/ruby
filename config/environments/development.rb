@@ -36,5 +36,5 @@ Workships::Application.configure do
   end
 
   # Disable rails server logging  - sql query results etc.
-  #config.active_record.logger = nil
+  config.active_record.logger = nil
 end

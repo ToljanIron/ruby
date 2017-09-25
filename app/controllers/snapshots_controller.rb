@@ -1,7 +1,6 @@
 require 'oj'
 require 'oj_mimic_json'
 
-# require 'snapshots_helper.rb'
 include SnapshotsHelper
 include CdsUtilHelper
 
@@ -38,6 +37,19 @@ class SnapshotsController < ApplicationController
     cid = current_user.company_id
 
     res = get_emails_volume_scores(interval_type, gids, cid)
+    res = Oj.dump(res)
+
+    render json: res
+  end
+
+  def get_snapshots_time_spent_in_meetings
+    authorize :snapshot, :index?
+    
+    interval_type = params[:interval_type].to_i
+    gids = params[:gids].split(',')
+    cid = current_user.company_id
+    
+    res = get_time_spent_in_meetings(interval_type, gids, cid)
     res = Oj.dump(res)
 
     render json: res

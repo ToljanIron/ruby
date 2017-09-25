@@ -36,7 +36,8 @@ class GroupsController < ApplicationController
     res = cache_read(cache_key)
     if res.nil?
       groups_ids = policy_scope(Group).by_snapshot(sid).select(:id).pluck(:id)
-      rails 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
+
+      raise 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
 
       company = Company.find(cid)
       res = []
@@ -48,7 +49,7 @@ class GroupsController < ApplicationController
       else
         res = CdsGroupsHelper.groups_with_sizes(groups_ids)
       end
-
+      
       cache_write(cache_key, res)
     end
     res = { groups: res }
