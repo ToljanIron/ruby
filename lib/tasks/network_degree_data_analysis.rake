@@ -1,5 +1,5 @@
 require './app/helpers/network_degree_data_analysis_helper.rb'
-include NetworkInDegreeDataAnalysisHelper
+# include NetworkInDegreeDataAnalysisHelper
 
 namespace :db do
   desc ''
@@ -46,7 +46,7 @@ namespace :db do
       
       puts "Starting network_analysis task"
 
-      NetworkDegreeDataAnalysisHelper.init(segments_file, data_file, network, degree, network_sorting_value, debug)
+      #NetworkDegreeDataAnalysisHelper.init(segments_file, data_file, network, degree, network_sorting_value, debug)
 
       finish_job(t_id) if t_id != 0
     # rescue => e
