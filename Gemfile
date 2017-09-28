@@ -45,6 +45,7 @@ gem 'hirb'
 gem 'rack-cors'
 gem 'jwt'
 gem 'thor', '0.19.1'
+gem 'nmatrix'
 
 group :development, :test do
   gem 'rspec-rails'

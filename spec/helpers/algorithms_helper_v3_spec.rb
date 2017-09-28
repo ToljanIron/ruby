@@ -1,4 +1,5 @@
-
+require 'nmatrix'
+require 'pp'
 require 'spec_helper'
 require './spec/spec_factory'
 require './spec/factories/company_with_metrics_factory.rb'
@@ -118,4 +119,96 @@ describe AlgorithmsHelper, type: :helper do
       expect(res.first[:id]).not_to eq(7)
     end
   end
+
+  describe 'sagraph' do
+    all = nil
+    nid = nil
+    cid = nil
+    before do
+      Company.find_or_create_by(id: 1, name: "Hevra10")
+      Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+      Group.find_or_create_by(id: 6, name: "R&D", company_id: 1, parent_group_id: 1, color_id: 10)
+      nid = NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1).id
+      cid = Snapshot.find(1).company_id
+    end
+
+    it 'should create a well formatted sagraph structre' do
+      all = [
+        [0,1,1,0,0,0,0,0,0,0],
+        [1,0,1,0,0,0,0,0,0,0],
+        [1,1,0,1,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0,0,0,0],
+        [0,0,0,1,0,1,1,1,1,1],
+        [0,0,0,1,1,0,1,1,1,1],
+        [0,0,0,0,1,1,0,1,1,1],
+        [0,0,0,0,1,1,1,0,1,1],
+        [0,0,0,0,1,1,1,1,0,1],
+        [0,0,0,0,1,1,1,1,1,0]]
+      create_emps('moshe', 'acme.com', 10, {gid: 6})
+      fg_emails_from_matrix(all)
+
+      sagraph = get_sagraph(1, nid, 6)
+      inx2emp = sagraph[:inx2emp]
+      emp2inx = sagraph[:emp2inx]
+
+      expect( emp2inx[inx2emp[0]] ).to eq(0)
+      expect( inx2emp[emp2inx[7]] ).to eq(7)
+      expect( sagraph[:adjacencymat].shape ).to eq([10,10])
+      expect( sagraph[:adjacencymat].slice(7,6) ).to eq(1)
+      expect( sagraph[:adjacencymat].slice(7,7) ).to eq(0)
+    end
+
+    it 'employees with no outgoing connections should have 1 on the diagonal entry' do
+      all = [
+        [0,1,1,0,0,0],
+        [1,0,1,0,0,0],
+        [1,1,0,1,0,0],
+        [0,0,1,0,1,0],
+        [0,0,0,0,0,0],
+        [0,0,0,1,1,0]]
+      create_emps('moshe', 'acme.com', 6, {gid: 6})
+      fg_emails_from_matrix(all)
+      sagraph = get_sagraph(1, nid, 6)
+
+      a = sagraph[:adjacencymat]
+
+      expect( a.slice(4,3) ).to eq(0)
+      expect( a.slice(4,4) ).to eq(1)
+      expect( a.slice(4,5) ).to eq(0)
+    end
+  end
+
+  describe 'bottlnecks' do
+    all = nil
+    nid = nil
+    cid = nil
+    before do
+      Company.find_or_create_by(id: 1, name: "Hevra10")
+      Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+      Group.find_or_create_by(id: 6, name: "R&D", company_id: 1, parent_group_id: 1, color_id: 10)
+      nid = NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1).id
+      cid = Snapshot.find(1).company_id
+    end
+
+    it 'should create a well formatted sagraph structre' do
+      all = [
+        [0,1,1,0,0,0,0,0,0,0],
+        [1,0,1,0,0,0,0,0,0,0],
+        [1,1,0,1,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0,0,0,0],
+        [0,0,0,1,0,1,1,1,1,1],
+        [0,0,0,1,1,0,1,1,1,1],
+        [0,0,0,0,1,1,0,1,1,1],
+        [0,0,0,0,1,1,1,0,1,1],
+        [0,0,0,0,1,1,1,1,0,1],
+        [0,0,0,0,1,1,1,1,1,0]]
+      create_emps('moshe', 'acme.com', 10, {gid: 6})
+      fg_emails_from_matrix(all)
+
+      bns = AlgorithmsHelper.calculate_bottlenecks(1, nid, 6)
+      expect(bns[4][:measure]).to eq(0.137)
+    end
+  end
 end
+
+
