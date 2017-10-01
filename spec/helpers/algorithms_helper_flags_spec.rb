@@ -99,9 +99,6 @@ describe AlgorithmsHelper, type: :helper do
       Employee.create!(id: 3, company_id: 2, email: 'bill@sala.com', external_id: '16', first_name: 'Dave2', last_name: 'sala', date_of_birth: '1999-12-31 22:00:00', employment: nil, gender: 0, group_id: 28, home_address: '', job_title_id: 644, marital_status_id: nil, middle_name: '', position_scope: nil, qualifications: nil, office_id: 25, work_start_date: '2013-04-18 21:00:00', img_url_last_updated: '2016-03-06 08:01:23', age_group_id: nil, seniority_id: nil, formal_level: nil)
       Employee.create!(id: 4, company_id: 2, email: 'da@sala.com', external_id: '17', first_name: 'Dave3', last_name: 'sala', date_of_birth: '1999-12-31 22:00:00', employment: nil, gender: 0, group_id: 28, home_address: '', job_title_id: 644, marital_status_id: nil, middle_name: '', position_scope: nil, qualifications: nil, office_id: 25, work_start_date: '2013-04-18 21:00:00', img_url_last_updated: '2016-03-06 08:01:23', age_group_id: nil, seniority_id: nil, formal_level: nil)
       Employee.create!(id: 5, company_id: 2, email: 'dar@sala.com', external_id: '18', first_name: 'Dave4', last_name: 'sala', date_of_birth: '1999-12-31 22:00:00', employment: nil, gender: 0, group_id: 28, home_address: '', job_title_id: 644, marital_status_id: nil, middle_name: '', position_scope: nil, qualifications: nil, office_id: 25, work_start_date: '2013-04-18 21:00:00', img_url_last_updated: '2016-03-06 08:01:23', age_group_id: nil, seniority_id: nil, formal_level: nil)
-      NetworkName.create!(id: 1, name: 'Advice', company_id: 2)
-      NetworkName.create!(id: 2, name: 'Trust', company_id: 2)
-      NetworkName.create!(id: 3, name: 'Friendship', company_id: 2)
     end
 
     it 'employees 2 and 3 should be powerful non managers' do
@@ -181,18 +178,6 @@ describe AlgorithmsHelper, type: :helper do
       res = AlgorithmsHelper.calculate_powerful_non_managers(45, 1, 2, 3, -1, 28)
       expect(res).to include(id: 4, measure: 1.0)
       expect(res.length).to eq(1)
-    end
-
-    it 'powerful non manager should work without one of the networks' do
-      NetworkSnapshotData.delete_all
-      [1, 2, 3, 5].each do |i|
-        NetworkSnapshotData.create_email_adapter(employee_from_id: i, employee_to_id: 4, snapshot_id: 45, n1: 0, n2: 0, n3: 0, n4: 2, n5: 0, n6: 0, n7: 0, n8: 0, n9: 0, n10: 0, n11: 0, n12: 0, n13: 0, n14: 0, n15: 0, n16: 0, n17: 0, n18: 0)
-        NetworkSnapshotData.create!(snapshot_id: 45, network_id: 1, company_id: 2, from_employee_id: i, to_employee_id: 4, value: 1)
-        NetworkSnapshotData.create!(snapshot_id: 45, network_id: 2, company_id: 2, from_employee_id: i, to_employee_id: 4, value: 1)
-      end
-
-      res = AlgorithmsHelper.calculate_powerful_non_managers(45, 1, 2, 3, -1, 28)
-      expect(res.include?(id: 4, measure: 1)).to be(true)
     end
 
     it 'powerful non manager without email traffic' do

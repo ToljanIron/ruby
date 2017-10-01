@@ -803,15 +803,6 @@ module AlgorithmsHelper
     return arra
   end
 
-  def self.volume_for_group(sid, company, pid, gid)
-    all_metrix_and_employees_in_group = calculate_inn_degree_email(sid, nil, company, pid, gid)
-    all_metrix = all_metrix_and_employees_in_group[0]
-    emp_arr = all_metrix_and_employees_in_group[1]
-    all_metrix_and_employees_off_group = calculate_outn_degree_email(sid, nil, company, pid, gid)
-    v_email_degs = sum_up_in_and_out_emails_for_company(all_metrix_and_employees_off_group, all_metrix, emp_arr)
-    return v_email_degs
-  end
-
   def self.volume_of_emails(sid, pid = NO_PIN, gid = NO_GROUP)
     company = Snapshot.find(sid).company_id
     v_email_degs = volume_for_group(sid, company, pid, gid)
@@ -983,16 +974,6 @@ module AlgorithmsHelper
     return res
   end
 
-  def pre_calculate_information_isolate(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    all_metrix_and_employees_in_group = calculate_inn_degree_email(snapshot_id, nil, company, pid, gid)
-    all_metrix        = all_metrix_and_employees_in_group[0]
-    emp_arr           = all_metrix_and_employees_in_group[1]
-
-    all_metrix = sort_results(all_metrix)
-    return [emp_arr, all_metrix, nil]
-  end
-
   def self.return_harsh_quartile(matrixes)
     array = volume_json_to_array(matrixes)
     q1 = find_q1_max(array)
@@ -1083,88 +1064,32 @@ module AlgorithmsHelper
     emps.each do |emp_id|
       all_metrix.push(id: emp_id.to_i, measure: 0) unless exists_in_metrics(all_metrix, emp_id)
     end
-    return [all_metrix, emps]
-  end
-
-  def self.calculate_outn_degree_email(sid, _network_id, cic, pid = NO_PIN, gid = NO_GROUP)
-    all_metrix = calc_outdegree_for_all_matrix_in_relation_to_company(sid, gid, pid)
-    emps = get_members_in_group(pid, gid, sid)
-    emps.each do |emp_id|
-      all_metrix.push(id: emp_id.to_i, measure: 0) unless exists_in_metrics(all_metrix, emp_id)
-    end
     return all_metrix
   end
 
   def self.remove_managers(employees_with_grades, sid)
     result = []
-    employees_with_grades.each do |emps|
-      result.push(emps) if no_manager?(emps[:id].to_i, sid)
+    employees_with_grades.each do |emp|
+      result.push(emp) if no_manager?(emp[:id].to_i, sid)
     end
     result
   end
 
-  def pre_calculate_powerful_non_managers(snapshot_id, network_id, network_b_id, network_c_id, pid = NO_PIN, gid = NO_GROUP)
-    company = Snapshot.find(snapshot_id).company_id
-    all_metrix_and_employees = calculate_inn_degree_email(snapshot_id, nil, company, pid, gid)
-    emps_without_managers = remove_managers(all_metrix_and_employees[0], snapshot_id)
-    highest_emails = slice_percentile_from_hash_array(emps_without_managers, Q3)
-    return [company, [highest_emails]]
+  def self.no_manager?(id, sid)
+    return EmployeeManagementRelation
+             .joins("JOIN employees as emps ON emps.id = employee_management_relations.employee_id")
+             .where(manager_id: id)
+             .where("emps.snapshot_id = #{sid}")
+             .empty?
   end
 
-  def self.screen_flat_distribution(highest_emails, sorted_results)
-    # delete members that exist in both arrays
-    to_remove = []
-    sorted_results.each do |to_be_removed|
-      to_remove.push to_be_removed if highest_emails.include?(to_be_removed)
-    end
-    to_remove.each do |rmv|
-      sorted_results.delete rmv
-    end
-    highest_emails.each do |email|
-      sorted_results.each do |has|
-        highest_emails.delete(email) if has[:measure] == email[:measure]
-      end
-    end
-    return highest_emails
-  end
-
-  def self.calculate_powerful_non_managers(snapshot_id, network_id, network_b_id, network_c_id, pid = NO_PIN, gid = NO_GROUP)
-    company, score_matrixes = read_or_calculate_and_write("pre_calculate_powerful_non_managers-#{snapshot_id}-#{network_id}-#{network_b_id}-#{network_c_id}-#{pid}-#{gid}") do
-      pre_calculate_powerful_non_managers(snapshot_id, network_id, network_b_id, network_c_id, pid, gid)
-    end
-    results = assign_scores_by_all_categories(pid, gid, company, score_matrixes[0], score_matrixes[1], score_matrixes[2], score_matrixes[3])
-    results
-  end
-
-  ################################################################################################
-  #
-  # This function checks if emp appears in most lists provided, and
-  # if he does then he is flagged.
-  # If some of the lists are empty then they are not part of the count.
-  # So:
-  #   - if there are 4 networks then employees apearing in 4 or 3 networks will make the flag.
-  #   - If there are less then 4 networks tnen only employees appearing in all will make the flag.
-  #
-  #################################################################################################
-  def assign_scores_by_all_categories(pid, gid, cid, z_e, advice_arr, trust_arr, friendship_arr, sid)
-    members_of_group = get_members_in_group(pid, gid, sid)
-    results = []
-    populated_networks = 0
-    populated_networks += 1 if z_e.count > 0
-    populated_networks += 1 if advice_arr.count > 0
-    populated_networks += 1 if trust_arr.count > 0
-    populated_networks += 1 if friendship_arr.count > 0
-
-    members_of_group.each do |mems|
-      grade = 0
-      grade += 1 if id_exists_in_results(advice_arr, mems.to_i)
-      grade += 1 if id_exists_in_results(trust_arr, mems.to_i)
-      grade += 1 if id_exists_in_results(friendship_arr, mems.to_i)
-      grade += 1 if id_exists_in_results(z_e, mems.to_i)
-
-      results.push(id: mems.to_i, measure: 1) if grade > (populated_networks.to_f / 2)
-    end
-    results
+  def calculate_powerful_non_managers(sid, pid = NO_PIN, gid = NO_GROUP)
+    cid = Snapshot.find(sid).company_id
+    puts "cid: #{cid}, sid: #{sid}, gid: #{gid}"
+    all_metrix_and_employees = calculate_inn_degree_email(sid, nil, cid, pid, gid)
+    emps_without_managers = remove_managers(all_metrix_and_employees, sid)
+    emps_without_managers = emps_without_managers.sort! {|a,b| b[:measure] <=> a[:measure]}
+    return emps_without_managers
   end
 
   def self.calculate_pair_for_specific_relation_per_snapshot(sid, network_id, pid = NO_PIN, gid = NO_GROUP)
@@ -1178,14 +1103,6 @@ module AlgorithmsHelper
     end
     temp_res = ActiveRecord::Base.connection.select_all(query)
     return AlgorithmsHelper.format_to_analyze_algorithm(temp_res, dt)
-  end
-
-  def self.no_manager?(id, sid)
-    return EmployeeManagementRelation
-             .joins("JOIN employees as emps ON emps.id = employees_management_relation.employee_id")
-             .where(manager_id: id)
-             .where("emps.snapshot_id = #{sid}")
-             .empty?
   end
 
   def normalize_by_n_algorithm(res, n)
@@ -1211,13 +1128,49 @@ module AlgorithmsHelper
     return { id: friend_id, measure: Math.sqrt(emp_fin + avg_in) }
   end
 
-  def most_isolated_workers(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP) ## need to convert
-    res = get_friends_relation_in_network(snapshot_id, network_id, pid, gid)
-    max = CdsUtilHelper.get_max(res)
-    return res if max == -1
-    res.each { |o| o[:measure] = max - o[:measure] }
-    res = res.sort_by { |h| -h[:measure] }
-    return res
+  ## Sum of indegrees and outdegrees of all employees
+  def most_isolated_workers(sid, gid = NO_GROUP)
+    emails_network = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    emps_arr = Group.find(gid).extract_employees
+    emps_str = emps_arr.join(',')
+    ret = []
+    return ret if emps_arr.length < 10
+
+    sqlstr = "
+      SELECT empid, SUM(tempsums.empscore) AS totalscore FROM
+        (SELECT femp.id AS empid, SUM(fnsd.value) AS empscore
+        FROM network_snapshot_data AS fnsd
+        JOIN employees AS femp on femp.id = fnsd.from_employee_id
+        WHERE
+        fnsd.snapshot_id = #{sid}  AND
+        fnsd.network_id = #{emails_network} AND
+        femp.id IN (#{emps_str})
+        GROUP BY femp.id
+        UNION
+        SELECT temp.id AS empid, SUM(tnsd.value) AS empscore
+        FROM network_snapshot_data AS tnsd
+        JOIN employees AS temp ON temp.id = tnsd.to_employee_id
+        WHERE
+        tnsd.company_id = #{sid} AND
+        tnsd.network_id = #{emails_network} AND
+        temp.id IN (#{emps_str})
+        GROUP BY temp.id) AS tempsums
+      GROUP BY empid
+      ORDER BY totalscore ASC"
+
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    res.each do |e|
+      eid = e['empid']
+      emps_arr.delete(eid)
+      ret << {id: eid, measure: e['totalscore'].to_i}
+    end
+
+    # Padding for employees having no connections
+    zeroscores = []
+    emps_arr.each do |emp|
+      zeroscores << {id: emp, measure: 0}
+    end
+    return zeroscores + ret
   end
 
   def get_friends_relation_in_network(sid, nid, pid = NO_PIN, gid = NO_GROUP, in_or_out = 'in') ## need to convert
@@ -2307,6 +2260,27 @@ module AlgorithmsHelper
   def self.get_relation_arr(_pid, _gid, snapshot, network_id)
     return "select from_employee_id, to_employee_id from network_snapshot_data where value = 1
     AND snapshot_id = #{snapshot} AND network_id = #{network_id}"
+  end
+
+  ################################### Boolean network helper functions ##################################
+  def get_list_of_employees_in(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
+    return get_list_of_employees_and_values(snapshot_id, NETWORK_IN, network_id, pid, gid)
+  end
+
+  def get_list_of_employees_out(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
+    return get_list_of_employees_and_values(snapshot_id, NETWORK_OUT, network_id, pid, gid)
+  end
+
+  def get_list_of_employees_and_values(snapshot_id, groupby, network_id, pid = NO_PIN, gid = NO_GROUP)
+    inner_select = AlgorithmsHelper.get_inner_select(pid, gid)
+    query = "select #{groupby}, sum(value)  from network_snapshot_data " \
+    "where snapshot_id = #{snapshot_id} AND network_id = #{network_id} "
+    unless inner_select.blank?
+      query += "and from_employee_id in (#{inner_select} ) " \
+      "and to_employee_id in (#{inner_select}) "
+    end
+    query += " group by #{groupby} order by sum(value) desc"
+    return NetworkSnapshotData.connection.select_all(query)
   end
 end
 

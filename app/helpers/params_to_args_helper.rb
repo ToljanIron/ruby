@@ -276,8 +276,7 @@ module ParamsToArgsHelper
   end
 
   def self.calculate_information_isolate_to_args(args)
-    return args[:memorize] if !args[:memorize].nil?
-    return AlgorithmsHelper.calculate_information_isolate(args[:snapshot_id], args[:network_id], args[:pid], args[:gid])
+    return AlgorithmsHelper.most_isolated_workers(args[:snapshot_id], args[:gid])
   end
 
   def self.political_power_flag(args)
@@ -297,17 +296,9 @@ module ParamsToArgsHelper
     return AlgorithmsHelper.calculate_non_reciprocity_between_employees(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:pid].to_i, args[:gid].to_i)
   end
 
-  def self.calculate_powerful_non_managers_hidden_gauge(args)
-    if args[:memorize].nil?
-      return AlgorithmsHelper.calculate_powerful_non_managers_hidden_gauge(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:network_c_id], args[:pid].to_i, args[:gid].to_i)
-    else
-      return args[:memorize]
-    end
-  end
-
   def self.calculate_powerful_non_managers_to_args(args)
     if args[:memorize].nil?
-      return AlgorithmsHelper.calculate_powerful_non_managers(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:network_c_id], args[:pid].to_i, args[:gid].to_i)
+      return AlgorithmsHelper.calculate_powerful_non_managers(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
     else
       return args[:memorize]
     end
@@ -325,17 +316,6 @@ module ParamsToArgsHelper
 
   def self.calculate_bottlenecks_to_explore(args)
     return AlgorithmsHelper.calculate_bottlenecks_explore(args[:snapshot_id], args[:pid], args[:gid])
-  end
-
-
-  def self.calculate_powerful_non_managers_explore_to_args(args)
-    data = AlgorithmsHelper.calculate_powerful_non_managers(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:network_c_id], args[:pid].to_i, args[:gid].to_i)
-    return ParamsToArgsHelper.email_based_analyze_for_precalculation(data, args[:company_id].to_i, args[:pid].to_i, args[:gid].to_i)
-  end
-
-  def self.calculate_non_reciprocity_between_employees_explore_to_args(args)
-    data = AlgorithmsHelper.calculate_non_reciprocity_between_employees_explore(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:pid].to_i, args[:gid].to_i)
-    return ParamsToArgsHelper.email_based_analyze_for_precalculation(data, args[:company_id].to_i, args[:pid].to_i, args[:gid].to_i)
   end
 
   # def self.flag_sinks(args)

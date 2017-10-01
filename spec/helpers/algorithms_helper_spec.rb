@@ -101,6 +101,7 @@ describe AlgorithmsHelper, type: :helper do
 
     it ', Check most isolated' do
       res = most_isolated_workers(1, 1, @pin.id)
+      ap res
       measure = 0
       res.each do |row|
         measure = row[:measure].to_f if row[:id].to_i == 3
