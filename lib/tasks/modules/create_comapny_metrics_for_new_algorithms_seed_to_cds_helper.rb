@@ -31,7 +31,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2, active: false)
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: communication_network_id, company_id: cid, algorithm_id: 16, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 60, algorithm_type_id: 1)
-    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: false)
+    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: true)
     CompanyMetric.find_or_create_by(metric_id: isolate_id, network_id: communication_network_id, company_id: cid, algorithm_id: 100, algorithm_type_id: 1, active: true)
     CompanyMetric.find_or_create_by(metric_id: powerful_non_manager_id, network_id: communication_network_id, company_id: cid, algorithm_id: 101, algorithm_type_id: 1, active: true)
 

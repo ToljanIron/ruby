@@ -250,7 +250,6 @@ module AlgorithmsHelper
   end
 
   def self.proportion_of_managers_never_in_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.find(sid).company_id
     emps = get_members_in_group(pid, gid, sid)
     group_id = Group.find(gid)
     managers = group_id.get_managers[:manager_id].count.to_f
@@ -346,24 +345,6 @@ module AlgorithmsHelper
     new_emps
   end
 
-  def self.calculate_inner_ratios_for_bottlenecks(ingroupgrades, outgroupgrades, emps, strate_infimum)
-    candidates = {}
-    ingroupgrades = json_to_hash_table(ingroupgrades)
-    outgroupgrades = json_to_hash_table(outgroupgrades)
-    str_emps = emps_without_managers(emps)
-    str_emps.each do |candidate|
-      str_emps.each do |from|
-        str_emps.each do |to|
-          next if from == to || candidate == from || candidate == to
-          candidates[candidate] = 0.to_f if candidates[candidate].nil?
-          candidates[candidate] += ingroupgrades[from + '_' + candidate] * outgroupgrades[candidate + '_' + to] / outgroupgrades[from + '_' + to] if outgroupgrades[from + '_' + to] != 0
-          candidates[candidate] += ingroupgrades[from + '_' + candidate] * outgroupgrades[candidate + '_' + to] / strate_infimum.to_f if outgroupgrades[from + '_' + to] == 0
-        end
-      end
-    end
-    return candidates
-  end
-
   def self.json_to_array_for_subject(json_obj)
     res = []
     json_obj.each do |obj|
@@ -408,131 +389,6 @@ module AlgorithmsHelper
     return candidates
   end
 
-  ######################################## Bottlenecks ##############################################
-
-  ##-------------------------------------- Building blocks ------------------------------------------
-
-  ## Handle caching
-  def self.calculate_bottlenecks_scores(snapshot_id, pid = NO_PIN, gid = NO_GROUP, emps = [], sql_server = false)
-    res = read_or_calculate_and_write("pre_calculate_bottlenecks_scores-#{snapshot_id}-#{pid}-#{gid}") do
-      pre_calculate_bottlenecks_scores(snapshot_id, pid, gid, emps, sql_server)
-    end
-    return res
-  end
-
-  ## Performs the actual calculation, without selelcting the flags
-  def self.pre_calculate_bottlenecks_scores_NEED_TO_FIX_SNAPSHOTS(snapshot_id, _pid = NO_PIN, _gid = NO_GROUP, emps = [], sql_server = false)
-    strate_infimum = 1
-    candidates = {}
-    outgroupgrades = nil
-    ingroupgrades  = nil
-
-    if sql_server
-      sqlstr = "select distinct t1.emails_sum from (select from_employee_id, to_employee_id,(case when cast((      select top 1 sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = aesd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id        )as float)<>0 then cast((#{return_ns}) as float)/cast((      select top 1 sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = aesd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id        )as float) else 0 end) as emails_sum from email_snapshot_data as aesd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (#{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id, toes.id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data where snapshot_id=#{snapshot_id} and to_employee_id=toes.id and from_employee_id=frm.id)) as t1 order by t1.emails_sum"
-      infimum = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-      infimum.each do |inf|
-        infimum.delete(inf) if inf['emails_sum'] == '0' || inf['emails_sum'] == 0.0
-      end
-      strate_infimum = infimum[0]['emails_sum'] unless infimum.empty?
-      # couples query outgrade
-      sqlstr = "select from_employee_id, to_employee_id,(case when cast((      select  top 1 cast((sum(#{return_ns})) as float) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = apsd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id           ) as float)<>0 then cast((#{return_ns})as float)/ cast((      select top 1 cast((sum(#{return_ns})) as float) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = apsd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id           ) as float) else 0 end) as emails_sum from email_snapshot_data as apsd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (    #{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id as sender, toes.id as to_employee_id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data where snapshot_id=  #{snapshot_id} and to_employee_id=toes.id and from_employee_id=frm.id)"
-      outgroupgrades = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-      # couples query  ingrade
-      sqlstr = "select from_employee_id, to_employee_id, (case when cast((      select top 1 sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.to_employee_id = aesd.to_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by to_employee_id        )as float)<>0 then cast((#{return_ns}) as float)/cast((      select top 1 sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.to_employee_id = aesd.to_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by to_employee_id        )as float) else 0 end) as emails_sum from email_snapshot_data as aesd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (#{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id as sender, toes.id as to_employee_id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data as esd where snapshot_id=#{snapshot_id} and esd.to_employee_id=toes.id and esd.from_employee_id=frm.id)"
-      ingroupgrades = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    else
-      sqlstr = "select distinct t1.emails_sum from (select from_employee_id, to_employee_id,(case when cast((      select sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = aesd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id limit 1       )as float)<>0 then cast((#{return_ns}) as float)/cast((      select sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = aesd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id limit 1       )as float) else 0 end) as emails_sum from email_snapshot_data as aesd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (#{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id, toes.id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data where snapshot_id=#{snapshot_id} and to_employee_id=toes.id and from_employee_id=frm.id)order by emails_sum) as t1"
-      infimum = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-      infimum.each do |inf|
-        infimum.delete(inf) if inf['emails_sum'] == '0'
-      end
-      strate_infimum = infimum[0]['emails_sum'] unless infimum.empty?
-
-      # couples query outgrade
-      sqlstr = "select from_employee_id, to_employee_id,(case when cast((      select  cast((sum(#{return_ns})) as float) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = apsd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id limit 1          ) as float)<>0 then cast((#{return_ns})as float)/ cast((      select  cast((sum(#{return_ns})) as float) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.from_employee_id = apsd.from_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by from_employee_id limit 1          ) as float) else 0 end) as emails_sum from email_snapshot_data as apsd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (    #{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id as sender, toes.id as to_employee_id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data where snapshot_id=  #{snapshot_id} and to_employee_id=toes.id and from_employee_id=frm.id)"
-      outgroupgrades = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-      # couples query  ingrade
-      sqlstr = "select from_employee_id, to_employee_id, (case when cast((      select sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.to_employee_id = aesd.to_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by to_employee_id limit 1       )as float)<>0 then cast((#{return_ns}) as float)/cast((      select sum(#{return_ns}) from email_snapshot_data as denom where snapshot_id=#{snapshot_id} and denom.to_employee_id = aesd.to_employee_id and denom.from_employee_id in (#{emps.join(',')}) and denom.to_employee_id in (#{emps.join(',')}) group by to_employee_id limit 1       )as float) else 0 end) as emails_sum from email_snapshot_data as aesd where snapshot_id=#{snapshot_id} and from_employee_id in (#{emps.join(',')}) and to_employee_id in (#{emps.join(',')}) and to_employee_id<>from_employee_id union all select frm.id as sender, toes.id as to_employee_id, 0 as emails_sum from employees as frm inner join employees as toes on frm.id<>toes.id where frm.id in (#{emps.join(',')}) and toes.id in (#{emps.join(',')}) and not exists (select 1 from email_snapshot_data as esd where snapshot_id=#{snapshot_id} and esd.to_employee_id=toes.id and esd.from_employee_id=frm.id)"
-      candidates = {}
-      ingroupgrades = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    end
-
-    candidates = calculate_inner_ratios_for_bottlenecks(ingroupgrades, outgroupgrades, emps, strate_infimum)
-    candidates = create_base_line_for_log(emps, candidates)
-    return do_log(emps, candidates, strate_infimum)
-  end
-
-  ## Select the flags once the underlying calculation has been done
-  def self.select_bottlenecks_flags(all_couples_in_group, emps)
-    if all_couples_in_group.empty?
-      result = []
-      emps.each { |emp| result.push(id: emp.to_i, measure: 0) }
-      return result
-    end
-    q3 = find_q3_min(json_to_array(all_couples_in_group))
-    iqr = q3 - find_q1_max(json_to_array(all_couples_in_group))
-    limit = q3 + (iqr * 1.5)
-    result = find_bottlenecks(all_couples_in_group, limit)
-    return result
-  end
-
-  ## Only calculate the flag proportion in group, used for the gauge
-  def self.calculate_bottlenecks_proportion_in_groups(group_id, resarr, emps)
-    return [{ group_id: group_id, measure: resarr.count.to_f / emps.count.to_f }]
-  end
-
-  ##-------------------------------------- End Building blocks --------------------------------------
-
-  def self.calculate_bottlenecks_for_flag(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
-    cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, sid)
-
-    ## Hanlde groups with small numbers
-    return emps.map { |emp| { id: emp.to_i, measure: 0 } } if emps.count < 3
-
-    all_couples_in_group = calculate_bottlenecks_scores(sid, pid, gid, emps, sql_server)
-    result = select_bottlenecks_flags(all_couples_in_group, emps)
-
-    res = []
-    id_arr = json_to_id_array_int(result)
-    emps.each do |emp|
-      measure = (id_arr.include?(emp.to_i) ? 1 : 0)
-      res.push(id: emp.to_i, measure: measure)
-    end
-    return res
-  end
-
-  def self.calculate_bottlenecks(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
-    cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, sid)
-    group_id = (gid == -1 ? pid : gid)
-
-    ## Handle small groups
-    return [{ group_id: group_id, measure: 0 }] if emps.count < 3
-
-    all_couples_in_group = calculate_bottlenecks_scores(sid, pid, gid, emps, sql_server)
-    return [{ group_id: group_id, measure: 0 }] if all_couples_in_group.empty?
-    result = select_bottlenecks_flags(all_couples_in_group, emps)
-    res = calculate_bottlenecks_proportion_in_groups(group_id, result, emps)
-    return res
-  end
-
-  def self.calculate_bottlenecks_explore(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
-    return calculate_bottlenecks_for_flag_to_explore(sid, pid, gid, sql_server)
-  end
-
-  def self.calculate_bottlenecks_for_flag_to_explore(sid, pid = NO_PIN, gid = NO_GROUP, sql_server = false)
-    cid = Snapshot.find(sid).company_id
-    emps = get_members_in_group(pid, gid, sid)
-    all_couples_in_group = calculate_bottlenecks_scores(sid, pid, gid, emps, sql_server)
-
-    res = all_couples_in_group.map do |e|
-      { id: e[:candidate], measure: e[:email_ratio] }
-    end
-    return res
-  end
-  #################################################### End bottlenecks ############################################
-
   def self.get_company_id(snapshot_id)
     company_id = Snapshot.where('id = ?', snapshot_id).first.company_id unless Snapshot.where('id = ?', snapshot_id).empty?
     return company_id
@@ -569,14 +425,6 @@ module AlgorithmsHelper
     return res
   end
 
-  def self.find_bottlenecks(arr, limit)
-    res = []
-    arr.each do |obj|
-      res.push(obj) if obj[:email_ratio].to_f > limit
-    end
-    return res
-  end
-
   def self.json_to_id_array_int(json_obj)
     res = []
     json_obj.each do |obj|
@@ -590,6 +438,47 @@ module AlgorithmsHelper
       return true if hashtable[li.to_s].to_f == 0 && !hashtable[li.to_s].nil?
     end
     return false
+  end
+
+  ###########################################################
+  #
+  # Calculate bottlenecks by turning the adjacency matrix
+  # into a stochastic one (trasition matrix). And looking for
+  # the steady state by iteratively multipling it. Once we get
+  # a steady state vector, the employees with the highest time
+  # proportions are considered bottlenecks.
+  #
+  ###########################################################
+  def calculate_bottlenecks(sid, nid, gid)
+    sagraph = get_sagraph(sid, nid, gid)
+
+    a = sagraph[:adjacencymat]
+    dim = a.shape[0]
+    ones     = get_ones_nmatrix(dim)
+    init_vec = NMatrix.new([dim, 1], [(1.0 / dim.to_f)], dtype: :float32)
+
+    row_degs = a.dot ones
+    c = a.snm_map_rows do |r,i|
+      row_deg = row_degs[i]
+      r.map { |e| e / row_deg }
+    end
+
+    c4 = c.dot (c.dot (c.dot c))
+    c8 = c4.dot c4
+    c16 = c8.dot c8
+    c32 = c16.dot c16
+    c64 = c32.dot c32
+
+    res = init_vec.transpose.dot c64
+    res = res.transpose
+    inx2emp = sagraph[:inx2emp]
+    ret = []
+    res = res.to_a
+    (0..res.length-1).each do |i|
+      e = res[i]
+      ret << {id: inx2emp[i], measure: (100 *e[0]).round(3)}
+    end
+    return ret
   end
 
   ###########################################################################
@@ -721,52 +610,6 @@ module AlgorithmsHelper
     return outdegrees_unique_hash
   end
 
-  ###################################################################
-  ##
-  ## Get non reciprocity vectors from all three networks (typicallY:
-  ##  Trust, Friendship and emails). For each network extract high
-  ##  quartile, and return only employees who appear in all three.
-  ##
-  ###################################################################
-  def pre_calculate_non_reciprocity_between_employees(sid, nid_1, nid_2, pid = NO_PIN, gid = NO_GROUP)
-    net1_scores  = employees_network_non_reciprocity_scores(sid, nid_1, pid, gid)
-    net2_scores  = employees_network_non_reciprocity_scores(sid, nid_2, pid, gid)
-    email_scores = employees_email_non_reciprocity_scores(sid, pid, gid)
-
-    emps = get_members_in_group(pid, gid, sid)
-
-    net1_scores_q4  = to_ids_array(slice_percentile_from_hash_array(net1_scores,  Q3, emps))
-    net2_scores_q4  = to_ids_array(slice_percentile_from_hash_array(net2_scores,  Q3, emps))
-    email_scores_q4 = to_ids_array(slice_percentile_from_hash_array(email_scores, Q3, emps))
-
-    email_scores_q4 = harsh_idscore_to_upperlower_quartile_emp_ids(email_scores, emps) if find_empty_networks(sid, nid_1, nid_2, emps)
-    net2_scores_q4 = harsh_idscore_to_upperlower_quartile_emp_ids(net2_scores, emps) if find_empty_network_and_email(sid, nid_1, emps)
-    net1_scores_q4 = harsh_idscore_to_upperlower_quartile_emp_ids(net1_scores, emps) if find_empty_network_and_email(sid, nid_2, emps)
-    # there are four different possibilities that we check in this lambda function:
-    #  1. there are emails and at least one network.
-    #  2. there are only emails.
-    #  3. there is only one network x.
-    #  4. there is only one network y.
-    high_in_all_networks = lambda do |emp|
-      emp_s = emp.to_s
-      (!find_empty_networks(sid, nid_1, nid_2, emps) && !find_empty_network_and_email(sid, nid_1, emps) && !find_empty_network_and_email(sid, nid_2, emps) && net1_scores_q4.include?(emp) &&
-        (!net1_scores[emp_s].nil? && net1_scores[emp_s] >= 0) &&
-        net2_scores_q4.include?(emp) &&
-        (!net2_scores[emp_s].nil? && net2_scores[emp_s] >= 0) &&
-        email_scores_q4.include?(emp) &&
-        (!email_scores[emp_s].nil? && email_scores[emp_s] >= 0)) ||
-
-        (find_empty_networks(sid, nid_1, nid_2, emps) && !find_empty_network_and_email(sid, nid_1, emps) && !find_empty_network_and_email(sid, nid_2, emps) && email_scores_q4.include?(emp) &&
-          (!email_scores[emp_s].nil? && email_scores[emp_s] >= 0)) ||
-
-        (!find_empty_networks(sid, nid_1, nid_2, emps) && !find_empty_network_and_email(sid, nid_1, emps) && find_empty_network_and_email(sid, nid_2, emps) && net1_scores_q4.include?(emp) &&
-          (!net1_scores[emp_s].nil? && net1_scores[emp_s] >= 0)) ||
-        (!find_empty_networks(sid, nid_1, nid_2, emps) && find_empty_network_and_email(sid, nid_1, emps) && !find_empty_network_and_email(sid, nid_2, emps) && net2_scores_q4.include?(emp) &&
-          (!net2_scores[emp_s].nil? && net2_scores[emp_s] >= 0))
-    end
-
-    return [emps, high_in_all_networks]
-  end
 
   def self.find_empty_networks(sid, nid_1, nid_2, emps)
     NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_1, to_employee_id: emps, from_employee_id: emps).empty? && NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_2, to_employee_id: emps, from_employee_id: emps).empty?
@@ -1359,17 +1202,14 @@ module AlgorithmsHelper
   end
 
   def ccers_measure(sid, gid, pid)
-    # return calc_outdegree_for_cc_matrix(sid, gid, pid)
     return calc_ccers(sid, gid, pid)
   end
 
   def cced_measure(sid, gid, pid)
-    # return calc_indegree_for_cc_matrix(sid, gid, pid)
     return calc_cced(sid, gid, pid)
   end
 
   def undercover_measure(sid, gid, pid)
-    # return calc_outdegree_for_bcc_matrix(sid, gid, pid)
     return calc_undercover(sid, gid, pid)
   end
 
@@ -1417,14 +1257,11 @@ module AlgorithmsHelper
   def avg_time_spent_in_meetings_per_group(sid, gid, pid)
     return calc_avg_time_spent_in_meetings_per_group(sid, gid, pid)
   end
-    
   ###################################################
 
   ##################### V3 formatting utilities ###################################################
-  
   def result_zero_padding(empids, scores)
     res = []
-    temp = symbolize_hash_arr(scores)
     empids.each do |eid|
       score = scores.find { |s| s[:id] == eid.to_i || s[:id] == eid.to_s }
       res << score if !score.nil?
@@ -1612,6 +1449,68 @@ module AlgorithmsHelper
   end
   ############################ ALL MATRIX IMPLEMENTATION #########################################
 
+  def get_sagraph(sid, nid, gid)
+    key = "sagraph-sid-#{sid}-nid-#{nid}-gid-#{gid}"
+    CdsUtilHelper.read_or_calculate_and_write(key) do
+      return get_sagraph_block(sid, nid, gid)
+    end
+  end
+
+  def get_sagraph_block(sid, nid, gid)
+    eids = Group.find(gid).extract_employees
+
+    dim = eids.length
+    inx2emp = {}
+    emp2inx = {}
+
+    edges = NetworkSnapshotData
+      .select(:from_employee_id, :to_employee_id)
+      .where(snapshot_id: sid, network_id: nid)
+      .where(from_employee_id: eids, to_employee_id: eids)
+
+    ## Create the indexes
+    eids.each do |eid|
+      emp2inx[eid] = inx2emp.size
+      inx2emp[inx2emp.size] = eid
+    end
+
+    ## Populate adjacency matrix
+    allarr = Array.new(dim ** 2, 0)
+    edges.each do |edge|
+      from = emp2inx[edge[:from_employee_id]]
+      to   = emp2inx[edge[:to_employee_id]]
+      index = dim * from + to
+      allarr[index] = 1
+    end
+    adjacencymat = NMatrix.new([dim, dim], allarr, dtype: :float32)
+    adjacencymat = set_one_on_diagonal_of_empty_rows(adjacencymat)
+
+    return {
+      emp2inx: emp2inx,
+      inx2emp: inx2emp,
+      adjacencymat: adjacencymat
+    }
+  end
+
+  def set_one_on_diagonal_of_empty_rows(nm)
+    return nm.snm_map_rows do |r, i|
+      ret = nil
+      if r.sum > 0
+        ret = r
+      else
+        dim = r.length
+        ret = Array.new(dim, 0)
+        ret[i] = 1
+      end
+      ret
+    end
+  end
+
+  def get_ones_nmatrix(dim)
+    return NMatrix.ones([dim, 1], dtype: :float32)
+  end
+
+
   def calc_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
     res = []
     emp_list = []
@@ -1736,7 +1635,6 @@ module AlgorithmsHelper
   end
 
   #################################  AVERAGES #######################################################
-  
   def calc_avg_deg_for_specified_matrix(snapshot_id, matrix_name, direction)
     result_vector = nil
     if (direction == EMAILS_IN)
@@ -1761,7 +1659,6 @@ module AlgorithmsHelper
   end
 
   #################################  MAXIMA FUNCTIONS ################################################
-  
   def calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
     res = nil
     if (direction == EMAILS_IN)
@@ -1793,25 +1690,19 @@ module AlgorithmsHelper
   ################  ###########################################
 
   def calc_ccers(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
     cid = find_company_by_snapshot(sid)
-    nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_cc_outdegree = calc_outdegree_for_cc_matrix(sid, gid, pid)
     total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
-    
     res = calc_relative_measure_by_key(total_cc_outdegree, total_outdegree, 'id', 'measure')
-   
     return result_zero_padding(inner_select, res)
   end
 
   def calc_cced(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
     cid = find_company_by_snapshot(sid)
-    nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_cc_indegree = calc_indegree_for_cc_matrix(sid, gid, pid)
@@ -1822,25 +1713,20 @@ module AlgorithmsHelper
   end
 
   def calc_undercover(sid, gid = NO_GROUP, pid = NO_PIN)
-    
-    res = []
     cid = find_company_by_snapshot(sid)
-    nid = NetworkSnapshotData.emails(cid)
-    
+
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_bcc_outdegree = calc_outdegree_for_bcc_matrix(sid, gid, pid)
     total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
-    
+
     res = calc_relative_measure_by_key(total_bcc_outdegree, total_outdegree, 'id', 'measure')
     return result_zero_padding(inner_select, res)
   end
 
   def calc_politicos(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
     cid = find_company_by_snapshot(sid)
-    nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_bcc_indegree = calc_indegree_for_bcc_matrix(sid, gid, pid)
@@ -1852,7 +1738,6 @@ module AlgorithmsHelper
   end
 
   def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
@@ -1863,15 +1748,13 @@ module AlgorithmsHelper
     fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD, 
       to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
     select("#{EMAILS_OUT} as id, count(id) as measure").group(EMAILS_OUT).as_json
-    
+
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(fwded_emails, inner_select), total_to_measure, 'id', 'measure')
     return result_zero_padding(inner_select, res)
   end
 
   def calc_emails_volume(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
-
     in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
     out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
     union = in_result + out_result
@@ -1960,12 +1843,10 @@ module AlgorithmsHelper
   end
 
   def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
-    count_of_invited_arr = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
-    
+
     sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
               FROM meetings_snapshot_data
               JOIN meeting_attendees ON
@@ -1982,9 +1863,7 @@ module AlgorithmsHelper
   end
 
   def calc_rejecters(sid, gid = NO_GROUP, pid = NO_PIN)
-    
     res = []
-    count_of_rejected_arr = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
@@ -2001,7 +1880,7 @@ module AlgorithmsHelper
               GROUP BY employee_id"
 
     count_of_rejected = ActiveRecord::Base.connection.exec_query(sqlstr)
-    
+
     return res if is_retrieved_snapshot_data_empty(count_of_rejected, sqlstr)
 
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(count_of_rejected, employee_ids), count_of_invited, 'id', 'measure')
@@ -2009,9 +1888,7 @@ module AlgorithmsHelper
   end
 
   def calc_routiners(sid, gid = NO_GROUP, pid = NO_PIN)
-
     res = []
-    count_of_recurring_arr = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
@@ -2035,8 +1912,6 @@ module AlgorithmsHelper
   end
 
   def calc_inviters(sid, gid = NO_GROUP, pid = NO_PIN)
-    
-    count_of_organized_hashes = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
@@ -2049,7 +1924,7 @@ module AlgorithmsHelper
     count_of_organized_raw = ActiveRecord::Base.connection.exec_query(sqlstr)
 
     return [] if is_retrieved_snapshot_data_empty(count_of_organized_raw, sqlstr)
-    
+
     return handle_raw_snapshot_data(count_of_organized_raw, employee_ids)
   end
 
@@ -2061,43 +1936,28 @@ module AlgorithmsHelper
     res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
     return res
   end
-  
+
   def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
 
     res = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
-    # This query returns average people in meeting - but for all groups
-    # and not inside a specific group as below. This is for the future, if we want to
-    # expand the algorithm to give more info.
-    # sqlstr = "SELECT AVG(cnt) as measure
-    #           FROM (
-    #             SELECT count(meeting_id) as cnt
-    #             FROM meeting_attendees
-    #             WHERE meeting_id in (
-    #               SELECT meeting_id 
-    #               FROM meeting_attendees
-    #               WHERE employee_id in (#{employee_ids.join(',')}) AND NOT
-    #               response = #{DECLINE}) AND NOT
-    #               response = #{DECLINE}
-    #             GROUP BY meeting_id) MyAlias;"
-
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees
               WHERE employee_id IN (#{employee_ids.join(',')}) AND NOT
               response = #{DECLINE}
               GROUP BY meeting_id"
-    
+
     num_of_ppl_in_meetings = symbolize_hash_arr(ActiveRecord::Base.connection.exec_query(sqlstr))
-    
+
     total_participants_in_meetings = 0
     average_participants_in_meetings = -1
 
     num_of_ppl_in_meetings.each {|r| total_participants_in_meetings += r[:measure].to_i}
 
     average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
-    
+
     res << {id: nil, measure: average_participants_in_meetings}
     return res
   end
@@ -2154,7 +2014,7 @@ module AlgorithmsHelper
   # Common functionality for handling raw data for measure algorithms
   def handle_raw_snapshot_data(raw_object_array, employee_ids)
     array = []
-    
+
     raw_object_array.each{|obj| array << obj.to_hash}
     # array = integerify_hash_arr(array)
     array = integerify_hash_arr_all(array)
@@ -2196,7 +2056,7 @@ module AlgorithmsHelper
       temp[entry[key]] += entry[value]
     end
     temp.each_with_index { |entry, index| result << { key => index, value => entry } unless entry.nil? }
-    
+
     return symbolize_hash_arr(result)
   end
 
@@ -2219,7 +2079,7 @@ module AlgorithmsHelper
   #   res = []
   #   temp = symbolize_hash_arr(hash_array)
   #   temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
-  #   return res   
+  #   return res
   # end
 
   # Convert values of field to integers
