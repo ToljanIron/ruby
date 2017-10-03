@@ -6,6 +6,7 @@ include SessionsHelper
 include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
+include SnapshotsHelper
 
 class MeasuresController < ApplicationController
   MEASURE = 1
@@ -469,10 +470,18 @@ class MeasuresController < ApplicationController
 
   def get_dynamics_scores
     authorize :measure, :index?
-    puts "**************************"
-    puts "get_groups_dynamics_scores()"
-    puts "**************************"
-    render json: {body: 'This is my body'}, status: 200
+
+    permitted = params.permit(:interval_type, :sids, :gids, :segment_type)
+
+    cid = current_user.company_id
+    interval_type = params[:interval_type].to_i
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    segment_type = permitted[:segment_type]
+
+    res = get_dynamics_scores_from_helper(interval_type, gids, cid, sids)
+
+    render json: Oj.dump(res), status: 200
   end
 
   private
