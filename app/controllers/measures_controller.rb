@@ -6,6 +6,7 @@ include SessionsHelper
 include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
+include SnapshotsHelper
 
 class MeasuresController < ApplicationController
   MEASURE = 1
@@ -248,7 +249,7 @@ class MeasuresController < ApplicationController
     oegid = params[:oegid].try(:to_i)
     oeid = params[:oeid].try(:to_i)
     gid = -1 if gid.zero?
-    
+
     gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
 
     lgid = Group.find_group_in_snapshot(gid, sid)
@@ -375,18 +376,24 @@ class MeasuresController < ApplicationController
     puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
-    permitted = params.permit(:gids, :sid)
+    permitted = params.permit(:gids, :sid, :agg_method)
 
     cid = current_user.company_id
     gids = permitted[:gids].split(',')
     sid = permitted[:sid]
+    agg_method = format_aggregation_method( permitted[:agg_method] )
 
     raise 'sid cant be empty' if sid == nil
 
-    cache_key = "get_email_scores-#{cid}-#{gids}-#{sid}"
+    cache_key = "get_email_scores-#{cid}-#{gids}-#{sid}-#{agg_method}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_employees_scores_from_helper(cid, gids, sid)
+      top_scores = get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
+      avg_per_emp = get_avg_hours_per_employee(cid, gids, sid)
+      res = {
+        top_scores: top_scores,
+        avg_per_emp: avg_per_emp
+      }
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
@@ -443,10 +450,10 @@ class MeasuresController < ApplicationController
   end
 
   def format_aggregation_method(agg_method)
-    return 'group_id'     if agg_method == 'groupName'
-    return 'office_id'    if agg_method == 'officeName'
-    return 'algorithm_id' if agg_method == 'algoName'
-    raise 'Unrecognized aggregation method'
+    return 'group_id'     if (agg_method == 'groupName' || agg_method == 'Department')
+    return 'office_id'    if (agg_method == 'officeName' || agg_method == 'Office')
+    return 'algorithm_id' if (agg_method == 'algoName' || agg_method == 'Causes')
+    raise "Unrecognized aggregation method: #{agg_method}"
   end
 
   def show_snapshot_list
@@ -463,10 +470,18 @@ class MeasuresController < ApplicationController
 
   def get_dynamics_scores
     authorize :measure, :index?
-    puts "**************************"
-    puts "get_groups_dynamics_scores()"
-    puts "**************************"
-    render json: {body: 'This is my body'}, status: 200
+
+    permitted = params.permit(:interval_type, :sids, :gids, :segment_type)
+
+    cid = current_user.company_id
+    interval_type = params[:interval_type].to_i
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    segment_type = permitted[:segment_type]
+
+    res = get_dynamics_scores_from_helper(interval_type, gids, cid, sids)
+
+    render json: Oj.dump(res), status: 200
   end
 
   private

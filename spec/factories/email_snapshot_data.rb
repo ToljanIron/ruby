@@ -37,10 +37,13 @@ def fg_emails_from_matrix(all, p = nil)
 
   p = p || {}
   sid = p[:sid] || 1
+  cid = p[:cid] || 1
 
   (0..dim-1).each do |i|
     (0..dim-1).each do |j|
-      NetworkSnapshotData.create_email_adapter(employee_from_id: i, employee_to_id: j, n1: all[i][j], n2: 0, snapshot_id: sid) if i != j && all[i][j] > 0
+      if i != j && all[i][j] > 0
+        NetworkSnapshotData.create_email_adapter(employee_from_id: i+1, employee_to_id: j+1, n1: all[i][j], n2: 0, snapshot_id: sid, company_id: cid)
+      end
     end
   end
 end

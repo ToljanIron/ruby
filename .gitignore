@@ -24,9 +24,6 @@
 
 /.kateproject.d
 
-
-
-
 /db/schema.rb
 
 .directory
@@ -51,6 +48,7 @@ spec/helpers/*.csv
 !/public/assets/L*
 !/public/assets/m*
 !/public/assets/T*
+/public/employees/*.jpg
 
 questionnaire_reports
 

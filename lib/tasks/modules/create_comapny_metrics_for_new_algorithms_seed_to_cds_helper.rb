@@ -9,16 +9,18 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     collaboration_metric_id  = MetricName.find_or_create_by(name: 'Collaboration', company_id: cid).id
     in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id
     bottleneck_id            = MetricName.find_or_create_by(name: 'Bottleneck', company_id: cid).id
+    isolate_id               = MetricName.find_or_create_by(name: 'Information Isolate', company_id: cid).id
+    powerful_non_manager_id  = MetricName.find_or_create_by(name: 'Powerful Non-manager', company_id: cid).id
     spammers_id              = MetricName.find_or_create_by(name: 'Spammers', company_id: cid).id
     blitzed_id               = MetricName.find_or_create_by(name: 'Blitzed', company_id: cid).id
     relays_id                = MetricName.find_or_create_by(name: 'Relays', company_id: cid).id
     ccers_id                 = MetricName.find_or_create_by(name: 'Ccers', company_id: cid).id
     cced_id                  = MetricName.find_or_create_by(name: 'Cced', company_id: cid).id
     undercover_id            = MetricName.find_or_create_by(name: 'Undercover', company_id: cid).id
-    politicos_id             = MetricName.find_or_create_by(name: 'Politicos', company_id: cid).id   
-    emails_volume_id         = MetricName.find_or_create_by(name: 'Emails Volume', company_id: cid).id   
-    deadends_id              = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id   
-    
+    politicos_id             = MetricName.find_or_create_by(name: 'Politicos', company_id: cid).id
+    emails_volume_id         = MetricName.find_or_create_by(name: 'Emails Volume', company_id: cid).id
+    deadends_id              = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id
+
     in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id
     rejecters_id             = MetricName.find_or_create_by(name: 'Rejecters', company_id: cid).id
     routiners_id             = MetricName.find_or_create_by(name: 'Routiners', company_id: cid).id
@@ -29,7 +31,9 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2, active: false)
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: communication_network_id, company_id: cid, algorithm_id: 16, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 60, algorithm_type_id: 1)
-    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: false)
+    CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: true)
+    CompanyMetric.find_or_create_by(metric_id: isolate_id, network_id: communication_network_id, company_id: cid, algorithm_id: 100, algorithm_type_id: 1, active: true)
+    CompanyMetric.find_or_create_by(metric_id: powerful_non_manager_id, network_id: communication_network_id, company_id: cid, algorithm_id: 101, algorithm_type_id: 1, active: true)
 
     CompanyMetric.find_or_create_by(metric_id: spammers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 700, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: blitzed_id, network_id: communication_network_id, company_id: cid, algorithm_id: 701, algorithm_type_id: 1)

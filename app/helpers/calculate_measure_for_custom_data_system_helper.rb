@@ -21,19 +21,62 @@ module CalculateMeasureForCustomDataSystemHelper
   GAUGE   ||= 5
   QUESTIONNAIRE_ONLY ||= 8
 
+  EMAILS_VOLUME = 707
 
-  def get_employees_scores_from_helper(cid, gids, sid)
+
+  def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
+    return get_employees_emails_scores_by_groups_and_offices(cid, gids, sid) if (agg_method == 'group_id' || agg_method == 'office_id')
+    return get_employees_emails_scores_by_causes(cid, gids, sid) if (agg_method == 'algorithm_id')
+  end
+
+  def get_employees_emails_scores_by_groups_and_offices(cid, gids, sid)
     ret = CdsMetricScore
-            .select("score, emps.first_name || ' ' || emps.last_name AS name, g.id AS gid, g.name AS group_name, o.name AS office_name")
+            .select("score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
             .from('cds_metric_scores AS cds')
             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
             .joins('JOIN groups AS g ON g.id = cds.group_id')
             .joins('JOIN offices AS o ON o.id = emps.office_id')
+            .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
+            .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
             .where('cds.company_id = %s AND cds.snapshot_id = %s AND cds.group_id in (%s)', cid, sid, gids.join(','))
+            .where("cds.algorithm_id IN (#{EMAILS_VOLUME})")
             .order('cds.score DESC')
             .limit(20)
-
+    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
+    ap ret
+    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
     return ret
+  end
+
+  def get_employees_emails_scores_by_causes(cid, gids, sid)
+    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+    ret = CdsMetricScore
+            .select("score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
+            .from('cds_metric_scores AS cds')
+            .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
+            .joins('JOIN groups AS g ON g.id = cds.group_id')
+            .joins('JOIN offices AS o ON o.id = emps.office_id')
+            .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
+            .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
+            .where('cds.company_id = %s AND cds.snapshot_id = %s', cid, sid)
+            .where(groups_condition)
+            .where("cds.algorithm_id IN (700, 701, 702, 703, 704, 705, 706, 707, 708)")
+            .order('cds.score DESC')
+            .limit(20)
+    return ret
+  end
+
+  def get_avg_hours_per_employee(cid, gids, sid)
+    root_group_id = Group.get_root_group(cid, sid)
+    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+    ret = CdsMetricScore
+            .select(:score)
+            .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
+            .joins('JOIN groups AS g ON g.id = emp.group_id')
+            .where(group_id: root_group_id, snapshot_id: sid, algorithm_id: EMAILS_VOLUME)
+            .where(groups_condition)
+            .average(:score)
+    return ret.round(1)
   end
 
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
@@ -171,7 +214,7 @@ module CalculateMeasureForCustomDataSystemHelper
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN offices AS off ON off.id = emps.office_id
       JOIN groups AS g ON g.id = cds.group_id
-      where
+      WHERE
         g.id IN (#{gids.join(',')}) AND
         cds.snapshot_id = #{sid} AND
         cds.company_id = #{cid} AND

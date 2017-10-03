@@ -60,8 +60,8 @@ def log_in_with_dummy_user
   log_in @user
 end
 
-def pp(q)
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-  ap q
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-end
+#def pp(q)
+  #puts "$$$$$$$$$$$$$$$$$$$$$$$$"
+  #ap q
+  #puts "$$$$$$$$$$$$$$$$$$$$$$$$"
+#end
