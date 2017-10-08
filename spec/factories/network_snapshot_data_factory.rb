@@ -22,11 +22,19 @@ end
 ## traffic_density should be a number between 0-5
 ##
 ############################################################
-def fg_multi_create_network_snapshot_data(empsnum, traffic_density = 3)
+# def fg_multi_create_network_snapshot_data(empsnum, traffic_density = 3)
+def fg_multi_create_network_snapshot_data(empsnum, sid, cid, nid, traffic_density)
   (1..empsnum).each do |i|
     (1..empsnum).each do |j|
       value = ((i + j) % (5 - traffic_density) == 0) ? 1 : 0
-      FactoryGirl.create(:network_snapshot_data, from_employee_id: i, to_employee_id: j, value: value)
+      FactoryGirl.create(:network_snapshot_data, 
+        from_employee_id: i, 
+        to_employee_id: j, 
+        value: value,
+        snapshot_id: sid,
+        company_id: cid,
+        network_id: nid
+        )
     end
   end
 end

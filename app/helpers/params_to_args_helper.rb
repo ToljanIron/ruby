@@ -80,6 +80,22 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.closeness_level_gauge(args)
+    key = "closeness_level_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.density_of_email_network(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.synergy_level_gauge(args)
+    key = "synergy_level_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.email_traffic_standard_err(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
   ########################## Meetings ##########################
   
   def self.in_the_loop_measure(args)
@@ -328,9 +344,9 @@ module ParamsToArgsHelper
 
   #################### calculate measure helper after functions #############################
 
-  def self.density_of_network(args)
-    return AlgorithmsHelper.density_of_network(args[:snapshot_id], args[:gid].to_i, args[:pid].to_i, args[:network_id], args[:network_b_id])
-  end
+  # def self.density_of_network(args)
+  #   return AlgorithmsHelper.density_of_network(args[:snapshot_id], args[:gid].to_i, args[:pid].to_i, args[:network_id], args[:network_b_id])
+  # end
 
   def self.calculate_embeddednes_of_emails_and_networks(args)
     return AlgorithmsHelper.calculate_embeddednes_of_emails_and_networks(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:network_c_id], args[:pid], args[:gid])

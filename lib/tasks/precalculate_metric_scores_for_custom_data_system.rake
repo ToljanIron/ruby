@@ -43,6 +43,26 @@ namespace :db do
     else
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid.to_i, gid.to_i, pid.to_i, mid.to_i, sid.to_i, rewrite)
     end
+    
+    ActiveRecord::Base.transaction do
+      begin
+        if calc_all
+          PrecalculateMetricScoresForCustomDataSystemHelper::iterate_over_snapshots(cid, sid) do |compid, snapid|
+            PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores(compid.to_i, snapid.to_i, true)
+          end
+          CompanyStatisticsHelper.calculate_company_statistics(cid.to_i, sid.to_i) unless ENV['RAILS_ENV'] == 'test'
+        end
+
+        finish_job(t_id) if t_id != 0
+        EventLog.log_event(job_id: t_id, message: 'precalculate_metric_scores_for_custom_data_system_helper ended')
+      rescue => e
+        puts "EXCPTION in precalculate_metric_scores_for_custom_data_system: #{e.message[0..1000]}"
+        puts e.backtrace
+        finish_job_with_error(t_id) if t_id != 0
+        status = error
+        raise ActiveRecord::Rollback
+      end
+    end
 
     EventLog.log_event(job_id: t_id, message: 'precalculate_metric_scores_for_custom_data_system_helper error') if status == error
   end

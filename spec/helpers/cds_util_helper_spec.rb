@@ -62,15 +62,5 @@ describe CdsUtilHelper, type: :helper do
         expect{ array_sd([1, 'A', 3]) }.to raise_error
       end
     end
-
-    describe 'lev' do
-      it 'should work' do
-        puts "aa - ab - #{CdsUtilHelper.lev('aa', 'ab')}"
-        puts "ab - aa - #{CdsUtilHelper.lev('ab', 'aa')}"
-        puts "aa - aa - #{CdsUtilHelper.lev('aa', 'aa')}"
-        puts "aa - bb - #{CdsUtilHelper.lev('aa', 'bb')}"
-        puts "aa - Aa - #{CdsUtilHelper.lev('aa', 'Aa')}"
-      end
-    end
   end
 end

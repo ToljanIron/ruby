@@ -28,6 +28,12 @@ Algorithm.find_or_create_by!(id: 157, name: 'average_no_of_attendees_gauge', alg
 Algorithm.find_or_create_by!(id: 158, name: 'proportion_time_spent_on_meetings_gauge', algorithm_type_id: 5)
 Algorithm.find_or_create_by!(id: 159, name: 'proportion_of_managers_never_in_meetings_gauge', algorithm_type_id: 5)
 
+
+Algorithm.find_or_create_by!(id: 200, name: 'closeness_level_gauge', algorithm_type_id: 5)
+Algorithm.find_or_create_by!(id: 201, name: 'synergy_level_gauge', algorithm_type_id: 5)
+
+
+
 Algorithm.find_or_create_by!(id: 800, name: 'in_the_loop_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 801, name: 'rejecters_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 802, name: 'routiners_measure', algorithm_type_id: 1, algorithm_flow_id: 2)

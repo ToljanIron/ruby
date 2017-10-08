@@ -6,6 +6,7 @@ include SessionsHelper
 include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
+include MeasuresHelper
 include SnapshotsHelper
 
 class MeasuresController < ApplicationController
@@ -466,6 +467,21 @@ class MeasuresController < ApplicationController
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
+  end
+
+  def get_dynamics_stats
+    authorize :measure, :index?
+
+    permitted = params.permit(:sids, :gids, :interval_type)
+
+    cid = current_user.company_id
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    interval_type = params[:interval_type].to_i
+    
+    res = get_dynamics_stats_from_helper(cid, sids, gids, interval_type)
+    
+    render json: Oj.dump(res), status: 200
   end
 
   def get_dynamics_scores

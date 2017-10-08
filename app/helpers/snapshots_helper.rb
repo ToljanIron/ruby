@@ -7,9 +7,6 @@ module SnapshotsHelper
   DYNAMICS_ALGORITHM_IDS = [74, 100, 101, 130]
 
   def get_emails_volume_scores(interval_type, current_gids, cid)
-    
-  	# Contains score for month - last snapshot of each month - each snapshot is calculating measures 4 weeks back
-  	scores_per_month = []
 
   	res = []
   	gids = []
@@ -18,6 +15,7 @@ module SnapshotsHelper
     
     sids = get_relevant_snapshot_ids(cid, 20)
     
+    # If empty gids - get the gid for the root - i.e. the company
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
     else
@@ -54,8 +52,6 @@ module SnapshotsHelper
   end
 
   def get_time_spent_in_meetings(interval_type, current_gids, cid)
-    # Contains score for month - last snapshot of each month - each snapshot is calculating measures 4 weeks back    
-    scores_per_month = []
 
     res = []
     gids = []
@@ -64,6 +60,7 @@ module SnapshotsHelper
     
     sids = get_relevant_snapshot_ids(cid, 20)
     
+    # If empty gids - get the gid for the root - i.e. the company
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
     else
@@ -100,15 +97,13 @@ module SnapshotsHelper
   end
 
   def get_dynamics_scores_from_helper(interval_type, current_gids, cid, sids)
-
-    # Contains score for month - last snapshot of each month - each snapshot is calculating measures 4 weeks back
-    scores_per_month = []
     
     res = []
     gids = []
     
     interval_str = get_interval_type_string(interval_type)
 
+    # If empty gids - get the gid for the root - i.e. the company
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
     else
@@ -124,7 +119,7 @@ module SnapshotsHelper
               JOIN algorithms AS algo ON algo.id = cds.algorithm_id
               JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
               JOIN metric_names AS mn ON mn.id = cm.metric_id
-              WHERE 
+              WHERE
                 cds.snapshot_id IN (#{sids.join(',')}) AND
                 cds.group_id IN (#{gids.join(',')}) AND
                 cds.algorithm_id IN (#{DYNAMICS_ALGORITHM_IDS.join(',')}) AND

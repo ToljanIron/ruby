@@ -10,7 +10,9 @@
 require './app/helpers/cds_util_helper.rb'
 require './app/helpers/cds_dfs_helper.rb'
 require './app/helpers/cds_selection_helper.rb'
+require './app/helpers/cds_employee_management_relation_helper.rb'
 include CdsSelectionHelper
+include CdsEmployeeManagementRelationHelper
 
 module AlgorithmsHelper
   NO_PIN     ||= -1
@@ -663,60 +665,6 @@ module AlgorithmsHelper
     return arr
   end
 
-  # def self.find_sinks(array, limit)
-  #   result = []
-  #   array.each do |possible_sink|
-  #     result.push(id: possible_sink['empid'].to_i, measure: 1) if possible_sink['emails_sum'].to_f > limit.to_f
-  #     result.push(id: possible_sink['empid'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
-  #   end
-  #   result
-  # end
-
-  # def self.find_sinks_to_explore(array, limit)
-  #   result = []
-  #   array.each do |possible_sink|
-  #     result.push(id: possible_sink['to_employee_id'].to_i, measure: possible_sink['emails_sum'].to_f) if possible_sink['emails_sum'].to_f > limit.to_f
-  #     result.push(id: possible_sink['to_employee_id'].to_i, measure: 0) if possible_sink['emails_sum'].to_f <= limit.to_f
-  #   end
-  #   result
-  # end
-
-  # def self.flag_sinks(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-  #   cid = Snapshot.find(snapshot_id).company.id
-  #   emps = get_members_in_group(pid, gid, cid)
-  #   if NetworkSnapshotData.where(snapshot_id: snapshot_id, network_id: NetworkSnapshotData.emails(cid)).empty?
-  #     ratios = []
-  #     emps.each do |ratio|
-  #       ratios.push(id: ratio.to_i, measure: 0)
-  #     end
-  #     return ratios
-  #   end
-  #   ratios = sinks(snapshot_id, pid, gid, cid, emps)
-
-  #   q_one = find_q1_max(json_to_array_sinks(ratios))
-  #   q_three = find_q3_min(json_to_array_sinks(ratios))
-  #   iqr = q_three - q_one
-  #   sinks = find_sinks(ratios, q_three + 1.5 * iqr)
-  #   return sinks
-  # end
-
-  # def self.flag_sinks_explore(snapshot_id, pid = NO_PIN, gid = NO_GROUP)
-  #   company = Snapshot.find(snapshot_id).company_id
-  #   emps = get_members_in_group(pid, gid, company)
-  #   if NetworkSnapshotData.emails(cid).where(snapshot_id: snapshot_id).empty?
-  #     ratios = []
-  #     emps.each do |ratio|
-  #       ratios.push(id: ratio.to_i, measure: 0)
-  #     end
-  #     return ratios
-  #   end
-  #   ratios = calc_sinks(snapshot_id, pid, gid, company, emps)
-  #   q_one = find_q1_max(json_to_array_sinks(ratios))
-  #   q_three = find_q3_min(json_to_array_sinks(ratios))
-  #   iqr = q_three - q_one
-  #   return find_sinks_to_explore(ratios, q_three + 1.5 * iqr)
-  # end
-
   def self.no_of_isolates(sid, pid = NO_PIN, gid = NO_GROUP)
     cid = Snapshot.find(sid).company_id
     emps = get_members_in_group(pid, gid, sid)
@@ -1100,22 +1048,41 @@ module AlgorithmsHelper
   ## The algorithm works on emails and any other network
   ##
   #################################################################################
-  def self.density_of_email_network(sid, gid, pid, nid)
+  def self.density_of_network(sid, gid, pid, nid)
     cid = find_company_by_snapshot(sid)
+    
     n = get_all_emps(cid, pid, gid).count
     group_id = (gid == -1 ? pid : gid)
     return [{ group_id: group_id, measure: 0.0 }] if n <= 3
 
-    s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, gid, pid)
-    s_sum_traffic_emails  = s_calc_sum_of_metrix(sid, gid, pid)
-    s_sum_traffic_network = s_calc_sum_of_metrix(sid, gid, pid, nid)
+    s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, nid, gid, pid)
+    s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid)
+    
+    if(s_max_email_traffic.nil?)
+      network_density = 0
+    else
+      network_density = (s_sum_traffic_network.to_f / (n * s_max_email_traffic)).round(3)
+    end
 
-    email_density   = s_max_email_traffic.nil? ? 0 : (s_sum_traffic_emails.to_f / (n * (n - 1) * s_max_email_traffic))
-    network_density = (s_sum_traffic_network.to_f / (n * (n - 1)))
-
-    res = Math.sqrt(email_density**2 + network_density**2).round(3)
-    return [{ group_id: group_id, measure: res }]
+    return [{ group_id: group_id, measure: network_density }]
   end
+
+  def self.email_traffic_standard_err(sid, gid, pid)
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    group_id = (gid == -1 ? pid : gid)
+
+    traffic = calc_emails_volume(sid, gid, pid)
+    
+    arr = traffic.map do |t|
+      t[:measure]
+    end
+
+    strd_err = array_sd(arr)
+
+    return [{ group_id: group_id, measure: strd_err }]
+  end
+
 
   ################################################## EMAIL #############################################
 
@@ -1214,7 +1181,6 @@ module AlgorithmsHelper
   end
 
   def politicos_measure(sid, gid, pid)
-    # return calc_indegree_for_bcc_matrix(sid, gid, pid)
     return calc_politicos(sid, gid, pid)
   end
 
@@ -1224,6 +1190,11 @@ module AlgorithmsHelper
 
   def deadends_measure(sid, gid, pid)
     return calc_deadends(sid, gid, pid)
+  end
+
+  def density_of_email_network(sid, gid, pid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    return density_of_network(sid, gid, pid, nid)
   end
 
   ###################################################
@@ -1316,7 +1287,6 @@ module AlgorithmsHelper
   end
 
   def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    # calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
     calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, group_id, pin_id)
   end
 
@@ -1325,7 +1295,6 @@ module AlgorithmsHelper
   end
 
   def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    # calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
     calc_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_IN, group_id, pin_id)
   end
 
@@ -1389,18 +1358,19 @@ module AlgorithmsHelper
     calc_normalized_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_OUT, group_id, pin_id)
   end
 
-  def self.s_calc_max_traffic_between_two_employees(sid, gid = NO_GROUP, pid = NO_PIN)
-    res = h_calc_max_traffic_between_two_employees_with_ids(sid, gid, pid)
+  def self.s_calc_max_traffic_between_two_employees(sid, nid, gid = NO_GROUP, pid = NO_PIN)
+    res = h_calc_max_traffic_between_two_employees_with_ids(sid, nid, gid, pid)
     return nil if res.nil? || res.empty?
     return res[:max].to_i
   end
 
-  def self.h_calc_max_traffic_between_two_employees_with_ids(sid, gid = NO_GROUP, pid = NO_PIN)
+  def self.h_calc_max_traffic_between_two_employees_with_ids(sid, nid, gid = NO_GROUP, pid = NO_PIN)
     cid = find_company_by_snapshot(sid)
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
-    network = NetworkSnapshotData.emails(cid)
+    # network = NetworkSnapshotData.emails(cid)
+    network = nid
     sqlstr = "SELECT outter_nsd.from_employee_id, outter_nsd.to_employee_id, COUNT(id) AS maximum_traffic
               FROM network_snapshot_data    AS outter_nsd
               WHERE outter_nsd.snapshot_id      = #{sid}
@@ -1431,7 +1401,7 @@ module AlgorithmsHelper
     }
   end
 
-  def self.s_calc_sum_of_metrix(sid, gid = NO_GROUP, pid = NO_PIN, nid = NO_NETWORK)
+  def self.s_calc_sum_of_matrix(sid, gid = NO_GROUP, pid = NO_PIN, nid = NO_NETWORK)
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
@@ -1515,16 +1485,10 @@ module AlgorithmsHelper
     res = []
     emp_list = []
     if direction == EMAILS_IN
-      # to_degree = calc_indeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      # cc_degree = calc_indeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      # bcc_degree = calc_indeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
       to_degree = calc_indegree_for_to_matrix(snapshot_id, group_id, pin_id)
       cc_degree = calc_indegree_for_cc_matrix(snapshot_id, group_id, pin_id)
       bcc_degree = calc_indegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
     else
-      # to_degree = calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
-      # cc_degree = calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
-      # bcc_degree = calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
       to_degree = calc_outdegree_for_to_matrix(snapshot_id, group_id, pin_id)
       cc_degree = calc_outdegree_for_cc_matrix(snapshot_id, group_id, pin_id)
       bcc_degree = calc_outdegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
@@ -2071,16 +2035,6 @@ module AlgorithmsHelper
     hash_array.each{|entry| arr << entry.symbolize_keys}
     return arr
   end
-
-  # Convert all values to integers
-  # +hash_array+:: array of hashes - with keys as symbols
-  # Example: {:id=>"1004", :measure=>"1"} will return {:id=>1004, :measure=>1}
-  # def integerify_hash_arr(hash_array)
-  #   res = []
-  #   temp = symbolize_hash_arr(hash_array)
-  #   temp.each { |r| res << {id: r[:id].to_i, measure: r[:measure].to_i}}
-  #   return res
-  # end
 
   # Convert values of field to integers
   # +hash_array+:: array of hashes

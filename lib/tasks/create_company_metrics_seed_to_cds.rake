@@ -30,6 +30,8 @@ namespace :db do
         # V3
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_num_of_ppl_in_meetings(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_avg_time_spent_in_meetings(company_id)
+        CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_closeness_level(company_id)
+        CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_synergy_level(company_id)
 
         EventLog.log_event(job_id: t_id, message: 'create seed to company metrics ended')
       rescue => e

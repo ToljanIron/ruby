@@ -191,4 +191,27 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
       cm.update(analyze_company_metric_id: relevant_id) if relevant_id
     end
   end
+
+  ############################## V3 ##############################
+
+  def create_new_seed_for_gauge_closeness_level(cid)
+    communication_network_id = NetworkName.find_or_create_by(name: 'Communication Flow', company_id: cid).id
+    closeness_level_gauge_id = MetricName.find_or_create_by!(name: 'closeness_level_gauge', company_id: cid).id
+    cm = CompanyMetric.find_or_create_by!(metric_id: closeness_level_gauge_id,
+                                          network_id: communication_network_id,
+                                          company_id: cid,
+                                          algorithm_id: 200,
+                                          algorithm_type_id: 5)
+  end
+
+  def create_new_seed_for_gauge_synergy_level(cid)
+    communication_network_id = NetworkName.find_or_create_by(name: 'Communication Flow', company_id: cid).id
+    synergy_level_gauge_id = MetricName.find_or_create_by!(name: 'synergy_level_gauge', company_id: cid).id
+    cm = CompanyMetric.find_or_create_by!(metric_id: synergy_level_gauge_id,
+                                          network_id: communication_network_id,
+                                          company_id: cid,
+                                          algorithm_id: 201,
+                                          algorithm_type_id: 5)
+  end
+
 end

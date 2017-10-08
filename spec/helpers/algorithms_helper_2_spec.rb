@@ -216,9 +216,10 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-  describe 'centrality for integer network' do
+  describe 'centrality for integer network |' do
     before(:each) do
-      @s = FactoryGirl.create(:snapshot, name: 's3', company_id: 1)
+      @cid = FactoryGirl.create(:company).id
+      @s = FactoryGirl.create(:snapshot, name: 's3', company_id: @cid)
       @e1 = FactoryGirl.create(:employee, email: 'em0@email.com', group_id: 3)
       @e2 = FactoryGirl.create(:employee, email: 'em1@email.com', group_id: 3)
       @e3 = FactoryGirl.create(:employee, email: 'em2@email.com', group_id: 3)
@@ -226,105 +227,93 @@ describe AlgorithmsHelper, type: :helper do
       NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
     end
 
-    it 'calculate high centrality value for integner network' do
-      emp2to1id = NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e3.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 3, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e2.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
+    it 'calculate high centrality value for integer network' do
+      emp2to1id = NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e3.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 3, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e2.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
 
       centrality1 = centrality_numeric_matrix(@s.id, -1, -1)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 19, significant_level: :meaningfull)
-      # emp2to1id.update(n1: 20)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 19, significant_level: :meaningfull, company_id: @cid)
       centrality2 = centrality_numeric_matrix(@s.id, -1, -1)
       expect(centrality2).to be > centrality1
     end
 
     it 'calculate low centrality value for integner network' do
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e3.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 3, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e2.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e3.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 3, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e4.id, employee_to_id: @e2.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e1.id, snapshot_id: @s.id, n1: 1, company_id: @cid)
 
       centrality1 = centrality_numeric_matrix(@s.id, -1, -1)
 
       NetworkSnapshotData.last.delete
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e3.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e2.id, employee_to_id: @e3.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
       centrality2 = centrality_numeric_matrix(@s.id, -1, -1)
       expect(centrality2).to be < centrality1
     end
 
     it 'centrality value for integner network should be zero for small groups' do
-      gid = Group.create!(company_id: 1, name: 'Some Group')
+      gid = Group.create!(company_id: 1, name: 'Some Group').id
       @e5 = FactoryGirl.create(:employee, email: 'em5@email.com', group_id: gid)
       @e6 = FactoryGirl.create(:employee, email: 'em6@email.com', group_id: gid)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: @e5.id, employee_to_id: @e6.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull)
+      NetworkSnapshotData.create_email_adapter(employee_from_id: @e5.id, employee_to_id: @e6.id, snapshot_id: @s.id, n1: 1, significant_level: :meaningfull, company_id: @cid)
       centrality = centrality_numeric_matrix(@s.id, gid, -1)
       expect(centrality).to be(0.0)
     end
 
-    it 'should not faile if there is no email traffic' do
+    it 'should not fail if there is no email traffic' do
       centrality = centrality_numeric_matrix(@s.id, -1, -1)
       expect(centrality.nan?).to be_truthy
     end
   end
 
-  describe 'density_of_email_network' do
-    advice_network_id = 1
+  describe 'density_of_network |' do
     before(:each) do
-      fg_create(:company, id: 1)
-      fg_create(:snapshot, id: 1, name: 's3', company_id: 1)
-      fg_create(:group, id: 1)
-      create_emps('name', 'acme.com', 4)
-      NetworkSnapshotData.delete_all
+      @cid = fg_create(:company).id
+      @sid = fg_create(:snapshot, id: 1, name: 's3', company_id: @cid).id
+      @gid = fg_create(:group, id: 1).id
+      create_emps('name', 'acme.com', 4, gid: @gid)
+      @nid = NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1).id
     end
 
     it 'density is higher when everyone sends emails with uniform volumes' do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      fg_multi_create_email_snapshot_data(4, 0)
-      fg_multi_create_network_snapshot_data(4, 0)
-      s_sum1 = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 0)
+      s_sum1 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       ## Now some of the employees do not send emails
       NetworkSnapshotData.where("from_employee_id in (1,2)").delete_all
-      s_sum2 = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+      s_sum2 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       expect(s_sum1[0][:measure]).to be > s_sum2[0][:measure]
     end
 
-    xit 'density is lower when everyone sends emails with uniform volumes except for one employee who sends a lot' do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      fg_multi_create_email_snapshot_data(4, 0, 1)
-      fg_multi_create_network_snapshot_data(4, 0)
-      s_sum1 = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+    it 'density is lower when everyone sends emails with uniform volumes except for one employee who sends a lot' do
+      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 0)
+      s_sum1 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       ## Now someone sends a lot of emails
-      NetworkSnapshotData.create_email_adapter(employee_from_id: 1, employee_to_id: 4,  snapshot_id: 1, n3: 300)
-      # EmailSnapshotData.find(1).update(n3: 300)
-      s_sum2 = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 2, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 3, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 4, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 2, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+
+      s_sum2 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       expect(s_sum1[0][:measure]).to be > s_sum2[0][:measure]
     end
 
     it 'should be zero if there is no traffic' do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      s_sum = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+      s_sum = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       expect(s_sum[0][:measure]).to eq(0.0)
     end
 
-    xit 'should work with emails only' do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      fg_multi_create_email_snapshot_data(4, 0)
-      s_sum = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
-      expect(s_sum[0][:measure]).to be > 0.0
-    end
-
-    it 'should work with network only' do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      fg_multi_create_network_snapshot_data(4, 0)
-      s_sum = AlgorithmsHelper.density_of_email_network(1, -1, -1, advice_network_id)
+    it 'should work with emails only' do
+      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 0)
+      s_sum = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       expect(s_sum[0][:measure]).to be > 0.0
     end
 
     it 'should return 0 for groups smaller than 4 emps' do
-      fg_create(:group, id: 2)
-      create_emps('name', 'acme.com', 3, {gid: 2, from_index: 6})
-      s_sum = AlgorithmsHelper.density_of_email_network(1, 2, -1, advice_network_id)
+      gid2 = fg_create(:group, id: 2).id
+      create_emps('name', 'acme.com', 3, {gid: gid2, from_index: 6})
+      s_sum = AlgorithmsHelper.density_of_network(1, gid2, -1, @nid)
       expect(s_sum[0][:measure]).to eq(0.0)
     end
   end
@@ -464,7 +453,6 @@ describe AlgorithmsHelper, type: :helper do
 
     it 'should return list of max values found' do
       fg_multi_create_email_snapshot_data(4, 3)
-      # NetworkSnapshotData.find(4).delete
       NetworkSnapshotData.create_email_adapter(employee_from_id: 1, employee_to_id: 4,  snapshot_id: 1, n1: 10)
       expect(AlgorithmsHelper.s_calc_max_traffic_between_two_employees(1, -1, -1)).to eq(10)    # changed to 10 due to original containing n2 results for an unknown reason
     end
