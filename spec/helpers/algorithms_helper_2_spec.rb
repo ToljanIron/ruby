@@ -444,17 +444,19 @@ describe AlgorithmsHelper, type: :helper do
 
   describe 'v_calc_max_traffic_between_two_employees_with_ids' do
     before(:each) do
-      NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1)
-      fg_create(:company, id: 1)
-      fg_create(:snapshot, id: 1, name: 's3', company_id: 1)
-      fg_create(:group, id: 1)
+      @cid = fg_create(:company).id
+      @sid = fg_create(:snapshot, name: 's3', company_id: 1).id
+      @gid = fg_create(:group).id
       create_emps('name', 'acme.com', 4)
+      @nid = NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: @cid).id
     end
 
     it 'should return list of max values found' do
-      fg_multi_create_email_snapshot_data(4, 3)
-      NetworkSnapshotData.create_email_adapter(employee_from_id: 1, employee_to_id: 4,  snapshot_id: 1, n1: 10)
-      expect(AlgorithmsHelper.s_calc_max_traffic_between_two_employees(1, -1, -1)).to eq(10)    # changed to 10 due to original containing n2 results for an unknown reason
+      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 3)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 4, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 4, to_employee_id: 1, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 3, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
+      expect(AlgorithmsHelper.s_calc_max_traffic_between_two_employees(1, @nid, -1, -1)).to eq(10)    # changed to 10 due to original containing n2 results for an unknown reason
     end
     it 'should behave if no values' do
       Employee.delete_all
@@ -462,7 +464,7 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-  describe 's_calc_sum_of_metrix' do
+  describe 's_calc_sum_of_matrix' do
     before(:each) do
       fg_create(:company, id: 1)
       fg_create(:snapshot, id: 1, name: 's3', company_id: 1)
@@ -492,6 +494,73 @@ describe AlgorithmsHelper, type: :helper do
     it 'should not fail when there is no network traffic' do
       s_sum = AlgorithmsHelper.s_calc_sum_of_metrix(1, -1, -1, 13)
       expect(s_sum).to eq(0)
+    end
+  end
+
+  describe 'network_traffic_standard_err()' do
+    before(:each) do
+      @cid = fg_create(:company).id
+      @sid = fg_create(:snapshot, name: 's3', company_id: @cid).id
+      @gid = fg_create(:group).id
+
+      em1 = 'p0@email.com'
+      em2 = 'p1@email.com'
+      em3 = 'p2@email.com'
+      em4 = 'p3@email.com'
+      @e1_id = FactoryGirl.create(:employee, email: em1, group_id: @gid).id
+      @e2_id = FactoryGirl.create(:employee, email: em2, group_id: @gid).id
+      @e3_id = FactoryGirl.create(:employee, email: em3, group_id: @gid).id
+      @e4_id = FactoryGirl.create(:employee, email: em4, group_id: @gid).id
+
+      @nid = NetworkName.find_or_create_by!(id: 123, name: "Communication Flow", company_id: 1).id
+    end
+
+    it 'should calculate correct standard deviation' do
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e3_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e4_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e2_id, to_employee_id: @e1_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e2_id, to_employee_id: @e3_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e3_id, to_employee_id: @e1_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e4_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+
+      res = AlgorithmsHelper.network_traffic_standard_err(@sid, @gid, -1, @nid)
+      expect(res[0][:measure] - 1.291).to be < (0.001)
+    end
+
+    it 'should give bigger standard deviation when employee that was sending/receiving more than average, started to send even more' do
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e3_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e4_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e2_id, to_employee_id: @e1_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e2_id, to_employee_id: @e3_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e3_id, to_employee_id: @e1_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e4_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+
+      res1 = AlgorithmsHelper.network_traffic_standard_err(@sid, @gid, -1, @nid)
+      
+      # employee 1 sends/receives a lot more emails now
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e3_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e4_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+
+      res2 = AlgorithmsHelper.network_traffic_standard_err(@sid, @gid, -1, @nid)
+      expect(res1[0][:measure]).to be < (res2[0][:measure])
+    end
+
+    it 'should return zero standard deviation for single employee in group' do
+      FactoryGirl.create(:network_snapshot_data, from_employee_id: @e1_id, to_employee_id: @e2_id, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid, to_type: 1, from_type: 1)
+
+      gid2 = fg_create(:group, id: 2).id
+      @e5_id = FactoryGirl.create(:employee, email: 'p5@email.com', group_id: gid2).id
+      res = AlgorithmsHelper.network_traffic_standard_err(@sid, gid2, -1, @nid)
+      expect(res[0][:measure]).to eq(0)
     end
   end
 end

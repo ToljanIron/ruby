@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'date'
 require './app/helpers/algorithms_helper.rb'
-require './app/helpers/email_snapshot_data_helper.rb'
+# require './app/helpers/email_snapshot_data_helper.rb'
 require './app/helpers/calculate_measure_for_custom_data_system_helper.rb'
 
 module CalculateMeasureForCustomDataSystemHelper

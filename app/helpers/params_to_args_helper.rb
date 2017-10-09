@@ -84,7 +84,7 @@ module ParamsToArgsHelper
     key = "closeness_level_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
-      return AlgorithmsHelper.density_of_email_network(args[:snapshot_id], args[:gid], args[:pid])
+      return AlgorithmsHelper.synergy_of_email_network(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 
@@ -92,7 +92,7 @@ module ParamsToArgsHelper
     key = "synergy_level_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
-      return AlgorithmsHelper.email_traffic_standard_err(args[:snapshot_id], args[:gid], args[:pid])
+      return AlgorithmsHelper.synergy_of_email_network(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 

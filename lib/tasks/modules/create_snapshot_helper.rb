@@ -1,7 +1,7 @@
 require './lib/tasks/modules/email_properities_translator.rb'
-require './app/helpers/email_snapshot_data_helper.rb'
+require './app/helpers/network_snapshot_data_helper.rb'
 include EmailPropertiesTranslator
-include EmailSnapshotDataHelper
+include NetworkSnapshotDataHelper
 
 module CreateSnapshotHelper
   require 'date'
@@ -39,7 +39,8 @@ module CreateSnapshotHelper
     duplicate_network_snapshot_data_for_weekly_snapshots(cid, sid)
 
     puts "In calc_meaningfull_emails"
-    EmailSnapshotDataHelper.calc_meaningfull_emails(sid)
+    # EmailSnapshotDataHelper.calc_meaningfull_emails(sid)
+    NetworkSnapshotDataHelper.calc_meaningfull_emails(sid)
 
     if CompanyConfigurationTable.find_by(comp_id: cid, key: 'process_meetings').try(:value) == 'true'
       puts "Creating meetings snapshot"

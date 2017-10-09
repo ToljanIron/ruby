@@ -4,8 +4,8 @@ SIG_SPORADIC ||= 'sporadic'
 SIG_MEANINGFULL ||= 'meaningfull'
 SIG_NOT_SIGNIFICANT ||= 'not_significant'
 
-
-describe EmailSnapshotDataHelper, type: :helper do
+describe NetworkSnapshotDataHelper, type: :helper do
+  
   describe ', running test for weight_algorithm and create a list to view the present in the Graph ' do
     before do
       NetworkSnapshotData.create_email_adapter
@@ -84,7 +84,6 @@ describe EmailSnapshotDataHelper, type: :helper do
       end
     end
   end
-
   describe 'calc_meaningfull_emails' do
     before do
       @comp = Company.create!(name: 'Comp1')
@@ -132,7 +131,7 @@ describe EmailSnapshotDataHelper, type: :helper do
       expect(NetworkSnapshotData.find(3).above_median).to eq 'above'
     end
 
-    xit 'should take into considuration old snapshots' do
+    xit 'should take into consideration old snapshots' do
       expect(NetworkSnapshotData.find(13).significant_level).to eq 'not_significant'
       expect(NetworkSnapshotData.find(14).significant_level).to eq 'meaningfull'
       expect(NetworkSnapshotData.find(15).significant_level).to eq 'meaningfull'
