@@ -1,8 +1,17 @@
 module MeasuresHelper
 
-  EMAIL_DENSITY_ALGORITHM_ID = 200
+  CLOSENESS_AID = 200
+  SYNERGY_AID = 201
 
   def get_dynamics_stats_from_helper(cid, sids, current_gids, interval_type)
+    res = {}
+    res[:closeness] = get_dynamics_gauge_level(cid, sids, current_gids, interval_type, CLOSENESS_AID, 'closeness')
+    res[:synergy]   = get_dynamics_gauge_level(cid, sids, current_gids, interval_type, SYNERGY_AID, 'synergy')
+    
+    return res
+  end
+
+  def get_dynamics_gauge_level(cid, sids, current_gids, interval_type, aid, algorithm_name)
     
     res_arr = []
 
@@ -27,7 +36,7 @@ module MeasuresHelper
               WHERE
                 cds.snapshot_id IN (#{sids.join(',')}) AND
                 cds.group_id IN (#{gids.join(',')}) AND
-                cds.algorithm_id= #{EMAIL_DENSITY_ALGORITHM_ID} AND
+                cds.algorithm_id= #{aid} AND
                 cds.company_id = #{cid}
               GROUP BY period, algo.id, mn.name, g.external_id
               ORDER BY g.external_id"
@@ -51,24 +60,8 @@ module MeasuresHelper
     end
 
     avg = (sum / count.to_f).round(2)
-
-    res = {closeness: get_gauge_level(avg)}
-
-    # TO DO: 4.10.17 - average over scores and return LOW MEDIUM or HIGH for closeness
-    # Same thing need to do with synergy algorithm in another function. Gather both results 
-    # In the controller
-
-    return res
-  end
-
-  def get_synergy_level_dynamics(cid, sids, current_gids, interval_type)
-
-
-
-
-
-
-
+    
+    return get_gauge_level(avg)
   end
 
   # Get string representing the time interval type, from integer 'interval_type'

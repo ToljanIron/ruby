@@ -493,7 +493,7 @@ class MeasuresController < ApplicationController
     interval_type = params[:interval_type].to_i
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
-    segment_type = permitted[:segment_type]
+    segment_type = permitted[:segment_type] # Aggregator from client. Use in the future - department/office
 
     res = get_dynamics_scores_from_helper(interval_type, gids, cid, sids)
 

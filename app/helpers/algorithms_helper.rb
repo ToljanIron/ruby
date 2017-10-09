@@ -1067,22 +1067,22 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: network_density }]
   end
 
-  def self.email_traffic_standard_err(sid, gid, pid)
+  def self.network_traffic_standard_err(sid, gid, pid, nid)
     cid = find_company_by_snapshot(sid)
-    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
     group_id = (gid == -1 ? pid : gid)
 
     traffic = calc_emails_volume(sid, gid, pid)
     
-    arr = traffic.map do |t|
-      t[:measure]
-    end
+    arr = traffic.map {|t| t[:measure]}
 
-    strd_err = array_sd(arr)
+    if(arr.count === 1)
+      strd_err = 0
+    else  
+      strd_err = array_sd(arr)
+    end
 
     return [{ group_id: group_id, measure: strd_err }]
   end
-
 
   ################################################## EMAIL #############################################
 
@@ -1192,9 +1192,14 @@ module AlgorithmsHelper
     return calc_deadends(sid, gid, pid)
   end
 
-  def density_of_email_network(sid, gid, pid)
+  def closeness_of_email_network(sid, gid, pid)
     nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
     return density_of_network(sid, gid, pid, nid)
+  end
+
+  def synergy_of_email_network(sid, gid, pid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    return network_traffic_standard_err(sid, gid, pid, nid)
   end
 
   ###################################################
@@ -1372,7 +1377,7 @@ module AlgorithmsHelper
     # network = NetworkSnapshotData.emails(cid)
     network = nid
     sqlstr = "SELECT outter_nsd.from_employee_id, outter_nsd.to_employee_id, COUNT(id) AS maximum_traffic
-              FROM network_snapshot_data    AS outter_nsd
+              FROM network_snapshot_data AS outter_nsd
               WHERE outter_nsd.snapshot_id      = #{sid}
               AND   network_id                  = #{network}
               AND   outter_nsd.to_employee_id   IN (#{empsstr})
