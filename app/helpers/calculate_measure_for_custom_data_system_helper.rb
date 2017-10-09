@@ -42,9 +42,6 @@ module CalculateMeasureForCustomDataSystemHelper
             .where("cds.algorithm_id IN (#{EMAILS_VOLUME})")
             .order('cds.score DESC')
             .limit(20)
-    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
-    ap ret
-    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
     return ret
   end
 

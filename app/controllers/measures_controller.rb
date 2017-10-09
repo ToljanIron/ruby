@@ -7,7 +7,6 @@ include CdsUtilHelper
 include ExternalDataHelper
 include CalculateMeasureForCustomDataSystemHelper
 include MeasuresHelper
-include SnapshotsHelper
 
 class MeasuresController < ApplicationController
   MEASURE = 1
@@ -467,6 +466,50 @@ class MeasuresController < ApplicationController
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
+  end
+
+  def get_emails_time_picker_data
+    authorize :snapshot, :index?
+
+    permitted = params.permit(:sids, :gids, :interval_type)
+    cid = current_user.company_id
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = params[:gids].split(',')
+    interval_type = params[:interval_type].to_i
+
+    res = get_emails_volume_scores(cid, sids, gids, interval_type)
+    res = Oj.dump(res)
+
+    render json: res
+  end
+
+  def get_meetings_time_picker_data
+    authorize :snapshot, :index?
+    
+    permitted = params.permit(:sids, :gids, :interval_type)
+    cid = current_user.company_id
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = params[:gids].split(',')
+    interval_type = params[:interval_type].to_i
+    
+    res = get_time_spent_in_meetings(cid, sids, gids, interval_type)
+    res = Oj.dump(res)
+
+    render json: res
+  end
+
+  def get_dynamics_time_picker_data
+    authorize :measure, :index?
+
+    permitted = params.permit(:sids, :gids, :interval_type)
+    cid = current_user.company_id
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    interval_type = params[:interval_type].to_i
+    
+    res = get_group_densities(cid, sids, gids, interval_type)
+
+    render json: Oj.dump(res), status: 200
   end
 
   def get_dynamics_stats

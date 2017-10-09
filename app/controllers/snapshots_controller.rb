@@ -41,32 +41,6 @@ class SnapshotsController < ApplicationController
     render json: res
   end
 
-  def get_snapshots_email_volume
-    authorize :snapshot, :index?
-
-    cid = current_user.company_id
-    interval_type = params[:interval_type].to_i
-    gids = params[:gids].split(',')
-
-    res = get_emails_volume_scores(interval_type, gids, cid)
-    res = Oj.dump(res)
-
-    render json: res
-  end
-
-  def get_snapshots_time_spent_in_meetings
-    authorize :snapshot, :index?
-    
-    cid = current_user.company_id
-    interval_type = params[:interval_type].to_i
-    gids = params[:gids].split(',')
-    
-    res = get_time_spent_in_meetings(interval_type, gids, cid)
-    res = Oj.dump(res)
-
-    render json: res
-  end
-
   private
 
   def build_json

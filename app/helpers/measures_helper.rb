@@ -3,6 +3,67 @@ module MeasuresHelper
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
 
+  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 130 - Bottlenecks
+  DYNAMICS_AIDS = [74, 100, 101, 130]
+
+  EMAILS_VOLUME_AID = 707
+  TIME_SPENT_IN_MEETINGS_AID = 806
+
+  def get_emails_volume_scores(cid, sids, current_gids, interval_type)
+    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID)
+  end
+
+  def get_time_spent_in_meetings(cid, sids, current_gids, interval_type)
+    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, TIME_SPENT_IN_MEETINGS_AID)
+  end
+
+  def get_group_densities(cid, sids, current_gids, interval_type)
+    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, CLOSENESS_AID)
+  end
+
+  def get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, aid)
+
+    res = []
+    gids = []
+
+    interval_str = get_interval_type_string(interval_type)
+    
+    # If empty gids - get the gid for the root - i.e. the company
+    if (current_gids.nil? || current_gids.length === 0)
+      gids << Group.get_root_group(cid)
+    else
+      gids = get_relevant_group_ids(sids, current_gids)
+      gids = gids.map(&:to_i)
+    end
+
+    sqlstr = "SELECT avg(score) as score, s.month, s.#{interval_str} as period 
+              FROM cds_metric_scores
+              JOIN snapshots AS s ON snapshot_id = s.id
+              WHERE 
+                snapshot_id IN (#{sids.join(',')}) AND
+                group_id IN (#{gids.join(',')}) AND
+                algorithm_id = #{aid}
+              GROUP BY snapshot_id, s.month, s.timestamp, period
+              ORDER BY s.timestamp ASC"
+    
+    # If query is for time period other than month - average over months. Wrap above query.
+    if(interval_str != 'month')
+      sqlstr = "SELECT avg(score) as score, period FROM (#{sqlstr}) t
+                GROUP BY period
+                ORDER BY period"
+    end
+
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+
+    sqlres.each do |entry|
+      res << {
+        'score'       => entry['score'].to_f.round(2),
+        'time_period' => entry['period']
+      }
+    end
+    return res
+  end
+
   def get_dynamics_stats_from_helper(cid, sids, current_gids, interval_type)
     res = {}
     res[:closeness] = get_dynamics_gauge_level(cid, sids, current_gids, interval_type, CLOSENESS_AID, 'closeness')
@@ -13,7 +74,7 @@ module MeasuresHelper
 
   def get_dynamics_gauge_level(cid, sids, current_gids, interval_type, aid, algorithm_name)
     
-    res_arr = []
+    res = []
 
     interval_str = get_interval_type_string(interval_type)
 
@@ -44,24 +105,67 @@ module MeasuresHelper
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
     sqlres.each do |entry|
-      res_arr << {
+      res << {
         'groupName'   => entry['group_name'],
         'algoName'    => entry['algo_name'],
         'aid'         => entry['algo_id'],
-        'avg_z_score' => entry['avg_z_score'].to_f.round(2),
+        'curScore' => entry['avg_z_score'].to_f.round(2),
         'time_period' => entry['period']
       }
     end
 
-    count = res_arr.length
+    count = res.length
     sum = 0
-    res_arr.each do |r|
-      sum += r['avg_z_score']
-    end
+    res.each {|r| sum += r['curScore']}
 
     avg = (sum / count.to_f).round(2)
     
     return get_gauge_level(avg)
+  end
+
+  def get_dynamics_scores_from_helper(interval_type, current_gids, cid, sids)
+    
+    res = []
+    gids = []
+    
+    interval_str = get_interval_type_string(interval_type)
+
+    # If empty gids - get the gid for the root - i.e. the company
+    if (current_gids.nil? || current_gids.length === 0)
+      gids << Group.get_root_group(cid)
+    else
+      gids = get_relevant_group_ids(sids, current_gids)
+      gids = gids.map(&:to_i)
+    end
+
+    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
+                s.#{interval_str} AS period, avg(score) AS score
+              FROM cds_metric_scores AS cds
+              JOIN snapshots AS s ON snapshot_id = s.id
+              JOIN groups AS g ON cds.group_id = g.id
+              JOIN algorithms AS algo ON algo.id = cds.algorithm_id
+              JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
+              JOIN metric_names AS mn ON mn.id = cm.metric_id
+              WHERE
+                cds.snapshot_id IN (#{sids.join(',')}) AND
+                cds.group_id IN (#{gids.join(',')}) AND
+                cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
+                cds.company_id = #{cid}
+              GROUP BY period, algo.id, mn.name, g.external_id
+              ORDER BY g.external_id"
+
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+
+    sqlres.each do |entry|
+      res << {
+        'groupName'   => entry['group_name'],
+        'algoName'    => entry['algo_name'],
+        'aid'         => entry['algo_id'],
+        'curScore'    => entry['score'].to_f.round(2),
+        'time_period' => entry['period']
+      }
+    end
+    return res
   end
 
   # Get string representing the time interval type, from integer 'interval_type'
@@ -91,5 +195,18 @@ module MeasuresHelper
       level = 2
     end
     return level
+  end
+
+  # def get_relevant_snapshot_ids(cid, limit)
+  #   return get_relevant_snapshots(cid, limit).pluck('sid')
+  # end
+
+  def get_relevant_group_ids(sids, current_gids)
+    res = []
+    sids.each do |sid|
+      grp = Group.find_groups_in_snapshot(current_gids, sid)
+      res += grp
+    end
+    return res
   end
 end
