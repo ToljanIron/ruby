@@ -21,7 +21,7 @@ module CalculateMeasureForCustomDataSystemHelper
   GAUGE   ||= 5
   QUESTIONNAIRE_ONLY ||= 8
 
-  EMAILS_VOLUME = 707
+  EMAILS_VOLUME ||= 707
 
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)

@@ -60,7 +60,7 @@ module CdsGroupsHelper
   end
 
   def self.get_inner_select_by_group_as_arr(gid)
-    id = (gid.class == Fixnum) ? gid : gid.id
+    id = (gid.class == Integer) ? gid : gid.id
     group = Group.find(id)
     group.extract_employees
   end

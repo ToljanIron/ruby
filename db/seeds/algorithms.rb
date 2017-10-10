@@ -47,6 +47,7 @@ Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers_to_args', al
 Algorithm.find_or_create_by!(id: 101, name: 'calculate_powerful_non_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 102, name: 'calculate_non_reciprocity_between_employees_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 113, name: 'calculate_non_reciprocity_between_employees_explore_to_args', algorithm_type_id: 3, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 114, name: 'internal_champions', algorithm_type_id: 1, algorithm_flow_id: 2)
 
 ############## Interact ####################
 Algorithm.find_or_create_by!(id: 601, name: 'interact_indegree',  algorithm_type_id: 8, algorithm_flow_id: 1)
