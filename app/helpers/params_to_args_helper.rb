@@ -202,11 +202,6 @@ module ParamsToArgsHelper
     return AlgorithmsHelper.proportion_of_emails(args[:snapshot_id], args[:pid], args[:gid])
   end
 
-  def self.calculate_gate_keepers(args)
-    res = ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
-    return AlgorithmsHelper.calculate_gate_keepers(args[:snapshot_id], args[:pid], args[:gid])
-  end
-
   def self.avg_subject_length(args)
     return AlgorithmsHelper.avg_subject_length(args[:snapshot_id], args[:pid], args[:gid])
   end
@@ -217,6 +212,10 @@ module ParamsToArgsHelper
 
   def self.calculate_bottlenecks(args)
     return AlgorithmsHelper.calculate_bottlenecks(args[:snapshot_id], args[:pid], args[:gid])
+  end
+
+  def self.internal_champions(args)
+    return AlgorithmsHelper.internal_champions(args[:snapshot_id], args[:pid], args[:gid])
   end
 
   def self.volume_of_emails(args)

@@ -12,6 +12,8 @@ module CreateSnapshotHelper
 
   OUT_OF_DOMAIN_TRANSACTIONS_TYPE = 0
 
+  RAW_RECORDS_BOLCK = 2000
+
   def create_company_snapshot_by_weeks(cid, date, create_measures_snapshots = true)
     end_date = calculate_end_date_of_snapshot(date, cid)
     prev_sid = Snapshot.last_snapshot_of_company(cid)
@@ -83,36 +85,49 @@ module CreateSnapshotHelper
     return date
   end
 
+##############################################################################################
   def create_emails_for_weekly_snapshots(cid, sid, end_date)
     start_date = end_date - get_period_of_weeks(cid).to_i.week
     puts "create_emails_for_weekly_snapshots - start_date: #{start_date}"
-    if ENV['e2e_test']
-      raw_data_entries = RawDataEntry.where(company_id: cid)
-    else
-      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date)
-    end
-    puts "Found #{raw_data_entries.length} raw entries"
+    total_raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date).count
+    puts "There are #{total_raw_data_entries} raw entries"
     puts "create snapshot - prepare"
-    company = Snapshot.find(sid).company_id
-    network = NetworkSnapshotData.emails(company)
-    db_records = NetworkSnapshotData.where(snapshot_id: sid, network_id: network)
-    puts "create snapshot - delete old records"
-    db_records.delete_all
+    cid = Snapshot.find(sid).company_id
+    raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date, processed: false).limit(RAW_RECORDS_BOLCK)
+
+    puts "Get employee emails"
     company_employee_emails = Employee.by_snapshot(sid).pluck(:email)
     company_employee_emails_hash = Hash.new(company_employee_emails.length)
     company_employee_emails.each { |e| company_employee_emails_hash[e] = 1 }
-    puts "create snapshot - get existing domains"
-    raw_data_entries_dup = raw_data_entries.dup
+
+    puts "create snapshot - delete old records"
+    nid = NetworkName.get_emails_network(cid)
+    NetworkSnapshotData.where(snapshot_id: sid, network_id: nid).delete_all
+
+    puts "create snapshot - start processing raw data"
+    ii = 0
+    while (raw_data_entries.length > 0 ) do
+      ii += 1
+      puts "Raw entries block number: #{ii} out of #{total_raw_data_entries / RAW_RECORDS_BOLCK}"
+      convert_to_snapshot(raw_data_entries, company_employee_emails_hash, sid, cid, nid)
+
+      puts "create snapshot - update raw_data_entries"
+      raw_data_entries.update_all(processed: true)
+      raw_data_entries = nil
+
+      raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date, processed: false).limit(RAW_RECORDS_BOLCK)
+    end
+  end
+##############################################################################################
+
+  def convert_to_snapshot(raw_data_entries, company_employee_emails_hash, sid, cid, nid)
     puts "create snapshot - get existing domains"
     in_domain_raw_data_entries_res = in_domain_emails_filter(raw_data_entries, company_employee_emails_hash, cid)
     in_domain_raw_data_entries                      = in_domain_raw_data_entries_res[0]
-    in_domain_raw_data_entries_with_external_sender = in_domain_raw_data_entries_res[1]
-    puts "create snapshot - get non-existing domains"
-    out_of_domain_transactions = out_of_domain_emails_filter(raw_data_entries_dup, company_employee_emails_hash)
-    puts "create snapshot - process out of domain trasactions"
-    process_out_of_domain_transactions(out_of_domain_transactions, sid)
-    existing_records_arr = []
+    in_domain_raw_data_entries                      = in_domain_raw_data_entries_res[0]
+
     puts "create snapshot - calculate email relations and subjects"
+    existing_records_arr = []
     ii = 0
     in_domain_raw_data_entries.each do |rde|
       ii += 1
@@ -121,18 +136,16 @@ module CreateSnapshotHelper
       existing_records_arr = existing_records_arr.concat(existing_records)
       puts "Went over #{ii} records" if (ii % 2000 == 0)
     end
-    puts "Going over senders from external_domains"
-    process_in_domain_transactions_with_external_sender(in_domain_raw_data_entries_with_external_sender, sid)
-    entries_count = existing_records_arr.count
-    email_network_id = NetworkName.where(company_id: cid, name: 'Communication Flow')[0].id
+
     puts "create snapshot - write to network_snapshot_data"
+    entries_count = existing_records_arr.count
     (0..entries_count/1000).each do |i|
       puts "Writing to network_snapshot_data batch number: #{i} out of #{entries_count/1000}"
       foffset = i * 1000
       toffset = (i == entries_count/1000 ? entries_count : ((i+1) * 1000) - 1)
       columns = '(value, snapshot_id, network_id, company_id, from_employee_id, to_employee_id, message_id, multiplicity, from_type, to_type, communication_date)'
       values = existing_records_arr[foffset..toffset].map do |r|
-        "(1,#{sid},#{email_network_id},#{cid},#{r[:from_employee_id]},#{r[:to_employee_id]},'#{r[:message_id]}',#{r[:multiplicity]},#{r[:from_type]},#{r[:to_type]},'#{r[:email_date].to_time.strftime('%Y-%m-%d %H:%M:%S.%L')}')"
+        "(1,#{sid},#{nid},#{cid},#{r[:from_employee_id]},#{r[:to_employee_id]},'#{r[:message_id]}',#{r[:multiplicity]},#{r[:from_type]},#{r[:to_type]},'#{r[:email_date].to_time.strftime('%Y-%m-%d %H:%M:%S.%L')}')"
       end
         values = values.join(', ')
       return if values.empty?
@@ -141,8 +154,6 @@ module CreateSnapshotHelper
     end
     puts "Wrote #{entries_count} records to network_snapshot_data"
 
-    puts "create snapshot - update raw_data_entries"
-    raw_data_entries.update_all(processed: true)
     puts "create snapshot done"
   end
 

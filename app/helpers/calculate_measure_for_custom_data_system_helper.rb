@@ -21,7 +21,7 @@ module CalculateMeasureForCustomDataSystemHelper
   GAUGE   ||= 5
   QUESTIONNAIRE_ONLY ||= 8
 
-  EMAILS_VOLUME = 707
+  EMAILS_VOLUME ||= 707
 
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
@@ -42,9 +42,6 @@ module CalculateMeasureForCustomDataSystemHelper
             .where("cds.algorithm_id IN (#{EMAILS_VOLUME})")
             .order('cds.score DESC')
             .limit(20)
-    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
-    ap ret
-    puts "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"
     return ret
   end
 

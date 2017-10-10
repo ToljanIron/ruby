@@ -347,22 +347,22 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
 
   def cds_calculate_with_no_group_and_no_pin(company_metric_row, sid)
     values = []
-    cid = company_metric_row.company_id
+    #cid = company_metric_row.company_id
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     CdsMetricScore.where(snapshot_id: sid, company_metric_id: company_metric_row.id).delete_all
     company_groups = Group.by_snapshot(sid)
-    company_pins = Pin.where(company_id: cid)
+    #company_pins = Pin.where(company_id: cid)
     company_groups = put_mother_group_first(company_groups)
     company_groups.each do |group|
       next if Group.find(group.id).extract_employees.empty? && !algorithm.algorithm_type_id != 1
       values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, group.id, company_metric_row.algorithm_id)
     end
-    company_pins.each do |pin|
-      next if EmployeesPin.where(pin_id: pin.id).empty? || !algorithm.algorithm_type_id == 1
-      pin.update_attribute(:status, :in_progress)
-      values += cds_calculate_and_save_metric_scores(company_metric_row, sid, pin.id, NO_GROUP, company_metric_row.algorithm_id)
-      pin.update_attribute(:status, :saved)
-    end
+    #company_pins.each do |pin|
+      #next if EmployeesPin.where(pin_id: pin.id).empty? || !algorithm.algorithm_type_id == 1
+      #pin.update_attribute(:status, :in_progress)
+      #values += cds_calculate_and_save_metric_scores(company_metric_row, sid, pin.id, NO_GROUP, company_metric_row.algorithm_id)
+      #pin.update_attribute(:status, :saved)
+    #end
     #values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, NO_GROUP, company_metric_row.algorithm_id)
     return values
   end

@@ -26,6 +26,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     routiners_id             = MetricName.find_or_create_by(name: 'Routiners', company_id: cid).id
     inviters_id              = MetricName.find_or_create_by(name: 'Inviters', company_id: cid).id
     observers_id             = MetricName.find_or_create_by(name: 'Observers', company_id: cid).id
+    internal_champions_id    = MetricName.find_or_create_by(name: 'Internal Champions', company_id: cid).id
 
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2, active: false)
@@ -34,6 +35,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: bottleneck_id, network_id: communication_network_id, company_id: cid, algorithm_id: 130, algorithm_type_id: 2, active: true)
     CompanyMetric.find_or_create_by(metric_id: isolate_id, network_id: communication_network_id, company_id: cid, algorithm_id: 100, algorithm_type_id: 1, active: true)
     CompanyMetric.find_or_create_by(metric_id: powerful_non_manager_id, network_id: communication_network_id, company_id: cid, algorithm_id: 101, algorithm_type_id: 1, active: true)
+    CompanyMetric.find_or_create_by(metric_id: internal_champions_id, network_id: communication_network_id, company_id: cid, algorithm_id: 114, algorithm_type_id: 1, active: true)
 
     CompanyMetric.find_or_create_by(metric_id: spammers_id, network_id: communication_network_id, company_id: cid, algorithm_id: 700, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: blitzed_id, network_id: communication_network_id, company_id: cid, algorithm_id: 701, algorithm_type_id: 1)

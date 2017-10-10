@@ -40,6 +40,16 @@ class Group < ActiveRecord::Base
     res
   end
 
+  def self.num_of_emps(gid)
+    cache_key = "Group.num_of_emps-#{gid}"
+    res = cache_read(cache_key)
+    if res.nil?
+      res = Group.find(gid).extract_employees.count
+      cache_write(cache_key, res)
+    end
+    res
+  end
+
   def extract_employees_records
     cache_key = "Group.extract_employees_records-#{id}"
     res = cache_read(cache_key)

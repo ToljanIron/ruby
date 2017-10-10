@@ -32,9 +32,9 @@ module AlgorithmsHelper
   ALL_MATRIX ||= 4
 
   # From type - init, fwd or reply
-  # INIT  ||= 1
-  # REPLY  ||= 2
-  # FWD  ||= 3
+  INIT  ||= 1
+  REPLY  ||= 2
+  FWD  ||= 3
 
   # Response to meeting
   DECLINE ||= 2
@@ -450,6 +450,9 @@ module AlgorithmsHelper
   #
   ###########################################################
   def calculate_bottlenecks(sid, nid, gid)
+
+    return nil if Group.num_of_emps(gid) < 4
+
     sagraph = get_sagraph(sid, nid, gid)
 
     a = sagraph[:adjacencymat]
@@ -476,9 +479,39 @@ module AlgorithmsHelper
     res = res.to_a
     (0..res.length-1).each do |i|
       e = res[i]
-      ret << {id: inx2emp[i], measure: (100 *e[0]).round(3)}
+      ret << {id: inx2emp[i], measure: (100 * e[0]).round(3)}
     end
     return ret
+  end
+
+  ###########################################################################
+  ##
+  ## Internal champions
+  ## Indegrees whithin the group
+  ##
+  ###########################################################################
+  def internal_champions(sid, pid, gid)
+    cid = Snapshot.find(sid).company_id
+    nid = NetworkSnapshotData.emails(cid)
+    empids = get_members_in_group(pid, gid, sid).sort
+    return [] if empids.count == 0
+    empsstr = empids.join(',')
+
+    sqlstr =
+      "SELECT to_employee_id, count(*) AS indeg FROM network_snapshot_data
+      WHERE
+        snapshot_id = #{sid} AND
+        company_id = #{cid} AND
+        network_id = #{nid} AND
+        to_employee_id IN (#{empsstr}) AND
+        from_employee_id IN (#{empsstr})
+      GROUP By to_employee_id
+      ORDER BY indeg"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    ret = []
+    res.each do |e|
+      ret << {id: e['to_employee_id'], measure: e['indeg'].to_f}
+    end
   end
 
   ###########################################################################
@@ -619,17 +652,18 @@ module AlgorithmsHelper
     NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_1, to_employee_id: emps, from_employee_id: emps).empty?
   end
 
-  def self.calculate_non_reciprocity_between_employees(sid, nid_1, nid_2, pid = NO_PIN, gid = NO_GROUP)
-    emps, high_in_all_networks = pre_calculate_non_reciprocity_between_employees(sid, nid_1, nid_2, pid, gid)
-    flagged_emps = []
-    emps.each do |emp|
-      flagged_emps << { id: emp, measure: 1 } if high_in_all_networks.call(emp)
+  def self.calculate_non_reciprocity_between_employees(sid, pid = NO_PIN, gid = NO_GROUP)
+    res = employees_email_non_reciprocity_scores(sid, pid, gid)
+    ret = []
+    res.each do |emp|
+      ret << { id: res['something'], measure: res['something_else'] }
+      raise "FIX ME !!"
     end
     return flagged_emps
   end
 
-  def self.calculate_non_reciprocity_between_employees_explore(sid, nid_1, nid_2, pid = NO_PIN, gid = NO_GROUP)
-    emps, high_in_all_networks = pre_calculate_non_reciprocity_between_employees(sid, nid_1, nid_2, pid, gid)
+  def self.calculate_non_reciprocity_between_employees_explore(sid, pid = NO_PIN, gid = NO_GROUP)
+    emps, high_in_all_networks = employees_email_non_reciprocity_scores(sid, pid, gid)
     v_res = []
     emps.each do |emp|
       s_measure = high_in_all_networks.call(emp) ? 1 : 0
@@ -1745,7 +1779,7 @@ module AlgorithmsHelper
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
 
-    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD, 
+    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD,
       to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
     select("#{EMAILS_OUT} as id, count(id) as measure").group(EMAILS_OUT).as_json
 
@@ -1823,7 +1857,9 @@ module AlgorithmsHelper
 
     max_deadend_measure = 0
     ratios.each do |r|
-      max_deadend_measure = r[:measure] if r[:measure] > max_deadend_measure
+      m = r[:measure]
+      next if m.nil?
+      max_deadend_measure = r[:measure] if m > max_deadend_measure
     end
 
     # In the case that there is no reply and no max measure - set all max to some
@@ -1832,6 +1868,7 @@ module AlgorithmsHelper
 
     ratios.each do |r|
       r[:measure] = max_deadend_measure if r[:measure] == missing_from
+      r[:measure] = 0 if r[:measure].nil?
     end
 
     ratios = ratios.sort { |a,b| a[:measure] <=> b[:measure] }
@@ -2111,7 +2148,7 @@ module AlgorithmsHelper
 
   def is_retrieved_snapshot_data_empty(entries, query)
     if(entries.count == 0)
-      puts ">>> No snapshot data for this query:\n#{query}"
+      #puts ">>> No snapshot data for this query:\n#{query}"
       return true
     end
     return false
