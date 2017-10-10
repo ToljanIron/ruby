@@ -18,13 +18,15 @@ module MeasuresHelper
   end
 
   def get_group_densities(cid, sids, current_gids, interval_type)
-    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, CLOSENESS_AID)
+    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, CLOSENESS_AID, false)
   end
 
-  def get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, aid)
+  def get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, aid, score = true)
 
     res = []
     gids = []
+
+    score_str = score ? 'score' : 'z_score' # Use score or z_score
 
     interval_str = get_interval_type_string(interval_type)
     
@@ -36,10 +38,10 @@ module MeasuresHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT avg(score) as score, s.month, s.#{interval_str} as period 
+    sqlstr = "SELECT avg(#{score_str}) as score, s.month, s.#{interval_str} as period 
               FROM cds_metric_scores
               JOIN snapshots AS s ON snapshot_id = s.id
-              WHERE 
+              WHERE
                 snapshot_id IN (#{sids.join(',')}) AND
                 group_id IN (#{gids.join(',')}) AND
                 algorithm_id = #{aid}
@@ -61,6 +63,7 @@ module MeasuresHelper
         'time_period' => entry['period']
       }
     end
+    
     return res
   end
 
@@ -191,7 +194,7 @@ module MeasuresHelper
       level = 0
     elsif (z_score > -1 && z_score < 1)
       level = 1
-    elsif(z_score > 1)
+    else
       level = 2
     end
     return level

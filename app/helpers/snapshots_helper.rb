@@ -22,6 +22,4 @@ module SnapshotsHelper
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
     return sqlres
   end
-
-  
 end
