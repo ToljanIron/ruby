@@ -43,14 +43,13 @@ namespace :db do
     else
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid.to_i, gid.to_i, pid.to_i, mid.to_i, sid.to_i, rewrite)
     end
-    
+
     ActiveRecord::Base.transaction do
       begin
         if calc_all
           PrecalculateMetricScoresForCustomDataSystemHelper::iterate_over_snapshots(cid, sid) do |compid, snapid|
             PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores(compid.to_i, snapid.to_i, true)
           end
-          CompanyStatisticsHelper.calculate_company_statistics(cid.to_i, sid.to_i) unless ENV['RAILS_ENV'] == 'test'
         end
 
         finish_job(t_id) if t_id != 0
