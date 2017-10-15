@@ -1,3 +1,5 @@
+include CdsUtilHelper
+
 class CompanyConfigurationTable < ActiveRecord::Base
   LOCALE             = 'LOCALE'
   DEFAULT_LOCALE     = 'en'
@@ -22,7 +24,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
 
   def self.is_investigation_mode?
     cache_key = "CompanyConfigurationTable-#{INVESTIGATION_MODE}"
-    return read_or_calculate_and_write(cache_key) do
+    return CdsUtilHelper::read_or_calculate_and_write(cache_key) do
       is_investigation_mode_configured_in_db?
     end
   end

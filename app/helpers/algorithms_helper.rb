@@ -1747,13 +1747,33 @@ module AlgorithmsHelper
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
+    puts "*************************** 1"
+    ap total_to_measure
+    puts "*************************** 1"
 
-    fwded_emails = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid, from_type: FWD,
-      to_type: TO, to_employee_id: inner_select, from_employee_id: inner_select).
-    select("#{EMAILS_OUT} as id, count(id) as measure").group(EMAILS_OUT).as_json
+    fwded_emails =
+      NetworkSnapshotData.where(snapshot_id: sid,
+                                network_id: nid,
+                                from_type: FWD,
+                                to_type: TO,
+                                to_employee_id: inner_select,
+                                from_employee_id: inner_select)
+                         .select("#{EMAILS_OUT} as id, count(id) as measure")
+                         .group(EMAILS_OUT)
+                         .as_json
+    puts "*************************** 2"
+    ap fwded_emails
+    puts "*************************** 2"
 
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(fwded_emails, inner_select), total_to_measure, 'id', 'measure')
-    return result_zero_padding(inner_select, res)
+    puts "*************************** 3"
+    ap res
+    puts "*************************** 3"
+    puts "*************************** 4"
+    ret = result_zero_padding(inner_select, res)
+    #ap ret
+    puts "*************************** 4"
+    return ret
   end
 
   def calc_emails_volume(sid, gid = NO_GROUP, pid = NO_PIN)
@@ -2010,7 +2030,7 @@ module AlgorithmsHelper
       stringified_denominator_arr.each do |denominator|
         if(numerator[key].to_i == denominator[key].to_i)
           next if numerator[value].nil?
-          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1 }
+          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : 0.0 }
         end
       end
     end

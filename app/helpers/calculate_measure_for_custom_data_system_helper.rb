@@ -88,15 +88,15 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
     currtopgids = calculate_group_top_scores(cid, currsid, currgids, aids)
-    prevtopgids = Group.find_groups_in_snapshot(currtopgids, prevsid)
+    prevtopgids = prevsid.nil? ? nil : Group.find_groups_in_snapshot(currtopgids, prevsid)
 
     curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
-    prev_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
+    prev_group_wherepart = agg_method == 'group_id' && !prevsid.nil? ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
     algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
     office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
 
     curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart, aids)
-    prevscores = cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
+    prevscores = prevsid.nil? ? nil : cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
 
     res = collect_cur_and_prev_results(curscores, prevscores)
     res = format_scores(res)
@@ -108,7 +108,7 @@ module CalculateMeasureForCustomDataSystemHelper
     email_scores.each do |e|
       res << {
         gid: e['gid'],
-        groupName: e['group_name'],
+        groupName: create_group_name(e),
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
@@ -117,6 +117,13 @@ module CalculateMeasureForCustomDataSystemHelper
       }
     end
     return res
+  end
+
+  def create_group_name(e)
+    invmode = CompanyConfigurationTable.is_investigation_mode?
+    puts "invmode: #{invmode}"
+    return e['group_name'] if !invmode
+    return "#{e['gid']}_#{e['group_name']}" if invmode
   end
 
   def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart, aids)
@@ -143,6 +150,10 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def collect_cur_and_prev_results(curscores, prevscores)
     res_hash = {}
+
+    ## If there is no prevscores then copy over curscores
+    prevscores ||= curscores
+
     curscores.each do |s|
       key = s
       cursum = key.delete('sum')
@@ -150,6 +161,7 @@ module CalculateMeasureForCustomDataSystemHelper
       group_name = key.delete('group_name') # change every snapshot.
       res_hash[key] = [cursum, gid, group_name]
     end
+
     res_arr = []
     prevscores.each do |s|
       key = s
@@ -163,6 +175,7 @@ module CalculateMeasureForCustomDataSystemHelper
       entry['prevsum'] = prevsum.to_i
       res_arr << entry
     end
+
     return res_arr
   end
 
