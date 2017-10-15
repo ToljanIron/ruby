@@ -438,7 +438,7 @@ class MeasuresController < ApplicationController
     offset = permitted[:offset] || 0
     agg_method = format_aggregation_method( permitted[:agg_method] )
 
-    raise 'currsid and prevsid can not be empty' if (currsid == nil || prevsid == nil)
+    raise 'currsid and prevsid can not be empty' if (currsid == nil )
 
     cache_key = "get_meetings_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
     res = cache_read(cache_key)

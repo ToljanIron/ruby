@@ -138,10 +138,12 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
                      .where(company_id: cid, snapshot_id: sid).where('at.id = 5')
                      .distinct.pluck(:algorithm_id)
       algorithms.each do |aid|
-        scores = CdsMetricScore.select(:id, :group_id, :score, :z_score).where(company_id: cid, snapshot_id: sid, algorithm_id: aid)
+        scores = CdsMetricScore
+                   .select(:id, :group_id, :score, :z_score)
+                   .where(company_id: cid, snapshot_id: sid, algorithm_id: aid)
+                   .where('score > -1000000')
         mean = array_mean(scores.pluck(:score))
-        # sd   = array_sd(scores.pluck(:score)) #ASAF BYEBUG   -  temp comment, switch this & next line
-        sd = 1
+        sd   = array_sd(scores.pluck(:score))
         scores.each do |s|
           z_score = sd != 0.0 ? ((s.score - mean) / sd).round(3) : 0.0
           if (s.z_score.nil? || rewrite)

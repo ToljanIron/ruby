@@ -1198,10 +1198,6 @@ module AlgorithmsHelper
     return calc_indegree_for_to_matrix(sid, gid, pid)
   end
 
-  def relays_measure(sid, gid, pid)
-    return calc_relays(sid, gid, pid)
-  end
-
   def ccers_measure(sid, gid, pid)
     return calc_ccers(sid, gid, pid)
   end
@@ -1740,16 +1736,13 @@ module AlgorithmsHelper
     return result_zero_padding(inner_select, res)
   end
 
-  def calc_relays(sid, gid = NO_GROUP, pid = NO_PIN)
+  def relays_measure(sid, gid = NO_GROUP, pid = NO_PIN)
     res = []
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
-    puts "*************************** 1"
-    ap total_to_measure
-    puts "*************************** 1"
 
     fwded_emails =
       NetworkSnapshotData.where(snapshot_id: sid,
@@ -1761,18 +1754,9 @@ module AlgorithmsHelper
                          .select("#{EMAILS_OUT} as id, count(id) as measure")
                          .group(EMAILS_OUT)
                          .as_json
-    puts "*************************** 2"
-    ap fwded_emails
-    puts "*************************** 2"
 
     res = calc_relative_measure_by_key(handle_raw_snapshot_data(fwded_emails, inner_select), total_to_measure, 'id', 'measure')
-    puts "*************************** 3"
-    ap res
-    puts "*************************** 3"
-    puts "*************************** 4"
     ret = result_zero_padding(inner_select, res)
-    #ap ret
-    puts "*************************** 4"
     return ret
   end
 
@@ -2030,7 +2014,7 @@ module AlgorithmsHelper
       stringified_denominator_arr.each do |denominator|
         if(numerator[key].to_i == denominator[key].to_i)
           next if numerator[value].nil?
-          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : 0.0 }
+          res << { key => numerator[key].to_i, value => denominator[value] != 0 ? (numerator[value].to_f/denominator[value]).round(2) : -1000000.0 }
         end
       end
     end
