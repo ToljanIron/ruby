@@ -121,7 +121,6 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def create_group_name(e)
     invmode = CompanyConfigurationTable.is_investigation_mode?
-    puts "invmode: #{invmode}"
     return e['group_name'] if !invmode
     return "#{e['gid']}_#{e['group_name']}" if invmode
   end
