@@ -95,22 +95,6 @@ class Employee < ActiveRecord::Base
     res
   end
 
-  def check_img_url
-    return 'dummy_s3_img_url' if ENV['RAILS_ENV'] == 'test'
-
-    s3 = AWS::S3.new(access_key_id: ENV['s3_access_key'], secret_access_key: ENV['s3_secret_access_key'])
-    return randomize_img_url_from_db(s3) if randomize_image?
-    object = s3.buckets['workships'].objects.with_prefix(email).collect(&:key)
-    if object.length > 0
-      object = s3.buckets['workships'].objects["#{email}.jpg"]
-      img_url = object.url_for(:get, secure: true, expires:  24.hour).to_s
-    else
-      object = s3.buckets['workships'].objects['missing.jpg']
-      img_url = object.url_for(:get, secure: true, expires:  24.hour).to_s
-    end
-    return img_url
-  end
-
   def get_direct_manager(eid)
     get_manager(eid, 'direct')
   end
@@ -169,17 +153,6 @@ class Employee < ActiveRecord::Base
     h[:professioal_manager] = nil
 
     return h
-  end
-
-  def randomize_image?
-    return Company.find(company_id).randomize_image
-  end
-
-  def randomize_img_url_from_db(s3)
-    image_name = StackOfImage.random_image(self) || 'missing.jpg'
-    object = s3.buckets['workships'].objects[image_name]
-    img_url = object.url_for(:get, secure: true, expires: 24.hour).to_s
-    return img_url
   end
 
   def self.build_from_hash(attrs)
