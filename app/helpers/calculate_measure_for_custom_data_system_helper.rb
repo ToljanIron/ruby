@@ -64,16 +64,16 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_avg_hours_per_employee(cid, gids, sid)
-    root_group_id = Group.get_root_group(cid, sid)
     groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
     ret = CdsMetricScore
             .select(:score)
             .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
             .joins('JOIN groups AS g ON g.id = emp.group_id')
-            .where(group_id: root_group_id, snapshot_id: sid, algorithm_id: EMAILS_VOLUME)
+            .where(snapshot_id: sid, algorithm_id: EMAILS_VOLUME)
             .where(groups_condition)
             .average(:score)
-    return ret.round(1)
+            .round(1)
+    return ret
   end
 
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
@@ -87,7 +87,7 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
-    currtopgids = calculate_group_top_scores(cid, currsid, currgids, aids)
+    currtopgids = calculate_group_top_scores(cid, currsid, currgids, [EMAILS_VOLUME])
     prevtopgids = prevsid.nil? ? nil : Group.find_groups_in_snapshot(currtopgids, prevsid)
 
     curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
@@ -113,7 +113,9 @@ module CalculateMeasureForCustomDataSystemHelper
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
         curScore: e['cursum'].to_f,
-        prevScore: e['prevsum'].to_f
+        curNum: e['curnum'].to_i,
+        prevScore: e['prevsum'].to_f,
+        prevNum: e['prevnum'].to_i
       }
     end
     return res
@@ -127,7 +129,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart, aids)
     sqlstr = "
-      SELECT sum(cds.score), cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name, emps.office_id, off.name AS office_name
+      SELECT sum(cds.score) AS sum, count(cds.score) AS num, cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name, emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
       JOIN groups AS g ON g.id = cds.group_id
       JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
@@ -144,6 +146,9 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
+    puts '###############################'
+    puts sqlstr
+    puts '###############################'
     return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
   end
 
@@ -156,9 +161,10 @@ module CalculateMeasureForCustomDataSystemHelper
     curscores.each do |s|
       key = s
       cursum = key.delete('sum')
+      curnum = key.delete('num')
       gid = key.delete('group_id')          # Remove group_id and group_name from the key because they
       group_name = key.delete('group_name') # change every snapshot.
-      res_hash[key] = [cursum, gid, group_name]
+      res_hash[key] = [cursum, gid, group_name, curnum]
     end
 
     res_arr = []
@@ -166,12 +172,15 @@ module CalculateMeasureForCustomDataSystemHelper
       key = s
       entry = s.dup
       prevsum = key.delete('sum')
+      prevnum = key.delete('num')
       key.delete('group_id')     # Remove group_id and group_name from the key because they
       key.delete('group_name')   # change every snapshot.
       entry['gid'] = res_hash[key][1]
       entry['group_name'] = res_hash[key][2]
-      entry['cursum'] = res_hash[key][0].to_i
-      entry['prevsum'] = prevsum.to_i
+      entry['cursum'] = res_hash[key][0].to_f.round(2)
+      entry['curnum'] = res_hash[key][3].to_i
+      entry['prevsum'] = prevsum.to_f.round(2)
+      entry['prevnum'] = prevnum.to_i
       res_arr << entry
     end
 

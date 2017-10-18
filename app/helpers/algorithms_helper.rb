@@ -1089,14 +1089,14 @@ module AlgorithmsHelper
   #################################################################################
   def self.density_of_network(sid, gid, pid, nid)
     cid = find_company_by_snapshot(sid)
-    
+
     n = get_all_emps(cid, pid, gid).count
     group_id = (gid == -1 ? pid : gid)
     return [{ group_id: group_id, measure: 0.0 }] if n <= 3
 
     s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, nid, gid, pid)
     s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid)
-    
+
     if(s_max_email_traffic.nil?)
       network_density = 0
     else
@@ -1107,16 +1107,15 @@ module AlgorithmsHelper
   end
 
   def self.network_traffic_standard_err(sid, gid, pid, nid)
-    cid = find_company_by_snapshot(sid)
     group_id = (gid == -1 ? pid : gid)
 
     traffic = calc_emails_volume(sid, gid, pid)
-    
+
     arr = traffic.map {|t| t[:measure]}
 
     if(arr.count === 1)
       strd_err = 0
-    else  
+    else
       strd_err = array_sd(arr)
     end
 
@@ -1528,7 +1527,6 @@ module AlgorithmsHelper
     return NMatrix.ones([dim, 1], dtype: :float32)
   end
 
-
   def calc_degree_for_all_matrix(snapshot_id, direction, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
     if direction == EMAILS_IN
       to_degree  = calc_indegree_for_to_matrix(snapshot_id, target_groups, group_id, pin_id)
@@ -1589,6 +1587,7 @@ module AlgorithmsHelper
     where_part = get_where_part_for_specified_matrix(direction, target_groups, inner_select)
     
     current_snapshot_nodes = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid)
+    
     if matrix_name === BCC_MATRIX
       current_snapshot_nodes = current_snapshot_nodes.where(to_type: matrix_name)
         .where(where_part).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction).order(direction)
