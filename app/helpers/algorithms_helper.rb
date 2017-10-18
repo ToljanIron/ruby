@@ -1084,14 +1084,14 @@ module AlgorithmsHelper
   #################################################################################
   def self.density_of_network(sid, gid, pid, nid)
     cid = find_company_by_snapshot(sid)
-    
+
     n = get_all_emps(cid, pid, gid).count
     group_id = (gid == -1 ? pid : gid)
     return [{ group_id: group_id, measure: 0.0 }] if n <= 3
 
     s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, nid, gid, pid)
     s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid)
-    
+
     if(s_max_email_traffic.nil?)
       network_density = 0
     else
@@ -1102,16 +1102,15 @@ module AlgorithmsHelper
   end
 
   def self.network_traffic_standard_err(sid, gid, pid, nid)
-    cid = find_company_by_snapshot(sid)
     group_id = (gid == -1 ? pid : gid)
 
     traffic = calc_emails_volume(sid, gid, pid)
-    
+
     arr = traffic.map {|t| t[:measure]}
 
     if(arr.count === 1)
       strd_err = 0
-    else  
+    else
       strd_err = array_sd(arr)
     end
 
@@ -1517,8 +1516,6 @@ module AlgorithmsHelper
 
 
   def calc_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
-    res = []
-    emp_list = []
     if direction == EMAILS_IN
       to_degree = calc_indegree_for_to_matrix(snapshot_id, group_id, pin_id)
       cc_degree = calc_indegree_for_cc_matrix(snapshot_id, group_id, pin_id)
@@ -1588,12 +1585,9 @@ module AlgorithmsHelper
     if matrix_name == 4
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
       inner_select).select("#{direction} as id, count(id) as total_sum").group(direction)
-    elsif matrix_name == 3
-      current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
-      inner_select, to_type: matrix_name).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction)
     else
       current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
-      inner_select, to_type: matrix_name).select("#{direction} as id, count(id) as total_sum").group(direction)
+      inner_select, to_type: matrix_name).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction)
     end
 
     current_snapshot_nodes.each do |emp|

@@ -5,6 +5,14 @@ class NetworkSnapshotData < ActiveRecord::Base
   belongs_to :employee
   belongs_to :questionnaire_question
 
+  FROM_TYPE_INIT    = 1
+  FROM_TYPE_REPLY   = 2
+  FROM_TYPE_FORWARD = 3
+
+  TO_TYPE_TO  = 1
+  TO_TYPE_CC  = 2
+  TO_TYPE_BCC = 3
+
   def original_snapshot
     return Snapshot.find_by(id: original_snapshot_id)
   end
