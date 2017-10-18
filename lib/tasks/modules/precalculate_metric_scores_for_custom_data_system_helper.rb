@@ -418,9 +418,21 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
           if obj[:measure].nil? && Algorithm.ifGauge(algorithm_id)
             score = nil
           else
-            score = (obj[:measure] || 1.00).to_f
+            begin
+              score = obj[:measure].to_f
+            rescue => e
+              puts 'ERROR: Measure field is null or undefined'
+              message = e.message[0...1000]
+              puts message
+              puts e.backtrace.join("\n")
+              raise "Error. Stopping..."
+            end
+            numerator = (obj[:numerator].to_f || nil)
+            denominator = (obj[:denominator ].to_f || nil)
+            param1 = (obj[:param1].to_f || nil)
+            param2 = (obj[:param2].to_f || nil)
           end
-          [cid, obj[:id].to_i, pid, lgid, sid, company_metric_row.id, score, algorithm_id, obj[:group_id]].each do |v|
+          [cid, obj[:id].to_i, pid, lgid, sid, company_metric_row.id, score, numerator, denominator, param1, param2, algorithm_id, obj[:group_id]].each do |v|
             row.push(v || 'null')
           end
           values.push row
@@ -433,7 +445,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         foffset = i * 1000
         toffset = (i == entries_count/1000 ? entries_count : ((i + 1) * 1000) - 1)
         puts "insert to cds_metric_scores, index: #{foffset}, entries_count: #{entries_count}"
-        columns = %w(company_id employee_id pin_id group_id snapshot_id company_metric_id score algorithm_id subgroup_id)
+        columns = %w(company_id employee_id pin_id group_id snapshot_id company_metric_id score numerator denominator param1 param2 algorithm_id subgroup_id)
 
         vals = values[foffset..toffset]
         query = "INSERT INTO cds_metric_scores (#{columns.join(', ')}) VALUES #{vals.map { |r| '(' + r.join(',') + ')' }.join(', ')}"

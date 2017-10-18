@@ -23,9 +23,11 @@ describe AlgorithmsHelper, type: :helper do
   end
   
   before(:each) do
-    cid = 1
+    @cid = 1
     gid = 3
-    @s = FactoryGirl.create(:snapshot, name: 's3', company_id: cid)
+
+    @s = FactoryGirl.create(:snapshot, name: 's3', company_id: @cid)
+    FactoryGirl.create(:group, id: gid, company_id: @cid, snapshot_id: @s.id)
     
     em1 = 'p11@email.com'
     em2 = 'p22@email.com'
@@ -41,7 +43,7 @@ describe AlgorithmsHelper, type: :helper do
     @e5 = FactoryGirl.create(:employee, email: em5, group_id: gid)
     @e6 = FactoryGirl.create(:employee, email: em6, group_id: gid)
 
-    @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: cid)
+    @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: @cid)
   end
 
   describe 'TO field' do
@@ -369,6 +371,126 @@ describe AlgorithmsHelper, type: :helper do
       undefined_emp = @e6.id
       undefined_measure = @res.select{ |r| r[:id] == undefined_emp }[0]
       expect(undefined_measure[:measure]).to eq(-1)
+    end
+  end
+
+  describe 'Algorithm name: external receivers | received from outside group / total received | type: relative measure' do
+    before(:each) do
+      gid2 = 4
+      em11 = 'p111@email.com'
+      em12 = 'p112@email.com'
+      em13 = 'p113@email.com'
+      
+      FactoryGirl.create(:group, id: gid2, company_id: @cid, snapshot_id: @s.id)
+
+      @eid11 = FactoryGirl.create(:employee, email: em11, group_id: gid2).id
+      @eid12 = FactoryGirl.create(:employee, email: em12, group_id: gid2).id
+      @eid13 = FactoryGirl.create(:employee, email: em13, group_id: gid2).id
+
+      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e4.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e2.id, @e1.id, REPLY, TO_TYPE, @s.id, @cid, @n1.id)
+
+      create_email_connection(@e1.id, @e5.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @e5.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, CC_TYPE, @s.id, @cid, @n1.id)
+
+      # Create connections for employees between groups
+      create_email_connection(@e1.id, @eid11, REPLY, CC_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e1.id, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e2.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e4.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+
+      create_email_connection(@eid11, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid12, @e4.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      
+      # Internal connections for gid2
+      create_email_connection(@eid11, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid13, @eid11, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid12, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+
+      @res = calc_external_receivers(@s.id, gid2)
+      @res.each {|m| puts "#{m}\n"}
+    end
+
+    it 'should test higher external receiver' do
+      higher_emp = @eid13
+      lower_emp = @eid11
+      higher_measure = @res.select{ |r| r[:id] == higher_emp }[0]
+      lower_measure = @res.select{ |r| r[:id] == lower_emp }[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
+    end
+
+    it 'should return correct measure' do
+      score = @res.select{ |r| r[:id] == @eid13 }[0]
+      expect(score[:measure] - 0.8).to be < 0.01
+    end
+  end
+
+  describe 'Algorithm name: external senders | sent to outside group / total sent | type: relative measure' do
+    before(:each) do
+      gid2 = 4
+      em11 = 'p111@email.com'
+      em12 = 'p112@email.com'
+      em13 = 'p113@email.com'
+      
+      FactoryGirl.create(:group, id: gid2, company_id: @cid, snapshot_id: @s.id)
+
+      @eid11 = FactoryGirl.create(:employee, email: em11, group_id: gid2).id
+      @eid12 = FactoryGirl.create(:employee, email: em12, group_id: gid2).id
+      @eid13 = FactoryGirl.create(:employee, email: em13, group_id: gid2).id
+
+      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e4.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e2.id, @e1.id, REPLY, TO_TYPE, @s.id, @cid, @n1.id)
+
+      create_email_connection(@e1.id, @e5.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @e5.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @e1.id, REPLY, CC_TYPE, @s.id, @cid, @n1.id)
+
+      # Create connections for employees between groups
+      create_email_connection(@e1.id, @eid11, REPLY, CC_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e1.id, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e2.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e3.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e4.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@e5.id, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+
+      create_email_connection(@eid11, @e2.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid12, @e4.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      
+      # Internal connections for gid2
+      create_email_connection(@eid11, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid13, @eid11, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+      create_email_connection(@eid12, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
+
+      @res = calc_external_senders(@s.id, gid2)
+      @res.each {|m| puts "#{m}\n"}
+    end
+
+    it 'should test higher external sender' do
+      higher_emp = @eid11
+      lower_emp = @eid12
+      higher_measure = @res.select{ |r| r[:id] == higher_emp }[0]
+      lower_measure = @res.select{ |r| r[:id] == lower_emp }[0]
+      expect(higher_measure[:measure]).to be > lower_measure[:measure]
+    end
+
+    it 'should return correct measure' do
+      score = @res.select{ |r| r[:id] == @eid11 }[0]
+      expect(score[:measure] - 0.75).to be < 0.01
     end
   end
 end

@@ -20,6 +20,8 @@ Algorithm.find_or_create_by!(id: 705, name: 'undercover_measure', algorithm_type
 Algorithm.find_or_create_by!(id: 706, name: 'politicos_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 707, name: 'emails_volume_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 708, name: 'deadends_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 709, name: 'external_receivers_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 710, name: 'external_senders_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 100, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
@@ -32,8 +34,6 @@ Algorithm.find_or_create_by!(id: 159, name: 'proportion_of_managers_never_in_mee
 Algorithm.find_or_create_by!(id: 200, name: 'closeness_level_gauge', algorithm_type_id: 5)
 Algorithm.find_or_create_by!(id: 201, name: 'synergy_level_gauge', algorithm_type_id: 5)
 
-
-
 Algorithm.find_or_create_by!(id: 800, name: 'in_the_loop_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 801, name: 'rejecters_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 802, name: 'routiners_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
@@ -43,7 +43,7 @@ Algorithm.find_or_create_by!(id: 805, name: 'num_of_ppl_in_meetings_gauge', algo
 Algorithm.find_or_create_by!(id: 806, name: 'avg_time_spent_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2)
 
 ############## Communication ###############
-Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
+# Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 101, name: 'calculate_powerful_non_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 102, name: 'calculate_non_reciprocity_between_employees_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 113, name: 'calculate_non_reciprocity_between_employees_explore_to_args', algorithm_type_id: 3, algorithm_flow_id: 2)

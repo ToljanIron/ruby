@@ -33,6 +33,11 @@ module AlgorithmsHelper
   BCC_MATRIX ||= 3
   ALL_MATRIX ||= 4
 
+  # Email origin/target
+  INSIDE_GROUP ||= 1
+  OUTSIDE_GROUP ||= 2
+  ALL_COMPANY ||= 3
+
   # From type - init, fwd or reply
   INIT  ||= 1
   REPLY  ||= 2
@@ -1190,11 +1195,11 @@ module AlgorithmsHelper
   ##################### Emails #####################
 
   def spammers_measure(sid, gid, pid)
-    return calc_outdegree_for_to_matrix(sid, gid, pid)
+    return calc_outdegree_for_to_matrix(sid, INSIDE_GROUP, gid, pid)
   end
 
   def blitzed_measure(sid, gid, pid)
-    return calc_indegree_for_to_matrix(sid, gid, pid)
+    return calc_indegree_for_to_matrix(sid, INSIDE_GROUP, gid, pid)
   end
 
   def ccers_measure(sid, gid, pid)
@@ -1219,6 +1224,14 @@ module AlgorithmsHelper
 
   def deadends_measure(sid, gid, pid)
     return calc_deadends(sid, gid, pid)
+  end
+
+  def external_receivers_measure(sid, gid, pid)
+    return calc_external_receivers(sid, gid, pid)
+  end
+
+  def external_senders_measure(sid, gid, pid)
+    return calc_external_senders(sid, gid, pid)
   end
 
   def closeness_of_email_network(sid, gid, pid)
@@ -1278,19 +1291,19 @@ module AlgorithmsHelper
   ###################### Email utilities #################################################
 
   def calc_indegree_for_all_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_all_matrix(snapshot_id, EMAILS_IN, group_id, pin_id)
+    calc_degree_for_all_matrix(snapshot_id, EMAILS_IN, INSIDE_GROUP, group_id, pin_id)
   end
 
   def calc_indegree_for_all_matrix_in_relation_to_company(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_all_matrix(snapshot_id, EMAILS_IN, group_id, pin_id)
+    calc_degree_for_all_matrix(snapshot_id, EMAILS_IN, INSIDE_GROUP, group_id, pin_id)
   end
 
   def calc_outdegree_for_all_matrix_in_relation_to_company(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
+    calc_degree_for_all_matrix(snapshot_id, EMAILS_OUT, INSIDE_GROUP, group_id, pin_id)
   end
 
   def calc_outdegree_for_all_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
+    calc_degree_for_all_matrix(snapshot_id, EMAILS_OUT, INSIDE_GROUP, group_id, pin_id)
   end
 
   def calc_max_outdegree_for_all_matrix(snapshot_id)
@@ -1320,28 +1333,28 @@ module AlgorithmsHelper
     calc_normalized_degree_for_all_matrix(snapshot_id, EMAILS_OUT, group_id, pin_id)
   end
 
-  def calc_indegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, group_id, pin_id)
+  def calc_indegree_for_to_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_degree_for_specified_matrix(snapshot_id, TO_MATRIX, EMAILS_IN, target_groups, group_id, pin_id)
   end
 
-  def calc_indegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_specified_matrix(snapshot_id, CC_MATRIX, EMAILS_IN, group_id, pin_id)
+  def calc_indegree_for_cc_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_degree_for_specified_matrix(snapshot_id, CC_MATRIX, EMAILS_IN, target_groups, group_id, pin_id)
   end
 
-  def calc_indegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_IN, group_id, pin_id)
+  def calc_indegree_for_bcc_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_degree_for_specified_matrix(snapshot_id, BCC_MATRIX, EMAILS_IN, target_groups, group_id, pin_id)
   end
 
-  def calc_outdegree_for_to_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, group_id, pin_id)
+  def calc_outdegree_for_to_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_outdeg_for_specified_matrix(snapshot_id, TO_MATRIX, target_groups, group_id, pin_id)
   end
 
-  def calc_outdegree_for_cc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, group_id, pin_id)
+  def calc_outdegree_for_cc_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_outdeg_for_specified_matrix(snapshot_id, CC_MATRIX, target_groups, group_id, pin_id)
   end
 
-  def calc_outdegree_for_bcc_matrix(snapshot_id, group_id = NO_GROUP, pin_id = NO_PIN)
-    calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, group_id, pin_id)
+  def calc_outdegree_for_bcc_matrix(snapshot_id, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    calc_outdeg_for_specified_matrix(snapshot_id, BCC_MATRIX, target_groups, group_id, pin_id)
   end
 
   def calc_avgout_degree_for_to_matrix(snapshot_id)
@@ -1514,27 +1527,18 @@ module AlgorithmsHelper
     return NMatrix.ones([dim, 1], dtype: :float32)
   end
 
-
-  def calc_degree_for_all_matrix(snapshot_id, direction, group_id = NO_GROUP, pin_id = NO_PIN)
+  def calc_degree_for_all_matrix(snapshot_id, direction, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
     if direction == EMAILS_IN
-      to_degree = calc_indegree_for_to_matrix(snapshot_id, group_id, pin_id)
-      cc_degree = calc_indegree_for_cc_matrix(snapshot_id, group_id, pin_id)
-      bcc_degree = calc_indegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
+      to_degree  = calc_indegree_for_to_matrix(snapshot_id, target_groups, group_id, pin_id)
+      cc_degree  = calc_indegree_for_cc_matrix(snapshot_id, target_groups, group_id, pin_id)
+      bcc_degree = calc_indegree_for_bcc_matrix(snapshot_id, target_groups, group_id, pin_id)
     else
-      to_degree = calc_outdegree_for_to_matrix(snapshot_id, group_id, pin_id)
-      cc_degree = calc_outdegree_for_cc_matrix(snapshot_id, group_id, pin_id)
-      bcc_degree = calc_outdegree_for_bcc_matrix(snapshot_id, group_id, pin_id)
+      to_degree  = calc_outdegree_for_to_matrix(snapshot_id, target_groups, group_id, pin_id)
+      cc_degree  = calc_outdegree_for_cc_matrix(snapshot_id, target_groups, group_id, pin_id)
+      bcc_degree = calc_outdegree_for_bcc_matrix(snapshot_id, target_groups, group_id, pin_id)
     end
-
     union = to_degree + cc_degree + bcc_degree
 
-    # 22.6.17 - replaced with method sum_and_minimize_array_of_hashes_by_key - Michael K.
-    # union.each do |entry|
-    #   res[entry[:id]] = 0 if res[entry[:id]].nil?
-    #   res[entry[:id]] += entry[:measure]
-    # end
-    # res.each_with_index { |entry, index| emp_list << { id: index, measure: entry } unless entry.nil? }
-    # emp_list
     return sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
   end
 
@@ -1574,27 +1578,47 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_degree_for_specified_matrix(sid, matrix_name, direction, gid = NO_GROUP, pid = NO_PIN)
+  def calc_degree_for_specified_matrix(sid, matrix_name, direction, target_groups, gid = NO_GROUP, pid = NO_PIN)
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
     res = []
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
+    where_part = get_where_part_for_specified_matrix(direction, target_groups, inner_select)
+    
     current_snapshot_nodes = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid)
-
-    if matrix_name == 4
-      current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
-      inner_select).select("#{direction} as id, count(id) as total_sum").group(direction)
+    
+    if matrix_name === BCC_MATRIX
+      current_snapshot_nodes = current_snapshot_nodes.where(to_type: matrix_name)
+        .where(where_part).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction).order(direction)
     else
-      current_snapshot_nodes = current_snapshot_nodes.where(to_employee_id: inner_select, from_employee_id:
-      inner_select, to_type: matrix_name).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction)
+      current_snapshot_nodes = current_snapshot_nodes.where(to_type: matrix_name)
+      .where(where_part).select("#{direction} as id, count(id) as total_sum").group(direction).order(direction)
     end
 
     current_snapshot_nodes.each do |emp|
       res << { id: emp.id, measure: emp.total_sum }
     end
-
     return result_zero_padding(inner_select, res)
+  end
+
+  def get_where_part_for_specified_matrix(direction, target_groups, inner_select)
+    # Default is only inside group
+    where_part = "from_employee_id IN (#{inner_select.join(',')}) AND to_employee_id IN (#{inner_select.join(',')})"
+    if(direction === EMAILS_OUT)
+      if(target_groups === OUTSIDE_GROUP)
+        where_part = "from_employee_id IN (#{inner_select.join(',')}) AND to_employee_id NOT IN (#{inner_select.join(',')})"
+      elsif(target_groups === ALL_COMPANY)
+        where_part = "from_employee_id IN (#{inner_select.join(',')})"
+      end
+    else
+      if(target_groups === OUTSIDE_GROUP)
+        where_part = "to_employee_id IN (#{inner_select.join(',')}) AND from_employee_id NOT IN (#{inner_select.join(',')})"
+      elsif(target_groups === ALL_COMPANY)
+        where_part = "to_employee_id IN (#{inner_select.join(',')})"
+      end
+    end
+    return where_part
   end
 
   ############################ ALL MATRIX IMPLEMENTATION #########################################
@@ -1603,8 +1627,8 @@ module AlgorithmsHelper
     return calc_degree_for_specified_matrix_with_relation_to_company(snapshot_id, matrix_name, EMAILS_IN, group_id, pin_id)
   end
 
-  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
-    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, group_id, pin_id)
+  def calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
+    return calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_OUT, target_groups, group_id, pin_id)
   end
 
   def calc_outdeg_for_specified_matrix_relation_to_company(snapshot_id, matrix_name, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1612,7 +1636,7 @@ module AlgorithmsHelper
   end
 
   def calc_normalized_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id = NO_GROUP, pin_id = NO_PIN)
-    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, group_id, pin_id)
+    res = calc_degree_for_specified_matrix(snapshot_id, matrix_name, direction, INSIDE_GROUP, group_id, pin_id)
     maximum = calc_max_degree_for_specified_matrix(snapshot_id, matrix_name, direction)
     return res if maximum == 0
     return -1 if maximum.nil?
@@ -1633,7 +1657,7 @@ module AlgorithmsHelper
     if (direction == EMAILS_IN)
       result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
     else
-      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+      result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, INSIDE_GROUP, -1, -1)
     end
 
     comp1 = find_company_by_snapshot(snapshot_id)
@@ -1668,7 +1692,7 @@ module AlgorithmsHelper
   end
 
   def calc_max_outdegree_for_specified_matrix(snapshot_id, matrix_name)
-    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
+    result_vector = calc_outdeg_for_specified_matrix(snapshot_id, matrix_name, INSIDE_GROUP, -1, -1)
     calc_max_vector(result_vector)
   end
 
@@ -1687,8 +1711,8 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
-    total_cc_outdegree = calc_outdegree_for_cc_matrix(sid, gid, pid)
-    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    total_cc_outdegree = calc_outdegree_for_cc_matrix(sid, INSIDE_GROUP, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, INSIDE_GROUP, gid, pid)
     res = calc_relative_measure_by_key(total_cc_outdegree, total_outdegree, 'id', 'measure')
     return result_zero_padding(inner_select, res)
   end
@@ -1698,8 +1722,8 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
-    total_cc_indegree = calc_indegree_for_cc_matrix(sid, gid, pid)
-    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+    total_cc_indegree = calc_indegree_for_cc_matrix(sid, INSIDE_GROUP, gid, pid)
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, INSIDE_GROUP, gid, pid)
 
     res = calc_relative_measure_by_key(total_cc_indegree, total_indegree, 'id', 'measure')
     return result_zero_padding(inner_select, res)
@@ -1710,8 +1734,8 @@ module AlgorithmsHelper
 
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
-    total_bcc_outdegree = calc_outdegree_for_bcc_matrix(sid, gid, pid)
-    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    total_bcc_outdegree = calc_outdegree_for_bcc_matrix(sid, INSIDE_GROUP, gid, pid)
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, INSIDE_GROUP, gid, pid)
 
     res = calc_relative_measure_by_key(total_bcc_outdegree, total_outdegree, 'id', 'measure')
     return result_zero_padding(inner_select, res)
@@ -1722,9 +1746,9 @@ module AlgorithmsHelper
     cid = find_company_by_snapshot(sid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
-    total_bcc_indegree = calc_indegree_for_bcc_matrix(sid, gid, pid)
+    total_bcc_indegree = calc_indegree_for_bcc_matrix(sid, INSIDE_GROUP, gid, pid)
 
-    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, INSIDE_GROUP, gid, pid)
 
     res = calc_relative_measure_by_key(total_bcc_indegree, total_indegree, 'id', 'measure')
     return result_zero_padding(inner_select, res)
@@ -1736,7 +1760,7 @@ module AlgorithmsHelper
     nid = NetworkSnapshotData.emails(cid)
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
-    total_to_measure = calc_outdegree_for_to_matrix(sid, gid, pid)
+    total_to_measure = calc_outdegree_for_to_matrix(sid, INSIDE_GROUP, gid, pid)
 
     fwded_emails =
       NetworkSnapshotData.where(snapshot_id: sid,
@@ -1756,8 +1780,8 @@ module AlgorithmsHelper
 
   def calc_emails_volume(sid, gid = NO_GROUP, pid = NO_PIN)
     res = []
-    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
-    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, gid, pid)
+    in_result = calc_degree_for_all_matrix(sid, EMAILS_IN, INSIDE_GROUP, gid, pid)
+    out_result = calc_degree_for_all_matrix(sid, EMAILS_OUT, INSIDE_GROUP, gid, pid)
     union = in_result + out_result
 
     temp = sum_and_minimize_array_of_hashes_by_key(union, 'id', 'measure')
@@ -1774,23 +1798,23 @@ module AlgorithmsHelper
     emps = get_inner_select_as_arr(cid, pid, gid)
     sqlstr =
       "SELECT emps.id AS empid, fromemps.fromempcount, toemps.toempcount
-      FROM employees AS emps
-      LEFT JOIN (SELECT tonsd.to_employee_id AS toempid, count(*) AS toempcount
-            FROM network_snapshot_data AS tonsd
-            WHERE
-            network_id = #{nid} AND
-            snapshot_id = #{sid}
-            GROUP BY tonsd.to_employee_id) AS toemps ON toemps.toempid = emps.id
-      LEFT JOIN (SELECT fromnsd.from_employee_id AS fromempid, count(*) AS fromempcount
-            FROM network_snapshot_data AS fromnsd
-            WHERE
-            network_id = #{nid} AND
-            snapshot_id = #{sid} AND
-            from_type = #{REPLY}
-            GROUP BY fromnsd.from_employee_id) AS fromemps ON fromemps.fromempid = emps.id
-      WHERE emps.id in (#{emps.join(',')}) AND
-            emps.snapshot_id = #{sid}
-      ORDER BY emps.id"
+        FROM employees AS emps
+        LEFT JOIN (SELECT tonsd.to_employee_id AS toempid, count(*) AS toempcount
+              FROM network_snapshot_data AS tonsd
+              WHERE
+              network_id = #{nid} AND
+              snapshot_id = #{sid}
+              GROUP BY tonsd.to_employee_id) AS toemps ON toemps.toempid = emps.id
+        LEFT JOIN (SELECT fromnsd.from_employee_id AS fromempid, count(*) AS fromempcount
+              FROM network_snapshot_data AS fromnsd
+              WHERE
+              network_id = #{nid} AND
+              snapshot_id = #{sid} AND
+              from_type = #{REPLY}
+              GROUP BY fromnsd.from_employee_id) AS fromemps ON fromemps.fromempid = emps.id
+        WHERE emps.id in (#{emps.join(',')}) AND
+              emps.snapshot_id = #{sid}
+        ORDER BY emps.id"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     ratios = []
@@ -1846,17 +1870,99 @@ module AlgorithmsHelper
     return res
   end
 
+  def calc_external_receivers(sid, gid = NO_GROUP, pid = NO_PIN)
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, ALL_COMPANY, gid, pid)
+
+    received_from_outside_my_group = NetworkSnapshotData.select('nsd.to_employee_id AS id, count(*) AS measure')
+              .group('nsd.to_employee_id')
+              .order('nsd.to_employee_id')
+              .from('network_snapshot_data AS nsd')
+              .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
+              .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
+              .where("emps_from.group_id <> emps_to.group_id")
+              .where.not(nsd: {from_employee_id: employee_ids})
+              .where(nsd: {to_employee_id: employee_ids})
+              .where(nsd: {snapshot_id: sid, company_id: cid})
+              .map(&:attributes)
+    
+    received_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(received_from_outside_my_group))
+    
+    # Divide (received from outside/total received)
+    relative_measures = calc_relative_measure_by_key(received_from_outside_my_group, total_indegree, 'id', 'measure')
+    
+    # Sort all data by id
+    received_from_outside_my_group = received_from_outside_my_group.sort_by { |r| r[:id] }
+    total_indegree = total_indegree.sort_by { |t| t[:id] }
+    relative_measures = relative_measures.sort_by { |r| r[:id] }
+
+    relative_measures.each_with_index do |r, i|
+      res << {
+        id: r[:id],
+        measure: r[:measure],
+        numerator: received_from_outside_my_group[i][:measure],
+        denominator: total_indegree[i][:measure]
+      }
+    end
+    return res
+  end
+
+  def calc_external_senders(sid, gid = NO_GROUP, pid = NO_PIN)
+    res = []
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+
+    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, ALL_COMPANY, gid, pid)
+    
+    sent_from_outside_my_group = NetworkSnapshotData.select('nsd.from_employee_id AS id, count(*) AS measure')
+              .group('nsd.from_employee_id')
+              .order('nsd.from_employee_id')
+              .from('network_snapshot_data AS nsd')
+              .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
+              .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
+              .where("emps_from.group_id <> emps_to.group_id")
+              .where.not(nsd: {to_employee_id: employee_ids})
+              .where(nsd: {from_employee_id: employee_ids})
+              .where(emps_from: {group_id: gid})
+              .where(nsd: {snapshot_id: sid, company_id: cid})
+              .map(&:attributes)
+    sent_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(sent_from_outside_my_group))
+    
+    # Divide (sent to outside/total sent)
+    relative_measures = calc_relative_measure_by_key(sent_from_outside_my_group, total_outdegree, 'id', 'measure')
+
+    # Sort all data by id
+    sent_from_outside_my_group = sent_from_outside_my_group.sort_by { |r| r[:id] }
+    total_outdegree = total_outdegree.sort_by { |t| t[:id] }
+    relative_measures = relative_measures.sort_by { |r| r[:id] }
+
+    relative_measures.each_with_index do |r, i|
+      res << {
+        id: r[:id],
+        measure: r[:measure],
+        numerator: sent_from_outside_my_group[i][:measure],
+        denominator: total_outdegree[i][:measure]
+      }
+    end
+    return res
+  end
+
   def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)
     res = []
     cid = find_company_by_snapshot(sid)
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
-    sqlstr = "SELECT meeting_attendees.employee_id as id, COUNT(employee_id) as measure
+    sqlstr = "SELECT meeting_attendees.employee_id AS id, COUNT(employee_id) AS measure
               FROM meetings_snapshot_data
               JOIN meeting_attendees ON
-              meetings_snapshot_data.id = meeting_attendees.meeting_id
+                meetings_snapshot_data.id = meeting_attendees.meeting_id
               WHERE meeting_attendees.employee_id IN (#{employee_ids.join(',')}) AND
-              snapshot_id = #{sid}
+                snapshot_id = #{sid}
               GROUP BY employee_id"
 
     count_of_invited = ActiveRecord::Base.connection.exec_query(sqlstr)
@@ -1935,7 +2041,7 @@ module AlgorithmsHelper
   def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
 
     count_of_invited = calc_in_the_loop(sid, gid, pid)
-    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, gid, pid)
+    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, INSIDE_GROUP, gid, pid)
 
     res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
     return res
@@ -1995,7 +2101,7 @@ module AlgorithmsHelper
 
   def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
     # result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
-    result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, -1, -1)
+    result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, INSIDE_GROUP, -1, -1)
     calc_max_vector(result_vector)
   end
 
@@ -2048,7 +2154,7 @@ module AlgorithmsHelper
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]
   #
   # Notice the addition for the 1st and 3rd hash was: 2+3, and the addition for
-  # the 2nd and 4th was 10+8. They were added like that, because the
+  # the 2nd and 4th was 10+8.
   ##################################################################################
   def sum_and_minimize_array_of_hashes_by_key(array, key, value)
     temp = []
@@ -2141,3 +2247,5 @@ end
 def find_company_by_snapshot(snapshot_id)
   Snapshot.where(id: snapshot_id).first.company_id
 end
+
+

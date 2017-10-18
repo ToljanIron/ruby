@@ -530,15 +530,31 @@ class MeasuresController < ApplicationController
   def get_dynamics_scores
     authorize :measure, :index?
 
-    permitted = params.permit(:interval_type, :sids, :gids, :segment_type)
+    permitted = params.permit(:interval_type, :sids, :gids, :aggregator_type)
 
     cid = current_user.company_id
     interval_type = params[:interval_type].to_i
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
-    segment_type = permitted[:segment_type] # Aggregator from client. Use in the future - department/office
+    aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
+    
+    res = get_dynamics_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
 
-    res = get_dynamics_scores_from_helper(interval_type, gids, cid, sids)
+    render json: Oj.dump(res), status: 200
+  end
+
+  def get_interfaces_scores
+    authorize :measure, :index?
+
+    permitted = params.permit(:interval_type, :sids, :gids, :aggregator_type)
+
+    cid = current_user.company_id
+    interval_type = params[:interval_type].to_i
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
+
+    res = get_interfaces_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
 
     render json: Oj.dump(res), status: 200
   end

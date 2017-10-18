@@ -20,6 +20,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     politicos_id             = MetricName.find_or_create_by(name: 'Politicos', company_id: cid).id
     emails_volume_id         = MetricName.find_or_create_by(name: 'Emails Volume', company_id: cid).id
     deadends_id              = MetricName.find_or_create_by(name: 'Deadends', company_id: cid).id
+    received_external_volume_id  = MetricName.find_or_create_by(name: 'External Receivers', company_id: cid).id
+    sent_external_volume_id      = MetricName.find_or_create_by(name: 'External Senders', company_id: cid).id
 
     in_the_loop_id           = MetricName.find_or_create_by(name: 'In the loop', company_id: cid).id
     rejecters_id             = MetricName.find_or_create_by(name: 'Rejecters', company_id: cid).id
@@ -46,6 +48,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by(metric_id: politicos_id, network_id: communication_network_id, company_id: cid, algorithm_id: 706, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: emails_volume_id, network_id: communication_network_id, company_id: cid, algorithm_id: 707, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: deadends_id, network_id: communication_network_id, company_id: cid, algorithm_id: 708, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: received_external_volume_id, network_id: communication_network_id, company_id: cid, algorithm_id: 709, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by(metric_id: sent_external_volume_id, network_id: communication_network_id, company_id: cid, algorithm_id: 710, algorithm_type_id: 1)
 
     CompanyMetric.find_or_create_by(metric_id: in_the_loop_id, network_id: -1, company_id: cid, algorithm_id: 800, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by(metric_id: rejecters_id, network_id: -1, company_id: cid, algorithm_id: 801, algorithm_type_id: 1)

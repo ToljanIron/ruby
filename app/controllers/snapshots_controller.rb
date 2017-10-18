@@ -35,7 +35,7 @@ class SnapshotsController < ApplicationController
     cid = current_user.company_id
     limit = params[:limit]
 
-    res = get_relevant_snapshots(cid, limit)
+    res = get_last_snapshots_of_each_month(cid, limit)
     res = Oj.dump(res)
     
     render json: res
