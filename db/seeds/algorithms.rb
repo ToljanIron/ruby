@@ -25,7 +25,7 @@ Algorithm.find_or_create_by!(id: 710, name: 'external_senders_measure', algorith
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 100, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
-Algorithm.find_or_create_by!(id: 130, name: 'calculate_bottlenecks', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
+Algorithm.find_or_create_by!(id: 130, name: 'calculate_bottlenecks', algorithm_type_id: 1, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 157, name: 'average_no_of_attendees_gauge', algorithm_type_id: 5)
 Algorithm.find_or_create_by!(id: 158, name: 'proportion_time_spent_on_meetings_gauge', algorithm_type_id: 5)
 Algorithm.find_or_create_by!(id: 159, name: 'proportion_of_managers_never_in_meetings_gauge', algorithm_type_id: 5)
