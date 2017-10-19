@@ -48,7 +48,8 @@ namespace :db do
       begin
         if calc_all
           PrecalculateMetricScoresForCustomDataSystemHelper::iterate_over_snapshots(cid, sid) do |compid, snapid|
-            PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores(compid.to_i, snapid.to_i, true)
+            PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(compid.to_i, snapid.to_i, true)
+            PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(compid.to_i, snapid.to_i, true)
           end
         end
 

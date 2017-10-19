@@ -58,7 +58,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   def cds_calculate_scores_for_generic_networks(cid, sid, gid = -1)
     CdsMetricScore.where(snapshot_id: sid).delete_all
     puts "cid: #{cid}, sid: #{sid}, gid: #{gid}"
-    networks = NetworkName.where(company_id: cid).where(id: [9, 10])
+    networks = NetworkName.where(company_id: cid)
     fail 'No networks found' if networks.empty?
     networks.each do |n|
       puts "Working on network: #{n.name}"
@@ -68,7 +68,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       cmout = generate_company_metrics_for_network_out(cid, nid)
 
       groups = gid == -1 ? Group.by_snapshot(sid) : [Group.find(gid)]
-      fail 'No networks found' if networks.empty?
       groups.each do |g|
         puts "Working on group: #{g.name}"
         lgid = g.id
@@ -130,12 +129,11 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     )
   end
 
-  def cds_calculate_z_scores(cid, sid, rewrite = false)
-    puts "In cds_calculate_z_scores for cid: #{cid}, sid: #{sid}"
+  def cds_calculate_z_scores(cid, sid, rewrite = false, algo_type = 5)
     begin
       algorithms = CdsMetricScore.select(:algorithm_id)
                      .joins('JOIN algorithms as al ON al.id = algorithm_id JOIN algorithm_types as at ON al.algorithm_type_id = at.id')
-                     .where(company_id: cid, snapshot_id: sid).where('at.id = 5')
+                     .where(company_id: cid, snapshot_id: sid).where("at.id = #{algo_type}")
                      .distinct.pluck(:algorithm_id)
       algorithms.each do |aid|
         scores = CdsMetricScore
@@ -152,12 +150,22 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         end
       end
     rescue StandardError => e
-      Rails.logger.info "Exception: #{e.message[0..1000]}"
-      Rails.logger.info e.backtrace
+      Rails.logger.error "Exception: #{e.message[0..1000]}"
+      Rails.logger.error e.backtrace
       puts "EXCEPTION: #{e.message[0..1000]}"
       puts e.backtrace
       EventLog.log_event(event_type_name: 'ERROR', message: e.message)
     end
+  end
+
+  def cds_calculate_z_scores_for_gauges(cid, sid, rewrite = false)
+    puts "In cds_calculate_z_scores for gauges cid: #{cid}, sid: #{sid}"
+    cds_calculate_z_scores(cid, sid, rewrite, 5)
+  end
+
+  def cds_calculate_z_scores_for_measures(cid, sid, rewrite = false)
+    puts "In cds_calculate_z_scores for measures cid: #{cid}, sid: #{sid}"
+    cds_calculate_z_scores(cid, sid, rewrite, 1)
   end
 
   def find_flag_gauge_if_exists(s, cid, g, sid, hs)

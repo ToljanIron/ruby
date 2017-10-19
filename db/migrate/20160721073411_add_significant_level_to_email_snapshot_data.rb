@@ -1,9 +1,7 @@
 class AddSignificantLevelToEmailSnapshotData < ActiveRecord::Migration[4.2]
-  include EmailSnapshotDataHelper
   def up
     add_column :email_snapshot_data, :significant_level, :integer
     add_column :email_snapshot_data, :above_median, :integer
-    # EmailSnapshotDataHelper.calc_meaningfull_emails
   end
 
   def down
