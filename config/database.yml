@@ -16,13 +16,9 @@ development:
   <<: *default
   database: workships_ext
 
-test_new:
-  <<: *default
-  database: workships_test
-
 test:
   <<: *default
-  database: workships_test_old
+  database: workships_test
 
 test-sqlserver:
   mode: dblib

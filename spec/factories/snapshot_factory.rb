@@ -14,9 +14,10 @@ def snapshot_factory_create(p = nil)
   p[:name]       ||= 'snapshot-test'
   p[:company_id] ||= 1
   p[:snapshot_type] ||= 3
+  p[:timestamp] ||= Time.now
 
-  return Snapshot.create!(name: p[:name], company_id: p[:company_id]) if p[:id].nil?
+  return Snapshot.create!(name: p[:name], company_id: p[:company_id], timestamp: p[:timestamp]) if p[:id].nil?
   s = Snapshot.find_by(id: p[:id])
   return s if !s.nil?
-  return Snapshot.create!(id: p[:id], name: p[:name], company_id: p[:company_id])
+  return Snapshot.create!(id: p[:id], name: p[:name], company_id: p[:company_id], timestamp: p[:timestamp])
 end
