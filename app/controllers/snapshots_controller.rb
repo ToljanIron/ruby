@@ -31,13 +31,13 @@ class SnapshotsController < ApplicationController
 
   def get_time_picker_snapshots
     authorize :snapshot, :index?
-    
+
     cid = current_user.company_id
     limit = params[:limit]
 
     res = get_last_snapshots_of_each_month(cid, limit)
     res = Oj.dump(res)
-    
+
     render json: res
   end
 
