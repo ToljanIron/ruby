@@ -209,5 +209,6 @@ Workships::Application.routes.draw do
   get 'v3/get_dynamics_scores'               ,to: 'measures#get_dynamics_scores'
 
   # Interfaces
+  get 'v3/get_interfaces_time_picker_data'     ,to: 'measures#get_interfaces_time_picker_data'
   get 'v3/get_interfaces_scores'               ,to: 'measures#get_interfaces_scores'
 end

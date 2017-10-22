@@ -4,8 +4,9 @@ module MeasuresHelper
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
 
-  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 130 - Bottlenecks
-  DYNAMICS_AIDS = [74, 100, 101, 130]
+  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions 
+    # 130 - Bottlenecks
+  DYNAMICS_AIDS = [101, 114, 130]
   INTERFACES_AIDS = [709, 710]
 
   EMAILS_VOLUME_AID = 707
@@ -336,5 +337,4 @@ module MeasuresHelper
     return res
   end
 end
-
 

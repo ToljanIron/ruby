@@ -543,6 +543,22 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res), status: 200
   end
 
+  def get_interfaces_time_picker_data
+    authorize :measure, :index?
+
+    permitted = params.permit(:sids, :gids, :interval_type)
+    cid = current_user.company_id
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    interval_type = params[:interval_type].to_i
+    
+    # FIX ME - this controller returns the same data as dynamics - this is just for mocking 
+    # the time picker in the interfaces tab - Michael - 22.10.17
+    res = get_group_densities(cid, sids, gids, interval_type)
+
+    render json: Oj.dump(res), status: 200
+  end
+
   def get_interfaces_scores
     authorize :measure, :index?
 
