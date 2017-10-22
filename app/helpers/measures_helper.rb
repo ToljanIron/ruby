@@ -208,7 +208,13 @@ module MeasuresHelper
     end
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
-                    (SUM(numerator)/SUM(denominator)) as score, s.#{interval_str} AS period
+                s.#{interval_str} AS period,
+                CASE 
+                  when
+                  SUM(denominator) = 0 then -1000000
+                  else
+                  (SUM(numerator)/SUM(denominator))
+                  end AS score
               FROM cds_metric_scores AS cds
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               JOIN groups AS g ON g.id = cds.group_id
@@ -245,14 +251,13 @@ module MeasuresHelper
     interval_str = get_interval_type_string(interval_type)
 
     sqlstr = "SELECT off.name AS officename, algo.id AS algo_id, mn.name AS algo_name,
-              SUM(numerator) as numerator, SUM(denominator) as denominator,
-              s.#{interval_str} AS period,
-              CASE 
-                when
-                SUM(denominator) = 0 then -1000000
-                else
-                (SUM(numerator)/SUM(denominator))
-                end AS score
+                s.#{interval_str} AS period,
+                CASE 
+                  when
+                  SUM(denominator) = 0 then -1000000
+                  else
+                  (SUM(numerator)/SUM(denominator))
+                  end AS score
               FROM cds_metric_scores AS cds
               JOIN snapshots as s ON s.id = cds.snapshot_id
               JOIN employees AS emps ON cds.employee_id = emps.id
