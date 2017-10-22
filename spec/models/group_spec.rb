@@ -208,4 +208,36 @@ describe Group, type: :model do
       expect(res.length).to eq(4)
     end
   end
+
+  describe 'get_all_subgroups' do
+    before do
+      Company.create!(id: 0, name: 'comp')
+      FactoryGirl.create(:group, id: 1, name: 'g1', company_id: 1, parent_group_id:  nil)
+      FactoryGirl.create(:group, id: 2, name: 'g2', company_id: 1, parent_group_id:  1)
+      FactoryGirl.create(:group, id: 3, name: 'g3', company_id: 1, parent_group_id:  1)
+      FactoryGirl.create(:group, id: 4, name: 'g4', company_id: 1, parent_group_id:  2)
+      FactoryGirl.create(:group, id: 5, name: 'g5', company_id: 1, parent_group_id:  3)
+      FactoryGirl.create(:group, id: 6, name: 'g6', company_id: 1, parent_group_id:  3)
+      FactoryGirl.create(:group, id: 7, name: 'g7', company_id: 1, parent_group_id:  6)
+      FactoryGirl.create(:group, id: 8, name: 'g8', company_id: 1, parent_group_id:  6)
+    end
+
+    it 'should get all subgroups' do
+      gids = Group.get_all_subgroups(3).sort
+      expect(gids).to eq([3,5,6,7,8])
+    end
+
+    it 'parent group result should return son group result' do
+      parent_gids = Group.get_all_subgroups(3)
+      son_gids    = Group.get_all_subgroups(6)
+      son_gids.each do |sgid|
+        expect(parent_gids.include?(sgid)).to be_truthy
+      end
+    end
+
+    it 'should return own group only if group is leaf' do
+      groups = Group.get_all_subgroups(4)
+      expect(groups).to eq([4])
+    end
+  end
 end

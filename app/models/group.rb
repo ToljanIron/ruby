@@ -165,6 +165,16 @@ class Group < ActiveRecord::Base
     parents
   end
 
+  def self.get_all_subgroups(gid)
+    subgroups = Group.where(parent_group_id: gid).pluck(:id)
+    return [gid] if subgroups.nil?
+    ret = [gid]
+    subgroups.each do |sgid|
+      ret += Group.get_all_subgroups(sgid)
+    end
+    return ret
+  end
+
   def self.create_snapshot(cid, prev_sid, sid)
    return if Group.where(snapshot_id: sid).count > 0
    prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0

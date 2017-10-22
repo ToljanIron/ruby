@@ -29,6 +29,9 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     inviters_id              = MetricName.find_or_create_by(name: 'Inviters', company_id: cid).id
     observers_id             = MetricName.find_or_create_by(name: 'Observers', company_id: cid).id
     internal_champions_id    = MetricName.find_or_create_by(name: 'Internal Champions', company_id: cid).id
+    connectors_id            = MetricName.find_or_create_by(name: 'Connectors', company_id: cid).id
+
+    CompanyMetric.find_or_create_by(metric_id: connectors_id, network_id: communication_network_id, company_id: cid, algorithm_id: 206, algorithm_type_id: 1)
 
     CompanyMetric.find_or_create_by(metric_id: collaboration_metric_id, network_id: communication_network_id, company_id: cid, algorithm_id: 29, algorithm_type_id: 3)
     CompanyMetric.find_or_create_by(metric_id: most_bypassed_manager_id, network_id: friendship_network_id, company_id: cid, algorithm_id: 74, algorithm_type_id: 2, active: false)

@@ -5,7 +5,7 @@ Algorithm.find_or_create_by!(id: 16,  name: 'in_the_loop_to_args', algorithm_typ
 Algorithm.find_or_create_by!(id: 21,  name: 'politically_active_to_args')
 Algorithm.find_or_create_by!(id: 29,  name: 'collaboration', algorithm_type_id: 3, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 60,  name: 'collaboration', algorithm_type_id: 1, algorithm_flow_id: 1)
-Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
+Algorithm.find_or_create_by!(id: 74,  name: 'most_bypassed_managers', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 81,  name: 'centrality_to_args', algorithm_type_id: 3, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 101, name: 'calculate_powerful_non_managers_to_args', algorithm_type_id: 2, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 102, name: 'calculate_non_reciprocity_between_employees_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
@@ -45,12 +45,12 @@ Algorithm.find_or_create_by!(id: 201, name: 'synergy_level_gauge', algorithm_typ
 
 Algorithm.find_or_create_by!(id: 203, name: 'calculate_bottlenecks', algorithm_type_id: 1, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
 Algorithm.find_or_create_by!(id: 204, name: 'internal_champions', algorithm_type_id: 1, algorithm_flow_id: 2)
-Algorithm.find_or_create_by!(id: 205, name: 'calculate_information_isolate_to_args', algorithm_type_id: 2, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
+Algorithm.find_or_create_by!(id: 205, name: 'calculate_information_isolate_to_args', algorithm_type_id: 1, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD)
+Algorithm.find_or_create_by!(id: 206, name: 'calculate_connectors', algorithm_type_id: 1, algorithm_flow_id: 1)
 
 ############## Dynamics   ###############
 Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
 Algorithm.find_or_create_by!(id: 310, name: 'external_senders_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
-
 
 ############## Interact ####################
 Algorithm.find_or_create_by!(id: 601, name: 'interact_indegree',  algorithm_type_id: 8, algorithm_flow_id: 1)
