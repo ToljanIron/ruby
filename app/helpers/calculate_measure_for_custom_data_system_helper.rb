@@ -23,6 +23,8 @@ module CalculateMeasureForCustomDataSystemHelper
 
   EMAILS_VOLUME ||= 707
 
+  NA = -1000000
+
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
     return get_employees_emails_scores_by_groups_and_offices(cid, gids, sid) if (agg_method == 'group_id' || agg_method == 'office_id')
@@ -97,6 +99,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
     curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart, aids)
     prevscores = prevsid.nil? ? nil : cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
+    prevscores = prevscores.length == 0 ? nil : prevscores
 
     res = collect_cur_and_prev_results(curscores, prevscores)
     res = format_scores(res)
@@ -143,10 +146,20 @@ module CalculateMeasureForCustomDataSystemHelper
         #{office_wherepart} AND
         cds.snapshot_id = #{sid} AND
         cds.company_id = #{cid} AND
+        cds.score > #{NA} AND
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
-    return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    puts "####################################"
+    puts "working on sid: #{sid}"
+    puts sqlstr
+    puts "####################################"
+    ret.each do |r|
+      puts r
+    end
+    puts "####################################"
+    return ret
   end
 
   def collect_cur_and_prev_results(curscores, prevscores)
@@ -172,6 +185,7 @@ module CalculateMeasureForCustomDataSystemHelper
       prevnum = key.delete('num')
       key.delete('group_id')     # Remove group_id and group_name from the key because they
       key.delete('group_name')   # change every snapshot.
+      next if res_hash[key].nil?
       entry['gid'] = res_hash[key][1]
       entry['group_name'] = res_hash[key][2]
       entry['cursum'] = res_hash[key][0].to_f.round(2)

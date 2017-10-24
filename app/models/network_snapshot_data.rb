@@ -67,4 +67,29 @@ class NetworkSnapshotData < ActiveRecord::Base
             .where("emps.email like '%#{from_email_filter}%'").limit(100)
     return ret
   end
+
+  def self.copy_snapshot(fsid, tsid)
+
+    ## Copy entire emails snapshot
+    sqlstr = "INSERT INTO network_snapshot_data (snapshot_id, network_id,company_id, from_employee_id, to_employee_id, value,multiplicity, from_type, to_type)
+              SELECT #{tsid}, network_id,company_id, from_employee_id, to_employee_id, value,multiplicity, from_type, to_type
+              FROM network_snapshot_data
+              WHERE snapshot_id = #{fsid}"
+    ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    ## Fix employee IDs
+    emp_ids_map = Employee.create_id_map(fsid, tsid)
+    scores = NetworkSnapshotData.where(snapshot_id: tsid)
+    ii = 0
+    scores.each do |s|
+      feid = s.from_employee_id
+      new_feid = emp_ids_map[feid]
+      teid = s.to_employee_id
+      new_teid = emp_ids_map[teid]
+      s.update(from_employee_id: new_feid, to_employee_id: new_teid)
+      puts "working on record: #{ii}" if ((ii % 200) == 0)
+      ii += 1
+    end
+
+  end
 end

@@ -140,6 +140,8 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
                    .select(:id, :group_id, :score, :z_score)
                    .where(company_id: cid, snapshot_id: sid, algorithm_id: aid)
                    .where('score > -1000000')
+        puts "Working on: cid: #{cid}, sid: #{sid}, aid: #{aid}"
+        next if scores.length == 0
         mean = array_mean(scores.pluck(:score))
         sd   = array_sd(scores.pluck(:score))
         scores.each do |s|

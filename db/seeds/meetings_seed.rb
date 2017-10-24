@@ -1,13 +1,14 @@
 require 'faker'
 
   companyid = 11
-  Meeting.delete_all
+  sid=94
+  MeetingsSnapshotData.delete_all
   MeetingAttendee.delete_all
   MeetingRoom.delete_all
 
-empnum = Employee.where(company_id: companyid).count
-emparr = Employee.where(company_id: companyid).sample(empnum*0.75)
-recent_snapshot = Snapshot.where(company_id: companyid, snapshot_type: nil, status: Snapshot::STATUS_ACTIVE).order(id: :asc).last
+empnum = Employee.where(snapshot_id: sid).count
+emparr = Employee.where(snapshot_id: sid).sample(empnum*0.75)
+recent_snapshot = Snapshot.find(sid)
 
 (0..5).each do |i|
   MeetingRoom.find_or_create_by!(id: i, name: Faker::Address.state, office_id: 1)
@@ -15,12 +16,12 @@ end
 
 #Generates (1/5 of the number of employees) meetings and randomly populates each meeting with different number of employees
 (0..((empnum/5).to_i)).each do |i|
-  Meeting.find_or_create_by!(id: i, subject: Faker::Lorem.word,   meeting_room_id: Random.rand(5), snapshot_id: recent_snapshot.id, 
-                            duration_in_minutes: 1 + Random.rand(300), start_time: Faker::Time.between(30.days.ago, Time.now), 
+  MeetingsSnapshotData.find_or_create_by!(id: i, subject: Faker::Lorem.word,   meeting_room_id: Random.rand(5), snapshot_id: recent_snapshot.id,
+                            duration_in_minutes: 1 + Random.rand(300), start_time: Faker::Time.between(30.days.ago, Time.now),
                             company_id: companyid, meeting_uniq_id: Faker::Lorem.word)
   meetingatt = emparr.sample((2 + Random.rand(empnum - 2)/6).to_i) #The "/6).to_i" has been added to make meetings smaller, can be removed if no meeting size limit is needed
     (0..(meetingatt.length.to_i)).each do |j|
-      MeetingAttendee.find_or_create_by!(meeting_id: i, attendee_id: meetingatt[j-1].id,  attendee_type:0)
+      MeetingAttendee.find_or_create_by!(meeting_id: i, employee_id: meetingatt[j-1].id)
     end
 end
 
@@ -36,7 +37,7 @@ end
   # Group.find_or_create_by!(id: 10, name: "MARKETING",  company_id: 1,                     color_id: 10)
   # Group.find_or_create_by!(id: 11, name: "ONLINE",     company_id: 1, parent_group_id:10, color_id: 11)
   # Group.find_or_create_by!(id: 12, name: "OFFLINE",    company_id: 1, parent_group_id:10, color_id: 12)
-  # Group.find_or_create_by!(id: 20, name: "MAIL",       company_id: 1, parent_group_id:12, color_id: 13) 
+  # Group.find_or_create_by!(id: 20, name: "MAIL",       company_id: 1, parent_group_id:12, color_id: 13)
   # Group.find_or_create_by!(id: 13, name: "LINE",       company_id: 1, parent_group_id:10, color_id: 13)
   # Group.find_or_create_by!(id: 30, name: "SUBLINE",    company_id: 1, parent_group_id:13, color_id: 13)
 
@@ -81,21 +82,21 @@ end
   # MeetingAttendee.find_or_create_by(meeting_id: 1, attendee_id: 21, attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 1, attendee_id: 89, attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 2, attendee_id: 1,  attendee_type:0)
-  # MeetingAttendee.find_or_create_by(meeting_id: 2, attendee_id: 2,  attendee_type:0)      
+  # MeetingAttendee.find_or_create_by(meeting_id: 2, attendee_id: 2,  attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 2, attendee_id: 3,  attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 34,   attendee_type:0)
-  # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 377,  attendee_type:0) 
-  # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 610,  attendee_type:0) 
+  # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 377,  attendee_type:0)
+  # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 610,  attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 987,  attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 1597, attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 2584, attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 4181, attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 3, attendee_id: 6765, attendee_type:0)
-  # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 1,      attendee_type:0)  
+  # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 1,      attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 3,      attendee_type:0)
-  # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 34,     attendee_type:0)      
+  # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 34,     attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 4, attendee_id: 17711,  attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 4181,   attendee_type:0)
-  # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 987,    attendee_type:0) 
-  # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 1597,   attendee_type:0) 
+  # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 987,    attendee_type:0)
+  # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 1597,   attendee_type:0)
   # MeetingAttendee.find_or_create_by(meeting_id: 5, attendee_id: 17711,  attendee_type:0)

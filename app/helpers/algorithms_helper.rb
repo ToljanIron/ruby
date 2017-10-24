@@ -209,92 +209,6 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: 0.to_f }]
   end
 
-  # Gets a snapshot and a group number, returns the average number of attendees from said group in meetings related to it
-  def self.average_no_of_attendees(sid, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, sid)
-    groups = get_group_and_all_its_descendants(gid)
-    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid, sid)) : groups)
-    sqlstrdenom =  "SELECT COUNT(DISTINCT meeting_id) AS count
-                    FROM meetings           AS mee
-                    JOIN meeting_attendees  AS mee_att    ON mee_att.meeting_id = mee.id
-                    JOIN employees          AS emp        ON emp.id             = mee_att.attendee_id
-                    WHERE emp.group_id IN   (#{groups.join(',')})
-                    AND   mee.snapshot_id   =#{sid}"
-    denominator = ActiveRecord::Base.connection.select_all(sqlstrdenom).to_hash
-    denominator = denominator[0]["count"].to_f
-    return [{ group_id: gid, measure: 0.to_f }] if denominator == 0
-    sqlstrnumer =  "SELECT COUNT((#{emps.join(',')})) AS count
-                    FROM meeting_attendees  AS mee_att
-                    JOIN meetings           AS mee    ON mee_att.meeting_id = mee.id
-                    JOIN employees          AS emp    ON emp.id             = mee_att.attendee_id
-                    WHERE emp.group_id IN   (#{groups.join(',')})
-                    AND   mee.snapshot_id   =#{sid}"
-    numerator = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
-    numerator = numerator[0]["count"].to_f
-    return [{ group_id: gid, measure: (numerator/denominator).to_f}]
-  end
-
-  # Gets a snapshot and a group number, returns the time spent in meetings in proportion of the group's size
-  def self.proportion_time_spent_on_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
-    cid = Snapshot.where(id: sid).first.company_id
-    emps = get_members_in_group(pid, gid, sid)
-    groups = get_group_and_all_its_descendants(gid)
-    groups = (groups.length == 0 ? get_group_and_all_its_descendants(Group::get_root_group(cid, sid)) : groups)
-    weekly_hours = 50
-    sqlstrnumer = "SELECT SUM(duration_in_minutes) AS sum
-                  FROM meetings as mee
-                  JOIN meeting_attendees  AS mee_att  ON mee_att.meeting_id = mee.id
-                  JOIN employees          AS emp      ON emp.id             = mee_att.attendee_id
-                  WHERE emp.group_id IN (#{groups.join(',')})
-                  AND   mee.snapshot_id     = #{sid}"
-    numerator = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
-    numerator = numerator[0]["sum"].to_f
-    return [{ group_id: gid, measure: 0.to_f }] if numerator == 0
-    denominator = ((emps.length)*weekly_hours*60).to_f
-    return [{ group_id: gid, measure: (numerator/denominator).to_f}]  if denominator > numerator
-    return [{ group_id: gid, measure: 1.to_f}]
-  end
-
-  def self.proportion_of_managers_never_in_meetings(sid, pid = NO_PIN, gid = NO_GROUP)
-    emps = get_members_in_group(pid, gid, sid)
-    group_id = Group.find(gid)
-    managers = group_id.get_managers[:manager_id].count.to_f
-    return [{ group_id: gid, measure: 0 }] if emps|| managers == 0
-    numerator = manager_never_in_meetings_flag(sid, pid, gid).count.to_f
-    return [{ group_id: gid, measure: numerator / managers }]
-  end
-
-  def manager_never_in_meetings_flag(sid, pid, gid)
-    res = read_or_calculate_and_write("manager_never_in_meetings_flag-#{sid}-#{pid}-#{gid}") do
-      group = Group.find(gid)
-      inner_select = group.get_managers
-      weeklyWorkHours = 50
-      sqlstr =  "SELECT SUM(duration_in_minutes) AS sum, emp.id AS id
-                FROM meetings           AS mee
-                JOIN meeting_attendees  AS mee_att  ON mee_att.meeting_id = mee.id
-                JOIN employees          AS emp      ON emp.id             = mee_att.attendee_id
-                WHERE emp.id    IN  (#{inner_select[:manager_id].join(',')})
-                AND mee.snapshot_id  = #{sid}
-                GROUP BY emp.id"
-      res = ActiveRecord::Base.connection.exec_query(sqlstr)
-      h_scores = {}
-      res.each do |r|
-        h_scores[r['id']] = 1-((r['sum'].to_f)/(60*weeklyWorkHours))
-      end
-      a = h_scores.sort_by {|h| [h[1]]}.reverse!
-      limit = (a.count / 4)
-      limit += 1 if (a.count-1) % 4 != 0
-      bound = a[limit.to_i][1]
-      res = AlgorithmsHelper.harsh_idscore_to_upperlower_quartile_emp_ids(h_scores, inner_select[:manager_id])
-      res.each do |e|
-         e[:measure] = e[:score] unless e[:measure] == bound
-        end
-      return res
-    end
-    return res
-  end
-
   def self.find_limit(sent_emails)
     array_of_values = json_to_array_sinks(sent_emails)
     return array_of_values, 0 if array_of_values.empty?
@@ -458,7 +372,7 @@ module AlgorithmsHelper
   ###########################################################
   def calculate_bottlenecks(sid, nid, gid)
 
-    return nil if Group.num_of_emps(gid) < 4
+    return nil if Group.num_of_emps(gid) < 10
 
     sagraph = get_sagraph(sid, nid, gid)
 
@@ -514,6 +428,7 @@ module AlgorithmsHelper
         from_employee_id IN (#{empsstr})
       GROUP By to_employee_id
       ORDER BY indeg"
+      puts sqlstr if gid == 1194
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     ret = []
     res.each do |e|
@@ -1412,7 +1327,6 @@ module AlgorithmsHelper
   end
 
   def self.h_calc_max_traffic_between_two_employees_with_ids(sid, nid, gid = NO_GROUP, pid = NO_PIN)
-    cid = find_company_by_snapshot(sid)
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
@@ -2247,5 +2161,3 @@ end
 def find_company_by_snapshot(snapshot_id)
   Snapshot.where(id: snapshot_id).first.company_id
 end
-
-

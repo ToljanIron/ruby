@@ -150,16 +150,6 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
                                      algorithm_type_id: 5)
   end
 
-  def create_new_seed_for_average_no_of_attendees(cid)
-    meeting_network_id = NetworkName.find_or_create_by(name: 'Meeting Flow', company_id: cid).id #Check which network it belongs to
-    average_number_of_attendees_gauge_id = MetricName.find_or_create_by!(name: 'average_number_of_attendees', company_id: cid).id
-    CompanyMetric.find_or_create_by!(metric_id: average_number_of_attendees_gauge_id,
-                                     network_id: meeting_network_id,
-                                     company_id: cid,
-                                     algorithm_id: 157,
-                                     algorithm_type_id: 5)
-  end
-
   def create_new_seed_for_proportion_time_spent_on_meetings(cid)
     meeting_network_id = NetworkName.find_or_create_by(name: 'Meeting Flow', company_id: cid).id #Check which network it belongs to
     proportion_time_spent_on_meetings_gauge_id = MetricName.find_or_create_by!(name: 'proportion_time_spent_on_meetings', company_id: cid).id
