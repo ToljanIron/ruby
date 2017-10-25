@@ -150,14 +150,6 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    puts "####################################"
-    puts "working on sid: #{sid}"
-    puts sqlstr
-    puts "####################################"
-    ret.each do |r|
-      puts r
-    end
-    puts "####################################"
     return ret
   end
 

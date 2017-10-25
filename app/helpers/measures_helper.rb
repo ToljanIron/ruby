@@ -178,6 +178,9 @@ module MeasuresHelper
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
+      puts "+++++++++++++++++++++++++++++++++++++++++++++"
+      puts "Algorith: #{aid}, entries: #{entries}"
+      puts "+++++++++++++++++++++++++++++++++++++++++++++"
       min = entries.min {|a,b| a['score'] <=> b['score']}['score']
       max = entries.max {|a,b| a['score'] <=> b['score']}['score']
       a_minMax << {
@@ -222,11 +225,11 @@ module MeasuresHelper
   end
 
   def get_dynamics_scores_for_offices(cid, sids, interval_type)
-    
+
     res = []
-    
+
     interval_str = get_interval_type_string(interval_type)
-    
+
     sqlstr = "SELECT off.name AS officename, algo.id AS algo_id, mn.name AS algo_name,
                 s.#{interval_str} AS period, AVG(z_score) as score
               FROM cds_metric_scores AS cds
@@ -244,7 +247,7 @@ module MeasuresHelper
               ORDER BY period"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    
+
     # Find min/max for each algorithm - out of all groups for the same algorithm
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
@@ -257,7 +260,7 @@ module MeasuresHelper
         'max' => max,
       }
     end
-    
+
     # Parse query result -
     # Set the score. If the min is negative - shift all scores by the absolute of the min so scores
     # start from zero.
