@@ -209,6 +209,23 @@ describe AlgorithmsHelper, type: :helper do
       expect(bns[4][:measure]).to eq(0.137)
     end
   end
+
+  describe 'reverse_scores' do
+    arr = [
+      {a: 'a1', s: 2},
+      {a: 'a2', s: -1},
+      {a: 'a3', s: 5},
+      {a: 'a4', s: 1},
+      {a: 'a5', s: 4}
+    ]
+    it 'should revers the scores' do
+      res = AlgorithmsHelper.reverse_scores(arr, :s)
+      expect(res[2][:s]).to eq(0)
+      expect(res[4][:s]).to eq(1)
+    end
+
+
+  end
 end
 
 
