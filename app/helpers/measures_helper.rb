@@ -6,8 +6,8 @@ module MeasuresHelper
 
   # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions 
   # 130 - Bottlenecks
-  DYNAMICS_AIDS = [101, 114, 130]
-  # DYNAMICS_AIDS = [101]
+  DYNAMICS_AIDS = [100, 101, 114, 130]
+
   INTERFACES_AIDS = [709, 710]
 
   EMAILS_VOLUME_AID = 707
@@ -33,7 +33,7 @@ module MeasuresHelper
     score_str = score ? 'score' : 'z_score' # Use score or z_score
 
     interval_str = get_interval_type_string(interval_type)
-    
+
     # If empty gids - get the gid for the root - i.e. the company
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
@@ -51,7 +51,7 @@ module MeasuresHelper
                 algorithm_id = #{aid}
               GROUP BY snapshot_id, s.month, s.timestamp, period
               ORDER BY s.timestamp ASC"
-    
+
     # If query is for time period other than month - average over months. Wrap above query.
     if(interval_str != 'month')
       sqlstr = "SELECT avg(score) as score, period FROM (#{sqlstr}) t
@@ -78,12 +78,12 @@ module MeasuresHelper
     res = {}
     res[:closeness] = get_dynamics_gauge_level(cid, sids, current_gids, interval_type, CLOSENESS_AID, 'closeness')
     res[:synergy]   = get_dynamics_gauge_level(cid, sids, current_gids, interval_type, SYNERGY_AID, 'synergy')
-    
+
     return res
   end
 
   def get_dynamics_gauge_level(cid, sids, current_gids, interval_type, aid, algorithm_name)
-    
+
     res = []
 
     interval_str = get_interval_type_string(interval_type)
@@ -129,7 +129,7 @@ module MeasuresHelper
     res.each {|r| sum += r['curScore']}
 
     avg = (sum / count.to_f).round(2)
-    
+
     return get_gauge_level(avg)
   end
 
@@ -142,10 +142,10 @@ module MeasuresHelper
   end
 
   def get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
-    
+
     res = []
     gids = []
-    
+
     interval_str = get_interval_type_string(interval_type)
 
     # If empty gids - get the gid for the root - i.e. the company
@@ -183,7 +183,7 @@ module MeasuresHelper
       a_minMax << {
         'aid' => aid,
         'min' => min,
-        'max' => max,
+        'max' => max
       }
     end
     
@@ -302,10 +302,10 @@ module MeasuresHelper
   end
 
   def get_interfaces_scores_for_departments(cid, sids, current_gids, interval_type)
-    
+
     res = []
     gids = []
-    
+
     interval_str = get_interval_type_string(interval_type)
 
     # If empty gids - get the gid for the root - i.e. the company
@@ -318,7 +318,7 @@ module MeasuresHelper
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
                 s.#{interval_str} AS period,
-                CASE 
+                CASE
                   when
                   SUM(denominator) = 0 then 0
                   else
@@ -374,12 +374,12 @@ module MeasuresHelper
   def get_interfaces_scores_for_offices(cid, sids, interval_type)
     
     res = []
-    
+
     interval_str = get_interval_type_string(interval_type)
 
     sqlstr = "SELECT off.name AS officename, algo.id AS algo_id, mn.name AS algo_name,
                 s.#{interval_str} AS period,
-                CASE 
+                CASE
                   when
                   SUM(denominator) = 0 then 0
                   else
@@ -479,7 +479,7 @@ module MeasuresHelper
     # If no time period is given - take the period of the last snapshot - by the interval.
     # If quarter is the interval type - the time period should be the quarter of the last snapshot
     time_period = snapshots.last[interval_str] if(time_period === '')
-    
+
     # Select snapshots with the same time period
     res = snapshots.select{|s| s[interval_str] === time_period}
 

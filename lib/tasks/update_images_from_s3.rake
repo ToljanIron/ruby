@@ -44,7 +44,9 @@ namespace :db do
           emails.each do |email|
             puts "Working on employee: #{email}"
             emp_records = Employee.where(email: email)
+            puts "    found: #{emp_records.length} emp_records"
             url = create_s3_object_url(cid, email, signer, bucket, s3_bucket_name)
+            puts "    URL: #{url}"
             emp_records.update_all(img_url: url)
             emp_records.update_all(img_url_last_updated: Time.now)
           end
