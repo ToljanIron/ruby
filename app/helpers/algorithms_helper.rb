@@ -153,7 +153,7 @@ module AlgorithmsHelper
     a_emps.each do |emp|
       score = h_scores[emp.to_s].nil? ? s_pad : h_scores[emp.to_s]
       v_scores << { id: emp, score: score }
-    end
+    end
     v_scores = v_scores.sort_by { |h| [h[:score], h[:id]] }
     v_scores_arr = json_to_array_score(v_scores)
     q1 = find_q1_max(v_scores_arr)
@@ -165,6 +165,16 @@ module AlgorithmsHelper
       result.push(score) if score[:score] > limit
     end
     result
+  end
+
+  def self.reverse_scores(arr, key)
+    ret = arr.dup
+    max_entry = ret.max_by{ |e| e[key] }
+    max_value = max_entry[key]
+    ret.each do |e|
+      e[key] = max_value - e[key]
+    end
+    return ret
   end
 
   def self.no_of_emails_sent(sid, pid = NO_PIN, gid = NO_GROUP)
@@ -903,6 +913,8 @@ module AlgorithmsHelper
       GROUP BY empid
       ORDER BY totalscore ASC"
 
+      puts sqlstr
+
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     res.each do |e|
       eid = e['empid']
@@ -915,6 +927,8 @@ module AlgorithmsHelper
     emps_arr.each do |emp|
       zeroscores << {id: emp, measure: 0}
     end
+    ret = zeroscores + ret
+    ret = AlgorithmsHelper.reverse_scores(ret, :measure)
     return zeroscores + ret
   end
 
