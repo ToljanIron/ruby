@@ -52,6 +52,7 @@ namespace :db do
           end
         end unless companies.empty?
       rescue => e
+        puts "***************"
         puts e.message
         puts e.backtrace
         raise ActiveRecord::Rollback
@@ -61,6 +62,7 @@ namespace :db do
 
   def create_s3_object_url(cid, email, signer, bucket, bucket_name)
     url = create_url(cid, email, 'jpg')
+    puts "url: #{url}"
     url = bucket.object(url).exists? ? url : create_url(cid, email, 'png')
 
     if bucket.object(url).exists?

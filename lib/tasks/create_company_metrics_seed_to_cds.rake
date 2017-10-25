@@ -18,7 +18,6 @@ namespace :db do
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_sinks(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_sinks(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_proportion_time_spent_on_meetings(company_id)
-        CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_average_no_of_attendees(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_proportion_of_managers_never_in_meetings(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_avg_of_subject(company_id)
         CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_new_seed_for_gauge_information_isolate(company_id)
