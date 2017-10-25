@@ -60,14 +60,17 @@ module MeasuresHelper
     end
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+    
+    min = 0
+    # If retreiving z-scores - they can be negative. Shift them up by the minimum
+    min = sqlres.min {|a,b| a['score'] <=> b['score']}['score'] if !score
 
     sqlres.each do |entry|
       res << {
-        'score'       => entry['score'].to_f.round(2),
+        'score'       => entry['score'].to_f.round(2) + min.abs.to_f.round(2),
         'time_period' => entry['period']
       }
     end
-    
     return res
   end
 
