@@ -206,17 +206,20 @@ class Group < ActiveRecord::Base
   def self.find_groups_in_snapshot(gids, sid)
     return [] if gids.length == 0
     sqlstr = "
-      SELECT yg.id
+      SELECT yg.id, yg.name, yg.external_id
       FROM groups AS xg
       JOIN groups AS yg on xg.external_id = yg.external_id
       WHERE
         xg.id IN (#{gids.join(',')}) AND
         yg.snapshot_id = #{sid}"
-   sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_a
-   res = []
-   sqlres.each do |e|
-     res << e['id']
-   end
-   return res
+   return ActiveRecord::Base.connection.select_all(sqlstr).to_a
+  end
+
+  def self.find_group_ids_in_snapshot(gids, sid)
+    
+    res = []
+    groups = find_groups_in_snapshot(gids, sid)    
+    groups.each {|e| res << e['id']}
+    return res
   end
 end

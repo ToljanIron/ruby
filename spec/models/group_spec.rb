@@ -183,28 +183,28 @@ describe Group, type: :model do
     end
 
     it 'should return array of same size and values of type Integer' do
-      res = Group.find_groups_in_snapshot(@gids, 4)
+      res = Group.find_group_ids_in_snapshot(@gids, 4)
       expect(res.length).to eq(4)
       expect(res[0].class).to eq(Integer)
     end
 
     it 'should return empty if groups argument is empty' do
-      res = Group.find_groups_in_snapshot([], 4)
+      res = Group.find_group_ids_in_snapshot([], 4)
       expect(res.length).to eq(0)
     end
 
     it 'should return nil if target snapshot does not exist' do
-      res = Group.find_groups_in_snapshot([], 5)
+      res = Group.find_group_ids_in_snapshot([], 5)
       expect(res.length).to eq(0)
     end
 
     it 'should return an empty list if gids do not exist in sid' do
-      res = Group.find_groups_in_snapshot([200, 201], 4)
+      res = Group.find_group_ids_in_snapshot([200, 201], 4)
       expect(res.length).to eq(0)
     end
 
     it 'should return a partial list if some gids do not exist in sid' do
-      res = Group.find_groups_in_snapshot(@gids + [200], 4)
+      res = Group.find_group_ids_in_snapshot(@gids + [200], 4)
       expect(res.length).to eq(4)
     end
   end

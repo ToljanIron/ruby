@@ -28,7 +28,6 @@ module MeasuresHelper
   def get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, aid, score = true)
 
     res = []
-    gids = []
 
     score_str = score ? 'score' : 'z_score' # Use score or z_score
 
@@ -39,7 +38,6 @@ module MeasuresHelper
       gids << Group.get_root_group(cid)
     else
       gids = get_relevant_group_ids(sids, current_gids)
-      gids = gids.map(&:to_i)
     end
 
     sqlstr = "SELECT AVG(#{score_str}) as score, s.month, s.#{interval_str} as period 
@@ -85,6 +83,7 @@ module MeasuresHelper
   def get_dynamics_gauge_level(cid, sids, current_gids, interval_type, aid, algorithm_name)
 
     res = []
+    groups = []
 
     interval_str = get_interval_type_string(interval_type)
 
@@ -93,7 +92,6 @@ module MeasuresHelper
       gids << Group.get_root_group(cid)
     else
       gids = get_relevant_group_ids(sids, current_gids)
-      gids = gids.map(&:to_i)
     end
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
@@ -109,8 +107,8 @@ module MeasuresHelper
                 cds.group_id IN (#{gids.join(',')}) AND
                 cds.algorithm_id= #{aid} AND
                 cds.company_id = #{cid}
-              GROUP BY period, algo.id, mn.name, g.external_id
-              ORDER BY g.external_id"
+              GROUP BY period, algo.id, mn.name, group_name
+              ORDER BY group_name"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
@@ -144,7 +142,7 @@ module MeasuresHelper
   def get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
 
     res = []
-    gids = []
+    groups = []
 
     interval_str = get_interval_type_string(interval_type)
 
@@ -152,8 +150,8 @@ module MeasuresHelper
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
     else
-      gids = get_relevant_group_ids(sids, current_gids)
-      gids = gids.map(&:to_i)
+      groups = get_relevant_groups(sids, current_gids)
+      gids = groups.map{|g| g['id'].to_i}
     end
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
@@ -174,7 +172,7 @@ module MeasuresHelper
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
-    # Find min/max for each algorithm - out of all groups for the same algorithm
+    # # Find min/max for each algorithm - out of all groups for the same algorithm
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
@@ -199,8 +197,9 @@ module MeasuresHelper
         max = a['max']
         score = entry['score']
 
+        group = groups.find{|g| g['external_id'] === entry['group_name']}
         h = {
-          'groupName'   => entry['group_name'],
+          'groupName'   => !group.nil? ? group['name'] : entry['group_name'],
           'algoName'    => entry['algo_name'],
           'aid'         => entry['algo_id'],
           'time_period' => entry['period']
@@ -218,7 +217,6 @@ module MeasuresHelper
         res << h
       end
     end
-
     return res
   end
 
@@ -306,7 +304,7 @@ module MeasuresHelper
   def get_interfaces_scores_for_departments(cid, sids, current_gids, interval_type)
 
     res = []
-    gids = []
+    groups = []
 
     interval_str = get_interval_type_string(interval_type)
 
@@ -314,8 +312,8 @@ module MeasuresHelper
     if (current_gids.nil? || current_gids.length === 0)
       gids << Group.get_root_group(cid)
     else
-      gids = get_relevant_group_ids(sids, current_gids)
-      gids = gids.map(&:to_i)
+      groups = get_relevant_groups(sids, current_gids)
+      gids = groups.map{|g| g['id'].to_i}
     end
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
@@ -360,8 +358,10 @@ module MeasuresHelper
       sqlres.each do |entry|
         next if a['aid'] != entry['algo_id']
 
+        group = groups.find{|g| g['external_id'] === entry['group_name']}
+
         res << {
-          'groupName'   => entry['group_name'],
+          'groupName'   => !group.nil? ? group['name'] : entry['group_name'],
           'algoName'    => entry['algo_name'],
           'aid'         => entry['algo_id'],
           'curScore'    => entry['score'].to_f.round(2),
@@ -464,17 +464,18 @@ module MeasuresHelper
     return level
   end
 
-  # def get_relevant_snapshot_ids(cid, limit)
-  #   return get_relevant_snapshots(cid, limit).pluck('sid')
-  # end
-
-  def get_relevant_group_ids(sids, current_gids)
+  def get_relevant_groups(sids, current_gids)
     res = []
     sids.each do |sid|
       grp = Group.find_groups_in_snapshot(current_gids, sid)
       res += grp
     end
     return res
+  end
+
+  def get_relevant_group_ids(sids, current_gids)
+    res = get_relevant_groups(sids, current_gids)
+    return res.map{|r| r['id'].to_i}
   end
 
   def get_snapshots_by_period(cid, limit, interval_str, time_period)

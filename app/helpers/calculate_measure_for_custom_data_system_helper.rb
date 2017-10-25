@@ -90,7 +90,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
     currtopgids = calculate_group_top_scores(cid, currsid, currgids, [EMAILS_VOLUME])
-    prevtopgids = prevsid.nil? ? nil : Group.find_groups_in_snapshot(currtopgids, prevsid)
+    prevtopgids = prevsid.nil? ? nil : Group.find_group_ids_in_snapshot(currtopgids, prevsid)
 
     curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
     prev_group_wherepart = agg_method == 'group_id' && !prevsid.nil? ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
