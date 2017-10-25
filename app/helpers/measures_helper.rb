@@ -42,7 +42,7 @@ module MeasuresHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT AVG(#{score_str}) as score, s.month, s.#{interval_str} as period 
+    sqlstr = "SELECT AVG(#{score_str}) as score, s.month, s.#{interval_str} as period
               FROM cds_metric_scores
               JOIN snapshots AS s ON snapshot_id = s.id
               WHERE
@@ -61,11 +61,11 @@ module MeasuresHelper
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
+
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
     min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
     min = min_entry['score'] if !min_entry.nil?
-
 
     sqlres.each do |entry|
       res << {
@@ -98,7 +98,7 @@ module MeasuresHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
+    sqlstr = "SELECT g.external_id group_name, algo.id AS algo_id, mn.name AS algo_name,
                 s.#{interval_str} AS period, AVG(z_score) AS avg_z_score
               FROM cds_metric_scores AS cds
               JOIN snapshots AS s ON snapshot_id = s.id
@@ -320,7 +320,7 @@ module MeasuresHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
+    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
                 s.#{interval_str} AS period,
                 CASE
                   when
@@ -357,7 +357,7 @@ module MeasuresHelper
         'max' => max,
       }
     end
-   
+
     a_minMax.each do |a|
       sqlres.each do |entry|
         next if a['aid'] != entry['algo_id']
