@@ -246,6 +246,10 @@ module ParamsToArgsHelper
     return AlgorithmsHelper.calculate_bottlenecks(args[:snapshot_id], args[:pid], args[:gid])
   end
 
+  def self.calculate_connectors(args)
+    return AlgorithmsHelper.calculate_connectors(args[:snapshot_id], args[:pid], args[:gid])
+  end
+
   def self.internal_champions(args)
     return AlgorithmsHelper.internal_champions(args[:snapshot_id], args[:pid], args[:gid])
   end

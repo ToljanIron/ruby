@@ -380,15 +380,17 @@ module AlgorithmsHelper
   # proportions are considered bottlenecks.
   #
   ###########################################################
-  def calculate_bottlenecks(sid, nid, gid)
+  def calculate_bottlenecks(sid, pid, gid)
+    return nil if Group.num_of_emps(gid) < 4
 
-    return nil if Group.num_of_emps(gid) < 10
+    cid = Snapshot.find(sid).company_id
+    nid = NetworkSnapshotData.emails(cid)
 
     sagraph = get_sagraph(sid, nid, gid)
 
     a = sagraph[:adjacencymat]
     dim = a.shape[0]
-    ones     = get_ones_nmatrix(dim)
+    ones     = get_ones_vector(dim)
     init_vec = NMatrix.new([dim, 1], [(1.0 / dim.to_f)], dtype: :float32)
 
     row_degs = a.dot ones
@@ -397,11 +399,7 @@ module AlgorithmsHelper
       r.map { |e| e / row_deg }
     end
 
-    c4 = c.dot (c.dot (c.dot c))
-    c8 = c4.dot c4
-    c16 = c8.dot c8
-    c32 = c16.dot c16
-    c64 = c32.dot c32
+    c64 = c.power64
 
     res = init_vec.transpose.dot c64
     res = res.transpose
@@ -411,6 +409,61 @@ module AlgorithmsHelper
     (0..res.length-1).each do |i|
       e = res[i]
       ret << {id: inx2emp[i], measure: (100 * e[0]).round(3)}
+    end
+    return ret
+  end
+
+  ###########################################################################
+  #
+  # The connectors algorithm measures how balanced are an employees'
+  # destinations. High if he sends to many different groups and low otherwise.
+  # The algorithm uses the Blau index which goes like this:
+  # 1 - For each employee count how many emails they send to each group their
+  #     own (pi)
+  # 2 - Divide by total number of emails
+  # 3 - Square each ratio
+  # 4 - Sum all squares
+  # 5 - Subtract from one
+  #
+  # The formula looks like this:
+  #   blau = 1 - sum[ (pi/total)^2 ]
+  #
+  ###########################################################################
+  def calculate_connectors(sid, pid, gid)
+    return nil if Group.num_of_emps(gid) < 10
+
+    cid = Snapshot.find(sid).company_id
+    nid = NetworkSnapshotData.emails(cid)
+
+    sagraph = get_sagraph(sid, nid, gid)
+
+    a = sagraph[:adjacencymat]
+    m = sagraph[:membershipmat]
+    inx2emp = sagraph[:inx2emp]
+
+    ## This matrix product produces a new matrix of size employes x groups
+    ##   whose entry i,j is how many emails did employee i sent towards group j
+    am = a.dot m
+
+    empsnum, groupsnum = am.shape
+    onesvec_emps = get_ones_vector(empsnum)
+    onesvec_grps = get_ones_vector(groupsnum)
+
+    ## Find total numbers of emails sent for each employee
+    row_totals = a.dot onesvec_emps
+
+    ## Replace each member of matrix am with the square of the ratio of itself
+    ##   and the total number
+    c = am.snm_map_rows do |r,i|
+      row_tot = row_totals[i]
+      r.map { |e| (e.to_f / row_tot.to_f) ** 2 }
+    end
+
+    blau_vec = (onesvec_emps - (c.dot onesvec_grps)).transpose
+
+    ret = []
+    blau_vec.to_a.each_with_index do |score, i|
+      ret << {id: inx2emp[i] , measure: score}
     end
     return ret
   end
@@ -1404,20 +1457,21 @@ module AlgorithmsHelper
 
   def get_sagraph_block(sid, nid, gid)
     eids = Group.find(gid).extract_employees
+    gids = Group.get_all_subgroups(gid)
 
     dim = eids.length
-    inx2emp = {}
-    emp2inx = {}
 
     edges = NetworkSnapshotData
       .select(:from_employee_id, :to_employee_id)
       .where(snapshot_id: sid, network_id: nid)
       .where(from_employee_id: eids, to_employee_id: eids)
 
-    ## Create the indexes
-    eids.each do |eid|
-      emp2inx[eid] = inx2emp.size
-      inx2emp[inx2emp.size] = eid
+    ## Create the employee indexes
+    inx2emp = {}
+    emp2inx = {}
+    eids.each do |id|
+      emp2inx[id] = inx2emp.size
+      inx2emp[inx2emp.size] = id
     end
 
     ## Populate adjacency matrix
@@ -1426,16 +1480,45 @@ module AlgorithmsHelper
       from = emp2inx[edge[:from_employee_id]]
       to   = emp2inx[edge[:to_employee_id]]
       index = dim * from + to
-      allarr[index] = 1
+      allarr[index] += 1
     end
     adjacencymat = NMatrix.new([dim, dim], allarr, dtype: :float32)
     adjacencymat = set_one_on_diagonal_of_empty_rows(adjacencymat)
 
+    ## group indexes
+    inx2grp = {}
+    grp2inx = {}
+    gids.each do |id|
+      grp2inx[id] = inx2grp.size
+      inx2grp[inx2grp.size] = id
+    end
+
+    ## Popoulate group membership matrix
+    memmat = get_sa_membership_matrix(emp2inx, grp2inx, gids)
+
     return {
       emp2inx: emp2inx,
       inx2emp: inx2emp,
-      adjacencymat: adjacencymat
+      adjacencymat: adjacencymat,
+      grp2inx: grp2inx,
+      inx2grp: inx2grp,
+      membershipmat: memmat
     }
+  end
+
+  def get_sa_membership_matrix(emp2inx, grp2inx, gids)
+    sid = Group.find(gids.first).snapshot_id
+    groupemps = Employee
+      .select(:id, :group_id)
+      .where(snapshot_id: sid, group_id: gids)
+
+    memmat = NMatrix.new([emp2inx.length, grp2inx.length], 0, dtype: :int64)
+    groupemps.each do |emp|
+      row = emp2inx[emp[:id]]
+      col = grp2inx[emp[:group_id]]
+      memmat[row, col] = 1
+    end
+    return memmat
   end
 
   def set_one_on_diagonal_of_empty_rows(nm)
@@ -1452,8 +1535,12 @@ module AlgorithmsHelper
     end
   end
 
-  def get_ones_nmatrix(dim)
+  def get_ones_vector(dim)
     return NMatrix.ones([dim, 1], dtype: :float32)
+  end
+
+  def get_ones_nmatrix(dim)
+    return NMatrix.ones([dim, dim], dtype: :float32)
   end
 
   def calc_degree_for_all_matrix(snapshot_id, direction, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
@@ -1514,9 +1601,9 @@ module AlgorithmsHelper
     inner_select = get_inner_select_as_arr(cid, pid, gid)
 
     where_part = get_where_part_for_specified_matrix(direction, target_groups, inner_select)
-    
+
     current_snapshot_nodes = NetworkSnapshotData.where(snapshot_id: sid, network_id: nid)
-    
+
     if matrix_name === BCC_MATRIX
       current_snapshot_nodes = current_snapshot_nodes.where(to_type: matrix_name)
         .where(where_part).where("to_employee_id != from_employee_id").select("#{direction} as id, count(id) as total_sum").group(direction).order(direction)

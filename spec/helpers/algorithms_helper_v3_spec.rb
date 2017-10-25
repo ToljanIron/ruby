@@ -176,6 +176,42 @@ describe AlgorithmsHelper, type: :helper do
       expect( a.slice(4,4) ).to eq(1)
       expect( a.slice(4,5) ).to eq(0)
     end
+
+    describe 'get_sa_membership_matrix' do
+      gids = nil
+      emp2inx = nil
+      group2inx = nil
+      before do
+        Company.find_or_create_by(id: 1, name: "Hevra10")
+        Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+        FactoryGirl.create(:group, id: 11, name: 'g1')
+        FactoryGirl.create(:group, id: 12, name: 'g2')
+        FactoryGirl.create(:group, id: 13, name: 'g3')
+        FactoryGirl.create(:group, id: 14, name: 'g4')
+        FactoryGirl.create(:employee, id: 1, group_id: 11)
+        FactoryGirl.create(:employee, id: 2, group_id: 11)
+        FactoryGirl.create(:employee, id: 3, group_id: 12)
+        FactoryGirl.create(:employee, id: 4, group_id: 12)
+        FactoryGirl.create(:employee, id: 5, group_id: 12)
+        FactoryGirl.create(:employee, id: 6, group_id: 14)
+        FactoryGirl.create(:employee, id: 7, group_id: 14)
+        FactoryGirl.create(:employee, id: 8, group_id: 14)
+        gids = Group.pluck(:id)
+        emp2inx = {}
+        group2inx = {}
+        (0..7).each do |i|
+          emp2inx[i+1] = i
+          group2inx[i + 11] = i if i < 4
+        end
+      end
+
+      it 'should be well formed' do
+        m = get_sa_membership_matrix(emp2inx, group2inx, gids)
+        expect(m.shape).to eq([8,4])
+        expect(m.column(2).to_a.flatten).to eq([0,0,0,0,0,0,0,0])
+        expect(m.row(2).to_a).to eq([0,1,0,0])
+      end
+    end
   end
 
   describe 'bottlnecks' do
@@ -209,6 +245,7 @@ describe AlgorithmsHelper, type: :helper do
       expect(bns[4][:measure]).to eq(0.137)
     end
   end
+<<<<<<< HEAD
 
   describe 'reverse_scores' do
     arr = [
@@ -227,5 +264,94 @@ describe AlgorithmsHelper, type: :helper do
 
   end
 end
+=======
+>>>>>>> 307-integration
 
+  describe 'calculate_connectors' do
+    all = nil
+    nid = nil
+    before do
+      Company.find_or_create_by(id: 1, name: "Hevra10")
+      Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+      nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
 
+      FactoryGirl.create(:group, id: 11, name: 'g1')
+      FactoryGirl.create(:group, id: 12, name: 'g2', parent_group_id: 11)
+      FactoryGirl.create(:group, id: 13, name: 'g3', parent_group_id: 11)
+      FactoryGirl.create(:group, id: 14, name: 'g4', parent_group_id: 11)
+      FactoryGirl.create(:employee, id: 1, group_id: 11)
+      FactoryGirl.create(:employee, id: 2, group_id: 11)
+      FactoryGirl.create(:employee, id: 3, group_id: 12)
+      FactoryGirl.create(:employee, id: 4, group_id: 12)
+      FactoryGirl.create(:employee, id: 5, group_id: 12)
+      FactoryGirl.create(:employee, id: 6, group_id: 13)
+      FactoryGirl.create(:employee, id: 7, group_id: 14)
+      FactoryGirl.create(:employee, id: 8, group_id: 14)
+      FactoryGirl.create(:employee, id: 9, group_id: 14)
+      FactoryGirl.create(:employee, id: 10,group_id: 14)
+
+      all = [
+        [0,1,1,0,0,0,0,0,0,0],
+        [1,0,1,0,0,0,0,0,0,0],
+        [1,1,0,1,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0,0,0,0],
+        [0,0,0,1,0,1,1,1,1,1],
+        [0,0,0,1,1,0,1,1,1,1],
+        [0,0,0,0,1,1,0,1,1,1],
+        [0,0,0,0,1,1,1,0,1,1],
+        [0,0,0,0,1,1,1,1,0,1],
+        [0,0,0,0,1,1,1,1,1,0]]
+    end
+
+    it 'result should be well formed' do
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+      expect(res.length).to eq(10)
+      expect(res.first[:id]).not_to be_nil
+      expect(res.first[:measure]).not_to be_nil
+    end
+
+    it 'employee sending only to one group should get 0' do
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+      id  = res[3][:id]
+      mes = res[3][:measure]
+      expect(id).to eq(4)
+      expect(mes).to eq(0.0)
+    end
+
+    it 'sending to more groups results in higher scores' do
+      fg_emails_from_matrix(all)
+      res1 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+      all[0][8] = 1
+      NetworkSnapshotData.delete_all
+      fg_emails_from_matrix(all)
+      res2 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+
+      expect(res1[0][:measure]).to be < res2[0][:measure]
+    end
+
+    it 'less balanced traffic has lower score' do
+      fg_emails_from_matrix(all)
+      res1 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+      all[0][2] = 2
+      NetworkSnapshotData.delete_all
+      fg_emails_from_matrix(all)
+      res2 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+
+      expect(res1[0][:measure]).to be > res2[0][:measure]
+    end
+
+    it 'increasing overall traffic proportionally ...' do
+      fg_emails_from_matrix(all)
+      res1 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+      all[0][1] = 2
+      all[0][2] = 2
+      NetworkSnapshotData.delete_all
+      fg_emails_from_matrix(all)
+      res2 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
+
+      expect(res1[0][:measure]).to eq(res2[0][:measure])
+    end
+  end
+end
