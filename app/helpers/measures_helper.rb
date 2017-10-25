@@ -60,7 +60,7 @@ module MeasuresHelper
     end
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    
+
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
     min = sqlres.min {|a,b| a['score'] <=> b['score']}['score'] if !score
@@ -156,7 +156,7 @@ module MeasuresHelper
       gids = gids.map(&:to_i)
     end
 
-    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name, 
+    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
                     AVG(z_score) as score, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
               JOIN snapshots AS s ON cds.snapshot_id = s.id
@@ -173,7 +173,7 @@ module MeasuresHelper
               ORDER BY period"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    
+
     # Find min/max for each algorithm - out of all groups for the same algorithm
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
@@ -186,14 +186,14 @@ module MeasuresHelper
         'max' => max
       }
     end
-    
+
     # Parse query result -
     # Set the score. If the min is negative - shift all scores by the absolute of the min so scores
     # start from zero.
     a_minMax.each do |a|
       sqlres.each do |entry|
         next if a['aid'] != entry['algo_id']
-        
+
         min = a['min']
         max = a['max']
         score = entry['score']

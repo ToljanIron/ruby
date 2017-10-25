@@ -444,6 +444,7 @@ module AlgorithmsHelper
     res.each do |e|
       ret << {id: e['to_employee_id'], measure: e['indeg'].to_f}
     end
+    return ret
   end
 
   ###########################################################################
