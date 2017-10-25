@@ -63,7 +63,9 @@ module MeasuresHelper
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
-    min = sqlres.min {|a,b| a['score'] <=> b['score']}['score'] if !score
+    min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
+    min = min_entry['score'] if !min_entry.nil?
+
 
     sqlres.each do |entry|
       res << {
