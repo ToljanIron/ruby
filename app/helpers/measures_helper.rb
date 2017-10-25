@@ -178,9 +178,13 @@ module MeasuresHelper
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
+<<<<<<< HEAD
       puts "+++++++++++++++++++++++++++++++++++++++++++++"
       puts "Algorith: #{aid}, entries: #{entries}"
       puts "+++++++++++++++++++++++++++++++++++++++++++++"
+=======
+      next if entries.nil? || entries.count === 0
+>>>>>>> master
       min = entries.min {|a,b| a['score'] <=> b['score']}['score']
       max = entries.max {|a,b| a['score'] <=> b['score']}['score']
       a_minMax << {
@@ -252,6 +256,7 @@ module MeasuresHelper
     a_minMax = []
     DYNAMICS_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
+      next if entries.nil? || entries.count === 0
       min = entries.min {|a,b| a['score'] <=> b['score']}['score']
       max = entries.max {|a,b| a['score'] <=> b['score']}['score']
       a_minMax << {
@@ -347,6 +352,7 @@ module MeasuresHelper
     a_minMax = []
     INTERFACES_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
+      next if entries.nil? || entries.count === 0
       min = entries.min {|a,b| a['score'] <=> b['score']}['score']
       max = entries.max {|a,b| a['score'] <=> b['score']}['score']
       a_minMax << {
@@ -408,6 +414,7 @@ module MeasuresHelper
     a_minMax = []
     INTERFACES_AIDS.each do |aid|
       entries = sqlres.select{|s| s['algo_id']===aid}
+      next if entries.nil? || entries.count === 0
       min = entries.min {|a,b| a['score'] <=> b['score']}['score']
       max = entries.max {|a,b| a['score'] <=> b['score']}['score']
       a_minMax << {
