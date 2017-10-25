@@ -99,7 +99,6 @@ module CalculateMeasureForCustomDataSystemHelper
 
     curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart, aids)
     prevscores = prevsid.nil? ? nil : cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
-    prevscores = prevscores.length == 0 ? nil : prevscores
 
     res = collect_cur_and_prev_results(curscores, prevscores)
     res = format_scores(res)
