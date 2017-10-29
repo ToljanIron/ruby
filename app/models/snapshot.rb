@@ -100,6 +100,14 @@ class Snapshot < ActiveRecord::Base
     snapshot.delete
   end
 
+  def self.most_recent_snapshot(sids)
+    snapshot = Snapshot.find(sids)
+    raise "Snapshots: #{sids} not found" if snapshot.nil?
+    return Snapshot.where(id: sids).order(:timestamp).last
+  end
+
+
+
   ######################## Intervals ####################
 
   def get_month

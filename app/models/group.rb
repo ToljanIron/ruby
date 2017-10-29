@@ -206,7 +206,7 @@ class Group < ActiveRecord::Base
   def self.find_groups_in_snapshot(gids, sid)
     return [] if gids.length == 0
     sqlstr = "
-      SELECT yg.id, yg.name, yg.external_id
+      SELECT yg.id, yg.name, yg.external_id, yg.snapshot_id
       FROM groups AS xg
       JOIN groups AS yg on xg.external_id = yg.external_id
       WHERE
