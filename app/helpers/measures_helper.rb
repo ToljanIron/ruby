@@ -6,8 +6,7 @@ module MeasuresHelper
 
   # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions 
   # 130 - Bottlenecks
-  # DYNAMICS_AIDS = [100, 101, 114, 130]
-  DYNAMICS_AIDS = [101]
+  DYNAMICS_AIDS = [100, 101, 114, 130]
 
   INTERFACES_AIDS = [709, 710]
 
@@ -178,7 +177,7 @@ module MeasuresHelper
     
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 
-    return append_min_max_values_from_array(a_min_max, sqlres, groups, true)
+    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, groups, true)
   end
 
   def get_dynamics_scores_for_offices(cid, sids, interval_type)
@@ -205,7 +204,7 @@ module MeasuresHelper
     
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 
-    return append_min_max_values_from_array(a_min_max, sqlres, [], false)
+    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, [], false)
   end
 
   def get_dynamics_employee_scores_from_helper(cid, sids, current_gids, interval_type, aggregator_type)
@@ -232,8 +231,8 @@ module MeasuresHelper
     # Interval larger than month - need to find latest sid - so we can display updated group names
     groups = get_groups_for_most_recent_snapshot(sids, groups) if interval_type != 1
 
-    sqlstr =  "SELECT concat(emps.first_name, ' ', emps.last_name) AS employee_name, g.external_id AS group_name, 
-                off.name AS office_name, mn.name AS metric_name,
+    sqlstr =  "SELECT concat(emps.first_name, ' ', emps.last_name) AS employee_name,
+                g.external_id AS group_name, off.name AS office_name, mn.name AS metric_name,
                 algo.id AS aid, AVG(cds.z_score) as score, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
               JOIN snapshots AS s ON s.id = cds.snapshot_id
@@ -252,7 +251,7 @@ module MeasuresHelper
               ORDER BY employee_name"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-
+    
     sqlres.each do |entry|
       group = groups.find{|g| g['external_id'] === entry['group_name']}
       entry['group_name'] = group['name'] if !group.nil?
@@ -439,7 +438,7 @@ module MeasuresHelper
     res = res.map {|r| r['sid']}
     return res
   end
-
+  
   def get_groups_for_most_recent_snapshot(sids, groups)
     most_recent_snapshot = Snapshot.most_recent_snapshot(sids)
     return groups.select{|g| g['snapshot_id'] === most_recent_snapshot['id']}
@@ -465,7 +464,7 @@ module MeasuresHelper
   # Parse query result -
   # Set the score. If the min is negative - shift all scores by the absolute of the min so scores
   # start from zero.
-  def append_min_max_values_from_array(a_min_max, rows, groups, is_department_scores)
+  def shift_and_append_min_max_values_from_array(a_min_max, rows, groups, is_department_scores)
     res = []
     
     a_min_max.each do |a|
@@ -479,7 +478,8 @@ module MeasuresHelper
         h = {
           'algoName'    => entry['algo_name'],
           'aid'         => entry['algo_id'],
-          'time_period' => entry['period']
+          'time_period' => entry['period'],
+          'original_score' => entry['score']
         }
 
         if (is_department_scores)
