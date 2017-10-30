@@ -207,6 +207,7 @@ Workships::Application.routes.draw do
   get 'v3/get_collaboration_stats'           ,to: 'measures#get_dynamics_stats'
   get 'v3/get_dynamics_time_picker_data'     ,to: 'measures#get_dynamics_time_picker_data'
   get 'v3/get_dynamics_scores'               ,to: 'measures#get_dynamics_scores'
+  get 'v3/get_dynamics_employee_scores'      ,to: 'measures#get_dynamics_employee_scores'
 
   # Interfaces
   get 'v3/get_interfaces_time_picker_data'     ,to: 'measures#get_interfaces_time_picker_data'

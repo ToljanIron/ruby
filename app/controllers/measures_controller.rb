@@ -508,6 +508,7 @@ class MeasuresController < ApplicationController
     interval_type = params[:interval_type].to_i
     
     res = get_group_densities(cid, sids, gids, interval_type)
+    # res = {first: '1', second: '2'}
 
     render json: Oj.dump(res), status: 200
   end
@@ -540,6 +541,21 @@ class MeasuresController < ApplicationController
     
     res = get_dynamics_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
 
+    render json: Oj.dump(res), status: 200
+  end
+
+  def get_dynamics_employee_scores
+    authorize :measure, :index?
+
+    permitted = params.permit(:interval_type, :sids, :gids)
+
+    cid = current_user.company_id
+    interval_type = params[:interval_type].to_i
+    sids = params[:sids].split(',').map(&:to_i)
+    gids = permitted[:gids].split(',')
+    
+    res = get_dynamics_employee_scores_from_helper(cid, sids, gids, interval_type)
+    
     render json: Oj.dump(res), status: 200
   end
 
