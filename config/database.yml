@@ -12,11 +12,11 @@ development-small:
   <<: *default
   database: workships_development
 
-development-large:
+development:
   <<: *default
   database: workships_ext
 
-development:
+development-interact:
   <<: *default
   database: workships_interact
 
