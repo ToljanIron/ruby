@@ -5,6 +5,8 @@ FROM        = ENV['TWILIO_FROM_PHONE']
 account_sid = ENV['TWILIO_ACCOUNT_SID']
 auth_token  = ENV['TWILIO_AUTH_TOKEN']
 
+puts "FROM: #{FROM}"
+
 SMS_PREFIX = ',workships questionnaire is avalible at '
 VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
 
@@ -24,7 +26,6 @@ namespace :db do
         else
           questionnaire = [questionnaire]
         end
-
         questionnaire.each do |q|
           q.prepare_for_send
         end
@@ -39,35 +40,46 @@ namespace :db do
     ActiveRecord::Base.transaction do
       begin
 
-        # client = Twilio::REST::Client.new account_sid, auth_token
-        # pending_sms = SmsMessage.where(pending: true)
-        # puts 'sending sms'
-        # pending_sms.each do |sms|
-        #   next unless sms.employee && sms.employee.phone_number && sms.employee.phone_number.length == 10
-        #   sms.update(pending: false)
-        #   client.account.messages.create(
-        #       from: FROM,
-        #       to:  '+972' + sms.employee.phone_number,
-        #       body: ['hello', sms.employee.first_name, SMS_PREFIX, sms.message].join(' ')
-        #     )
-        #   sms.send_sms
-        #   ap "sent sms to #{sms.employee.phone_number}:\n\t#{sms.message}"
-        # end
-        puts 'sending emails'
-        count = 0
-        pending_emails = EmailMessage.where(pending: true)
-        questionnaire_participant_ids_for_sent = pending_emails.pluck(:questionnaire_participant_id).uniq
-        ActionMailer::Base.smtp_settings
-        pending_emails.each do |email|
-          employee = QuestionnaireParticipant.find(email.questionnaire_participant_id).employee
+        client = Twilio::REST::Client.new account_sid, auth_token
+        pending_sms = SmsMessage.where(pending: true)
+        puts 'sending sms'
+        pending_sms.each do |sms|
+          puts "working on: #{sms.id}"
+          qp = sms.questionnaire_participant
+          next unless qp
+          emp = qp.employee
+          next unless emp
+          phone_number = emp.phone_number
+          next unless phone_number
+          phone_number = phone_number.gsub('-','')
+          next unless phone_number.match(/^\d{10}$/)
 
-          # ExampleMailer.sample_email(email).deliver if VALID_EMAIL_REGEX.match employee.email
-          email.send_email
-          # puts "\n\nWARNING: EMail will not be sent. Check MAILER_ENABLED env var\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
 
-          count += 1
-          ap "[#{count}] sent email to #{email.questionnaire_participant.employee.email}: #{email.message}"
+          sms.update(pending: false)
+          client.account.messages.create(
+              from: FROM,
+              to:  '+972' + phone_number,
+              body: ['hello', emp.first_name, SMS_PREFIX, sms.message].join(' ')
+            )
+          sms.send_sms
+          ap "   sent sms with message: #{sms.message}"
         end
+
+        if false
+          puts 'sending emails'
+          count = 0
+          pending_emails = EmailMessage.where(pending: true)
+          questionnaire_participant_ids_for_sent = pending_emails.pluck(:questionnaire_participant_id).uniq
+          ActionMailer::Base.smtp_settings
+          pending_emails.each do |email|
+            employee = QuestionnaireParticipant.find(email.questionnaire_participant_id).employee
+            # ExampleMailer.sample_email(email).deliver if VALID_EMAIL_REGEX.match employee.email
+            email.send_email
+            count += 1
+            ap "[#{count}] sent email to #{email.questionnaire_participant.employee.email}: #{email.message}"
+          end
+        end
+
         questionnaire_sent_id = QuestionnaireParticipant.where(id: questionnaire_participant_ids_for_sent).pluck(:questionnaire_id).uniq
         Questionnaire.where(id: questionnaire_sent_id).each do |q|
           q.state = :sent

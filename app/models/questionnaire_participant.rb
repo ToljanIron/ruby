@@ -3,6 +3,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
   belongs_to :employee
   belongs_to :questionnaire
   has_many :question_replies
+  has_one :sms_message
 
   BIG_NUMBER = 1000
 
@@ -174,49 +175,6 @@ class QuestionnaireParticipant < ActiveRecord::Base
   def reset_questionnaire
     update(current_questiannair_question_id: nil, status: 0)
     QuestionReply.where(questionnaire_id: questionnaire_id, questionnaire_participant_id: id).delete_all
-  end
-
-  def self.participant_report(sid, emp_id, qid)
-    emp_extid = Employee.find(emp_id).external_id
-    qemp = Employee.where(snapshot_id: sid, external_id: emp_extid).first
-    qemp_gid = qemp.group_id
-    qemp_id  = qemp.id
-    qpid     = QuestionnaireParticipant.where(employee_id: qemp_id).last.id
-    nn = NetworkName.find(QuestionnaireQuestion.find(qid).network_id).name
-
-    puts "\nSummary data:"
-    puts "  EID in survey: #{qemp_id}"
-    puts "  GID in survey: #{qemp_gid}"
-    puts "  Email: #{qemp.email}"
-    puts "  QPID: #{qpid}"
-    puts 
-
-    fromemp_res = QuestionReply
-                  .where(questionnaire_question_id: qid, questionnaire_participant_id: qpid)
-                  .pluck(:reffered_questionnaire_participant_id)
-    puts "\n========================="
-    puts "Emp pointed at the following fellows for network: #{nn}\n"
-
-    fromemp_res.each do |toqpid|
-      emp = Employee.find(QuestionnaireParticipant.find(toqpid).employee_id)
-      puts " --> #{emp.email.split('@')[0]},\t\t group: #{emp.group.english_name}"
-    end
-    puts "========================="
-
-
-    toemp_res = QuestionReply
-                  .where(questionnaire_question_id: qid, reffered_questionnaire_participant_id: qpid)
-                  .pluck(:questionnaire_participant_id)
-    puts "\n========================="
-    puts "Emp was  pointed to by the following fellows for network: #{nn}\n"
-
-    toemp_res.each do |fromqpid|
-      emp = Employee.find(QuestionnaireParticipant.find(fromqpid).employee_id)
-      puts " <-- #{emp.email.split('@')[0]},\t\t group: #{emp.group.english_name}"
-    end
-    puts "========================="
-
-    return "======================="
   end
 
   private

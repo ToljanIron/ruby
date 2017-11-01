@@ -129,13 +129,13 @@ module ImportDataHelper
     return d.strftime("%Y-%m-%d")
   end
 
-  def process_xls_employee(parsed, company_id, csv_line, csv_line_number)    
+  def process_xls_employee(parsed, company_id, csv_line, csv_line_number)
 
-    puts "Warning: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number}, 
+    puts "Warning: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number},
     should be #{VALID_EMPLOYEE_CSV_LINE_SIZE} - will proceed anyway.\n*This warning can heppen also
     when there are empty cells at the end of each row. This is something with excel - it sometimes
     considers empty cells to be included in the sheet." unless parsed.length == VALID_EMPLOYEE_CSV_LINE_SIZE
-    
+
     employee_context = EmployeeLineProcessingContext.new(csv_line, csv_line_number, company_id)
     email = parsed[4]
     return nil if (email.nil?)
@@ -143,7 +143,7 @@ module ImportDataHelper
     begin
       external_id = format_string(parsed[0])
       first_name = safe_titleize(parsed[1])
-      middle_name = safe_titleize(parsed[2])
+      middle_name = safe_titleize(parsed[2]) if !parsed[2].nil?
       last_name = safe_titleize(parsed[3])
       email = format_string(email.downcase)
       role = format_string(parsed[6])
@@ -158,7 +158,8 @@ module ImportDataHelper
       pos = format_string(parsed[16])
       group_name = safe_titleize(parsed[17])
       id_number = format_string(parsed[18])
-      del = is_delete?(parsed[19])
+      phone_number = format_string(parsed[19])
+      del = is_delete?(parsed[20])
 
       employee_context.attrs.merge!(
         company_id:       company_id,
@@ -181,6 +182,7 @@ module ImportDataHelper
         position_scope:   pos,
         group_name:       group_name,
         id_number:        id_number,
+        phone_number:     phone_number,
         delete:           del
       )
     rescue => e
@@ -196,7 +198,7 @@ module ImportDataHelper
     date = parsed[4] || Time.now
     date = date.strftime('%Y-%m-%d')
     name = safe_titleize(parsed[1])
-    english_name = safe_titleize(format_string(parsed[5]))
+    english_name = format_string(parsed[5])
     group_context = GroupLineProcessingContext.new(csv_line, csv_line_number, company_id)
     group_context.attrs.merge!(
       company_id: company_id,

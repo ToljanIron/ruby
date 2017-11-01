@@ -8,17 +8,25 @@ default: &default
   password: <%= ENV['POSTGRES_PASSWORD'] || 'postgres' %>
   timeout: 5000
 
-development-bogit:
+development-small:
   <<: *default
   database: workships_development
 
-development:
+development-large:
   <<: *default
   database: workships_ext
 
-test:
+development:
+  <<: *default
+  database: workships_interact
+
+test_new:
   <<: *default
   database: workships_test
+
+test:
+  <<: *default
+  database: workships_test_old
 
 test-sqlserver:
   mode: dblib

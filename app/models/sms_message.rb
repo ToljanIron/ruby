@@ -1,5 +1,5 @@
 class SmsMessage < ActiveRecord::Base
-  belongs_to :employee
+  belongs_to :questionnaire_participant
 
   def mark_as_pending
     self.pending = true
