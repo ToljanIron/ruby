@@ -45,4 +45,26 @@ describe CompanyConfigurationTable, type: :model do
       expect( CompanyConfigurationTable::should_display_emails? ).to be_falsy
     end
   end
+
+  describe 'display_field_in_questionnaire'do
+    it 'shoud return "role"' do
+      CompanyConfigurationTable.create(key: CompanyConfigurationTable::DISPLAY_FIELD_IN_QUESTIONNAIRE, value: 'role', comp_id: -1)
+      expect( CompanyConfigurationTable.display_field_in_questionnaire ).to eq('role')
+    end
+
+    it 'should return "job_title"' do
+      CompanyConfigurationTable.create(key: CompanyConfigurationTable::DISPLAY_FIELD_IN_QUESTIONNAIRE, value: 'job_title', comp_id: -1)
+      expect( CompanyConfigurationTable.display_field_in_questionnaire ).to eq('job_title')
+    end
+
+    it 'should return "role" by default' do
+      expect( CompanyConfigurationTable.display_field_in_questionnaire ).to eq('role')
+    end
+
+    it 'should throw and exception if illeagl value in key' do
+      CompanyConfigurationTable.create(key: CompanyConfigurationTable::DISPLAY_FIELD_IN_QUESTIONNAIRE, value: 'qqq', comp_id: -1)
+      expect { CompanyConfigurationTable.display_field_in_questionnaire }.to raise_error(RuntimeError)
+      #expect { CompanyConfigurationTable.display_field_in_questionnaire }.to raise_error('Value: qq is not permitted for key: display_field_in_questionnaire')
+    end
+  end
 end

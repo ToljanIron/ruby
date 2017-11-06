@@ -31,14 +31,22 @@ module Mobile::EmployeesHelper
     query = "select emp.id as id,
             (#{CdsUtilHelper.sql_concat('emp.first_name', 'emp.last_name')}) as name,
             emp.img_url as image_url,
-            roles.name as role,
+            #{role_origin_field} as role,
             qp.id as qp_id
             from employees as emp
             left join questionnaire_participants as qp on qp.employee_id = emp.id
             left join roles on emp.role_id = roles.id
+            left join job_titles on emp.job_title_id = job_titles.id
             where qp.id in (#{qp_ids.join(',')})"
     res = ActiveRecord::Base.connection.select_all(query)
     res = res.to_json
     return res
+  end
+
+  def role_origin_field
+    field_name =  CompanyConfigurationTable.display_field_in_questionnaire
+    field_name = 'roles.name' if field_name == 'role'
+    field_name = 'job_titles.name' if field_name == 'job_title'
+    return field_name
   end
 end

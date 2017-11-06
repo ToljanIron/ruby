@@ -5,6 +5,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
   DEFAULT_LOCALE     = 'en'
   INVESTIGATION_MODE = 'INVESTIGATION_MODE'
   DISPLAY_EMAILS     = 'DISPLAY_EMAILS'
+  DISPLAY_FIELD_IN_QUESTIONNAIRE = 'display_field_in_questionnaire'
 
   belongs_to :company, foreign_key: 'comp_id'
 
@@ -37,5 +38,15 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return false if entry.first.nil?
     ret = entry.first.value
     return (ret == 'true' || ret == 't')
+  end
+
+  def self.display_field_in_questionnaire
+    ret = 'role'
+    entry = CompanyConfigurationTable.where(comp_id: -1, key: DISPLAY_FIELD_IN_QUESTIONNAIRE)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    ret = entry.first.value
+    raise "Value: #{ret} is not permitted for key: #{DISPLAY_FIELD_IN_QUESTIONNAIRE}" if ret != 'role' && ret != 'job_title'
+    return ret
   end
 end

@@ -5,9 +5,7 @@ FROM        = ENV['TWILIO_FROM_PHONE']
 account_sid = ENV['TWILIO_ACCOUNT_SID']
 auth_token  = ENV['TWILIO_AUTH_TOKEN']
 
-puts "FROM: #{FROM}"
-
-SMS_PREFIX = ',workships questionnaire is avalible at '
+SMS_PREFIX = ',StepAhead questionnaire is avalible at the link below: '
 VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
 
 namespace :db do
@@ -59,7 +57,7 @@ namespace :db do
           client.account.messages.create(
               from: FROM,
               to:  '+972' + phone_number,
-              body: ['hello', emp.first_name, SMS_PREFIX, sms.message].join(' ')
+              body: ['Hello', emp.first_name, SMS_PREFIX, sms.message].join(' ')
             )
           sms.send_sms
           ap "   sent sms with message: #{sms.message}"
