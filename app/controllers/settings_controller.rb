@@ -50,4 +50,13 @@ class SettingsController < ApplicationController
     company.update_security_settings(session_timeout, password_update_time_interval, max_login_attempts, required_password_chars)
     head :ok
   end
+
+  def get_config_params
+    authorize :setting, :index?
+    ret = {
+      incomingEmailToTime: CompanyConfigurationTable.incoming_email_to_time,
+      outgoingEmailToTime: CompanyConfigurationTable.outgoing_email_to_time
+    }
+    render json: ret, statatus: 200
+  end
 end

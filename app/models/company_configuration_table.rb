@@ -7,6 +7,11 @@ class CompanyConfigurationTable < ActiveRecord::Base
   DISPLAY_EMAILS     = 'DISPLAY_EMAILS'
   DISPLAY_FIELD_IN_QUESTIONNAIRE = 'display_field_in_questionnaire'
 
+  INCOMING_EMAIL_TO_TIME_DEFAULT = 0.05
+  OUTGOING_EMAIL_TO_TIME_DEFAULT = 0.25
+  INCOMING_EMAIL_TO_TIME_KEY = 'INCOMING_EMAIL_TO_TIME_KEY'
+  OUTGOING_EMAIL_TO_TIME_KEY = 'OUTGOING_EMAIL_TO_TIME_KEY'
+
   belongs_to :company, foreign_key: 'comp_id'
 
   def self.get_company_locale(cid=-1)
@@ -48,5 +53,21 @@ class CompanyConfigurationTable < ActiveRecord::Base
     ret = entry.first.value
     raise "Value: #{ret} is not permitted for key: #{DISPLAY_FIELD_IN_QUESTIONNAIRE}" if ret != 'role' && ret != 'job_title'
     return ret
+  end
+
+  def self.incoming_email_to_time
+    ret = INCOMING_EMAIL_TO_TIME_DEFAULT
+    entry = CompanyConfigurationTable.where(comp_id: -1, key: INCOMING_EMAIL_TO_TIME_KEY)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value
+  end
+
+  def self.outgoing_email_to_time
+    ret = OUTGOING_EMAIL_TO_TIME_DEFAULT
+    entry = CompanyConfigurationTable.where(comp_id: -1, key: OUTGOING_EMAIL_TO_TIME_KEY)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value
   end
 end
