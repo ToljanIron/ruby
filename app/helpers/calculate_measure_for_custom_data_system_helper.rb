@@ -32,8 +32,9 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_employees_emails_scores_by_groups_and_offices(cid, gids, sid)
+    scale = CompanyConfigurationTable.incoming_email_to_time
     ret = CdsMetricScore
-            .select("score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
+            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
             .from('cds_metric_scores AS cds')
             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
             .joins('JOIN groups AS g ON g.id = cds.group_id')
@@ -49,8 +50,9 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_employees_emails_scores_by_causes(cid, gids, sid)
     groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+    scale = CompanyConfigurationTable.incoming_email_to_time
     ret = CdsMetricScore
-            .select("score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
+            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
             .from('cds_metric_scores AS cds')
             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
             .joins('JOIN groups AS g ON g.id = cds.group_id')
@@ -67,8 +69,9 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_avg_hours_per_employee(cid, gids, sid)
     groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+    scale = CompanyConfigurationTable.incoming_email_to_time
     ret = CdsMetricScore
-            .select(:score)
+            .select("score * #{scale} AS acore")
             .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
             .joins('JOIN groups AS g ON g.id = emp.group_id')
             .where(snapshot_id: sid, algorithm_id: EMAILS_VOLUME)
@@ -85,7 +88,8 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_email_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
     aids = [700, 701, 702, 703, 704, 705, 706, 707, 708]
-    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+    ret = get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+    return ret
   end
 
   def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
@@ -107,6 +111,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def format_scores(email_scores)
     res = []
+    scale = CompanyConfigurationTable.incoming_email_to_time
     email_scores.each do |e|
       res << {
         gid: e['gid'],
@@ -114,9 +119,9 @@ module CalculateMeasureForCustomDataSystemHelper
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
-        curScore: e['cursum'].to_f,
+        curScore: e['cursum'].to_f * scale,
         curNum: e['curnum'].to_i,
-        prevScore: e['prevsum'].to_f,
+        prevScore: e['prevsum'].to_f * scale,
         prevNum: e['prevnum'].to_i
       }
     end
