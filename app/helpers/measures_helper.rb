@@ -4,9 +4,9 @@ module MeasuresHelper
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
 
-  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions 
+  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions
   # 130 - Bottlenecks
-  DYNAMICS_AIDS = [100, 101, 114, 130]
+  DYNAMICS_AIDS = [203, 204, 205, 206]
 
   INTERFACES_AIDS = [709, 710]
 
@@ -14,7 +14,8 @@ module MeasuresHelper
   TIME_SPENT_IN_MEETINGS_AID = 806
 
   def get_emails_volume_scores(cid, sids, current_gids, interval_type)
-    return get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID)
+    ret = get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID)
+    return ret
   end
 
   def get_time_spent_in_meetings(cid, sids, current_gids, interval_type)
@@ -40,14 +41,16 @@ module MeasuresHelper
       gids = get_relevant_group_ids(sids, current_gids)
     end
 
-    sqlstr = "SELECT AVG(#{score_str}) as score, s.month, s.#{interval_str} as period
-              FROM cds_metric_scores
-              JOIN snapshots AS s ON snapshot_id = s.id
+    sqlstr = "SELECT AVG(#{score_str}) AS score, s.month, s.#{interval_str} AS period
+              FROM cds_metric_scores AS cds
+              JOIN employees AS emps ON emps.id = cds.employee_id
+              JOIN groups AS g ON g.id = emps.group_id
+              JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
-                snapshot_id IN (#{sids.join(',')}) AND
-                group_id IN (#{gids.join(',')}) AND
-                algorithm_id = #{aid}
-              GROUP BY snapshot_id, s.month, s.timestamp, period
+                cds.snapshot_id IN (#{sids.join(',')}) AND
+                g.id IN (#{gids.join(',')}) AND
+                cds.algorithm_id = #{aid}
+              GROUP BY cds.snapshot_id, s.month, s.timestamp, period
               ORDER BY s.timestamp ASC"
 
     # If query is for time period other than month - average over months. Wrap above query.

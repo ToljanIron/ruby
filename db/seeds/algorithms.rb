@@ -55,3 +55,11 @@ Algorithm.find_or_create_by!(id: 310, name: 'external_senders_measure', algorith
 ############## Interact ####################
 Algorithm.find_or_create_by!(id: 601, name: 'interact_indegree',  algorithm_type_id: 8, algorithm_flow_id: 1)
 Algorithm.find_or_create_by!(id: 602, name: 'interact_outdegree', algorithm_type_id: 8, algorithm_flow_id: 1)
+
+
+###############################################################################################
+# Values verification section
+###############################################################################################
+
+############# use_group_context ############
+Algorithm.where('id >= 700 and id < 900').update_all(use_group_context: false)

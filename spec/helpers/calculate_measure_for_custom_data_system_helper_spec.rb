@@ -408,6 +408,42 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
       expect(res.length).to eq(8)
     end
   end
+
+  describe 'get_email_total_time_spent_from_helper' do
+    before do
+      generate_data_for_acme
+      FactoryGirl.create(:algorithm, id: 707, name: 'email traffic', algorithm_type_id: 1, algorithm_flow_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 1, employee_id: @emp1, group_id: @g1, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 2, score: 2, employee_id: @emp1, group_id: @g3, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g3, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g3, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g4, company_metric_id: 7, company_id: 1)
+      CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g4, company_metric_id: 7, company_id: 1)
+    end
+
+    after do
+      DatabaseCleaner.clean_with(:truncation)
+      FactoryGirl.reload
+    end
+
+    it 'should return result with timeSpent and a diff' do
+      ret = get_email_total_time_spent_from_helper(1)
+      expect(ret[:timeSpent]).to eq(20.0)
+      expect(ret[:timeSpentDiff]).to eq(33.0)
+    end
+
+    it 'should retun timeSpentDiff of 0 if there is only one snapshot' do
+      Snapshot.find(1).delete
+      CdsMetricScore.where(snapshot_id: 1).delete_all
+      ret = get_email_total_time_spent_from_helper(1)
+      expect(ret[:timeSpentDiff]).to eq(0.0)
+    end
+
+  end
 end
 
 def generate_data_for_acme

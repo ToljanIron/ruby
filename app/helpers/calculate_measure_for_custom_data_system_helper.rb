@@ -25,6 +25,30 @@ module CalculateMeasureForCustomDataSystemHelper
 
   NA = -1000000
 
+  def get_email_total_time_spent_from_helper(cid)
+    currsid = Snapshot.last_snapshot_of_company(cid)
+    curr_snapshot = Snapshot.find(currsid)
+    last_snapshot = curr_snapshot.get_the_snapshot_before_the_last_one
+    lastsid = last_snapshot.nil? ? -1 : last_snapshot.id
+
+    snapshots_list = lastsid == -1 ? [currsid] : [currsid, lastsid]
+
+    ret = CdsMetricScore
+            .select('snapshot_id, SUM(score) AS sum')
+            .where(snapshot_id: snapshots_list, algorithm_id: 707)
+            .group(:snapshot_id)
+            .order('snapshot_id DESC')
+
+    if ret.length == 2
+      currscore = ret[0][:sum].to_f
+      lastscore = ret[1][:sum].to_f
+      diff = ((currscore - lastscore) / lastscore).round(2) * 100
+    else
+      diff = 0.0
+    end
+    scale = CompanyConfigurationTable.incoming_email_to_time
+    return {size: currscore * scale, diff: diff}
+  end
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
     return get_employees_emails_scores_by_groups_and_offices(cid, gids, sid) if (agg_method == 'group_id' || agg_method == 'office_id')
@@ -34,10 +58,12 @@ module CalculateMeasureForCustomDataSystemHelper
   def get_employees_emails_scores_by_groups_and_offices(cid, gids, sid)
     scale = CompanyConfigurationTable.incoming_email_to_time
     ret = CdsMetricScore
-            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
+            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name,
+                     emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name,
+                     mn.name AS metric_name, emps.id AS eid")
             .from('cds_metric_scores AS cds')
             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
-            .joins('JOIN groups AS g ON g.id = cds.group_id')
+            .joins('JOIN groups AS g ON g.id = emps.group_id')
             .joins('JOIN offices AS o ON o.id = emps.office_id')
             .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
             .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
@@ -52,10 +78,12 @@ module CalculateMeasureForCustomDataSystemHelper
     groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
     scale = CompanyConfigurationTable.incoming_email_to_time
     ret = CdsMetricScore
-            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name, emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name, mn.name AS metric_name, emps.id AS eid")
+            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name,
+                     emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name,
+                     mn.name AS metric_name, emps.id AS eid")
             .from('cds_metric_scores AS cds')
             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
-            .joins('JOIN groups AS g ON g.id = cds.group_id')
+            .joins('JOIN groups AS g ON g.id = emps.group_id')
             .joins('JOIN offices AS o ON o.id = emps.office_id')
             .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
             .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
@@ -136,13 +164,15 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart, aids)
     sqlstr = "
-      SELECT sum(cds.score) AS sum, count(cds.score) AS num, cds.group_id, g.name AS group_name, g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name, emps.office_id, off.name AS office_name
+      SELECT sum(cds.score) AS sum, count(cds.score) AS num, g.id as group_id, g.name AS group_name,
+             g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name,
+             emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
-      JOIN groups AS g ON g.id = cds.group_id
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN groups AS g ON g.id = emps.group_id
       JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
       JOIN algorithms AS al ON al.id = cm.algorithm_id
       INNER JOIN metric_names AS mn ON mn.id = cm.metric_id
-      JOIN employees AS emps ON emps.id = cds.employee_id
       INNER JOIN offices AS off ON off.id = emps.office_id
       WHERE
         #{group_wherepart} AND
@@ -152,7 +182,7 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.company_id = #{cid} AND
         cds.score > #{NA} AND
         cds.algorithm_id IN (#{aids.join(',')})
-      GROUP BY cds.group_id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
+      GROUP BY g.id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret
@@ -196,15 +226,16 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def calculate_group_top_scores(cid, sid, gids, aids)
     sqlstr = "
-      SELECT sum(score) AS sum, group_id
+      SELECT sum(score) AS sum, g.id AS group_id
       FROM cds_metric_scores AS cds
-      JOIN groups AS g ON g.id = cds.group_id
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN groups AS g ON g.id = emps.group_id
       where
         g.id IN (#{gids.join(',')}) AND
         cds.snapshot_id = #{sid} AND
         cds.company_id = #{cid} AND
         cds.algorithm_id IN (#{aids.join(',')})
-      GROUP BY group_id
+      GROUP BY g.id
       ORDER BY sum DESC
       LIMIT 10"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash

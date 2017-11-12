@@ -468,10 +468,19 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
+  ## API for getting total time spent in the entire company
+  ## for the latest snapshot
+  def get_email_total_time_spent
+    authorize :snapshot, :index?
+    cid = current_user.company_id
+    res = get_email_total_time_spent_from_helper(cid)
+    render json: Oj.dump(res)
+  end
+
   def get_emails_time_picker_data
     authorize :snapshot, :index?
 
-    permitted = params.permit(:sids, :gids, :interval_type)
+    params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
     sids = params[:sids].split(',').map(&:to_i)
     gids = params[:gids].split(',')
@@ -485,13 +494,13 @@ class MeasuresController < ApplicationController
 
   def get_meetings_time_picker_data
     authorize :snapshot, :index?
-    
+
     permitted = params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
     sids = params[:sids].split(',').map(&:to_i)
     gids = params[:gids].split(',')
     interval_type = params[:interval_type].to_i
-    
+
     res = get_time_spent_in_meetings(cid, sids, gids, interval_type)
     res = Oj.dump(res)
 
@@ -506,7 +515,7 @@ class MeasuresController < ApplicationController
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     interval_type = params[:interval_type].to_i
-    
+
     res = get_group_densities(cid, sids, gids, interval_type)
     # res = {first: '1', second: '2'}
 
@@ -522,9 +531,9 @@ class MeasuresController < ApplicationController
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     interval_type = params[:interval_type].to_i
-    
+
     res = get_dynamics_stats_from_helper(cid, sids, gids, interval_type)
-    
+
     render json: Oj.dump(res), status: 200
   end
 
@@ -538,7 +547,7 @@ class MeasuresController < ApplicationController
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
-    
+
     res = get_dynamics_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
 
     render json: Oj.dump(res), status: 200
@@ -553,9 +562,9 @@ class MeasuresController < ApplicationController
     interval_type = params[:interval_type].to_i
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
-    
+
     res = get_dynamics_employee_scores_from_helper(cid, sids, gids, interval_type)
-    
+
     render json: Oj.dump(res), status: 200
   end
 
@@ -567,7 +576,7 @@ class MeasuresController < ApplicationController
     sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     interval_type = params[:interval_type].to_i
-    
+
     # FIX ME - this controller returns the same data as dynamics - this is just for mocking 
     # the time picker in the interfaces tab - Michael - 22.10.17
     res = get_group_densities(cid, sids, gids, interval_type)
