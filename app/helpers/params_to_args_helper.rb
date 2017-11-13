@@ -94,7 +94,7 @@ module ParamsToArgsHelper
     return CdsUtilHelper.read_or_calculate_and_write(key) do
       return AlgorithmsHelper.external_senders_measure(args[:snapshot_id], args[:gid], args[:pid])
     end
-  end  
+  end
 
   def self.closeness_level_gauge(args)
     key = "closeness_level_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
@@ -112,8 +112,15 @@ module ParamsToArgsHelper
     end
   end
 
+  def self.avg_number_of_recipients(args)
+    key = "avg_number_of_recipients_#{args[:snapshot_id]}-#{args[:pid]}_#{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.avg_number_of_recipients(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
   ########################## Meetings ##########################
-  
+
   def self.in_the_loop_measure(args)
     key = "in_the_loop_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"

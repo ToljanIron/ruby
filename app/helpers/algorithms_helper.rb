@@ -500,6 +500,27 @@ module AlgorithmsHelper
     return ret
   end
 
+  def avg_number_of_recipients(sid, pid, gid)
+    cid = Snapshot.find(sid).company_id
+    nid = NetworkSnapshotData.emails(cid)
+
+    sqlstr =
+      "SELECT from_employee_id, AVG(agg.sum) AS avg FROM
+         (SELECT from_employee_id, message_id, SUM(value) as sum
+          FROM network_snapshot_data
+          WHERE
+            snapshot_id = #{sid} AND
+            network_id = #{nid}
+          GROUP BY from_employee_id, message_id) AS agg
+       GROUP BY from_employee_id"
+     res = ActiveRecord::Base.connection.select_all(sqlstr)
+     ret = []
+     res.each do |e|
+       ret << {id: e[from_employee_id], measure: e['avg'].to_f.round(3)}
+     end
+     return ret
+  end
+
   ###########################################################################
   ##
   ## Non-reciprocity is high for employees who tend to say be connected to

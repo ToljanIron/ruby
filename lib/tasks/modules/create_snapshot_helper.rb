@@ -73,7 +73,7 @@ module CreateSnapshotHelper
     if !company_period_of_weeks.nil?
       company_period_of_weeks = company_period_of_weeks.value
     else
-      company_period_of_weeks = 4
+      company_period_of_weeks = 1
     end
     return company_period_of_weeks
   end
