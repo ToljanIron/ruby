@@ -25,29 +25,43 @@ module CalculateMeasureForCustomDataSystemHelper
 
   NA = -1000000
 
-  def get_email_total_time_spent_from_helper(cid)
-    currsid = Snapshot.last_snapshot_of_company(cid)
+  def get_email_stats_from_helper(gids, sid)
+    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+    scale = CompanyConfigurationTable.incoming_email_to_time
+
+    ## Handle snapshots
+    currsid = sid
     curr_snapshot = Snapshot.find(currsid)
     last_snapshot = curr_snapshot.get_the_snapshot_before_the_last_one
     lastsid = last_snapshot.nil? ? -1 : last_snapshot.id
-
     snapshots_list = lastsid == -1 ? [currsid] : [currsid, lastsid]
 
     ret = CdsMetricScore
-            .select('snapshot_id, SUM(score) AS sum')
-            .where(snapshot_id: snapshots_list, algorithm_id: 707)
+            .select('cds_metric_scores.snapshot_id,
+                     AVG(score) AS avg,
+                     SUM(score) AS sum')
+            .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
+            .joins('JOIN groups AS g ON g.id = emp.group_id')
+            .where(snapshot_id: snapshots_list, algorithm_id: EMAILS_VOLUME)
+            .where(groups_condition)
             .group(:snapshot_id)
             .order('snapshot_id DESC')
 
+    avg = ret[0][:avg].to_f.round(2)
+    currsum = ret[0][:sum].to_f
     if ret.length == 2
-      currscore = ret[0][:sum].to_f
-      lastscore = ret[1][:sum].to_f
-      diff = ((currscore - lastscore) / lastscore).round(2) * 100
+      lastsum = ret[1][:sum].to_f
+      diff = ((currsum - lastsum) / lastsum).round(2) * 100
     else
       diff = 0.0
     end
+
     scale = CompanyConfigurationTable.incoming_email_to_time
-    return {size: currscore * scale, diff: diff}
+    return {
+      avg: avg * scale,
+      sum: currsum * scale,
+      diff: diff
+    }
   end
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
@@ -92,20 +106,6 @@ module CalculateMeasureForCustomDataSystemHelper
             .where("cds.algorithm_id IN (700, 701, 702, 703, 704, 705, 706, 707, 708)")
             .order('cds.score DESC')
             .limit(20)
-    return ret
-  end
-
-  def get_avg_hours_per_employee(cid, gids, sid)
-    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
-    scale = CompanyConfigurationTable.incoming_email_to_time
-    ret = CdsMetricScore
-            .select("score * #{scale} AS acore")
-            .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
-            .joins('JOIN groups AS g ON g.id = emp.group_id')
-            .where(snapshot_id: sid, algorithm_id: EMAILS_VOLUME)
-            .where(groups_condition)
-            .average(:score)
-            .round(1)
     return ret
   end
 

@@ -389,10 +389,8 @@ class MeasuresController < ApplicationController
     res = cache_read(cache_key)
     if res.nil?
       top_scores = get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
-      avg_per_emp = get_avg_hours_per_employee(cid, gids, sid)
       res = {
         top_scores: top_scores,
-        avg_per_emp: avg_per_emp
       }
       cache_write(cache_key, res)
     end
@@ -468,12 +466,17 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  ## API for getting total time spent in the entire company
-  ## for the latest snapshot
-  def get_email_total_time_spent
+
+  ## API for getting some statistics like:
+  ##   - Total time spent in the entire company
+  ##   - Averge time spent on emails by employees
+  def get_email_stats
     authorize :snapshot, :index?
-    cid = current_user.company_id
-    res = get_email_total_time_spent_from_helper(cid)
+    params.permit(:sid, :gids)
+    sid = params[:sid]
+    gids = params[:gids].split(',')
+
+    res = get_email_stats_from_helper(gids, sid)
     render json: Oj.dump(res)
   end
 
@@ -495,7 +498,7 @@ class MeasuresController < ApplicationController
   def get_meetings_time_picker_data
     authorize :snapshot, :index?
 
-    permitted = params.permit(:sids, :gids, :interval_type)
+    params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
     sids = params[:sids].split(',').map(&:to_i)
     gids = params[:gids].split(',')

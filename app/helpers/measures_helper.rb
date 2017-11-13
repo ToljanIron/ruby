@@ -145,6 +145,7 @@ module MeasuresHelper
   end
 
   def get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
+    puts "***********************"
     groups = []
 
     interval_str = get_interval_type_string(interval_type)
@@ -160,11 +161,12 @@ module MeasuresHelper
     # Interval larger than month - need to find latest sid - so we can display updated group names
     groups = get_groups_for_most_recent_snapshot(sids, groups) if interval_type != 1
 
-    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
+    sqlstr = "SELECT g.name AS group_name, algo.id AS algo_id, mn.name AS algo_name,
                     AVG(z_score) AS score, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
               JOIN snapshots AS s ON cds.snapshot_id = s.id
-              JOIN groups AS g ON g.id = cds.group_id
+              JOIN employees AS emps ON emps.id = cds.employee_id
+              JOIN groups AS g ON g.id = emps.group_id
               JOIN algorithms AS algo ON algo.id = cds.algorithm_id
               JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
               JOIN metric_names AS mn ON mn.id = cm.metric_id
@@ -176,7 +178,14 @@ module MeasuresHelper
               GROUP BY group_name, algo_id, algo_name, period
               ORDER BY period"
 
+    puts "%%%%%%%%%%%%%%%%"
+    puts "#{sqlstr}"
+    puts "%%%%%%%%%%%%%%%%"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+
+    puts "%%%%%%%%%%%%%%%%"
+    puts sqlres.length
+    puts "%%%%%%%%%%%%%%%%"
     
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 

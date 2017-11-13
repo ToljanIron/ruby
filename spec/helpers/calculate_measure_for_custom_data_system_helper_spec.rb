@@ -409,7 +409,7 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
     end
   end
 
-  describe 'get_email_total_time_spent_from_helper' do
+  describe 'get_email_stats_from_helper' do
     before do
       generate_data_for_acme
       FactoryGirl.create(:algorithm, id: 707, name: 'email traffic', algorithm_type_id: 1, algorithm_flow_id: 1)
@@ -431,25 +431,27 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
     end
 
     it 'should return result with timeSpent and a diff' do
-      ret = get_email_total_time_spent_from_helper(1)
-      expect(ret[:timeSpent]).to eq(20.0)
-      expect(ret[:timeSpentDiff]).to eq(33.0)
+      ret = get_email_stats_from_helper([], 2)
+      expect(ret[:sum]).to eq(1.0)
+      expect(ret[:avg]).to eq(0.2)
+      expect(ret[:diff]).to eq(33.0)
     end
 
     it 'should retun timeSpentDiff of 0 if there is only one snapshot' do
       Snapshot.find(1).delete
       CdsMetricScore.where(snapshot_id: 1).delete_all
-      ret = get_email_total_time_spent_from_helper(1)
-      expect(ret[:timeSpentDiff]).to eq(0.0)
+      ret = get_email_stats_from_helper([], 2)
+      expect(ret[:sum]).to eq(1.0)
+      expect(ret[:avg]).to eq(0.2)
+      expect(ret[:diff]).to eq(0.0)
     end
-
   end
 end
 
 def generate_data_for_acme
   Company.create(id: 1, name: 'Acme')
-  FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil)
-  FactoryGirl.create(:snapshot, id: 2, snapshot_type: nil)
+  FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
+  FactoryGirl.create(:snapshot, id: 2, snapshot_type: nil, timestamp: '2017-10-08')
   AlgorithmType.create(id: 1, name: 'measure')
   FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
   FactoryGirl.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)

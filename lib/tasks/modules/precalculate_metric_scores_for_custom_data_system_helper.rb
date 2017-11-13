@@ -35,6 +35,8 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     companies = cid == NO_COMPANY ? cds_find_companies(gid, pid, sid) : Company.where(id: cid)
     fail 'No company found!' if companies.empty?
     companies.each do |c|
+      puts "##############"
+      puts "##############"
       specific_company_metrics_rows = CompanyMetric.where(company_id: c.id, active: true).all
       fail 'No company metrics found!' if companies.empty?
       specific_company_metrics_rows.each do |company_metric_row|
@@ -336,6 +338,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   end
 
   def cds_save_metric_for_structure(company_metric_row, sid, gid, pid)
+    puts "QQQQQQQQQQQQQQQQQQ 1"
     values = []
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     if gid == NO_GROUP && pid == NO_PIN
@@ -358,21 +361,28 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   end
 
   def cds_calculate_with_no_group_and_no_pin(company_metric_row, sid)
+    puts "$$$$$$$$$$$$$$$ 1"
     values = []
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     CdsMetricScore.where(snapshot_id: sid, company_metric_id: company_metric_row.id).delete_all
     if algorithm.use_group_context
+    puts "$$$$$$$$$$$$$$$ 2"
       company_groups = Group.by_snapshot(sid)
       company_groups = put_mother_group_first(company_groups)
       company_groups.each do |group|
+        puts "===> Working on group: #{group.id}"
         next if Group.find(group.id).extract_employees.empty? && !algorithm.algorithm_type_id != 1
+        puts "Calculating !!"
         values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, group.id, company_metric_row.algorithm_id)
       end
     else
+    puts "$$$$$$$$$$$$$$$ 3"
+      puts "Working without group context"
       cid = company_metric_row.company_id
       root_group_id = Group.get_root_group(cid, sid)
       values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, root_group_id, company_metric_row.algorithm_id)
     end
+    puts "$$$$$$$$$$$$$$$ 4"
     return values
   end
 
