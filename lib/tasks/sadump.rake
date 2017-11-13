@@ -7,11 +7,17 @@ namespace :db do
     ActiveRecord::Base.establish_connection(config)
 
 
-    import_to_model('./rawdata/rawdataentry_dump_0.csv', 'raw_data_entries')
-    import_to_model('./rawdata/rawdataentry_dump_1.csv', 'raw_data_entries')
-    import_to_model('./rawdata/rawdataentry_dump_2.csv', 'raw_data_entries')
-    import_to_model('./rawdata/rawdataentry_dump_3.csv', 'raw_data_entries')
-    import_to_model('./rawdata/rawdataentry_dump_4.csv', 'raw_data_entries')
+    import_to_model('./rawdataentry_dump_1.csv', 'raw_data_entries')
+    import_to_model('./rawdataentry_dump_2.csv', 'raw_data_entries')
+    import_to_model('./rawdataentry_dump_3.csv', 'raw_data_entries')
+
+    #import_to_model('./company_dump.csv', 'companies')
+    #import_to_model('./office_dump.csv', 'offices')
+    #import_to_model('./jobtitle_dump.csv', 'job_titles')
+    #import_to_model('./role_dump.csv', 'roles')
+    #import_to_model('./group_dump.csv', 'groups')
+    #import_to_model('./employee_dump.csv', 'employees')
+
     #dump_big_model(RawDataEntry, "date > '2017-01-01'", 500000)
     #dump_model(Snapshot)
     #dump_model(Company)
@@ -37,6 +43,7 @@ namespace :db do
     heading = ''
     res.first.attributes.each do |field|
       heading += "#{field[0]},"
+
     end
     heading[-1] = "\n"
     dump = heading
@@ -46,9 +53,18 @@ namespace :db do
       r.attributes.each do |field|
         val = field[1]
         if val.class == String
-          val.gsub!('"', '')
-          val = "\"#{field[1]}\""
+          val = val.gsub('"', '')
+          val = val.gsub(',', '')
+          val = val.gsub("'", '')
+          val = "\"#{val}\""
+        end
 
+        if val.class == ActiveSupport::TimeWithZone
+          val = "\"#{val}\""
+        end
+
+        if val.class == NilClass
+          val = "null"
         end
         row += "#{val},"
       end
@@ -88,6 +104,7 @@ namespace :db do
           val = field[1]
 	  if val.class == String
 	    val.gsub!('"', '')
+	    val.gsub!(',', '')
 	    val = "\"#{field[1]}\""
 	  end
 	  row += "#{val},"
@@ -125,12 +142,9 @@ namespace :db do
         sqlstr = prefix if (sqlstr.length == 0)
         line = l.strip
         line = line.gsub('"',"'")
-        line = line.gsub("',2017-", "','2017-")
-        line = line.gsub("0,2017-", "0,'2017-")
-        line = line.gsub("+0300", "+0300'")
         sqlstr += "(#{line})," if (ii > 0)
         ii += 1
-        if ((ii % 500) == 0)
+        if ((ii % 100) == 0)
           puts "writing block number: #{ii}"
           sqlstr = "#{sqlstr[0..-2]}"
           ActiveRecord::Base.connection.exec_query(sqlstr)
@@ -138,17 +152,21 @@ namespace :db do
         end
 
       rescue => e
-        error = e.message[0..1000]
+        error = e.message[0..3000]
         puts "got exception: #{error}"
         puts e.backtrace
         sqlstr = ''
       end
     end
+
+    puts "Writing last block"
+    sqlstr = "#{sqlstr[0..-2]}"
+    ActiveRecord::Base.connection.exec_query(sqlstr)
   end
 
   def create_prefix(table_name, heading)
-    heading = heading.gsub!('from', "\"from\"")
-    heading = heading.gsub!(',to,', ",\"to\",")
+    heading = heading.gsub('from', "\"from\"")
+    heading = heading.gsub(',to,', ",\"to\",")
     return "insert into #{table_name} (#{heading.strip}) values "
   end
 end
