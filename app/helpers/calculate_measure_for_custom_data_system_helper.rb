@@ -94,7 +94,7 @@ module CalculateMeasureForCustomDataSystemHelper
             .joins('JOIN offices AS o ON o.id = emps.office_id')
             .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
             .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
-            .where('cds.company_id = %s AND cds.snapshot_id = %s AND cds.group_id in (%s)', cid, sid, gids.join(','))
+            .where('cds.company_id = %s AND cds.snapshot_id = %s AND emps.group_id in (%s)', cid, sid, gids.join(','))
             .where("cds.algorithm_id IN (#{EMAILS_VOLUME})")
             .order('cds.score DESC')
             .limit(20)
