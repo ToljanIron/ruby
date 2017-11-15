@@ -22,6 +22,7 @@ module CalculateMeasureForCustomDataSystemHelper
   QUESTIONNAIRE_ONLY ||= 8
 
   EMAILS_VOLUME ||= 707
+  AVG_NUM_RECIPIENTS ||= 709
 
   NA = -1000000
 
@@ -36,14 +37,32 @@ module CalculateMeasureForCustomDataSystemHelper
     lastsid = last_snapshot.nil? ? -1 : last_snapshot.id
     snapshots_list = lastsid == -1 ? [currsid] : [currsid, lastsid]
 
+    ## get results for time spent
+    total_time_spent, time_spent_avg, time_spent_diff =
+       average_and_diff_of_scores(snapshots_list, groups_condition, EMAILS_VOLUME)
+
+    ## get results for average number of emails
+    total_recipients, num_emails_avg, num_emails_diff =
+       average_and_diff_of_scores(snapshots_list, groups_condition, AVG_NUM_RECIPIENTS)
+
+    scale = CompanyConfigurationTable.incoming_email_to_time
+    return {
+      total_time_spent: total_time_spent * scale,
+      total_time_spent_diff: time_spent_diff,
+      num_emails_avg: num_emails_avg,
+      num_emails_diff: num_emails_diff
+    }
+  end
+
+  def average_and_diff_of_scores(sids, gids, aid)
     ret = CdsMetricScore
             .select('cds_metric_scores.snapshot_id,
                      AVG(score) AS avg,
                      SUM(score) AS sum')
             .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
             .joins('JOIN groups AS g ON g.id = emp.group_id')
-            .where(snapshot_id: snapshots_list, algorithm_id: EMAILS_VOLUME)
-            .where(groups_condition)
+            .where(snapshot_id: sids, algorithm_id: aid)
+            .where(gids)
             .group(:snapshot_id)
             .order('snapshot_id DESC')
 
@@ -55,13 +74,7 @@ module CalculateMeasureForCustomDataSystemHelper
     else
       diff = 0.0
     end
-
-    scale = CompanyConfigurationTable.incoming_email_to_time
-    return {
-      avg: avg * scale,
-      sum: currsum * scale,
-      diff: diff
-    }
+    return [currsum, avg, diff]
   end
 
   def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
@@ -122,11 +135,6 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
     currtopgids = calculate_group_top_scores(cid, currsid, currgids, [EMAILS_VOLUME])
-    puts "++++++++++++++++++++++++++"
-    ap currgids
-    puts "++++++++++++++++++++++++++"
-    ap currtopgids
-    puts "++++++++++++++++++++++++++"
     prevtopgids = prevsid.nil? ? nil : Group.find_group_ids_in_snapshot(currtopgids, prevsid)
 
     curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'

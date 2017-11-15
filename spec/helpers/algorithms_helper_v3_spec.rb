@@ -245,7 +245,6 @@ describe AlgorithmsHelper, type: :helper do
       expect(bns[4][:measure]).to eq(0.137)
     end
   end
-<<<<<<< HEAD
 
   describe 'reverse_scores' do
     arr = [
@@ -260,19 +259,14 @@ describe AlgorithmsHelper, type: :helper do
       expect(res[2][:s]).to eq(0)
       expect(res[4][:s]).to eq(1)
     end
-
-
   end
-end
-=======
->>>>>>> 307-integration
 
   describe 'calculate_connectors' do
     all = nil
     nid = nil
     before do
       Company.find_or_create_by(id: 1, name: "Hevra10")
-      Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+      Snapshot.create!(id: 1, name: "2016-01", company_id: 1, timestamp: '2016-01-01 00:12:12')
       nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
 
       FactoryGirl.create(:group, id: 11, name: 'g1')
@@ -352,6 +346,59 @@ end
       res2 = AlgorithmsHelper.calculate_connectors(1, nid, 11)
 
       expect(res1[0][:measure]).to eq(res2[0][:measure])
+    end
+  end
+
+  describe 'avg_number_of_recipients' do
+    nid = nil
+    before do
+      Company.create!(id: 1, name: "Hevra10")
+      Snapshot.create!(id: 1, name: "2016-01", company_id: 1, timestamp: '2016-01-01 00:12:12')
+      nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
+      FactoryGirl.create(:employee, id: 1, group_id: 1, snapshot_id: 1)
+      FactoryGirl.create(:employee, id: 2, group_id: 1, snapshot_id: 1)
+      FactoryGirl.create(:employee, id: 3, group_id: 1, snapshot_id: 1)
+      FactoryGirl.create(:employee, id: 4, group_id: 1, snapshot_id: 1)
+
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 1, to_employee_id: 2, value: 1, message_id: "m1")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 1, to_employee_id: 3, value: 1, message_id: "m1")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 2, to_employee_id: 3, value: 1, message_id: "m2")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 2, to_employee_id: 4, value: 1, message_id: "m2")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 1, to_employee_id: 2, value: 1, message_id: "m3")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 1, to_employee_id: 3, value: 1, message_id: "m3")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 1, to_employee_id: 4, value: 1, message_id: "m3")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 3, to_employee_id: 4, value: 1, message_id: "m4")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 4, to_employee_id: 3, value: 1, message_id: "m5")
+    end
+
+    it 'should be lower than max' do
+      res = AlgorithmsHelper.avg_number_of_recipients(1, -1, -1)
+      emp1_score  = res.find {|e| e[:id] == 1}[:measure]
+      expect(emp1_score).to be < 3
+    end
+
+    it 'should be higher than min' do
+      res = AlgorithmsHelper.avg_number_of_recipients(1, -1, -1)
+      emp1_score  = res.find {|e| e[:id] == 1}[:measure]
+      expect(emp1_score).to be > 2
+    end
+
+    it 'should be higher with more emails' do
+      res = AlgorithmsHelper.avg_number_of_recipients(1, -1, -1)
+      emp2_score1  = res.find {|e| e[:id] == 2}[:measure]
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 2, to_employee_id: 1, value: 1, message_id: "m6")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 2, to_employee_id: 2, value: 1, message_id: "m6")
+      NetworkSnapshotData.create!(snapshot_id: 1, network_id: nid, company_id: 1, from_employee_id: 2, to_employee_id: 3, value: 1, message_id: "m6")
+      res = AlgorithmsHelper.avg_number_of_recipients(1, -1, -1)
+      emp2_score2  = res.find {|e| e[:id] == 2}[:measure]
+      expect(emp2_score1).to be < emp2_score2
+    end
+
+    it 'should give 0 for employee with no emails' do
+      FactoryGirl.create(:employee, id: 5, group_id: 1, snapshot_id: 1)
+      res = AlgorithmsHelper.avg_number_of_recipients(1, -1, -1)
+      emp5_score  = res.find {|e| e[:id] == 5}[:measure]
+      expect(emp5_score).to eq(0)
     end
   end
 end

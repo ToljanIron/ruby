@@ -60,6 +60,9 @@ module MeasuresHelper
                 ORDER BY period"
     end
 
+    puts "+++++++++++++++++++++++++++"
+    puts sqlstr
+    puts "+++++++++++++++++++++++++++"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
 
@@ -68,9 +71,13 @@ module MeasuresHelper
     min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
     min = min_entry['score'] if !min_entry.nil?
 
+    scale = CompanyConfigurationTable.incoming_email_to_time
+
     sqlres.each do |entry|
+      score = entry['score'].to_f.round(2) + min.abs.to_f.round(2)
+      score = score * scale
       res << {
-        'score'       => entry['score'].to_f.round(2) + min.abs.to_f.round(2),
+        'score'       => score,
         'time_period' => entry['period']
       }
     end
@@ -145,7 +152,6 @@ module MeasuresHelper
   end
 
   def get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
-    puts "***********************"
     groups = []
 
     interval_str = get_interval_type_string(interval_type)
@@ -178,15 +184,8 @@ module MeasuresHelper
               GROUP BY group_name, algo_id, algo_name, period
               ORDER BY period"
 
-    puts "%%%%%%%%%%%%%%%%"
-    puts "#{sqlstr}"
-    puts "%%%%%%%%%%%%%%%%"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
-    puts "%%%%%%%%%%%%%%%%"
-    puts sqlres.length
-    puts "%%%%%%%%%%%%%%%%"
-    
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 
     return shift_and_append_min_max_values_from_array(a_min_max, sqlres, groups, true)

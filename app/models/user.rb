@@ -5,7 +5,7 @@ class User < ActiveRecord::Base
   ROLE_MANAGER     = 'manager'
 
   attr_accessor :undigest_token
-  
+
   before_save { self.email = email.downcase }
   before_create :create_remember_token
 
@@ -14,12 +14,11 @@ class User < ActiveRecord::Base
   format:     { with: VALID_EMAIL_REGEX },
   uniqueness: { case_sensitive: false }
   has_secure_password
-  validates :password, length: { minimum: 6 }
   validates :first_name, length: { maximum: 50 }
   validates :last_name, length: { maximum: 40 }
 
   enum role: [:admin, :hr, :emp, :manager]
-  
+
   validates :group_id, presence: true, if: :is_manager?
 
   validates :document_encryption_password, length: { minimum: 7 }, :allow_blank => true

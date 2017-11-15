@@ -38,12 +38,9 @@ namespace :db do
       calc_all = false
     end
 
-    puts "WWWWWWWWWWWWWWWWWWWW 1"
     if Company.find(cid).questionnaire_only?
-    puts "WWWWWWWWWWWWWWWWWWWW 2"
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores_for_generic_networks(cid.to_i, sid.to_i, gid.to_i)
     else
-    puts "WWWWWWWWWWWWWWWWWWWW 3"
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid.to_i, gid.to_i, pid.to_i, mid.to_i, sid.to_i, rewrite)
     end
 

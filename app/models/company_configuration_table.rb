@@ -7,7 +7,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
   DISPLAY_EMAILS     = 'DISPLAY_EMAILS'
   DISPLAY_FIELD_IN_QUESTIONNAIRE = 'display_field_in_questionnaire'
 
-  INCOMING_EMAIL_TO_TIME_DEFAULT = (1.0 / 60).round(2)  ## In hours
+  INCOMING_EMAIL_TO_TIME_DEFAULT = (1.0 / 120).round(2)  ## In hours
   OUTGOING_EMAIL_TO_TIME_DEFAULT = (1.0 / 4 ).round(2)  ## In hours
   INCOMING_EMAIL_TO_TIME_KEY = 'INCOMING_EMAIL_TO_TIME_KEY'
   OUTGOING_EMAIL_TO_TIME_KEY = 'OUTGOING_EMAIL_TO_TIME_KEY'
