@@ -133,4 +133,21 @@ class Snapshot < ActiveRecord::Base
   def get_year
     timestamp.strftime('%Y')
   end
+
+  def self.field_from_interval_type(interval_type)
+    raise 'Nil interval_type not alowed' if interval_type.nil?
+    return 'month' if interval_type == 'By Month'
+    return 'quarter' if interval_type == 'By Quarter'
+    return 'half_year' if interval_type == 'By 6 Months'
+    return 'year' if interval_type == 'By Year'
+    raise "Unknown interval_type: #{interval_type}"
+  end
+
+  def self.last_snapshot_in_interval(interval, snapshot_field)
+    return Snapshot
+             .select(:id)
+             .where("? = '?'", interval, snapshot_field)
+             .order('timestamp desc')
+             .first[:id]
+  end
 end

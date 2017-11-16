@@ -127,36 +127,61 @@ module CalculateMeasureForCustomDataSystemHelper
     return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
   end
 
-  def get_email_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
-    aids = [700, 701, 702, 703, 704, 705, 706, 707, 708]
-    ret = get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+  def get_email_scores_from_helper(cid, currgids, currinter, previnter, limit, offset, agg_method, interval_type)
+    aids = [700, 701, 702, 703, 704, 705, 706, 707]
+    ret = get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
     return ret
   end
 
-  def get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
-    currtopgids = calculate_group_top_scores(cid, currsid, currgids, [EMAILS_VOLUME])
-    prevtopgids = prevsid.nil? ? nil : Group.find_group_ids_in_snapshot(currtopgids, prevsid)
+  def get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
+    currgextids = Group.where(id: [currgids]).pluck(:external_id)
+    snapshot_field = Snapshot.field_from_interval_type(interval_type)
+    currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [EMAILS_VOLUME], snapshot_field)
 
-    curr_group_wherepart = agg_method == 'group_id' ? "g.id IN (#{currtopgids.join(',')})" : '1 = 1'
-    prev_group_wherepart = agg_method == 'group_id' && !prevsid.nil? ? "g.id IN (#{prevtopgids.join(',')})" : '1 = 1'
-    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
-    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currsid, currtopgids, aids).join(',')})" : '1 = 1'
+    curr_group_wherepart = agg_method == 'group_id' ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
+    prev_group_wherepart = agg_method == 'group_id' && !previnter.nil? ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
 
-    curscores  = cds_aggregation_query(cid, currsid,  curr_group_wherepart, algo_wherepart, office_wherepart, aids)
-    prevscores = prevsid.nil? ? nil : cds_aggregation_query(cid, prevsid, prev_group_wherepart, algo_wherepart, office_wherepart, aids)
+    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
+    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
 
-    res = collect_cur_and_prev_results(curscores, prevscores)
+    currscores  = cds_aggregation_query(cid, currinter,  curr_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
+    prevscores = previnter.nil? ? currscores : cds_aggregation_query(cid, previnter, prev_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
+
+    currscores = convert_group_external_ids_to_gids(currscores, cid)
+    prevscores = convert_group_external_ids_to_gids(prevscores, cid)
+
+    res = collect_cur_and_prev_results(currscores, prevscores)
     res = format_scores(res)
     return res
+  end
+
+  def convert_group_external_ids_to_gids(scores, cid)
+    extids = scores.map { |s| s['group_extid'] }
+    sid = Snapshot.last_snapshot_of_company(cid)
+    groups = Group
+               .select(:id, :external_id)
+               .where(snapshot_id: sid)
+               .where(external_id: extids)
+    extidsmapping = {}
+    groups.each do |g|
+      extidsmapping[g[:external_id]] = g[:id]
+    end
+
+    scores.each do |s|
+      s['group_id'] = extidsmapping[s['group_extid']]
+    end
+
+    return scores
   end
 
   def format_scores(email_scores)
     res = []
     scale = CompanyConfigurationTable.incoming_email_to_time
+    invmode = CompanyConfigurationTable.is_investigation_mode?
     email_scores.each do |e|
       res << {
         gid: e['gid'],
-        groupName: create_group_name(e),
+        groupName: create_group_name(e,invmode),
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
@@ -169,15 +194,14 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
-  def create_group_name(e)
-    invmode = CompanyConfigurationTable.is_investigation_mode?
+  def create_group_name(e,invmode)
     return e['group_name'] if !invmode
     return "#{e['gid']}_#{e['group_name']}" if invmode
   end
 
-  def cds_aggregation_query(cid, sid, group_wherepart, algo_wherepart, office_wherepart, aids)
+  def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
     sqlstr = "
-      SELECT sum(cds.score) AS sum, count(cds.score) AS num, g.id as group_id, g.name AS group_name,
+      SELECT sum(cds.score) AS sum, count(cds.score) AS num, g.name AS group_name,
              g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name,
              emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
@@ -187,15 +211,16 @@ module CalculateMeasureForCustomDataSystemHelper
       JOIN algorithms AS al ON al.id = cm.algorithm_id
       INNER JOIN metric_names AS mn ON mn.id = cm.metric_id
       INNER JOIN offices AS off ON off.id = emps.office_id
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
       WHERE
         #{group_wherepart} AND
         #{algo_wherepart} AND
         #{office_wherepart} AND
-        cds.snapshot_id = #{sid} AND
+        sn.#{snapshot_field} = '#{interval}' AND
         cds.company_id = #{cid} AND
         cds.score > #{NA} AND
         cds.algorithm_id IN (#{aids.join(',')})
-      GROUP BY g.id, group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
+      GROUP BY group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret
@@ -237,34 +262,37 @@ module CalculateMeasureForCustomDataSystemHelper
     return res_arr
   end
 
-  def calculate_group_top_scores(cid, sid, gids, aids)
+  def calculate_group_top_scores(cid, interval, gextids, aids, snapshot_field)
     sqlstr = "
-      SELECT sum(score) AS sum, g.id AS group_id
+      SELECT sum(score) AS sum, g.external_id AS group_external_id
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN groups AS g ON g.id = emps.group_id
-      where
-        g.id IN (#{gids.join(',')}) AND
-        cds.snapshot_id = #{sid} AND
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
+      WHERE
+        g.external_id IN ('#{gextids.join('\',\'')}') AND
+        sn.#{snapshot_field} = '#{interval}' AND
         cds.company_id = #{cid} AND
         cds.algorithm_id IN (#{aids.join(',')})
-      GROUP BY g.id
+      GROUP BY group_external_id
       ORDER BY sum DESC
       LIMIT 10"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return cds_scores.map do |s|
-      s['group_id']
+      s['group_external_id']
     end
   end
 
-  def calculate_algo_top_scores(cid, sid, gids, aids)
+  def calculate_algo_top_scores(cid, interval, gextids, aids, snapshot_field)
     sqlstr = "
       SELECT sum(score) AS sum, algorithm_id
       FROM cds_metric_scores AS cds
-      JOIN groups AS g ON g.id = cds.group_id
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN groups AS g ON g.id = emps.group_id
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
       where
-        g.id IN (#{gids.join(',')}) AND
-        cds.snapshot_id = #{sid} AND
+        g.external_id IN ('#{gextids.join('\',\'')}') AND
+        sn.#{snapshot_field} = '#{interval}' AND
         cds.company_id = #{cid} AND
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY algorithm_id
@@ -276,16 +304,17 @@ module CalculateMeasureForCustomDataSystemHelper
     end
   end
 
-  def calculate_office_top_scores(cid, sid, gids, aids)
+  def calculate_office_top_scores(cid, interval, gextids, aids, snapshot_field)
     sqlstr = "
       SELECT sum(score) AS sum, off.id AS office_id
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN offices AS off ON off.id = emps.office_id
-      JOIN groups AS g ON g.id = cds.group_id
+      JOIN groups AS g ON g.id = emps.group_id
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
       WHERE
-        g.id IN (#{gids.join(',')}) AND
-        cds.snapshot_id = #{sid} AND
+        g.external_id IN ('#{gextids.join('\',\'')}') AND
+        sn.#{snapshot_field} = '#{interval}' AND
         cds.company_id = #{cid} AND
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY off.id
