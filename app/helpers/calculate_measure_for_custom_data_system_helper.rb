@@ -77,48 +77,68 @@ module CalculateMeasureForCustomDataSystemHelper
     return [currsum, avg, diff]
   end
 
-  def get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
-    return get_employees_emails_scores_by_groups_and_offices(cid, gids, sid) if (agg_method == 'group_id' || agg_method == 'office_id')
-    return get_employees_emails_scores_by_causes(cid, gids, sid) if (agg_method == 'algorithm_id')
-  end
+  def get_employees_emails_scores_from_helper(cid, gids, interval, agg_method, interval_type)
+    ret = nil
+    if (agg_method == 'group_id' || agg_method == 'office_id')
+      ret = get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, [707])
+    end
 
-  def get_employees_emails_scores_by_groups_and_offices(cid, gids, sid)
-    scale = CompanyConfigurationTable.incoming_email_to_time
-    ret = CdsMetricScore
-            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name,
-                     emps.img_url AS img_url, g.id AS gid, g.name AS group_name, o.name AS office_name,
-                     mn.name AS metric_name, emps.id AS eid")
-            .from('cds_metric_scores AS cds')
-            .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
-            .joins('JOIN groups AS g ON g.id = emps.group_id')
-            .joins('JOIN offices AS o ON o.id = emps.office_id')
-            .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
-            .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
-            .where('cds.company_id = %s AND cds.snapshot_id = %s AND emps.group_id in (%s)', cid, sid, gids.join(','))
-            .where("cds.algorithm_id IN (#{EMAILS_VOLUME})")
-            .order('cds.score DESC')
-            .limit(20)
+    if (agg_method == 'algorithm_id')
+      ret = get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, [700, 701, 702, 703, 704, 705, 706])
+    end
+
+    ret = convert_group_external_ids_to_gids(ret, cid)
+    ret = convert_emp_emails_to_eids(ret, cid)
+
+    ret.each do |r|
+      name = r.delete('emp_name')
+      r['name'] = name
+      r['score'] = r['score'].to_f.round(2)
+    end
     return ret
   end
 
-  def get_employees_emails_scores_by_causes(cid, gids, sid)
-    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
+  def get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, aids)
+    currgextids = Group.where(id: [gids]).pluck(:external_id)
+    groups_condition = currgextids.length != 0 ? "g.external_id IN ('#{currgextids.join('\',\'')}')" : '1 = 1'
     scale = CompanyConfigurationTable.incoming_email_to_time
-    ret = CdsMetricScore
-            .select("score * #{scale} AS score, emps.first_name || ' ' || emps.last_name AS name,
-                     emps.img_url as img_url , g.id AS gid, g.name AS group_name, o.name AS office_name,
-                     mn.name AS metric_name, emps.id AS eid")
-            .from('cds_metric_scores AS cds')
-            .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
-            .joins('JOIN groups AS g ON g.id = emps.group_id')
-            .joins('JOIN offices AS o ON o.id = emps.office_id')
-            .joins('JOIN company_metrics AS cms ON cms.id = cds.company_metric_id')
-            .joins('JOIN metric_names AS mn ON mn.id = cms.metric_id')
-            .where('cds.company_id = %s AND cds.snapshot_id = %s', cid, sid)
-            .where(groups_condition)
-            .where("cds.algorithm_id IN (700, 701, 702, 703, 704, 705, 706, 707, 708)")
-            .order('cds.score DESC')
-            .limit(20)
+    snapshot_field = Snapshot.field_from_interval_type(interval_type)
+    aids_str = aids.join(",")
+
+    ## First, get top employees
+    emps = CdsMetricScore
+             .select('avg(score) as avg, emps.email')
+             .from('cds_metric_scores AS cds')
+             .joins('JOIN snapshots AS sn ON sn.id = cds.snapshot_id')
+             .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
+             .joins('JOIN groups AS g ON g.id = emps.group_id')
+             .where("sn.#{snapshot_field} = \'#{interval}\' AND #{groups_condition}")
+             .where("cds.algorithm_id IN (#{aids_str})")
+             .group('emps.email')
+             .order('avg DESC')
+             .limit(20)
+    emails = emps.map { |emp| emp['email'] }
+
+    ## Then get their details
+    sqlstr = "
+      SELECT (avg(score) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
+             emps.img_url AS img_url, g.external_id AS group_extid, g.name AS group_name, o.name AS office_name,
+             mn.name AS metric_name, emps.email
+      FROM cds_metric_scores AS cds
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN groups AS g ON g.id = emps.group_id
+      JOIN offices AS o ON o.id = emps.office_id
+      JOIN company_metrics AS cms ON cms.id = cds.company_metric_id
+      JOIN metric_names AS mn ON mn.id = cms.metric_id
+      WHERE
+        emps.email IN ('#{emails.join("','")}') AND
+        cds.algorithm_id IN (#{aids_str})
+      GROUP BY emp_name, img_url, group_extid, group_name, mn.name, office_name, email
+      ORDER BY score DESC
+      LIMIT 20"
+
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
     return ret
   end
 
@@ -169,6 +189,25 @@ module CalculateMeasureForCustomDataSystemHelper
 
     scores.each do |s|
       s['group_id'] = extidsmapping[s['group_extid']]
+    end
+
+    return scores
+  end
+
+  def convert_emp_emails_to_eids(scores, cid)
+    emails = scores.map { |s| s['email'] }
+    sid = Snapshot.last_snapshot_of_company(cid)
+    emps = Employee
+               .select(:id, :email)
+               .where(snapshot_id: sid)
+               .where(email: emails)
+    emailsmapping = {}
+    emps.each do |e|
+      emailsmapping[e[:email]] = e[:id]
+    end
+
+    scores.each do |s|
+      s['eid'] = emailsmapping[s['email']]
     end
 
     return scores

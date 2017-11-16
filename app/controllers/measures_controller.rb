@@ -376,19 +376,20 @@ class MeasuresController < ApplicationController
     puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
-    permitted = params.permit(:gids, :sid, :agg_method)
+    permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
 
     cid = current_user.company_id
     gids = permitted[:gids].split(',')
-    sid = permitted[:sid]
+    sid = permitted[:curr_interval]
     agg_method = format_aggregation_method( permitted[:agg_method] )
+    interval_type = permitted[:interval_type]
 
     raise 'sid cant be empty' if sid == nil
 
-    cache_key = "get_employee_email_scores-#{cid}-#{gids}-#{sid}-#{agg_method}"
+    cache_key = "get_employee_email_scores-#{cid}-#{gids}-#{sid}-#{agg_method}-#{interval_type}"
     res = cache_read(cache_key)
     if res.nil?
-      top_scores = get_employees_emails_scores_from_helper(cid, gids, sid, agg_method)
+      top_scores = get_employees_emails_scores_from_helper(cid, gids, sid, agg_method, interval_type)
       res = {
         top_scores: top_scores,
       }
@@ -449,7 +450,7 @@ class MeasuresController < ApplicationController
 
   def format_aggregation_method(agg_method)
     return 'group_id'     if (agg_method == 'groupName' || agg_method == 'Department')
-    return 'office_id'    if (agg_method == 'officeName' || agg_method == 'Office')
+    return 'office_id'    if (agg_method == 'officeName' || agg_method == 'Offices')
     return 'algorithm_id' if (agg_method == 'algoName' || agg_method == 'Causes')
     raise "Unrecognized aggregation method: #{agg_method}"
   end
