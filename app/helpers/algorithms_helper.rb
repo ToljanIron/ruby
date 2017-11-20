@@ -386,6 +386,7 @@ module AlgorithmsHelper
     cid = Snapshot.find(sid).company_id
     nid = NetworkSnapshotData.emails(cid)
 
+    puts "Getting the graph"
     sagraph = get_sagraph(sid, nid, gid)
 
     a = sagraph[:adjacencymat]
@@ -393,12 +394,14 @@ module AlgorithmsHelper
     ones     = get_ones_vector(dim)
     init_vec = NMatrix.new([dim, 1], [(1.0 / dim.to_f)], dtype: :float32)
 
+    puts "Normalizing rows"
     row_degs = a.dot ones
     c = a.snm_map_rows do |r,i|
       row_deg = row_degs[i]
       r.map { |e| e / row_deg }
     end
 
+    puts "Raise to power 64"
     c64 = c.power64
 
     res = init_vec.transpose.dot c64
@@ -406,6 +409,8 @@ module AlgorithmsHelper
     inx2emp = sagraph[:inx2emp]
     ret = []
     res = res.to_a
+
+    puts "extract results"
     (0..res.length-1).each do |i|
       e = res[i]
       ret << {id: inx2emp[i], measure: (100 * e[0]).round(3)}
@@ -491,7 +496,6 @@ module AlgorithmsHelper
         from_employee_id IN (#{empsstr})
       GROUP By to_employee_id
       ORDER BY indeg"
-      puts sqlstr if gid == 1194
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     ret = []
     res.each do |e|

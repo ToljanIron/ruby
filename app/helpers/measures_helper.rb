@@ -4,11 +4,9 @@ module MeasuresHelper
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
 
-  # 74 - Bypassed managers, 100 - Isolated, 101 - Powerfull non-managers, 114 - internal champions
-  # 130 - Bottlenecks
-  DYNAMICS_AIDS = [203, 204, 205, 206]
+  DYNAMICS_AIDS = [203, 204, 205, 206, 207]
 
-  INTERFACES_AIDS = [709, 710]
+  INTERFACES_AIDS = [300, 310]
 
   EMAILS_VOLUME_AID = 707
   TIME_SPENT_IN_MEETINGS_AID = 806
@@ -27,7 +25,6 @@ module MeasuresHelper
   end
 
   def get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, aid, score = true)
-
     res = []
 
     score_str = score ? 'score' : 'z_score' # Use score or z_score
@@ -40,49 +37,53 @@ module MeasuresHelper
     else
       gids = get_relevant_group_ids(sids, current_gids)
     end
+    group_extids = Group
+                     .select(:external_id)
+                     .where(id: [gids])
+                     .pluck(:external_id)
 
-    sqlstr = "SELECT AVG(#{score_str}) AS score, s.month, s.#{interval_str} AS period
+    puts "**********************"
+    puts "sids: #{sids}"
+    puts "interval_str: #{interval_str}"
+    puts "**********************"
+
+    intervals =
+        Snapshot
+          .select("#{interval_str} as interval")
+          .where(id: sids)
+          .distinct
+          .map { |s| s['interval'] }
+
+    sqlstr = "SELECT AVG(#{score_str}) AS score, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
-              JOIN employees AS emps ON emps.id = cds.employee_id
-              JOIN groups AS g ON g.id = emps.group_id
+              JOIN groups AS g ON g.id = cds.group_id
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
-                cds.snapshot_id IN (#{sids.join(',')}) AND
-                g.id IN (#{gids.join(',')}) AND
+                s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
+                g.external_id IN ('#{group_extids.join('\',\'')}') AND
                 cds.algorithm_id = #{aid}
-              GROUP BY cds.snapshot_id, s.month, s.timestamp, period
-              ORDER BY s.timestamp ASC"
+              GROUP BY cds.snapshot_id, period"
 
-    # If query is for time period other than month - average over months. Wrap above query.
-    if(interval_str != 'month')
-      sqlstr = "SELECT avg(score) as score, period FROM (#{sqlstr}) t
-                GROUP BY period
-                ORDER BY period"
-    end
-
-    puts "+++++++++++++++++++++++++++"
-    puts sqlstr
-    puts "+++++++++++++++++++++++++++"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
     min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
     min = min_entry['score'] if !min_entry.nil?
 
-    scale = CompanyConfigurationTable.incoming_email_to_time
-
     sqlres.each do |entry|
       score = entry['score'].to_f.round(2) + min.abs.to_f.round(2)
-      score = score * scale
+      score = score
       res << {
         'score'       => score,
         'time_period' => entry['period']
       }
     end
+
+    res = res.sort { |a,b| Snapshot.compare_periods(a['time_period'],b['time_period']) }
     return res
   end
+
 
   def get_dynamics_stats_from_helper(cid, sids, current_gids, interval_type)
     res = {}
@@ -95,7 +96,6 @@ module MeasuresHelper
   def get_dynamics_gauge_level(cid, sids, current_gids, interval_type, aid, algorithm_name)
 
     res = []
-    groups = []
 
     interval_str = get_interval_type_string(interval_type)
 
@@ -143,52 +143,42 @@ module MeasuresHelper
     return get_gauge_level(avg)
   end
 
-  def get_dynamics_scores_from_helper(cid, sids, current_gids, interval_type, aggregator_type)
+  def get_dynamics_scores_from_helper(cid, interval, current_gids, interval_type, aggregator_type)
     if(aggregator_type === 'Department')
-      return get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
+      return get_dynamics_scores_for_departments(cid, interval, current_gids, interval_type)
     elsif (aggregator_type === 'Offices')
-      return get_dynamics_scores_for_offices(cid, sids, interval_type)
+      return get_dynamics_scores_for_offices(cid, interval, interval_type)
     end
   end
 
-  def get_dynamics_scores_for_departments(cid, sids, current_gids, interval_type)
-    groups = []
+  def get_dynamics_scores_for_departments(cid, interval, gids, interval_type)
+    interval_str = get_interval_type_string(interval_type.to_i)
 
-    interval_str = get_interval_type_string(interval_type)
+    groupextids = Group.where(id: [gids]).pluck(:external_id)
 
-    # If empty gids - get the gid for the root - i.e. the company
-    if (current_gids.nil? || current_gids.length === 0)
-      gids << Group.get_root_group(cid)
-    else
-      groups = get_relevant_groups(sids, current_gids)
-      gids = groups.map{|g| g['id'].to_i}
-    end
+    sqlstr =
+      "SELECT g.name AS group_name, algo.id AS algo_id, mn.name AS algo_name,
+            AVG(z_score) AS score, s.#{interval_str} AS period
+      FROM cds_metric_scores AS cds
+      JOIN snapshots AS s ON cds.snapshot_id = s.id
+      JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN groups AS g ON g.id = emps.group_id
+      JOIN algorithms AS algo ON algo.id = cds.algorithm_id
+      JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
+      JOIN metric_names AS mn ON mn.id = cm.metric_id
+      WHERE
+        s.#{interval_str} = '#{interval}' AND
+        g.external_id IN ('#{groupextids.join('\',\'')}') AND
+        cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
+        cds.company_id = #{cid}
+      GROUP BY group_name, algo_id, algo_name, period
+      ORDER BY period"
 
-    # Interval larger than month - need to find latest sid - so we can display updated group names
-    groups = get_groups_for_most_recent_snapshot(sids, groups) if interval_type != 1
-
-    sqlstr = "SELECT g.name AS group_name, algo.id AS algo_id, mn.name AS algo_name,
-                    AVG(z_score) AS score, s.#{interval_str} AS period
-              FROM cds_metric_scores AS cds
-              JOIN snapshots AS s ON cds.snapshot_id = s.id
-              JOIN employees AS emps ON emps.id = cds.employee_id
-              JOIN groups AS g ON g.id = emps.group_id
-              JOIN algorithms AS algo ON algo.id = cds.algorithm_id
-              JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
-              JOIN metric_names AS mn ON mn.id = cm.metric_id
-              WHERE
-                cds.snapshot_id IN (#{sids.join(',')}) AND
-                cds.group_id IN (#{gids.join(',')}) AND
-                cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
-                cds.company_id = #{cid}
-              GROUP BY group_name, algo_id, algo_name, period
-              ORDER BY period"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 
-    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, groups, true)
+    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, true)
   end
 
   def get_dynamics_scores_for_offices(cid, sids, interval_type)
@@ -212,17 +202,17 @@ module MeasuresHelper
               ORDER BY period"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    
+
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
 
-    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, [], false)
+    return shift_and_append_min_max_values_from_array(a_min_max, sqlres, false)
   end
 
   def get_dynamics_employee_scores_from_helper(cid, sids, current_gids, interval_type, aggregator_type)
     if(aggregator_type === 'Department')
       return get_dynamics_employee_scores_for_departments(cid, sids, current_gids, interval_type)
     elsif (aggregator_type === 'Offices')
-      
+
     end
   end
 
@@ -372,9 +362,9 @@ module MeasuresHelper
               ORDER BY period"
 
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    
+
     a_min_max = find_min_max_values_per_algorithm(INTERFACES_AIDS, sqlres)
-   
+
     a_min_max.each do |a|
       sqlres.each do |entry|
         next if a['aid'] != entry['algo_id']
@@ -396,14 +386,16 @@ module MeasuresHelper
   # Get string representing the time interval type, from integer 'interval_type'
   def get_interval_type_string(interval_type)
     str = ''
-    if(interval_type === 1)
+    if(interval_type == 1)
       str = 'month'
-    elsif (interval_type === 2)
+    elsif (interval_type == 2)
       str = 'quarter'
-    elsif (interval_type === 3)
+    elsif (interval_type == 3)
       str = 'half_year'
-    elsif (interval_type === 4)
+    elsif (interval_type == 4)
       str = 'year'
+    else
+      raise "Illegal interval type: #{interval_type.class}"
     end
     return str
   end
@@ -449,7 +441,7 @@ module MeasuresHelper
     res = res.map {|r| r['sid']}
     return res
   end
-  
+
   def get_groups_for_most_recent_snapshot(sids, groups)
     most_recent_snapshot = Snapshot.most_recent_snapshot(sids)
     return groups.select{|g| g['snapshot_id'] === most_recent_snapshot['id']}
@@ -475,9 +467,9 @@ module MeasuresHelper
   # Parse query result -
   # Set the score. If the min is negative - shift all scores by the absolute of the min so scores
   # start from zero.
-  def shift_and_append_min_max_values_from_array(a_min_max, rows, groups, is_department_scores)
+  def shift_and_append_min_max_values_from_array(a_min_max, rows, is_department_scores)
     res = []
-    
+
     a_min_max.each do |a|
       rows.each do |entry|
         next if a['aid'] != entry['algo_id']
@@ -494,8 +486,7 @@ module MeasuresHelper
         }
 
         if (is_department_scores)
-          group = groups.find{|g| g['external_id'] === entry['group_name']}
-          h['groupName'] = (!group.nil? ? group['name'] : entry['group_name'])
+          h['groupName'] = entry['group_name']
         else
           h['officeName'] = entry['officename']
         end
@@ -515,4 +506,3 @@ module MeasuresHelper
     return res
   end
 end
-

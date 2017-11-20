@@ -28,6 +28,7 @@
 
 .directory
 .env
+qqq.txt
 
 /backup/.db_tables_backup
 

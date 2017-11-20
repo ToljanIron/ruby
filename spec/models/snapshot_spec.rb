@@ -58,4 +58,34 @@ describe Snapshot, :type => :model do
     end
   end
 
+  describe 'compare_periods' do
+    it 'should compare by month with different years' do
+      expect(Snapshot.compare_periods('Oct/17', 'Oct/18')).to eq(-1)
+      expect(Snapshot.compare_periods('Oct/19', 'Oct/18')).to eq(1)
+    end
+
+    it 'should compare by month with same years' do
+      expect(Snapshot.compare_periods('Nov/17', 'Oct/17')).to eq(1)
+      expect(Snapshot.compare_periods('Jan/17', 'Oct/17')).to eq(-1)
+      expect(Snapshot.compare_periods('Jan/17', 'Jan/17')).to eq(0)
+    end
+
+    it 'should compare by years' do
+      expect(Snapshot.compare_periods('2017', '2019')).to eq(-1)
+      expect(Snapshot.compare_periods('2019', '2019')).to eq(0)
+      expect(Snapshot.compare_periods('2023', '2019')).to eq(1)
+    end
+
+    it 'should compare by quarter' do
+      expect(Snapshot.compare_periods('Q1/17', 'Q1/18')).to eq(-1)
+      expect(Snapshot.compare_periods('Q2/20', 'Q4/20')).to eq(-1)
+    end
+
+    it 'should compare by half year' do
+      expect(Snapshot.compare_periods('H1/18', 'H1/16')).to eq(1)
+      expect(Snapshot.compare_periods('H2/20', 'H1/20')).to eq(1)
+      expect(Snapshot.compare_periods('H2/20', 'H2/20')).to eq(0)
+    end
+  end
+
 end

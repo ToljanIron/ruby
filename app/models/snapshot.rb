@@ -110,6 +110,21 @@ class Snapshot < ActiveRecord::Base
 
   ######################## Intervals ####################
 
+  MONTHS_HASH = {
+    'Jan'=> 1,
+    'Feb'=> 2,
+    'Mar'=> 3,
+    'Apr'=> 4,
+    'May'=> 5,
+    'Jun'=> 6,
+    'Jul'=> 7,
+    'Aug'=> 8,
+    'Sep'=> 9,
+    'Oct'=> 10,
+    'Nov'=> 11,
+    'Dec'=> 12,
+  }
+
   def get_month
     timestamp.strftime('%b/%y')
   end
@@ -149,5 +164,29 @@ class Snapshot < ActiveRecord::Base
              .where("? = '?'", interval, snapshot_field)
              .order('timestamp desc')
              .first[:id]
+  end
+
+  def self.compare_periods(p1, p2)
+    if p1[0] == '2'     ## Order as year
+      return p1 <=> p2
+
+    elsif p1[0] == 'Q' || p1[0] == 'H' ## Order as Quarter or Half year
+      year1 = p1[3..-1]
+      year2 = p2[3..-1]
+      comp = year1 <=> year2
+      return comp if comp != 0
+      q1 = p1[0..1]
+      q2 = p2[0..1]
+      return q1 <=> q2
+
+    else                ## Order as month
+      year1 = p1[4..-1]
+      year2 = p2[4..-1]
+      comp = year1 <=> year2
+      return comp if comp != 0
+      m1 = MONTHS_HASH[p1[0..2]]
+      m2 = MONTHS_HASH[p2[0..2]]
+      return m1 <=> m2
+    end
   end
 end

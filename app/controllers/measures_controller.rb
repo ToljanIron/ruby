@@ -42,13 +42,6 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  # def volume_of_emails
-  #   include AlgorithmsHelper
-  #   snapshot = Snapshot.where(company_id: params[:company_id].to_i).last.id
-  #   volume = AlgorithmsHelper.volume_of_emails(snapshot, -1, -1) unless snapshot.nil?
-  #   render json: volume
-  # end
-
   def cds_show
     authorize :measure, :index?
     companyid = current_user.company_id
@@ -529,14 +522,15 @@ class MeasuresController < ApplicationController
   def get_dynamics_stats
     authorize :measure, :index?
 
-    permitted = params.permit(:sids, :gids, :interval_type)
+    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
 
     cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i)
+    #sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     interval_type = params[:interval_type].to_i
+    interval = permitted[:curr_interval]
 
-    res = get_dynamics_stats_from_helper(cid, sids, gids, interval_type)
+    res = get_dynamics_stats_from_helper(cid, interval, gids, interval_type)
 
     render json: Oj.dump(res), status: 200
   end
@@ -544,15 +538,15 @@ class MeasuresController < ApplicationController
   def get_dynamics_scores
     authorize :measure, :index?
 
-    permitted = params.permit(:interval_type, :sids, :gids, :aggregator_type)
+    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
 
     cid = current_user.company_id
-    interval_type = params[:interval_type].to_i
-    sids = params[:sids].split(',').map(&:to_i)
     gids = permitted[:gids].split(',')
     aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
+    interval = permitted[:curr_interval]
+    interval_type = permitted[:interval_type]
 
-    res = get_dynamics_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
+    res = get_dynamics_scores_from_helper(cid, interval, gids, interval_type, aggregator_type)
 
     render json: Oj.dump(res), status: 200
   end

@@ -33,7 +33,8 @@ class SnapshotsController < ApplicationController
     authorize :snapshot, :index?
 
     cid = current_user.company_id
-    limit = params[:limit]
+    limit = params[:limit].to_i
+    limit = limit > 24 ? 24 : limit
 
     res = get_last_snapshots_of_each_month(cid, limit)
     res = Oj.dump(res)
