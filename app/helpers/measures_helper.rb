@@ -15,7 +15,12 @@ module MeasuresHelper
   TIME_SPENT_IN_MEETINGS_AID = 806
 
   def get_emails_volume_scores(cid, sids, current_gids, interval_type)
-    ret = get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID)
+    ret = get_time_picker_data_by_aid(cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID, true)
+    scale = CompanyConfigurationTable.incoming_email_to_time
+    ret.each do |r|
+      score = r['score'] * scale
+      r['score'] = score
+    end
     return ret
   end
 
