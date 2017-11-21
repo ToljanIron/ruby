@@ -156,7 +156,7 @@ module MeasuresHelper
     end
 
     sqlstr =
-      "SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
+      "(SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
          AVG(z_score) AS score, s.#{interval_str} AS period
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
@@ -168,8 +168,8 @@ module MeasuresHelper
       JOIN metric_names AS mn ON mn.id = cm.metric_id
       WHERE
         s.#{interval_str} = '#{interval}' AND
-        #{groups_cond} AND
         cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
+        #{groups_cond} AND
         cds.company_id = #{cid}
       GROUP BY #{agg_type_groupby}, algo_id, algo_name, period
       UNION
@@ -185,14 +185,15 @@ module MeasuresHelper
       JOIN metric_names AS mn ON mn.id = cm.metric_id
       WHERE
         s.#{interval_str} = '#{interval}' AND
-        #{groups_cond} AND
         cds.algorithm_id IN (#{DYNAMICS_AIDS_WITH_GROUPS.join(',')}) AND
+        #{groups_cond} AND
         cds.company_id = #{cid}
-      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period
+      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period)
       ORDER BY period"
 
+
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
-    a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS, sqlres)
+    a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS + DYNAMICS_AIDS_WITH_GROUPS, sqlres)
     ret = shift_and_append_min_max_values_from_array(a_min_max, sqlres)
     return ret
   end
