@@ -71,7 +71,11 @@ class Snapshot < ActiveRecord::Base
   end
 
   def get_the_snapshot_before_the_last_one
-    return Snapshot.order('timestamp DESC').where(company_id: company_id).offset(1).first
+    return Snapshot
+             .order('timestamp DESC')
+             .where(company_id: company_id)
+             .offset(1)
+             .first
   end
 
   def get_the_snapshot_before_this
@@ -149,13 +153,13 @@ class Snapshot < ActiveRecord::Base
     timestamp.strftime('%Y')
   end
 
-  def self.field_from_interval_type(interval_type)
-    raise 'Nil interval_type not alowed' if interval_type.nil?
-    return 'month' if interval_type == 'By Month'
-    return 'quarter' if interval_type == 'By Quarter'
-    return 'half_year' if interval_type == 'By 6 Months'
-    return 'year' if interval_type == 'By Year'
-    raise "Unknown interval_type: #{interval_type}"
+  def self.field_from_interval_type(type)
+    raise 'Nil interval_type not alowed' if type.nil?
+    return 'month' if type == 'By Month' || type == 1
+    return 'quarter' if type == 'By Quarter' || type == 2
+    return 'half_year' if type == 'By 6 Months' || type == 3
+    return 'year' if type == 'By Year' || type == 4
+    raise "Unknown interval_type: #{type}"
   end
 
   def self.last_snapshot_in_interval(interval, snapshot_field)

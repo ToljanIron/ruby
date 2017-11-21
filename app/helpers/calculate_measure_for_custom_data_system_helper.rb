@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 require 'date'
 require './app/helpers/algorithms_helper.rb'
-# require './app/helpers/email_snapshot_data_helper.rb'
-require './app/helpers/calculate_measure_for_custom_data_system_helper.rb'
 
 module CalculateMeasureForCustomDataSystemHelper
   NUMBER_OF_SNAPSHOTS ||= 12
@@ -26,24 +24,29 @@ module CalculateMeasureForCustomDataSystemHelper
 
   NA = -1000000
 
-  def get_email_stats_from_helper(gids, sid)
-    groups_condition = gids.length != 0 ? "g.id IN (#{gids.join(',')})" : '1 = 1'
-    scale = CompanyConfigurationTable.incoming_email_to_time
+  def get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
+    return [-1,-1,-1] if curr_interval.nil? || curr_interval == ''
 
-    ## Handle snapshots
-    currsid = sid
-    curr_snapshot = Snapshot.find(currsid)
-    last_snapshot = curr_snapshot.get_the_snapshot_before_the_last_one
-    lastsid = last_snapshot.nil? ? -1 : last_snapshot.id
-    snapshots_list = lastsid == -1 ? [currsid] : [currsid, lastsid]
+    extgids = Group.where(id: [gids]).pluck(:external_id)
+    groups_condition = gids.length != 0 ? "g.external_id IN ('#{extgids.join('\',\'')}')" : '1 = 1'
 
     ## get results for time spent
     total_time_spent, time_spent_avg, time_spent_diff =
-       average_and_diff_of_scores(snapshots_list, groups_condition, EMAILS_VOLUME)
+       average_and_diff_of_scores(
+         curr_interval,
+         prev_interval,
+         interval_type,
+         groups_condition,
+         EMAILS_VOLUME)
 
     ## get results for average number of emails
     total_recipients, num_emails_avg, num_emails_diff =
-       average_and_diff_of_scores(snapshots_list, groups_condition, AVG_NUM_RECIPIENTS)
+       average_and_diff_of_scores(
+         curr_interval,
+         prev_interval,
+         interval_type,
+         groups_condition,
+         AVG_NUM_RECIPIENTS)
 
     scale = CompanyConfigurationTable.incoming_email_to_time
     return {
@@ -54,37 +57,49 @@ module CalculateMeasureForCustomDataSystemHelper
     }
   end
 
-  def average_and_diff_of_scores(sids, gids, aid)
-    ret = CdsMetricScore
-            .select('cds_metric_scores.snapshot_id,
-                     AVG(score) AS avg,
-                     SUM(score) AS sum')
+  def average_and_diff_of_scores(curr_interval, prev_interval, interval_type, gids, aid)
+    interval_str = Snapshot.field_from_interval_type(interval_type)
+    currret = CdsMetricScore
+            .select('AVG(score) AS avg, SUM(score) AS sum')
             .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
             .joins('JOIN groups AS g ON g.id = emp.group_id')
-            .where(snapshot_id: sids, algorithm_id: aid)
+            .joins('JOIN snapshots AS sn ON sn.id = cds_metric_scores.snapshot_id')
+            .where(algorithm_id: aid)
+            .where("sn.#{interval_str} = '#{curr_interval}'")
             .where(gids)
-            .group(:snapshot_id)
-            .order('snapshot_id DESC')
 
-    avg = ret[0][:avg].to_f.round(2)
-    currsum = ret[0][:sum].to_f
-    if ret.length == 2
-      lastsum = ret[1][:sum].to_f
-      diff = ((currsum - lastsum) / lastsum).round(2) * 100
+    if !prev_interval.nil?
+      prevret = CdsMetricScore
+              .select('AVG(score) AS avg, SUM(score) AS sum')
+              .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
+              .joins('JOIN groups AS g ON g.id = emp.group_id')
+              .joins('JOIN snapshots AS sn ON sn.id = cds_metric_scores.snapshot_id')
+              .where(algorithm_id: aid)
+              .where("sn.#{interval_str} = '#{prev_interval}'")
+              .where(gids)
+    end
+
+    avg = currret[0][:avg].to_f.round(2)
+    currsum = currret[0][:sum].to_f
+
+    if !prev_interval.nil?
+      lastsum = prevret[0][:sum].to_f
+      diff = ((currsum - lastsum) / lastsum) * 100
     else
       diff = 0.0
     end
-    return [currsum, avg, diff]
+
+    return [currsum, avg, diff.round(2)]
   end
 
   def get_employees_emails_scores_from_helper(cid, gids, interval, agg_method, interval_type)
     ret = nil
     if (agg_method == 'group_id' || agg_method == 'office_id')
-      ret = get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, [707])
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [707])
     end
 
     if (agg_method == 'algorithm_id')
-      ret = get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, [700, 701, 702, 703, 704, 705, 706])
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [700, 701, 702, 703, 704, 705, 706])
     end
 
     ret = convert_group_external_ids_to_gids(ret, cid)
@@ -98,16 +113,16 @@ module CalculateMeasureForCustomDataSystemHelper
     return ret
   end
 
-  def get_employees_emails_scores_by_aids(cid, gids, interval, interval_type, aids)
+  def get_employees_scores_by_aids(cid, gids, interval, interval_type, aids, score_type = 'score', to_scale = true)
     currgextids = Group.where(id: [gids]).pluck(:external_id)
     groups_condition = currgextids.length != 0 ? "g.external_id IN ('#{currgextids.join('\',\'')}')" : '1 = 1'
-    scale = CompanyConfigurationTable.incoming_email_to_time
+    scale = to_scale ? CompanyConfigurationTable.incoming_email_to_time : 1
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     aids_str = aids.join(",")
 
     ## First, get top employees
     emps = CdsMetricScore
-             .select('avg(score) as avg, emps.email')
+             .select("avg(#{score_type}) as avg, emps.email")
              .from('cds_metric_scores AS cds')
              .joins('JOIN snapshots AS sn ON sn.id = cds.snapshot_id')
              .joins('JOIN employees AS emps ON emps.id = cds.employee_id')
@@ -121,7 +136,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
     ## Then get their details
     sqlstr = "
-      SELECT (avg(score) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
+      SELECT (avg(#{score_type}) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
              emps.img_url AS img_url, g.external_id AS group_extid, g.name AS group_name, o.name AS office_name,
              mn.name AS metric_name, emps.email
       FROM cds_metric_scores AS cds

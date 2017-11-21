@@ -466,11 +466,13 @@ class MeasuresController < ApplicationController
   ##   - Averge time spent on emails by employees
   def get_email_stats
     authorize :snapshot, :index?
-    params.permit(:sid, :gids)
-    sid = params[:sid]
+    params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
+    interval_type = params[:interval_type]
+    curr_interval = params[:curr_interval]
+    prev_interval = params[:prev_interval]
     gids = params[:gids].split(',')
 
-    res = get_email_stats_from_helper(gids, sid)
+    res = get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
     render json: Oj.dump(res)
   end
 
@@ -554,14 +556,14 @@ class MeasuresController < ApplicationController
   def get_dynamics_employee_scores
     authorize :measure, :index?
 
-    permitted = params.permit(:interval_type, :sids, :gids)
+    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
 
     cid = current_user.company_id
     interval_type = params[:interval_type].to_i
-    sids = params[:sids].split(',').map(&:to_i)
+    interval = permitted[:curr_interval]
     gids = permitted[:gids].split(',')
 
-    res = get_dynamics_employee_scores_from_helper(cid, sids, gids, interval_type)
+    res = get_dynamics_employee_scores_from_helper(cid, interval, gids, interval_type)
 
     render json: Oj.dump(res), status: 200
   end
