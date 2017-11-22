@@ -1785,20 +1785,18 @@ module AlgorithmsHelper
     res = []
     cid = find_company_by_snapshot(sid)
     nid = NetworkSnapshotData.emails(cid)
-    inner_select = get_inner_select_as_arr(cid, pid, gid)
+    emps = Employee.where(snapshot_id: sid).pluck(:id)
 
     fwded_emails =
       NetworkSnapshotData.where(snapshot_id: sid,
                                 network_id: nid,
                                 from_type: FWD,
-                                to_type: TO,
-                                to_employee_id: inner_select,
-                                from_employee_id: inner_select)
+                                to_type: TO)
                          .select("#{EMAILS_OUT} as id, count(id) as measure")
                          .group(EMAILS_OUT)
 
     res = format_activerecord_relation_to_algorithm_result(fwded_emails)
-    ret = result_zero_padding(inner_select, res)
+    ret = result_zero_padding(emps, res)
     return ret
   end
 

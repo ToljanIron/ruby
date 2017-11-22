@@ -35,8 +35,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     companies = cid == NO_COMPANY ? cds_find_companies(gid, pid, sid) : Company.where(id: cid)
     fail 'No company found!' if companies.empty?
     companies.each do |c|
-      puts "##############"
-      puts "##############"
       specific_company_metrics_rows = CompanyMetric.where(company_id: c.id, active: true).all
       fail 'No company metrics found!' if companies.empty?
       specific_company_metrics_rows.each do |company_metric_row|
@@ -188,7 +186,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     parent_skew_direction = parent_skew_direction.to_i
     son_skew_direction    = son_skew_direction.to_i
 
-
     score *= (-1)                                           if parent_skew_direction == Algorithm::SCORE_SKEW_HIGH_IS_GOOD && son_skew_direction == Algorithm::SCORE_SKEW_HIGH_IS_BAD
     score *= (-1)                                           if parent_skew_direction == Algorithm::SCORE_SKEW_HIGH_IS_BAD  && son_skew_direction == Algorithm::SCORE_SKEW_HIGH_IS_GOOD
     score = ( 2 * Math::E**((-1) * (score**2))) - 1         if parent_skew_direction == Algorithm::SCORE_SKEW_HIGH_IS_GOOD && son_skew_direction == Algorithm::SCORE_SKEW_CENTRAL
@@ -338,7 +335,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   end
 
   def cds_save_metric_for_structure(company_metric_row, sid, gid, pid)
-    puts "QQQQQQQQQQQQQQQQQQ 1"
     values = []
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     if gid == NO_GROUP && pid == NO_PIN
@@ -361,12 +357,10 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   end
 
   def cds_calculate_with_no_group_and_no_pin(company_metric_row, sid)
-    puts "$$$$$$$$$$$$$$$ 1"
     values = []
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     CdsMetricScore.where(snapshot_id: sid, company_metric_id: company_metric_row.id).delete_all
     if algorithm.use_group_context
-    puts "$$$$$$$$$$$$$$$ 2"
       company_groups = Group.by_snapshot(sid)
       company_groups = put_mother_group_first(company_groups)
       company_groups.each do |group|
@@ -376,13 +370,11 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, group.id, company_metric_row.algorithm_id)
       end
     else
-    puts "$$$$$$$$$$$$$$$ 3"
       puts "Working without group context"
       cid = company_metric_row.company_id
       root_group_id = Group.get_root_group(cid, sid)
       values += cds_calculate_and_save_metric_scores(company_metric_row, sid, NO_PIN, root_group_id, company_metric_row.algorithm_id)
     end
-    puts "$$$$$$$$$$$$$$$ 4"
     return values
   end
 
@@ -423,9 +415,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         algorithm_type: algorithm.algorithm_type_id
       }
       calculated = algorithm.run(args)
-      #puts "*********************************"
-      #ap calculated
-      #puts "*********************************"
       pid = nil if pid == NO_PIN
       gid = nil if gid == NO_GROUP
       unless calculated.nil?
