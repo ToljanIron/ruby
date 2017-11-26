@@ -201,6 +201,7 @@ Workships::Application.routes.draw do
   get 'v3/get_email_scores'                  ,to: 'measures#get_email_scores'
   get 'v3/get_employees_emails_scores'       ,to: 'measures#get_employees_emails_scores'
   get 'v3/get_email_stats'                   ,to: 'measures#get_email_stats'
+  get 'v3/get_emails_excel_report'           ,to: 'reports#get_emails_excel_report'
 
   # Meetings
   get 'v3/get_meetings_time_picker_data'     ,to: 'measures#get_meetings_time_picker_data'

@@ -3,7 +3,7 @@ require 'open-uri'
 require 'fastimage'
 
 module XlsHelper
-  
+
   def create_file(file_name)
     file_path = "#{Rails.root}/tmp/#{file_name}"
     workbook  = WriteExcel.new(file_path)

@@ -34,25 +34,35 @@ class SessionsController < ApplicationController
   end
 
   def api_signin
+    puts "@@@@@@@@@@@@@@@@@@@@@ 1"
     authorize :application, :passthrough
+    puts "@@@@@@@@@@@@@@@@@@@@@ 2"
     user = User.find_by(email: params[:email].downcase)
+    puts "@@@@@@@@@@@@@@@@@@@@@ 3"
     if user
+    puts "@@@@@@@@@@@@@@@@@@@@@ 4"
       if authenticate_by_email_and_temporary_password(params[:email], params[:password])
+    puts "@@@@@@@@@@@@@@@@@@@@@ 5"
         log_in user
         render json: { tmp_password: true }, status: 200
         return
       end
     end
+    puts "@@@@@@@@@@@@@@@@@@@@@ 6"
     logged = log_in user if user && user.authenticate(params[:password])
     if logged && params[:remember_me]
+    puts "@@@@@@@@@@@@@@@@@@@@@ 7"
       remember(user)
     end
+    puts "@@@@@@@@@@@@@@@@@@@@@ 8"
     unless logged
+    puts "@@@@@@@@@@@@@@@@@@@@@ 9"
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
     end
     begin
+    puts "@@@@@@@@@@@@@@@@@@@@@ 10"
       render json: payload(user), status: 200 if v3_login?
       render json: { token: user.remember_token }, status: 200 if !v3_login?
       return
@@ -61,8 +71,10 @@ class SessionsController < ApplicationController
       puts e.backtrace
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
+    puts "@@@@@@@@@@@@@@@@@@@@@ 11"
       return
     end
+    puts "@@@@@@@@@@@@@@@@@@@@@ 12"
 
   end
 

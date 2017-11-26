@@ -22,6 +22,10 @@ module CalculateMeasureForCustomDataSystemHelper
   EMAILS_VOLUME ||= 707
   AVG_NUM_RECIPIENTS ||= 709
 
+  AGG_GROUP     = 'group_id'
+  AGG_OFFICE    = 'office_id'
+  AGG_ALGORITHM = 'algorithm_id'
+
   NA = -1000000
 
   def get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
@@ -94,11 +98,11 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_employees_emails_scores_from_helper(cid, gids, interval, agg_method, interval_type)
     ret = nil
-    if (agg_method == 'group_id' || agg_method == 'office_id')
+    if (agg_method == AGG_GROUP || agg_method == AGG_OFFICE)
       ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [707])
     end
 
-    if (agg_method == 'algorithm_id')
+    if (agg_method == AGG_ALGORITHM)
       ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [700, 701, 702, 703, 704, 705, 706])
     end
 
@@ -173,11 +177,11 @@ module CalculateMeasureForCustomDataSystemHelper
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [EMAILS_VOLUME], snapshot_field)
 
-    curr_group_wherepart = agg_method == 'group_id' ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
-    prev_group_wherepart = agg_method == 'group_id' && !previnter.nil? ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
+    curr_group_wherepart = agg_method == AGG_GROUP ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
+    prev_group_wherepart = agg_method == AGG_GROUP && !previnter.nil? ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
 
-    algo_wherepart = agg_method == 'algorithm_id' ? "al.id IN (#{calculate_algo_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
-    office_wherepart = agg_method == 'office_id' ? "emps.id IN (#{calculate_office_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
+    algo_wherepart = agg_method == AGG_ALGORITHM ? "al.id IN (#{calculate_algo_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
+    office_wherepart = agg_method == AGG_OFFICE ? "emps.id IN (#{calculate_office_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
 
     currscores  = cds_aggregation_query(cid, currinter,  curr_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
     prevscores = previnter.nil? ? currscores : cds_aggregation_query(cid, previnter, prev_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
