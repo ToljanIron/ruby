@@ -15,6 +15,7 @@ module ExcelHelper
 
     wb = ExcelHelper.create_file(report_name)
 
+    create_legend_part(wb)
     create_groups_part(wb, cid, gids, interval, interval_type, aids)
     create_employees_part(wb, cid, gids, interval, interval_type, aids)
 
@@ -29,6 +30,37 @@ module ExcelHelper
     dest_file = "#{Rails.root}/tmp/#{report_name}.gpg"
     `cat #{source_file} | gpg --passphrase #{key} --batch --quiet --yes -c -o #{dest_file}`
     return "#{report_name}.gpg"
+  end
+
+  def self.create_legend_part(wb)
+    ws = wb.add_worksheet('Legend')
+
+    ws.write('A1', 'Algorithm Name')
+    ws.write('B1', 'Algorithm Description')
+    ws.write('A2', 'Blized')
+    ws.write('B2', 'Time spent on received emails')
+    ws.write('A3', 'Spammers')
+    ws.write('B3', 'Time spent on sent emails')
+    ws.write('A4', 'CCers')
+    ws.write('B4', 'Time spent on emails sent in CC')
+    ws.write('A5', 'CCed')
+    ws.write('B5', 'Time spent on emails received in CC')
+    ws.write('A6', 'Relays')
+    ws.write('B6', 'Time spent on forwarded emails')
+    ws.write('A7', 'BCCed')
+    ws.write('B7', 'Time spent on emails received in BCC')
+    ws.write('A8', 'BCCers')
+    ws.write('B8', 'Time spent on emails sent in BCC')
+    ws.write('A9', 'Bottlenecks')
+    ws.write('B9', 'A measure of employees who participate in a large proportion of email routes')
+    ws.write('A10', 'Internal Champions')
+    ws.write('B10', 'A measure of employees receiving a lot of emails')
+    ws.write('A11', 'Information Isolates')
+    ws.write('B11', 'A measure of employees participating in very little email traffic')
+    ws.write('A12', 'Connectors')
+    ws.write('B12', 'A measure of employees who are connecting several separate groups')
+    ws.write('A13', 'Deadends')
+    ws.write('B13', 'A measure of employees receiving much more emails than they are sending')
   end
 
   def self.create_employees_part(wb, cid, gids, interval, interval_type, aids)
@@ -59,7 +91,6 @@ module ExcelHelper
       ii += 1
     end
 
-    ws.protect('qwer')
     return true
   end
 

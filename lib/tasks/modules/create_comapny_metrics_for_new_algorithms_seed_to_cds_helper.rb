@@ -47,10 +47,10 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     closeness_level_gauge_id = MetricName.find_or_create_by!(name: 'Closeness Level', company_id: cid).id
     synergy_level_gauge_id   = MetricName.find_or_create_by!(name: 'Synergy Level', company_id: cid).id
 
-    bottleneck_id            = MetricName.find_or_create_by!(name: 'Bottleneck', company_id: cid).id
+    bottleneck_id            = MetricName.find_or_create_by!(name: 'Bottlenecks', company_id: cid).id
     internal_champions_id    = MetricName.find_or_create_by!(name: 'Internal Champions', company_id: cid).id
     connectors_id            = MetricName.find_or_create_by!(name: 'Connectors', company_id: cid).id
-    isolate_id               = MetricName.find_or_create_by!(name: 'Information Isolate', company_id: cid).id
+    isolate_id               = MetricName.find_or_create_by!(name: 'Information Isolates', company_id: cid).id
     deadends_id              = MetricName.find_or_create_by!(name: 'Deadends', company_id: cid).id
 
     CompanyMetric.find_or_create_by!(metric_id: closeness_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 200, algorithm_type_id: 5)
