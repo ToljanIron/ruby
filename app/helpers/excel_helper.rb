@@ -10,7 +10,7 @@ module ExcelHelper
     return wb
   end
 
-  def self.create_xls_report_for_emails(cid, gids, interval, interval_type, aids, encryption_key=nil)
+  def self.create_xls_report(cid, gids, interval, interval_type, aids, encryption_key=nil)
     report_name = ExcelHelper::create_xls_report_name('emails')
 
     wb = ExcelHelper.create_file(report_name)
@@ -113,17 +113,17 @@ module ExcelHelper
     end
 
     res = CdsMetricScore
-            .select('AVG(score) AS score, al.name AS algorithm_name, emps.email')
+            .select('AVG(score) AS score, emps.email, mn.name AS algorithm_name')
             .from('cds_metric_scores as cds')
             .joins('join employees AS emps ON emps.id = cds.employee_id')
-            .joins('join algorithms AS al ON al.id = cds.algorithm_id')
+            .joins('join company_metrics AS cm ON cm.id = cds.company_metric_id')
+            .joins('join metric_names AS mn ON mn.id = cm.metric_id')
             .joins('join snapshots AS sn ON sn.id = cds.snapshot_id')
             .where(["cds.company_id = %s", cid])
             .where(["cds.algorithm_id IN (%s)", aids.join(',')])
             .where(["sn.%s = '%s'", snapshot_field, interval])
             .group('algorithm_name, emps.email')
             .order('algorithm_name')
-            .limit(10)
 
     ret = []
     res.each do |r|

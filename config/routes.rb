@@ -212,6 +212,7 @@ Workships::Application.routes.draw do
   get 'v3/get_dynamics_time_picker_data'     ,to: 'measures#get_dynamics_time_picker_data'
   get 'v3/get_dynamics_scores'               ,to: 'measures#get_dynamics_scores'
   get 'v3/get_dynamics_employee_scores'      ,to: 'measures#get_dynamics_employee_scores'
+  get 'v3/get_dynamics_excel_report'         ,to: 'reports#get_dynamics_excel_report'
 
   # Interfaces
   get 'v3/get_interfaces_time_picker_data'     ,to: 'measures#get_interfaces_time_picker_data'
