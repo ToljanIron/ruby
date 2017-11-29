@@ -516,8 +516,6 @@ class MeasuresController < ApplicationController
     interval_type = params[:interval_type].to_i
 
     res = get_group_densities(cid, sids, gids, interval_type)
-    # res = {first: '1', second: '2'}
-
     render json: Oj.dump(res), status: 200
   end
 
