@@ -76,7 +76,7 @@ module ExcelHelper
     ws.write('G1', 'Score')
 
     ## Get the data
-    res = get_employees_data(cid, interval, interval_type, aids)
+    res = get_employees_data(cid, gids, interval, interval_type, aids)
 
     ## Populate results
     ii = 2
@@ -94,8 +94,9 @@ module ExcelHelper
     return true
   end
 
-  def self.get_employees_data(cid, interval, interval_type, aids)
+  def self.get_employees_data(cid, gids, interval, interval_type, aids)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
+    extgids = Group.where(id: [gids]).pluck(:external_id)
 
     emps = Employee
              .select("first_name || ' ' || last_name AS name, email, employees.external_id, g.name AS group_name")
@@ -116,10 +117,12 @@ module ExcelHelper
             .select('AVG(score) AS score, emps.email, mn.name AS algorithm_name')
             .from('cds_metric_scores as cds')
             .joins('join employees AS emps ON emps.id = cds.employee_id')
+            .joins('join groups AS g on g.id = emps.group_id')
             .joins('join company_metrics AS cm ON cm.id = cds.company_metric_id')
             .joins('join metric_names AS mn ON mn.id = cm.metric_id')
             .joins('join snapshots AS sn ON sn.id = cds.snapshot_id')
             .where(["cds.company_id = %s", cid])
+            .where(["g.external_id in ('#{extgids.join('\',\'')}')"])
             .where(["cds.algorithm_id IN (%s)", aids.join(',')])
             .where(["sn.%s = '%s'", snapshot_field, interval])
             .group('algorithm_name, emps.email')

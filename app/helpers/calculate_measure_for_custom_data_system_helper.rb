@@ -64,7 +64,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def average_and_diff_of_scores(curr_interval, prev_interval, interval_type, gids, aid)
     interval_str = Snapshot.field_from_interval_type(interval_type)
     currret = CdsMetricScore
-            .select('AVG(score) AS avg, SUM(score) AS sum')
+            .select('AVG(score) AS avg, SUM(score) AS sum, COUNT(score) AS count')
             .joins('JOIN employees AS emp ON cds_metric_scores.employee_id = emp.id')
             .joins('JOIN groups AS g ON g.id = emp.group_id')
             .joins('JOIN snapshots AS sn ON sn.id = cds_metric_scores.snapshot_id')
@@ -239,7 +239,7 @@ module CalculateMeasureForCustomDataSystemHelper
     email_scores.each do |e|
       res << {
         gid: e['gid'],
-        groupName: create_group_name(e,invmode),
+        groupName: create_group_name(e['gid'], e['group_name'],invmode),
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
@@ -252,18 +252,29 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
-  def create_group_name(e,invmode)
-    return e['group_name'] if !invmode
-    return "#{e['gid']}_#{e['group_name']}" if invmode
+  def create_group_name(gid, group_name, invmode)
+    return group_name if !invmode
+    return "#{gid}_#{group_name}" if invmode
   end
 
   def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
     sqlstr = "
-      SELECT sum(cds.score) AS sum, count(cds.score) AS num, g.name AS group_name,
+      SELECT sum(cds.score) AS sum, avg(inner2.empsnum) AS num, g.name AS group_name,
              g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name,
              emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
+      JOIN  (
+              SELECT count(inemps.id) AS empsnum, insn.id,
+                     inemps.group_id AS ingroupid,
+                     inemps.office_id AS inofficeid
+              FROM employees AS inemps
+              JOIN snapshots AS insn ON insn.id = inemps.snapshot_id
+              WHERE
+                insn.#{snapshot_field} = '#{interval}'
+              GROUP BY insn.id, ingroupid, inofficeid
+            ) AS inner2 ON inner2.ingroupid = emps.group_id AND
+                           inner2.inofficeid = emps.office_id
       JOIN groups AS g ON g.id = emps.group_id
       JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
       JOIN algorithms AS al ON al.id = cm.algorithm_id
@@ -280,7 +291,8 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
       ORDER BY sum DESC"
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+      ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret
   end
 

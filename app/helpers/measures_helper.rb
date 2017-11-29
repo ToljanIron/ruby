@@ -45,21 +45,26 @@ module MeasuresHelper
     else
       gids = get_relevant_group_ids(sids, current_gids)
     end
-    group_extids = Group
-                     .select(:external_id)
-                     .where(id: [gids])
-                     .pluck(:external_id)
+    group_extids =
+      Group
+        .select(:external_id)
+        .where(id: [gids])
+        .distinct
+        .pluck(:external_id)
 
     intervals =
-        Snapshot
-          .select("#{interval_str} as interval")
-          .where(id: sids)
-          .distinct
-          .map { |s| s['interval'] }
+      Snapshot
+        .select("#{interval_str} as interval")
+        .where(id: sids)
+        .distinct
+        .map { |s| s['interval'] }
 
-    sqlstr = "SELECT AVG(#{score_str}) AS score, s.#{interval_str} AS period
+    num_of_emps = Employee.where(group_id: current_gids).count
+
+    sqlstr = "SELECT SUM(#{score_str}) AS score_sum, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
-              JOIN groups AS g ON g.id = cds.group_id
+              JOIN employees AS emps ON emps.id = cds.employee_id
+              JOIN groups AS g ON g.id = emps.group_id
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
@@ -67,7 +72,12 @@ module MeasuresHelper
                 cds.algorithm_id = #{aid}
               GROUP BY period"
 
+
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    sqlres.each do |r|
+      r['score'] = r['score_sum'].to_f / num_of_emps
+    end
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
@@ -162,7 +172,7 @@ module MeasuresHelper
 
     sqlstr =
       "(SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-         AVG(z_score) AS score, s.#{interval_str} AS period
+         AVG(z_score) AS score, s.#{interval_str} AS period, g.id AS gid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -176,10 +186,10 @@ module MeasuresHelper
         cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
-      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period
+      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, gid
       UNION
       SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-        AVG(z_score) AS score, s.#{interval_str} AS period
+        AVG(z_score) AS score, s.#{interval_str} AS period, g.id AS gid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -193,7 +203,7 @@ module MeasuresHelper
         cds.algorithm_id IN (#{DYNAMICS_AIDS_WITH_GROUPS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
-      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period)
+      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, gid)
       ORDER BY period"
 
 
@@ -411,6 +421,7 @@ module MeasuresHelper
   # start from zero.
   def shift_and_append_min_max_values_from_array(a_min_max, rows)
     res = []
+    invmode = CompanyConfigurationTable.is_investigation_mode?
 
     a_min_max.each do |a|
       rows.each do |entry|
@@ -420,12 +431,18 @@ module MeasuresHelper
         max = a['max']
         score = entry['score']
 
+        group_name =
+          CalculateMeasureForCustomDataSystemHelper.create_group_name(
+            entry['gid'],
+            entry['group_name'],
+            invmode)
+
         h = {
           'algoName'    => entry['algo_name'],
           'aid'         => entry['algo_id'],
           'time_period' => entry['period'],
           'original_score' => entry['score'],
-          'groupName'   => entry['group_name'],
+          'groupName'   => group_name,
           'officeName'  => entry['officename'],
         }
 

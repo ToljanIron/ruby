@@ -164,7 +164,7 @@ module ReportHelper
          nn.name || '-' || als.name AS metric_name, cms.score, off.name AS office, rol.name as role,
          ra.name as rank, emp.gender, job.name as job_title
        FROM cds_metric_scores AS cms
-         JOIN 
+         JOIN
          (
            employees AS emp
            LEFT JOIN offices AS off     ON off.id = emp.office_id
@@ -181,6 +181,14 @@ module ReportHelper
          cms.snapshot_id = #{sid}"
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    puts "name,email,group_name,metric_name,office,role, rank,gender,job_title,score,\n"
+    ii = 0
+    res.each do |e|
+      ii +=1
+      puts "#{e['name']},#{e['email']},#{e['group_name']},#{e['metric_name']},#{e['office']},#{e['role']},#{e['rank']},#{e['gender']},#{e['job_title']},#{e['score']}\n"
+    end
+
     return res
   end
 
