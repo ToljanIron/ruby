@@ -21,7 +21,7 @@ module ExcelHelper
 
     wb.close
 
-    report_name = encrypt_report(report_name, encryption_key) if !encryption_key.nil? || encryption_key == ''
+    report_name = encrypt_report(report_name, encryption_key) if (!encryption_key.nil? && encryption_key != '')
     return report_name
   end
 
