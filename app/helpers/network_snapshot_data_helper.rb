@@ -3,6 +3,51 @@ module NetworkSnapshotDataHelper
 
   NO_SNAPSHOT = -1
 
+  def get_dynamics_map_from_helper(cid, group_name, interval)
+    puts "**************"
+    puts "in the helper now"
+    puts "**************"
+    snapshot_field = Snapshot.field_from_interval(interval)
+    last_sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
+    group = Group.where(name: group_name, snapshot_id: last_sid).last
+    empids = group.extract_employees
+    max_emps = CompanyConfigurationTable.max_emps_in_map
+
+    result_type = 'groups'
+    nodes = nil
+    links = nil
+
+    if (empids.length > max_emps)
+      raise 'groups result not implemented yet'
+    else
+      result_type = 'emps'
+
+      nodes = Employee
+              .select("emps.id, first_name || ' ' || last_name as name,
+                       g.name as group_name, g.id as group_id, col.rgb as emp_col")
+              .from("employees as emps")
+              .joins("join groups as g on g.id = emps.group_id")
+              .joins("join colors as col on col.id = g.color_id")
+              .where("emps.snapshot_id = ?", last_sid)
+              .where("emps.id in (#{empids.join(',')})")
+
+      links = NetworkSnapshotData
+              .select('from_employee_id as source, to_employee_id as target')
+              .where(snapshot_id: last_sid)
+              .where(from_employee_id: empids)
+              .where(to_employee_id: empids)
+              .distinct
+    end
+
+    ret = {
+      nodes: nodes,
+      links: links,
+      result_type: result_type
+    }.as_json
+
+    return ret
+  end
+
   def format_snapshot(p, i)
     {
       to_emp_id: p['employee_to_id'].to_i,

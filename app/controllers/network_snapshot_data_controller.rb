@@ -1,18 +1,20 @@
 class NetworkSnapshotDataController < ApplicationController
+  include NetworkSnapshotDataHelper
 
-  # API/show_emails_network
-  def show_emails_network
+  # API/get_dynamics_map
+  def get_dynamics_map
     authorize :network_snapshot_data, :index?
-    cid = current_user.company_id
-    gid = params[:gid].to_i
-    sid = params[:sid].to_i
-    sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
-    from_email_filter = params[:from_email_filter] || ''
+    permitted = params.permit(:interval, :group_name)
 
-    cache_key = "show_email_network-#{cid}"
+    cid = current_user.company_id
+    group_name = permitted[:group_name]
+    interval = permitted[:interval]
+
+    cache_key = "get_dynamics_map-cid-#{cid}-group_name-#{group_name}-interval-#{interval}"
+    puts "cache_key: #{cache_key}"
     res = cache_read(cache_key)
     if res.nil?
-      res = NetworkSnapshotData.show_emails(cid, gid, from_email_filter, sid).as_json
+      res = get_dynamics_map_from_helper(cid, group_name, interval)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

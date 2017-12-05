@@ -153,6 +153,14 @@ class Snapshot < ActiveRecord::Base
     timestamp.strftime('%Y')
   end
 
+  def self.field_from_interval(interval)
+    raise 'Nil interval_type not alowed' if interval.nil?
+    return 'quarter' if interval[0] == 'Q'
+    return 'half_year' if interval[0] == 'H'
+    return 'year' if interval[0] == '2'
+    return 'month'
+  end
+
   def self.field_from_interval_type(type)
     raise 'Nil interval_type not alowed' if type.nil?
     return 'month' if type == 'By Month' || type == 1
@@ -165,7 +173,7 @@ class Snapshot < ActiveRecord::Base
   def self.last_snapshot_in_interval(interval, snapshot_field)
     return Snapshot
              .select(:id)
-             .where("? = '?'", interval, snapshot_field)
+             .where("%s = '%s'", snapshot_field, interval)
              .order('timestamp desc')
              .first[:id]
   end

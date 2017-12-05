@@ -136,17 +136,7 @@ module MeasuresHelper
                 g.external_id IN ('#{group_extids.join('\',\'')}') AND
                 cds.algorithm_id = #{aid}
               GROUP BY period"
-
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH 1"
-    puts sqlstr
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH 2"
-
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH 3"
-    ap sqlres[0]
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH 4"
-
 
     sqlres.each do |r|
       r['score'] = r['score_avg'].to_f / num_of_emps
@@ -303,6 +293,7 @@ module MeasuresHelper
       name = r.delete('emp_name')
       r['name'] = name
       r['score'] = r['score'].to_f.round(2)
+      r['aid'] = r.delete('metric_name')
     end
     return ret
   end

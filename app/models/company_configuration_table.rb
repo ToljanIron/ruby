@@ -6,11 +6,13 @@ class CompanyConfigurationTable < ActiveRecord::Base
   INVESTIGATION_MODE = 'INVESTIGATION_MODE'
   DISPLAY_EMAILS     = 'DISPLAY_EMAILS'
   DISPLAY_FIELD_IN_QUESTIONNAIRE = 'display_field_in_questionnaire'
+  MAX_EMPS_IN_MAP    = 'MAX_EMPS_IN_MAP'
 
   INCOMING_EMAIL_TO_TIME_DEFAULT = (1.0 / 120).round(2)  ## In hours
   OUTGOING_EMAIL_TO_TIME_DEFAULT = (1.0 / 4 ).round(2)  ## In hours
   INCOMING_EMAIL_TO_TIME_KEY = 'INCOMING_EMAIL_TO_TIME_KEY'
   OUTGOING_EMAIL_TO_TIME_KEY = 'OUTGOING_EMAIL_TO_TIME_KEY'
+  MAX_EMPS_IN_MAP_DEFAULT = 200
 
   belongs_to :company, foreign_key: 'comp_id'
 
@@ -66,6 +68,15 @@ class CompanyConfigurationTable < ActiveRecord::Base
   def self.outgoing_email_to_time
     ret = OUTGOING_EMAIL_TO_TIME_DEFAULT
     entry = CompanyConfigurationTable.where(comp_id: -1, key: OUTGOING_EMAIL_TO_TIME_KEY)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value
+  end
+
+  def self.max_emps_in_map
+    ret = MAX_EMPS_IN_MAP_DEFAULT
+    entry = CompanyConfigurationTable
+              .where(comp_id: -1, key: MAX_EMPS_IN_MAP)
     return ret if entry.nil?
     return ret if entry.first.nil?
     return entry.first.value
