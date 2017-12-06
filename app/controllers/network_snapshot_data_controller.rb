@@ -1,6 +1,29 @@
 class NetworkSnapshotDataController < ApplicationController
   include NetworkSnapshotDataHelper
 
+  # API/get_dynamics_employee_map
+  def get_dynamics_employee_map
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%"
+    puts "the controller got it .."
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%"
+
+    authorize :network_snapshot_data, :index?
+    permitted = params.permit(:interval, :eid)
+
+    cid = current_user.company_id
+    eid = permitted[:eid]
+    interval = permitted[:interval]
+
+    cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}"
+    puts "cache_key: #{cache_key}"
+    res = cache_read(cache_key)
+    if res.nil?
+      res = get_dynamics_employee_map_from_helper(cid, eid, interval)
+      cache_write(cache_key, res)
+    end
+    render json: Oj.dump(res)
+  end
+
   # API/get_dynamics_map
   def get_dynamics_map
     authorize :network_snapshot_data, :index?

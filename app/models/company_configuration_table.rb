@@ -12,7 +12,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
   OUTGOING_EMAIL_TO_TIME_DEFAULT = (1.0 / 4 ).round(2)  ## In hours
   INCOMING_EMAIL_TO_TIME_KEY = 'INCOMING_EMAIL_TO_TIME_KEY'
   OUTGOING_EMAIL_TO_TIME_KEY = 'OUTGOING_EMAIL_TO_TIME_KEY'
-  MAX_EMPS_IN_MAP_DEFAULT = 200
+  MAX_EMPS_IN_MAP_DEFAULT = 100
 
   belongs_to :company, foreign_key: 'comp_id'
 

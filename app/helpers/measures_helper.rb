@@ -33,9 +33,6 @@ module MeasuresHelper
   def get_group_densities(cid, sids, current_gids, interval_type)
     ret = get_time_picker_data_by_aid_for_gauge(
             cid, sids, current_gids, interval_type, CLOSENESS_AID, true)
-    puts "%%%%%%%%%%%% get_group_densities done !!"
-    ap ret
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
     return ret
   end
 
