@@ -3,65 +3,94 @@ module NetworkSnapshotDataHelper
 
   NO_SNAPSHOT = -1
 
-  def get_dynamics_employee_map_from_helper(cid, eid, interval)
-    # snapshot_field = Snapshot.field_from_interval(interval)
+  def get_dynamics_employee_map_from_helper(cid, eid, interval, aid)
+    snapshot_field = Snapshot.field_from_interval(interval)
     sid = Employee.find(eid).snapshot_id
-    # max_emps = CompanyConfigurationTable.max_emps_in_map
+    max_emps = CompanyConfigurationTable.max_emps_in_map
 
-    direct_links = get_direct_employee_links_for_map(eid, sid)
+    direct_links = get_direct_employee_links_for_map(eid, snapshot_field, interval, sid, max_emps)
 
     empids = direct_links.map do |e|
       [e['source'], e['target']]
     end
     empids = empids.flatten.uniq
 
-    nodes = get_employees_for_map(empids, sid)
+    nodes = get_employees_for_map(empids, snapshot_field, interval, sid, aid)
     empids_without_eid = empids.select { |e| e != eid }
-    indirect_links = get_indirect_employee_links_for_map(empids_without_eid, sid)
+    indirect_links = get_indirect_employee_links_for_map(empids_without_eid, snapshot_field, interval, sid)
 
     ret = {
       nodes: nodes,
       links: direct_links + indirect_links,
       result_type: 'emps',
       selected_eid: eid
-    }.as_json
+    }
+
     return ret
   end
 
   ## Aggregate connections between the target emplyee and other
   ##   employees. We mark these links as direct (for the ui)
-  def get_direct_employee_links_for_map(eid, sid)
+  def get_direct_employee_links_for_map(eid, snapshot_field, interval, sid, limit)
+    extid = Employee.find(eid).external_id
     from_links = NetworkSnapshotData
-            .select("from_employee_id as source, to_employee_id as target,
-                     count(*) as weight, 'direct' as link_type")
-            .where(snapshot_id: sid)
-            .where(from_employee_id: eid)
-            .group('from_employee_id, to_employee_id, link_type')
+            .select("femps.external_id AS source, temps.external_id AS target,
+                     count(*) AS weight, 'direct' AS link_type")
+            .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
+            .joins('JOIN employees AS femps ON femps.id = from_employee_id')
+            .joins('JOIN employees AS temps ON temps.id = to_employee_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("femps.external_id ='%s'", extid)
+            .group('source, target')
+            .order('weight desc')
+            .limit(limit)
 
     to_links = NetworkSnapshotData
-            .select("from_employee_id as source, to_employee_id as target,
-                     count(*) as weight, 'direct' as link_type")
-            .where(snapshot_id: sid)
-            .where(to_employee_id: eid)
-            .group('from_employee_id, to_employee_id, link_type')
+            .select("femps.external_id AS source, temps.external_id AS target,
+                     count(*) AS weight, 'direct' AS link_type")
+            .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
+            .joins('JOIN employees AS femps ON femps.id = from_employee_id')
+            .joins('JOIN employees AS temps ON temps.id = to_employee_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("temps.external_id ='%s'", extid)
+            .group('source, target')
+            .order('weight desc')
+            .limit(limit)
 
-    return from_links + to_links
+    res = from_links + to_links
+
+    res = res.map do |r|
+      r['source'] = Employee.external_id_to_id_in_snapshot(r['source'], sid)
+      r['target'] = Employee.external_id_to_id_in_snapshot(r['target'], sid)
+      r
+    end
+    return res
   end
 
   ## Aggregate connections among the employees in the target employee's
   ##   connections group. We mark these links as indirect (for the ui)
-  def get_indirect_employee_links_for_map(eids, sid)
+  def get_indirect_employee_links_for_map(eids, snapshot_field, interval, sid)
+    extids = Employee.where(id: eids).pluck(:external_id)
     other_links = NetworkSnapshotData
-            .select("from_employee_id as source, to_employee_id as target,
-                     count(*) as weight, 'indirect' as link_type")
-            .where(snapshot_id: sid)
-            .where(from_employee_id: eids)
-            .where(to_employee_id: eids)
-            .group('from_employee_id, to_employee_id, link_type')
+            .select("femps.external_id AS source, temps.external_id AS target,
+                     count(*) AS weight, 'indirect' AS link_type")
+            .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
+            .joins('JOIN employees AS femps ON femps.id = from_employee_id')
+            .joins('JOIN employees AS temps ON temps.id = to_employee_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("femps.external_id IN ('#{extids.join("','")}')")
+            .where("temps.external_id IN ('#{extids.join("','")}')")
+            .group('source, target')
+
+    other_links = other_links.map do |r|
+      r['source'] = Employee.external_id_to_id_in_snapshot(r['source'], sid)
+      r['target'] = Employee.external_id_to_id_in_snapshot(r['target'], sid)
+      r
+    end
     return other_links
   end
 
-  def get_dynamics_map_from_helper(cid, group_name, interval)
+  def get_dynamics_map_from_helper(cid, group_name, interval, aid)
     snapshot_field = Snapshot.field_from_interval(interval)
     last_sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
     group = Group.where(name: group_name, snapshot_id: last_sid).last
@@ -74,11 +103,11 @@ module NetworkSnapshotDataHelper
 
     if (empids.length > max_emps)
       nodes = get_groups_for_map(empids, last_sid, group)
-      links = get_group_links_for_map(empids, last_sid)
+      links = get_group_links_for_map(empids, snapshot_field, interval, last_sid)
     else
       result_type = 'emps'
-      nodes = get_employees_for_map(empids, last_sid)
-      links = get_employee_links_for_map(empids, last_sid)
+      nodes = get_employees_for_map(empids, snapshot_field, interval, last_sid, aid)
+      links = get_employee_links_for_map(empids, snapshot_field, interval, last_sid)
     end
 
     ret = {
@@ -94,57 +123,86 @@ module NetworkSnapshotDataHelper
   def get_groups_for_map(empids, sid, group)
     gids = group.extract_descendants_ids_and_self
     nodes = Group
-            .select("g.id, g.id || '_' || g.name as name, col.rgb as col")
-            .from('groups as g')
-            .joins("join colors as col on col.id = g.color_id")
-            .where("g.id in (#{gids.join(',')})")
+            .select("g.id, g.id || '_' || g.name AS name, col.rgb AS col")
+            .from('groups AS g')
+            .joins("JOIN colors AS col ON col.id = g.color_id")
+            .where("g.id IN (#{gids.join(',')})")
             .where("g.snapshot_id = ?", sid)
     return nodes
   end
 
   ## Aggregate connections among groups
-  def get_group_links_for_map(empids, sid)
+  def get_group_links_for_map(empids, snapshot_field, interval, sid)
+    extempids = Employee.where(id: empids).pluck(:external_id)
     links = NetworkSnapshotData
-            .select('fromg.id as source, tog.id as target,
-                     count(*) as weight')
-            .joins('join employees as fromemps on fromemps.id = from_employee_id')
-            .joins('join employees as toemps on toemps.id = to_employee_id')
-            .joins('join groups as fromg on fromg.id = fromemps.group_id')
-            .joins('join groups as tog on tog.id = toemps.group_id')
-            .where(snapshot_id: sid)
-            .where(from_employee_id: empids)
-            .where(to_employee_id: empids)
+            .select('fromg.external_id AS source, tog.external_id AS target,
+                     count(*) AS weight')
+            .joins('JOIN employees AS fromemps ON fromemps.id = from_employee_id')
+            .joins('JOIN employees AS toemps ON toemps.id = to_employee_id')
+            .joins('JOIN groups AS fromg ON fromg.id = fromemps.group_id')
+            .joins('JOIN groups AS tog ON tog.id = toemps.group_id')
+            .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("fromemps.external_id IN ('#{extempids.join("','")}')")
+            .where("toemps.external_id IN ('#{extempids.join("','")}')")
             .group('source, target')
             .order('source, target')
+
+    links = links.map do |l|
+      l['source'] = Group.external_id_to_id_in_snapshot(l['source'], sid)
+      l['target'] = Group.external_id_to_id_in_snapshot(l['target'], sid)
+      l
+    end
     return links
   end
 
   ## For groups with less than max_emps we get all individual employees
-  def get_employees_for_map(empids, sid)
+  def get_employees_for_map(empids, snapshot_field, interval, sid, aid)
+    extids = Employee.where(id: empids).pluck(:external_id)
     nodes = Employee
-            .select("emps.id, first_name || ' ' || last_name as name,
-                     g.name as group_name, g.id as group_id, col.rgb as col,
-                     emps.gender as gender")
-            .from('employees as emps')
-            .joins('join groups as g on g.id = emps.group_id')
-            .joins('join colors as col on col.id = g.color_id')
-            .where('emps.snapshot_id = ?', sid)
-            .where('emps.id in (%s)', empids.join(','))
-    puts "##############"
-    ap nodes
-    puts "##############"
+            .select("emps.external_id AS id, first_name, last_name,
+                     g.name AS gname, g.id AS groupid, col.rgb AS col,
+                     gender, avg(cds.score) AS score")
+            .from('employees AS emps')
+            .joins('JOIN groups AS g ON g.id = emps.group_id')
+            .joins('JOIN colors AS col ON col.id = g.color_id')
+            .joins('JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id')
+            .joins('JOIN snapshots AS sn ON sn.id = emps.snapshot_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("emps.external_id IN ('#{extids.join("','")}')")
+            .where("cds.algorithm_id = %i AND cds.snapshot_id = sn.id", aid)
+            .group('emps.external_id, first_name, last_name, g.name, g.id, col, gender')
+
+    nodes = nodes.as_json
+    nodes = nodes.map do |n|
+      n['name'] = "#{n['first_name']} #{n['last_name']}"
+      n['group_id'] = n['groupid']
+      n['group_name'] = n['gname']
+      n['id'] = Employee.external_id_to_id_in_snapshot(n['id'].to_s, sid)
+      n
+    end
     return nodes
   end
 
   ## Aggregate connections among emplyees
-  def get_employee_links_for_map(empids, sid)
+  def get_employee_links_for_map(empids, snapshot_field, interval, sid)
+    extids = Employee.where(id: empids).pluck(:external_id)
     links = NetworkSnapshotData
-            .select('from_employee_id as source, to_employee_id as target,
-                     count(*) as weight')
-            .where(snapshot_id: sid)
-            .where(from_employee_id: empids)
-            .where(to_employee_id: empids)
+            .select('femps.external_id AS source, temps.external_id AS target,
+                     count(*) AS weight')
+            .joins('JOIN employees AS femps ON femps.id = from_employee_id')
+            .joins('JOIN employees AS temps ON temps.id = to_employee_id')
+            .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
+            .where("sn.%s = '%s'",snapshot_field, interval)
+            .where("femps.external_id IN ('#{extids.join("','")}')")
+            .where("temps.external_id IN ('#{extids.join("','")}')")
             .group('source, target')
+
+    links = links.map do |l|
+      l['source'] = Employee.external_id_to_id_in_snapshot(l['source'].to_s, sid)
+      l['target'] = Employee.external_id_to_id_in_snapshot(l['target'].to_s, sid)
+      l
+    end
     return links
   end
 

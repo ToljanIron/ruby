@@ -33,4 +33,13 @@ class Algorithm < ActiveRecord::Base
     return SCORE_SKEW_CENTRAL      if meaningful_sqew == 'central'
     return nil
   end
+
+  def self.get_algorithm_id(algorithm)
+    if algorithm.is_integer?
+      return algorithm.to_i
+    else
+      CompanyMetric.where(metric_id:  MetricName.where(company_id: 1,name: algorithm).last.id ).last.algorithm_id
+    end
+
+  end
 end

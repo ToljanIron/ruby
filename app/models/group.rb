@@ -226,10 +226,24 @@ class Group < ActiveRecord::Base
   end
 
   def self.find_group_ids_in_snapshot(gids, sid)
-    
     res = []
-    groups = find_groups_in_snapshot(gids, sid)    
+    groups = find_groups_in_snapshot(gids, sid)
     groups.each {|e| res << e['id']}
     return res
+  end
+
+  def self.external_id_to_id_in_snapshot(extid, sid)
+    key = "group_external_id_to_id_in_snapshot-sid-#{sid}"
+    extid2id = Rails.cache.fetch(key)
+    return extid2id[extid] if extid2id
+    extid2id = {}
+    res = Group
+            .select(:id, :external_id)
+            .where(snapshot_id: sid)
+    res.each do |r|
+      extid2id[r.external_id] = r.id
+    end
+    Rails.cache.write(key, extid2id, expires_in: 1.minutes)
+    return extid2id[extid]
   end
 end

@@ -3,22 +3,19 @@ class NetworkSnapshotDataController < ApplicationController
 
   # API/get_dynamics_employee_map
   def get_dynamics_employee_map
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%"
-    puts "the controller got it .."
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%"
-
     authorize :network_snapshot_data, :index?
-    permitted = params.permit(:interval, :eid)
+    permitted = params.permit(:interval, :eid, :aid)
 
     cid = current_user.company_id
     eid = permitted[:eid]
     interval = permitted[:interval]
+    aid = Algorithm.get_algorithm_id(permitted[:aid])
 
-    cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}"
+    cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}-aid-#{aid}"
     puts "cache_key: #{cache_key}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_dynamics_employee_map_from_helper(cid, eid, interval)
+      res = get_dynamics_employee_map_from_helper(cid, eid, interval, aid)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
@@ -27,17 +24,18 @@ class NetworkSnapshotDataController < ApplicationController
   # API/get_dynamics_map
   def get_dynamics_map
     authorize :network_snapshot_data, :index?
-    permitted = params.permit(:interval, :group_name)
+    permitted = params.permit(:interval, :group_name, :aid)
 
     cid = current_user.company_id
     group_name = permitted[:group_name]
     interval = permitted[:interval]
+    aid = Algorithm.get_algorithm_id(permitted[:aid])
 
-    cache_key = "get_dynamics_map-cid-#{cid}-group_name-#{group_name}-interval-#{interval}"
+    cache_key = "get_dynamics_map-cid-#{cid}-group_name-#{group_name}-interval-#{interval}-aid-#{aid}"
     puts "cache_key: #{cache_key}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_dynamics_map_from_helper(cid, group_name, interval)
+      res = get_dynamics_map_from_helper(cid, group_name, interval, aid)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

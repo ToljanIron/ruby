@@ -299,4 +299,20 @@ class Employee < ActiveRecord::Base
     end
     return ret
   end
+
+  def self.external_id_to_id_in_snapshot(extid, sid)
+    key = "external_id_to_id_in_snapshot-sid-#{sid}"
+    extid2id = Rails.cache.fetch(key)
+    return extid2id[extid] if extid2id
+    extid2id = {}
+    res = Employee
+            .select(:id, :external_id)
+            .where(snapshot_id: sid)
+    res.each do |r|
+      extid2id[r.external_id] = r.id
+    end
+    Rails.cache.write(key, extid2id, expires_in: 1.minutes)
+    return extid2id[extid]
+  end
+
 end

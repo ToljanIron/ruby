@@ -1,3 +1,9 @@
+class String
+  def is_integer?()
+    true if Integer(self) rescue false
+  end
+end
+
 class Hash
   def fetch_or_create(key )
     return nil, self       if key.nil?
