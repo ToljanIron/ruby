@@ -8,40 +8,57 @@ module NetworkSnapshotDataHelper
     sid = Employee.find(eid).snapshot_id
     # max_emps = CompanyConfigurationTable.max_emps_in_map
 
-    links = get_links_of_specific_employee_for_map(eid, sid)
+    direct_links = get_direct_employee_links_for_map(eid, sid)
 
-    empids = links.map do |e|
+    empids = direct_links.map do |e|
       [e['source'], e['target']]
     end
     empids = empids.flatten.uniq
 
     nodes = get_employees_for_map(empids, sid)
+    empids_without_eid = empids.select { |e| e != eid }
+    indirect_links = get_indirect_employee_links_for_map(empids_without_eid, sid)
 
     ret = {
       nodes: nodes,
-      links: links,
+      links: direct_links + indirect_links,
       result_type: 'emps',
       selected_eid: eid
     }.as_json
     return ret
   end
 
-  ## Aggregate connections among emplyees
-  def get_links_of_specific_employee_for_map(eid, sid)
+  ## Aggregate connections between the target emplyee and other
+  ##   employees. We mark these links as direct (for the ui)
+  def get_direct_employee_links_for_map(eid, sid)
     from_links = NetworkSnapshotData
-            .select('from_employee_id as source, to_employee_id as target,
-                     count(*) as weight')
+            .select("from_employee_id as source, to_employee_id as target,
+                     count(*) as weight, 'direct' as link_type")
             .where(snapshot_id: sid)
             .where(from_employee_id: eid)
-            .group('from_employee_id, to_employee_id')
+            .group('from_employee_id, to_employee_id, link_type')
 
     to_links = NetworkSnapshotData
-            .select('from_employee_id as source, to_employee_id as target,
-                     count(*) as weight')
+            .select("from_employee_id as source, to_employee_id as target,
+                     count(*) as weight, 'direct' as link_type")
             .where(snapshot_id: sid)
             .where(to_employee_id: eid)
-            .group('from_employee_id, to_employee_id')
+            .group('from_employee_id, to_employee_id, link_type')
+
     return from_links + to_links
+  end
+
+  ## Aggregate connections among the employees in the target employee's
+  ##   connections group. We mark these links as indirect (for the ui)
+  def get_indirect_employee_links_for_map(eids, sid)
+    other_links = NetworkSnapshotData
+            .select("from_employee_id as source, to_employee_id as target,
+                     count(*) as weight, 'indirect' as link_type")
+            .where(snapshot_id: sid)
+            .where(from_employee_id: eids)
+            .where(to_employee_id: eids)
+            .group('from_employee_id, to_employee_id, link_type')
+    return other_links
   end
 
   def get_dynamics_map_from_helper(cid, group_name, interval)
@@ -106,12 +123,16 @@ module NetworkSnapshotDataHelper
   def get_employees_for_map(empids, sid)
     nodes = Employee
             .select("emps.id, first_name || ' ' || last_name as name,
-                     g.name as group_name, g.id as group_id, col.rgb as col")
+                     g.name as group_name, g.id as group_id, col.rgb as col,
+                     emps.gender as gender")
             .from('employees as emps')
             .joins('join groups as g on g.id = emps.group_id')
             .joins('join colors as col on col.id = g.color_id')
             .where('emps.snapshot_id = ?', sid)
             .where('emps.id in (%s)', empids.join(','))
+    puts "##############"
+    ap nodes
+    puts "##############"
     return nodes
   end
 
