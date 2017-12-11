@@ -82,9 +82,16 @@ class SessionsController < ApplicationController
     return nil unless user and user.id
 
     company = Company.find(user.company_id)
+    session_timeout = company.session_timeout
+    timeout = 600
+    timeout = 3600   if session_timeout == 1
+    timeout = 7200   if session_timeout == 2
+    timeout = 720000 if session_timeout == 3
+    exp = Time.now.to_i + timeout
+
     return  {
       login_token: {
-        auth_token: JsonWebToken.encode({user_id: user.id}),
+        auth_token: JsonWebToken.encode({user_id: user.id, exp: exp}),
         user: {id: user.id, email: user.email}
       },
       user_info: {
