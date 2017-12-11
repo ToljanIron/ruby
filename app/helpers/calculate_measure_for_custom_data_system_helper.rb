@@ -346,7 +346,7 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY group_external_id
       ORDER BY sum DESC
-      LIMIT 10"
+      LIMIT 50"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return cds_scores.map do |s|
       s['group_external_id']

@@ -174,11 +174,13 @@ module NetworkSnapshotDataHelper
             .group('emps.external_id, first_name, last_name, g.name, g.id, col, gender')
 
     nodes = nodes.as_json
+    invmode = CompanyConfigurationTable.is_investigation_mode?
     nodes = nodes.map do |n|
-      n['name'] = "#{n['first_name']} #{n['last_name']}"
       n['group_id'] = n['groupid']
       n['group_name'] = n['gname']
       n['id'] = Employee.external_id_to_id_in_snapshot(n['id'].to_s, sid)
+      n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
+      n['name'] = "#{n['first_name']} #{n['last_name']}"
       n
     end
     return nodes
