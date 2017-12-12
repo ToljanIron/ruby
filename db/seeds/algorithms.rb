@@ -9,7 +9,7 @@ Algorithm.find_or_create_by!(id: 704, name: 'cced_measure', algorithm_type_id: 1
 Algorithm.find_or_create_by!(id: 705, name: 'undercover_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 706, name: 'politicos_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 707, name: 'emails_volume_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
-Algorithm.find_or_create_by!(id: 709, name: 'avg_number_of_recipients', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 709, name: 'avg_number_of_recipients', algorithm_type_id: 9, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Meetings ####################
 Algorithm.find_or_create_by!(id: 800, name: 'in_the_loop_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)

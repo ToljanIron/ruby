@@ -38,15 +38,18 @@ namespace :db do
       calc_all = false
     end
 
-    #if Company.find(cid).questionnaire_only?
-      #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores_for_generic_networks(cid.to_i, sid.to_i, gid.to_i)
-    #else
-      #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid.to_i, gid.to_i, pid.to_i, mid.to_i, sid.to_i, rewrite)
-    #end
+    if false
+      if Company.find(cid).questionnaire_only?
+        PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores_for_generic_networks(cid.to_i, sid.to_i, gid.to_i)
+      else
+        PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid.to_i, gid.to_i, pid.to_i, mid.to_i, sid.to_i, rewrite)
+      end
+    end
 
     if true
       [127,128,129,132,133,134,135,136].each do |sid|
-        [700,701,702,703,704,705,706,707,709,200,201,203,204,205,206,207].each do |aid|
+        #[700,701,702,703,704,705,706,707,709,200,201,203,204,205,206,207].each do |aid|
+        [709].each do |aid|
           puts "========================> sid: #{sid}, aid: #{aid}"
           PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(1, -1, -1, aid, sid, true)
         end
@@ -55,7 +58,7 @@ namespace :db do
       end
     end
 
-    if true
+    if false
       ActiveRecord::Base.transaction do
         begin
           if calc_all

@@ -44,12 +44,11 @@ module CalculateMeasureForCustomDataSystemHelper
          EMAILS_VOLUME)
 
     ## get results for average number of emails
-    total_recipients, num_emails_avg, num_emails_diff =
-       average_and_diff_of_scores(
+    num_emails_avg, num_emails_diff =
+       average_and_diff_of_company_stat(
          curr_interval,
          prev_interval,
          interval_type,
-         groups_condition,
          AVG_NUM_RECIPIENTS)
 
     scale = CompanyConfigurationTable.incoming_email_to_time
@@ -59,6 +58,34 @@ module CalculateMeasureForCustomDataSystemHelper
       num_emails_avg: num_emails_avg,
       num_emails_diff: num_emails_diff
     }
+  end
+
+  def average_and_diff_of_company_stat(curr_interval, prev_interval, interval_type, aid)
+    interval_str = Snapshot.field_from_interval_type(interval_type)
+    currret = CdsMetricScore
+            .select('AVG(score) AS avg')
+            .joins('JOIN snapshots AS sn ON sn.id = cds_metric_scores.snapshot_id')
+            .where(algorithm_id: aid)
+            .where("sn.#{interval_str} = '#{curr_interval}'")
+
+    if !prev_interval.nil?
+      prevret = CdsMetricScore
+            .select('AVG(score) AS avg')
+            .joins('JOIN snapshots AS sn ON sn.id = cds_metric_scores.snapshot_id')
+            .where(algorithm_id: aid)
+            .where("sn.#{interval_str} = '#{prev_interval}'")
+    end
+
+    curravg = currret[0][:avg].to_f.round(2)
+
+    if !prev_interval.nil?
+      lastavg = prevret[0][:avg].to_f.round(2)
+      diff = ((curravg - lastavg) / lastavg) * 100
+    else
+      diff = 0.0
+    end
+
+    return [curravg, diff.round(2)]
   end
 
   def average_and_diff_of_scores(curr_interval, prev_interval, interval_type, gids, aid)

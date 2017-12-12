@@ -507,24 +507,19 @@ module AlgorithmsHelper
   def avg_number_of_recipients(sid, pid, gid)
     cid = Snapshot.find(sid).company_id
     nid = NetworkSnapshotData.emails(cid)
-
     sqlstr =
-      "SELECT emps.id as empid, AVG(agg.sum) AS avg FROM
-         (SELECT from_employee_id, message_id, SUM(value) as sum
-          FROM network_snapshot_data
+       "SELECT cnt FROM
+         (SELECT message_id, COUNT(*) AS cnt
+          FROM network_snapshot_data AS nsd
           WHERE
             snapshot_id = #{sid} AND
             network_id = #{nid}
-          GROUP BY from_employee_id, message_id) AS agg
-       RIGHT JOIN employees AS emps ON emps.id = agg.from_employee_id
-       GROUP BY emps.id"
+          GROUP BY message_id) AS in1"
      res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-     ret = []
-     res.each do |e|
-       avg = e['avg'].nil? ? 0 : e['avg'].to_f.round(2)
-       ret << {id: e['empid'], measure: avg}
-     end
-     return ret
+
+     res = res.map { |r| r['cnt'] }
+     med = array_mean(res)
+     return [{group_id: gid, measure: med}]
   end
 
   ###########################################################################
