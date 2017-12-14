@@ -77,7 +77,7 @@ module CdsGroupsHelper
 
   def self.groups_with_sizes(gids)
     sqlstr = "
-      SELECT g.id AS group_id, g.name AS group_name, g.parent_group_id AS parent_id,
+      SELECT g.id AS group_id, g.english_name AS group_name, g.parent_group_id AS parent_id,
         (SELECT count(*)
          FROM employees AS emps
          WHERE emps.group_id = g.id) AS num_of_emps
@@ -103,7 +103,7 @@ module CdsGroupsHelper
       group[:gid] = gid
       group[:id] = gid
       root_gid = gid if pgid.nil?
-      group[:name] = !is_investigation_mode ? g['group_name'] : "#{g['group_id']}-#{g['group_name']}"
+      group[:name] = !is_investigation_mode ? g['group_name'] : "#{g['group_id']}_#{g['group_name']}"
       group[:parentId] = pgid
       group[:size] = g['num_of_emps']
       group[:childrenIds] = []

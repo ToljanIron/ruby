@@ -162,13 +162,14 @@ module CalculateMeasureForCustomDataSystemHelper
              .where("cds.algorithm_id IN (#{aids_str})")
              .group('emps.email')
              .order('avg DESC')
-             .limit(20)
+             .limit(100)
     emails = emps.map { |emp| emp['email'] }
 
     ## Then get their details
+    ## SELECT (avg(#{score_type}) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
     sqlstr = "
-      SELECT (avg(#{score_type}) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
-             emps.img_url AS img_url, g.external_id AS group_extid, g.name AS group_name, o.name AS office_name,
+      SELECT (avg(#{score_type}) * #{scale}) AS score, emps.email AS emp_name,
+             emps.img_url AS img_url, g.external_id AS group_extid, g.english_name AS group_name, o.name AS office_name,
              mn.name AS metric_name, emps.email
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -286,7 +287,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
     sqlstr = "
-      SELECT sum(cds.score) AS sum, avg(inner2.empsnum) AS num, g.name AS group_name,
+      SELECT sum(cds.score) AS sum, avg(inner2.empsnum) AS num, g.english_name AS group_name,
              g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name,
              emps.office_id, off.name AS office_name
       FROM cds_metric_scores AS cds

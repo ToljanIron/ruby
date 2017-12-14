@@ -174,7 +174,7 @@ module MeasuresHelper
     groupextids = Group.where(id: [gids]).pluck(:external_id)
 
     sqlstr =
-      "SELECT g.external_id group_name, algo.id AS algo_id, mn.name AS algo_name,
+      "SELECT g.english_name group_name, algo.id AS algo_id, mn.name AS algo_name,
           s.#{interval_str} AS period, AVG(z_score) AS avg_z_score
        FROM cds_metric_scores AS cds
        JOIN snapshots AS s ON snapshot_id = s.id
@@ -223,7 +223,7 @@ module MeasuresHelper
     agg_type_select = nil
     agg_type_groupby = nil
     if agg_type == 'Department'
-      agg_type_select = 'g.name AS group_name'
+      agg_type_select = 'g.english_name AS group_name'
       agg_type_groupby = 'group_name'
     elsif agg_type == 'Offices'
       agg_type_select = 'off.name AS officename'
@@ -280,7 +280,7 @@ module MeasuresHelper
             gids,
             interval,
             interval_type,
-            DYNAMICS_AIDS,
+            [206],
             'z_score',
             false)
     ret = convert_group_external_ids_to_gids(ret, cid)
