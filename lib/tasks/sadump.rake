@@ -9,6 +9,7 @@ namespace :db do
 
     import_to_model('./rawdataentry_dump_0.csv', 'raw_data_entries')
     import_to_model('./rawdataentry_dump_1.csv', 'raw_data_entries')
+    import_to_model('./rawdataentry_dump_2.csv', 'raw_data_entries')
 
     #import_to_model('./company_dump.csv', 'companies')
     #import_to_model('./office_dump.csv', 'offices')
