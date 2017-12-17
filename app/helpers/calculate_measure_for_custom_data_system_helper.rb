@@ -235,7 +235,7 @@ module CalculateMeasureForCustomDataSystemHelper
     end
 
     scores.each do |s|
-      s['group_id'] = extidsmapping[s['group_extid']]
+      s['gid'] = extidsmapping[s['group_extid']]
     end
 
     return scores
@@ -334,7 +334,7 @@ module CalculateMeasureForCustomDataSystemHelper
       key = s
       cursum = key.delete('sum')
       curnum = key.delete('num')
-      gid = key.delete('group_id')          # Remove group_id and group_name from the key because they
+      gid = key.delete('gid')          # Remove group_id and group_name from the key because they
       group_name = key.delete('group_name') # change every snapshot.
       res_hash[key] = [cursum, gid, group_name, curnum]
     end
@@ -345,7 +345,7 @@ module CalculateMeasureForCustomDataSystemHelper
       entry = s.dup
       prevsum = key.delete('sum')
       prevnum = key.delete('num')
-      key.delete('group_id')     # Remove group_id and group_name from the key because they
+      key.delete('gid')     # Remove group_id and group_name from the key because they
       key.delete('group_name')   # change every snapshot.
       next if res_hash[key].nil?
       entry['gid'] = res_hash[key][1]
