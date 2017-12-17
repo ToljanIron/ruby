@@ -94,6 +94,9 @@ module NetworkSnapshotDataHelper
     snapshot_field = Snapshot.field_from_interval(interval)
     last_sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
     group = Group.where(name: group_name, snapshot_id: last_sid).last
+    if group.nil?
+      group = Group.where(english_name: group_name, snapshot_id: last_sid).last
+    end
     empids = group.extract_employees
     max_emps = CompanyConfigurationTable.max_emps_in_map
 

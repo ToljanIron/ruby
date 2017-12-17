@@ -211,12 +211,31 @@ module MeasuresHelper
     return get_gauge_level(avg)
   end
 
+  def convert_group_external_ids_to_gids(scores, cid)
+    extids = scores.map { |s| s['group_extid'] }
+    sid = Snapshot.last_snapshot_of_company(cid)
+    groups = Group
+               .select(:id, :external_id)
+               .where(snapshot_id: sid)
+               .where(external_id: extids)
+    extidsmapping = {}
+    groups.each do |g|
+      extidsmapping[g[:external_id]] = g[:id]
+    end
+
+    scores.each do |s|
+      s['gid'] = extidsmapping[s['group_extid']]
+    end
+
+    return scores
+  end
+
   def get_dynamics_scores_from_helper(cid, interval, gids, interval_type, agg_type)
     interval_str = Snapshot.field_from_interval_type(interval_type.to_i)
 
     groups_cond = '1 = 1'
     if gids != nil
-      groupextids = Group.where(id: [gids]).pluck(:external_id)
+      groupextids = Group.where(id: gids).pluck(:external_id)
       groups_cond = "g.external_id IN ('#{groupextids.join('\',\'')}')"
     end
 
@@ -232,7 +251,7 @@ module MeasuresHelper
 
     sqlstr =
       "(SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-         AVG(z_score) AS score, s.#{interval_str} AS period, g.id AS gid
+         AVG(z_score) AS score, s.#{interval_str} AS period, g.external_id AS group_extid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -246,10 +265,10 @@ module MeasuresHelper
         cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
-      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, gid
+      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, g.external_id
       UNION
       SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-        AVG(z_score) AS score, s.#{interval_str} AS period, g.id AS gid
+        AVG(z_score) AS score, s.#{interval_str} AS period, g.external_id AS group_extid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -263,11 +282,12 @@ module MeasuresHelper
         cds.algorithm_id IN (#{DYNAMICS_AIDS_WITH_GROUPS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
-      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, gid)
+      GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, g.external_id)
       ORDER BY period"
 
-
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+
+    sqlres = convert_group_external_ids_to_gids(sqlres, cid)
     a_min_max = find_min_max_values_per_algorithm(DYNAMICS_AIDS + DYNAMICS_AIDS_WITH_GROUPS, sqlres)
     ret = shift_and_append_min_max_values_from_array(a_min_max, sqlres)
     return ret
