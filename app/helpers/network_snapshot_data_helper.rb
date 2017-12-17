@@ -126,7 +126,7 @@ module NetworkSnapshotDataHelper
   def get_groups_for_map(empids, sid, group)
     gids = group.extract_descendants_ids_and_self
     nodes = Group
-            .select("g.id, g.id || '_' || g.name AS name, col.rgb AS col")
+            .select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col")
             .from('groups AS g')
             .joins("JOIN colors AS col ON col.id = g.color_id")
             .where("g.id IN (#{gids.join(',')})")
@@ -163,7 +163,7 @@ module NetworkSnapshotDataHelper
   def get_employees_for_map(empids, snapshot_field, interval, sid, aid)
     extids = Employee.where(id: empids).pluck(:external_id)
     nodes = Employee
-            .select("emps.external_id AS id, first_name, last_name,
+            .select("emps.external_id AS id, email,
                      g.name AS gname, g.id AS groupid, col.rgb AS col,
                      gender, avg(cds.score) AS score")
             .from('employees AS emps')
@@ -174,7 +174,7 @@ module NetworkSnapshotDataHelper
             .where("sn.%s = '%s'",snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
             .where("cds.algorithm_id = %i AND cds.snapshot_id = sn.id", aid)
-            .group('emps.external_id, first_name, last_name, g.name, g.id, col, gender')
+            .group('emps.external_id, email, g.name, g.id, col, gender')
 
     nodes = nodes.as_json
     invmode = CompanyConfigurationTable.is_investigation_mode?
@@ -182,8 +182,10 @@ module NetworkSnapshotDataHelper
       n['group_id'] = n['groupid']
       n['group_name'] = n['gname']
       n['id'] = Employee.external_id_to_id_in_snapshot(n['id'].to_s, sid)
-      n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
-      n['name'] = "#{n['first_name']} #{n['last_name']}"
+      #n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
+      #n['name'] = "#{n['first_name']} #{n['last_name']}"
+      n['name'] = "#{n['id']}_#{n['email']}" if invmode
+      n['name'] = "#{n['email']}"
       n
     end
     return nodes
