@@ -268,6 +268,7 @@ module CalculateMeasureForCustomDataSystemHelper
       res << {
         gid: e['gid'],
         groupName: create_group_name(e['gid'], e['group_name'],invmode),
+        groupSize: Group.exact_num_of_emps(e['gid']),
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
