@@ -446,6 +446,41 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
       expect(ret[:diff]).to eq(0.0)
     end
   end
+
+end
+
+describe 'cds_aggregation_query' do
+  before :all do
+    generate_data_for_acme
+    Group.prepare_groups_for_hierarchy_queries(1)
+    Group.prepare_groups_for_hierarchy_queries(2)
+  end
+
+  it 'should work' do
+    cid = 1
+    interval = 'Oct/17'
+    group_wherepart = "g.external_id in ('group_1', 'group_2')"
+    aids = [701]
+    extids = ['group_1', 'group_2']
+
+    byebug
+
+    res = cds_aggregation_query(
+      cid,
+      interval,
+      group_wherepart,
+      '1 = 1',
+      '1 = 1',
+      aids,
+      'month',
+      extids
+    )
+
+    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHH"
+    ap res
+    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHH"
+  end
+
 end
 
 def generate_data_for_acme
@@ -472,11 +507,17 @@ def generate_data_for_acme
   @of1 = Office.create!(company_id: 1, name: 'Mishmeret').id
   @of2 = Office.create!(company_id: 1, name: 'Drorim').id
 
-  @emp1 = FactoryGirl.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1, office_id: @of1).id
-  @emp2 = FactoryGirl.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1, office_id: @of2).id
-  @emp3 = FactoryGirl.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1, office_id: @of1).id
-  @emp4 = FactoryGirl.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1, office_id: @of2).id
-  @emp5 = FactoryGirl.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1, office_id: @of1).id
+  @emp1 = FactoryGirl.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp2 = FactoryGirl.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp3 = FactoryGirl.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp4 = FactoryGirl.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp5 = FactoryGirl.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
+
+  @emp6 = FactoryGirl.create(:employee, email: 'email6@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp7 = FactoryGirl.create(:employee, email: 'email7@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp8 = FactoryGirl.create(:employee, email: 'email8@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp9 = FactoryGirl.create(:employee, email: 'email9@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp0 = FactoryGirl.create(:employee, email: 'email0@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
 
   ## At long last we can fill cds_metric_scores
   ## Groups data
@@ -485,11 +526,11 @@ def generate_data_for_acme
   CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
   CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 4, employee_id: @emp4, group_id: @g2, company_metric_id: 7, company_id: 1)
   CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 1, score: 5, employee_id: @emp5, group_id: @g2, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 2, employee_id: @emp1, group_id: @g3, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 3, employee_id: @emp2, group_id: @g3, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g3, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g4, company_metric_id: 7, company_id: 1)
-  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g4, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 2, employee_id: @emp6, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 3, employee_id: @emp7, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 4, employee_id: @emp8, group_id: @g3, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 5, employee_id: @emp9, group_id: @g4, company_metric_id: 7, company_id: 1)
+  CdsMetricScore.create!(algorithm_id: 701, snapshot_id: 2, score: 6, employee_id: @emp0, group_id: @g4, company_metric_id: 7, company_id: 1)
 
   CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 3, employee_id: @emp1, group_id: @g1, company_metric_id: 8, company_id: 1)
   CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 8, company_id: 1)

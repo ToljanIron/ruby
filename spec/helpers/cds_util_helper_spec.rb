@@ -63,4 +63,31 @@ describe CdsUtilHelper, type: :helper do
       end
     end
   end
+
+  describe 'create_index' do
+    before :all do
+      Role.create!(id: 111, company_id: 1, name: 'role1', color_id: 11)
+      Role.create!(id: 222, company_id: 1, name: 'role2', color_id: 12)
+      Role.create!(id: 333, company_id: 1, name: 'role3', color_id: 13)
+    end
+
+    after :each do
+      Rails.cache.clear
+    end
+
+    it 'should have same number of entries as table if no condition given' do
+      res = create_index(Role)
+      expect(res.length).to eq(3)
+    end
+
+    it 'should have only 2 entries with this condition' do
+      res = create_index(Role, 'id', 'id < 300')
+      expect(res.length).to eq(2)
+    end
+
+    it 'should have string key' do
+      res = create_index(Role, 'name', 'id < 300')
+      expect(res['role2']).to include({"color_id" => 12})
+    end
+  end
 end

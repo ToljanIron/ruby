@@ -155,6 +155,25 @@ module CdsUtilHelper
     return result
   end
 
+  ## ---------------- Cache even in Development -----------------------
+  def dev_cache_read(key)
+    fail 'Key is nil' if key.nil?
+    return Rails.cache.fetch(key)
+  end
+
+  def dev_cache_write(key, value, expires_in)
+    fail 'Key is nil' if key.nil?
+    Rails.cache.write(key, value, expires_in: expires_in)
+  end
+
+  # takes a block, a returned value of which will be written to cache and returned
+  def dev_read_or_calculate_and_write(key, expires_in = 24.hours)
+    result = dev_cache_read(key)
+    return result unless result.nil?
+    result = yield
+    dev_cache_write(key, result, expires_in)
+    return result
+  end
   ############################## SQL helper functions ################################3
   def is_sql_server_connection?
     return ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
@@ -195,5 +214,19 @@ module CdsUtilHelper
   def array_median(a)
     stats = DescriptiveStatistics::Stats.new(a)
     return stats.median
+  end
+
+  ############################### Runtime indexes ################################
+  def create_index(model, index_key = 'id', condition = nil )
+    cache_key = "create_index-#{model.to_s}-#{index_key}"
+    return dev_read_or_calculate_and_write(cache_key, 8.hours) do
+      entries = model.all.as_json if condition.nil?
+      entries = model.where(condition).as_json if !condition.nil?
+      inx = {}
+      entries.each do |e|
+        inx[ e[index_key] ] = e
+      end
+      inx
+    end
   end
 end

@@ -240,4 +240,42 @@ describe Group, type: :model do
       expect(groups).to eq([4])
     end
   end
+
+end
+
+describe 'nested sets handling' do
+  pairs = [[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[6,8]]
+
+  before :all do
+    FactoryGirl.create(:group, id: 1, name: 'g1', parent_group_id:  nil)
+    FactoryGirl.create(:group, id: 2, name: 'g2', parent_group_id:  1)
+    FactoryGirl.create(:group, id: 3, name: 'g3', parent_group_id:  1)
+    FactoryGirl.create(:group, id: 4, name: 'g4', parent_group_id:  2)
+    FactoryGirl.create(:group, id: 5, name: 'g5', parent_group_id:  3)
+    FactoryGirl.create(:group, id: 6, name: 'g6', parent_group_id:  3)
+    FactoryGirl.create(:group, id: 7, name: 'g7', parent_group_id:  6)
+    FactoryGirl.create(:group, id: 8, name: 'g8', parent_group_id:  6)
+
+    Group.create_nested_sets_structure(pairs)
+  end
+
+  it 'should get all descendants node 3' do
+    res = Group.get_descendants(3)
+    expect(res).to eq( [5,6,7,8] )
+  end
+
+  it 'should return empty list for a leaf' do
+    res = Group.get_descendants(7)
+    expect(res).to eq( [] )
+  end
+
+  it 'should get all ancestors of node 7' do
+    res = Group.get_ancestors(7)
+    expect(res).to eq( [1,3,6] )
+  end
+
+  it 'should get all group pairs in DFS order' do
+    res = Group.get_all_parent_son_pairs(1)
+    expect(res).to eq(pairs)
+  end
 end

@@ -256,4 +256,104 @@ class Group < ActiveRecord::Base
     Rails.cache.write(key, extid2id, expires_in: 1.minutes)
     return extid2id[extid]
   end
+
+
+  ######################################################################
+  # Create the needed structure for efficient aggregations on group
+  # hierarchies.
+  ######################################################################
+  def self.prepare_groups_for_hierarchy_queries(sid)
+    cid = Snapshot.find(sid).company_id
+    rootgid = Group.get_root_group(cid, sid)
+    group_pairs = Group.get_all_parent_son_pairs(rootgid)
+    Group.create_nested_sets_structure(group_pairs)
+  end
+
+  def self.get_all_parent_son_pairs(pgid)
+    subgroups = Group.where(parent_group_id: pgid).pluck(:id)
+    ret = []
+    subgroups.each do |sgid|
+      ret << [pgid,sgid]
+      ret += Group.get_all_parent_son_pairs(sgid)
+    end
+    return ret
+  end
+
+
+  ##############################################################
+  # This function recieves a list of group parent son ids and
+  #   and arranges them as a nested set structure.
+  #   See: (https://en.wikipedia.org/wiki/Nested_set_model)
+  #
+  # It assumes the following:
+  # 1 - Table groups has fields: id, nsleft and nsright
+  # 2 - The groups list is sorted in the sense that parents
+  #       always appear before sons
+  ##############################################################
+  def self.create_nested_sets_structure(pairs)
+    ## Initial step
+    group_pairs = pairs.clone
+    rootgid, songid = group_pairs.shift
+    puts "Working on parent: #{rootgid}, son: #{songid}"
+    Group.find(rootgid).update!(nsleft: 0, nsright: 3)
+    Group.find(songid).update!(nsleft: 1, nsright: 2)
+
+    ## Repeat for all pairs that were left
+    group_pairs.each do |pgid, sgid|
+      puts "Working on parent: #{pgid}, son: #{sgid}"
+      mark = Group.find(pgid).nsright
+      sonleft = mark
+      sonright = mark + 1
+
+      sqlstr = "
+        UPDATE groups
+          SET nsleft = CASE WHEN nsleft >= #{mark} THEN nsleft + 2
+                       ELSE nsleft END,
+              nsright = nsright + 2
+          WHERE nsright >= #{mark}"
+      ActiveRecord::Base.connection.exec_query(sqlstr)
+
+      sqlstr = "
+        UPDATE groups
+          SET nsleft = #{sonleft}, nsright = #{sonright}
+          WHERE id = #{sgid}"
+      ActiveRecord::Base.connection.exec_query(sqlstr)
+    end
+  end
+
+  #######################################################################
+  # Get all of a group's descendats not including the root by using the
+  # netsted sets fields (nsleft, nsright)
+  ######################################################################
+  def self.get_descendants(gid)
+    root_group = Group.find(gid)
+    sqlstr = "
+      SELECT id
+      FROM groups
+      WHERE
+        nsleft > #{root_group.nsleft} AND
+        nsright < #{root_group.nsright}
+      ORDER BY id"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).as_json
+    res = res.map { |r| r['id'] }
+    return res
+  end
+
+  #######################################################################
+  # Get all of a group's ancestors not including the root by using the
+  # netsted sets fields (nsleft, nsright)
+  ######################################################################
+  def self.get_ancestors(gid)
+    root_group = Group.find(gid)
+    sqlstr = "
+      SELECT id
+      FROM groups
+      WHERE
+        nsleft < #{root_group.nsleft} AND
+        nsright > #{root_group.nsright}
+      ORDER BY id"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).as_json
+    res = res.map { |r| r['id'] }
+    return res
+  end
 end

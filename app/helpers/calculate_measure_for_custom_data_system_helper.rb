@@ -205,20 +205,29 @@ module CalculateMeasureForCustomDataSystemHelper
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [EMAILS_VOLUME], snapshot_field)
 
-    curr_group_wherepart = agg_method == AGG_GROUP ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
-    prev_group_wherepart = agg_method == AGG_GROUP && !previnter.nil? ? "g.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
+    curr_group_wherepart = agg_method == AGG_GROUP ? "outg.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
+    prev_group_wherepart = agg_method == AGG_GROUP && !previnter.nil? ? "outg.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
 
     algo_wherepart = agg_method == AGG_ALGORITHM ? "al.id IN (#{calculate_algo_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
     office_wherepart = agg_method == AGG_OFFICE ? "emps.id IN (#{calculate_office_top_scores(cid, currinter, currtopextgids, aids, snapshot_field).join(',')})" : '1 = 1'
 
-    currscores  = cds_aggregation_query(cid, currinter,  curr_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
-    prevscores = previnter.nil? ? currscores : cds_aggregation_query(cid, previnter, prev_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
+    currscores  = cds_aggregation_query(cid, currinter,  curr_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field, currgextids)
+    prevscores = previnter.nil? ? currscores : cds_aggregation_query(cid, previnter, prev_group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field, currgextids)
 
     currscores = convert_group_external_ids_to_gids(currscores, cid)
     prevscores = convert_group_external_ids_to_gids(prevscores, cid)
 
+    #puts "####################### 1"
+    #ap currscores[0]
+
     res = collect_cur_and_prev_results(currscores, prevscores)
+    #puts "####################### 2"
+    #ap res[0]
+
     res = format_scores(res)
+    #puts "####################### 3"
+    #ap res[0]
+
     return res
   end
 
@@ -286,42 +295,49 @@ module CalculateMeasureForCustomDataSystemHelper
     return "#{gid}_#{group_name}" if invmode
   end
 
-  def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field)
+  def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field, extids)
     sqlstr = "
-      SELECT sum(cds.score) AS sum, avg(inner2.empsnum) AS num, g.english_name AS group_name,
-             g.external_id AS group_extid, cds.algorithm_id, mn.name AS algorithm_name,
-             emps.office_id, off.name AS office_name
-      FROM cds_metric_scores AS cds
-      JOIN employees AS emps ON emps.id = cds.employee_id
-      JOIN  (
-              SELECT count(inemps.id) AS empsnum, insn.id,
-                     inemps.group_id AS ingroupid,
-                     inemps.office_id AS inofficeid
-              FROM employees AS inemps
-              JOIN snapshots AS insn ON insn.id = inemps.snapshot_id
-              WHERE
-                insn.#{snapshot_field} = '#{interval}'
-              GROUP BY insn.id, ingroupid, inofficeid
-            ) AS inner2 ON inner2.ingroupid = emps.group_id AND
-                           inner2.inofficeid = emps.office_id
-      JOIN groups AS g ON g.id = emps.group_id
-      JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
-      JOIN algorithms AS al ON al.id = cm.algorithm_id
-      INNER JOIN metric_names AS mn ON mn.id = cm.metric_id
-      INNER JOIN offices AS off ON off.id = emps.office_id
-      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
-      WHERE
-        #{group_wherepart} AND
-        #{algo_wherepart} AND
-        #{office_wherepart} AND
-        sn.#{snapshot_field} = '#{interval}' AND
-        cds.company_id = #{cid} AND
-        cds.score > #{NA} AND
-        cds.algorithm_id IN (#{aids.join(',')})
-      GROUP BY group_name, group_extid, cds.algorithm_id, algorithm_name, emps.office_id, office_name
-      ORDER BY sum DESC"
+      SELECT avg(outmost.inavg) AS group_hierarchy_avg, outmost.gextid AS group_extid,
+             outmost.group_name, outmost.algorithm_id AS algorithm_id, outmost.algorithm_name
+      FROM
+        (SELECT
+          (SELECT avg(incds.score)
+           FROM groups as ing
+           JOIN employees AS inemps ON inemps.group_id = ing.id
+           JOIN cds_metric_scores AS incds ON incds.employee_id = inemps.id
+           WHERE
+             ing.nsleft >= outg.nsleft AND
+             ing.nsright <= outg.nsright AND
+             ing.snapshot_id = outg.snapshot_id AND
+             ing.external_id IN ('#{extids.join('\',\'')}') AND
+             inemps.snapshot_id = outg.snapshot_id AND
+             incds.algorithm_id = outcds.algorithm_id ) AS inavg,
+           outcds.snapshot_id AS sid, outg.external_id AS gextid, outg.english_name AS group_name,
+           outcds.algorithm_id AS algorithm_id, outmn.name AS algorithm_name
+         FROM cds_metric_scores AS outcds
+         JOIN employees AS outemps ON outemps.id = outcds.employee_id
+         JOIN groups AS outg ON outg.id = outemps.group_id
+         JOIN company_metrics AS outcm ON outcm.id = outcds.company_metric_id
+         JOIN algorithms AS outal ON outal.id = outcm.algorithm_id
+         INNER JOIN metric_names AS outmn ON outmn.id = outcm.metric_id
+         JOIN snapshots AS outsn ON outsn.id = outcds.snapshot_id
+         WHERE
+           #{group_wherepart} AND
+           #{algo_wherepart} AND
+           outsn.#{snapshot_field} = '#{interval}' AND
+           outcds.company_id = #{cid} AND
+           outcds.score > #{NA} AND
+           outcds.algorithm_id IN (#{aids.join(',')})
+         GROUP BY outcds.snapshot_id, outg.external_id, outcds.algorithm_id, outg.nsleft, outg.nsright,
+                  outg.snapshot_id, outg.english_name, outmn.name
+         ) AS outmost
+      GROUP BY outmost.gextid, outmost.group_name, outmost.algorithm_id, outmost.algorithm_name
+      ORDER BY group_hierarchy_avg DESC"
 
-      ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    #puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+    #ap ret
+    #puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
     return ret
   end
 
@@ -333,7 +349,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
     curscores.each do |s|
       key = s
-      cursum = key.delete('sum')
+      cursum = key.delete('group_hierarchy_avg')
       curnum = key.delete('num')
       gid = key.delete('gid')          # Remove group_id and group_name from the key because they
       group_name = key.delete('group_name') # change every snapshot.
@@ -344,7 +360,7 @@ module CalculateMeasureForCustomDataSystemHelper
     prevscores.each do |s|
       key = s
       entry = s.dup
-      prevsum = key.delete('sum')
+      prevsum = key.delete('group_hierarchy_avg')
       prevnum = key.delete('num')
       key.delete('gid')     # Remove group_id and group_name from the key because they
       key.delete('group_name')   # change every snapshot.
@@ -375,7 +391,7 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (#{aids.join(',')})
       GROUP BY group_external_id
       ORDER BY sum DESC
-      LIMIT 50"
+      LIMIT 200"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return cds_scores.map do |s|
       s['group_external_id']

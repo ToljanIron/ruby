@@ -49,7 +49,7 @@ class GroupsController < ApplicationController
       else
         res = CdsGroupsHelper.groups_with_sizes(groups_ids)
       end
-      
+
       cache_write(cache_key, res)
     end
     res = { groups: res }
