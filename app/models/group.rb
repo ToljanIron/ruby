@@ -266,7 +266,7 @@ class Group < ActiveRecord::Base
     cid = Snapshot.find(sid).company_id
     rootgid = Group.get_root_group(cid, sid)
     group_pairs = Group.get_all_parent_son_pairs(rootgid)
-    Group.create_nested_sets_structure(group_pairs)
+    Group.create_nested_sets_structure(group_pairs, sid)
   end
 
   def self.get_all_parent_son_pairs(pgid)
@@ -290,7 +290,7 @@ class Group < ActiveRecord::Base
   # 2 - The groups list is sorted in the sense that parents
   #       always appear before sons
   ##############################################################
-  def self.create_nested_sets_structure(pairs)
+  def self.create_nested_sets_structure(pairs, sid)
     ## Initial step
     group_pairs = pairs.clone
     rootgid, songid = group_pairs.shift
@@ -310,7 +310,9 @@ class Group < ActiveRecord::Base
           SET nsleft = CASE WHEN nsleft >= #{mark} THEN nsleft + 2
                        ELSE nsleft END,
               nsright = nsright + 2
-          WHERE nsright >= #{mark}"
+          WHERE
+            nsright >= #{mark} AND
+            snapshot_id = #{sid}"
       ActiveRecord::Base.connection.exec_query(sqlstr)
 
       sqlstr = "

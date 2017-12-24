@@ -256,7 +256,7 @@ describe 'nested sets handling' do
     FactoryGirl.create(:group, id: 7, name: 'g7', parent_group_id:  6)
     FactoryGirl.create(:group, id: 8, name: 'g8', parent_group_id:  6)
 
-    Group.create_nested_sets_structure(pairs)
+    Group.create_nested_sets_structure(pairs, 1)
   end
 
   it 'should get all descendants node 3' do
