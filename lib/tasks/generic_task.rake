@@ -7,12 +7,10 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-
-    Zip::File.open('./qqq.zip') do |archive|
-      archive.each do |entry|
-        puts entry.extract("./#{entry.to_s}")
-      end
-    end
+    ii = 0
+    sids = [118,132,133,134,135]
+    count = NetworkSnapshotData.where(snapshot_id: sids).count
+    NetworkSnapshotData.where(snapshot_id: sids).offset(3).limit(3)
 
     puts "Done"
 

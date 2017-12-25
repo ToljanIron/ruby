@@ -192,40 +192,46 @@ module ReportHelper
     return res
   end
 
-  def self.create_snapshot_report(cid)
-    sid = Snapshot.last_snapshot_of_company(cid)
+
+  def self.dump_network_snapshot_data(sid)
+    limit = 2000
+    count = NetworkSnapshotData.where(snapshot_id: sid).count
+    blocks = count / limit
+    ff = File.open('./nsd.csv', 'w')
+    ff.write("from_email,from_group,from_office_id,to_email,to_group,to_office_id,message_id,multiplicity,from_type,to_type\n")
+
+    (0..blocks).each do |ii|
+      puts "Working on block #{ii} out of #{blocks}"
+      res = ReportHelper.create_snapshot_report(sid, ii * limit, limit)
+      rep_lines = ''
+
+      res.each do |l|
+        str = "#{l['from_email']},#{l['from_group']},#{l['from_office_id']},#{l['to_email']},#{l['to_group']},#{l['to_office_id']},#{l['message_id']},#{l['multiplicity']},#{l['from_type']},#{l['to_type']}\n"
+        rep_lines += str
+      end
+      ff.write(rep_lines)
+    end
+    ff.close
+  end
+
+  def self.create_snapshot_report(sid, offset, limit)
 
     sqlstr =
-      "SELECT nn.name AS network, from_emp.first_name || ' ' || from_emp.last_name AS from_name, 
-          from_emp.external_id AS from_id, from_emp.email AS from_email, off.name AS from_office,
-          from_emp.group_id AS from_group, rol.name as from_role, ra.name AS from_rank, 
-          from_emp.gender AS from_gender, job.name AS from_job_title, to_emp.first_name || ' ' || to_emp.last_name AS to_name,
-          to_emp.external_id AS to_id, to_emp.email AS to_email, to_off.name AS to_office,
-          to_emp.group_id AS to_group, to_rol.name as to_role, to_ra.name AS to_rank, 
-          to_emp.gender AS to_gender, job.name AS to_job_title
+      "SELECT from_emp.email AS from_email, from_g.english_name as from_group, off.id as from_office_id, from_emp.gender as from_gender,
+              to_emp.email AS to_email, to_g.english_name as to_group, to_off.id as to_office_id, to_emp.gender as to_gender,
+              message_id, multiplicity, from_type, to_type
        FROM network_snapshot_data AS nsd
-         JOIN 
-         (
-           employees AS from_emp
-           JOIN groups AS from_g       ON from_g.id = from_emp.group_id
-           LEFT JOIN offices AS off    ON off.id = from_emp.office_id
-           LEFT JOIN roles AS rol      ON rol.id = from_emp.role_id
-           LEFT JOIN ranks AS ra       ON ra.id  = from_emp.rank_id
-           LEFT JOIN job_titles AS job ON job.id = from_emp.job_title_id
-         )                        ON from_emp.id = nsd.from_employee_id
-         JOIN
-         (
-           employees AS to_emp
-           JOIN groups AS to_g            ON to_g.id   = to_emp.group_id
-           LEFT JOIN offices AS to_off    ON to_off.id = to_emp.office_id
-           LEFT JOIN roles AS to_rol      ON to_rol.id = to_emp.role_id
-           LEFT JOIN ranks AS to_ra       ON to_ra.id  = to_emp.rank_id
-           LEFT JOIN job_titles AS to_job ON to_job.id = to_emp.job_title_id
-         )                        ON to_emp.id = nsd.to_employee_id
-         JOIN network_names AS nn ON nn.id  = nsd.network_id
+       JOIN employees AS from_emp  ON from_emp.id = nsd.from_employee_id
+       JOIN groups AS from_g       ON from_g.id = from_emp.group_id
+       LEFT JOIN offices AS off    ON off.id = from_emp.office_id
+       JOIN employees AS to_emp       ON to_emp.id = nsd.to_employee_id
+       JOIN groups AS to_g            ON to_g.id   = to_emp.group_id
+       LEFT JOIN offices AS to_off    ON to_off.id = to_emp.office_id
        WHERE
-         nsd.company_id  = #{cid} AND
-         nsd.snapshot_id = #{sid}"
+         nsd.snapshot_id = #{sid}
+       OFFSET #{offset}
+       LIMIT #{limit}
+       "
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return res

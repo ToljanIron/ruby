@@ -7,6 +7,7 @@ REPORT_TYPE_INTERACT                  = 'interact_report'
 REPORT_TYPE_EMPLOYEE_SCORES           = 'employee_scores'
 REPORT_TYPE_QUESTIONNAIRE_COMPLETION_STATUS = 'questionnaire_completion_status'
 REPORT_TYPE_EMAILS_DUMP               = 'emails_dump'
+REPORT_TYPE_NSD_DUMP                  = 'dump_network_snapshot_data'
 
 namespace :db do
   desc 'create_scores_report'
@@ -22,6 +23,7 @@ namespace :db do
        type != REPORT_TYPE_EMPLOYEE_SCORES &&
        type != REPORT_TYPE_QUESTIONNAIRE_COMPLETION_STATUS &&
        type != REPORT_TYPE_EMAILS_DUMP &&
+       type != REPORT_TYPE_NSD_DUMP &&
        type != REPORT_TYPE_GROUPS_MATRIX_REGRESSION
       fail
         "Type: #{type} is illegal, use one of:
@@ -30,11 +32,12 @@ namespace :db do
           - #{REPORT_TYPE_INTERACT} or
           - #{REPORT_TYPE_EMPLOYEE_SCORES} or
           - #{REPORT_TYPE_EMAILS_DUMP} or
+          - #{REPORT_TYPE_NSD_DUMP} or
           - #{REPORT_TYPE_GROUPS_MATRIX_REGRESSION}"
     end
     puts "Running report of type: #{type} with CID=#{cid}"
 
-    UtilHelper.cache_delete_all
+    CdsUtilHelper.cache_delete_all
     ActiveRecord::Base.transaction do
       begin
         ReportHelper::create_gauge_regression_report(cid) if type == REPORT_TYPE_GROUPS_GAUGE_REGRESSION
@@ -44,6 +47,7 @@ namespace :db do
         puts ReportHelper::simple_employee_scores_report(cid) if type == REPORT_TYPE_EMPLOYEE_SCORES
         puts ReportHelper::questionnaire_completion_status(cid) if type == REPORT_TYPE_QUESTIONNAIRE_COMPLETION_STATUS
         ReportHelper::emails_dump(cid) if type == REPORT_TYPE_EMAILS_DUMP
+        ReportHelper::dump_network_snapshot_data(140) if type == REPORT_TYPE_NSD_DUMP
       rescue => e
         error = e.message
         puts "got exception: #{error}"
