@@ -2075,10 +2075,9 @@ module AlgorithmsHelper
   end
 
   def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
-
-    res = []
-    cid = find_company_by_snapshot(sid)
-    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+    employee_ids = Employee
+                     .where(group_id: gid)
+                     .pluck(:id)
 
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees
@@ -2095,14 +2094,13 @@ module AlgorithmsHelper
 
     average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
 
-    res << {id: nil, measure: average_participants_in_meetings}
-    return res
+    return [{id: nil,
+             measure: average_participants_in_meetings,
+             numerator: total_participants_in_meetings.to_f,
+             denominator: num_of_ppl_in_meetings.count}]
   end
 
   def calc_avg_time_spent_in_meetings_per_group(sid, gid = NO_GROUP, pid = NO_PIN)
-
-    res = []
-    cid = find_company_by_snapshot(sid)
     employee_ids = Group.find(gid).extract_employees
     employee_count = employee_ids.count
 
@@ -2122,12 +2120,13 @@ module AlgorithmsHelper
       total_time_spent += meeting[:duration_in_minutes] * meeting[:ppl_count]
     end
 
-    res << {id: nil, measure: total_time_spent/employee_count}
-    return res
+    return [{id: nil,
+             measure: total_time_spent/employee_count,
+             numerator: total_time_spent,
+             denominator: employee_count}]
   end
 
   def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
-    # result_vector = calc_indeg_for_specified_matrix(snapshot_id, matrix_name, -1, -1)
     result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, INSIDE_GROUP, -1, -1)
     calc_max_vector(result_vector)
   end

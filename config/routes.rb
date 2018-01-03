@@ -206,6 +206,8 @@ Workships::Application.routes.draw do
   # Meetings
   get 'v3/get_meetings_time_picker_data'     ,to: 'measures#get_meetings_time_picker_data'
   get 'v3/get_meetings_scores'               ,to: 'measures#get_meetings_scores'
+  get 'v3/get_meetings_stats'                ,to: 'measures#get_meetings_stats'
+  get 'v3/get_employees_meetings_scores'     ,to: 'measures#get_employees_meetings_scores'
 
   # Dynamics
   get 'v3/get_collaboration_stats'           ,to: 'measures#get_dynamics_stats'

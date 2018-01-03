@@ -391,6 +391,32 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
+  def get_employees_meetings_scores
+    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
+    authorize :measure, :index?
+
+    permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
+
+    cid = current_user.company_id
+    gids = permitted[:gids].split(',')
+    sid = permitted[:curr_interval]
+    agg_method = format_aggregation_method( permitted[:agg_method] )
+    interval_type = permitted[:interval_type]
+
+    raise 'sid cant be empty' if sid == nil
+
+    cache_key = "get_employee_meetings_scores-#{cid}-#{gids}-#{sid}-#{agg_method}-#{interval_type}"
+    res = cache_read(cache_key)
+    if res.nil?
+      top_scores = get_employees_meetings_scores_from_helper(cid, gids, sid, agg_method, interval_type)
+      res = {
+        top_scores: top_scores,
+      }
+      cache_write(cache_key, res)
+    end
+    render json: Oj.dump(res)
+  end
+
   def get_email_scores
     authorize :measure, :index?
 
@@ -420,22 +446,23 @@ class MeasuresController < ApplicationController
     puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
 
-    permitted = params.permit(:gids, :currsid, :prevsid, :limit, :offset, :agg_method)
+    permitted = params.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type)
 
     cid = current_user.company_id
     gids = permitted[:gids].split(',')
-    currsid = permitted[:currsid]
-    prevsid = permitted[:prevsid]
+    currsid = permitted[:curr_interval]
+    prevsid = permitted[:prev_interval]
     limit = permitted[:limit] || 10
     offset = permitted[:offset] || 0
     agg_method = format_aggregation_method( permitted[:agg_method] )
+    interval_type = permitted[:interval_type]
 
     raise 'currsid and prevsid can not be empty' if (currsid == nil )
 
-    cache_key = "get_meetings_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}"
+    cache_key = "get_meetings_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}-#{interval_type}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_meetings_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method)
+      res = get_meetings_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method, interval_type)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
@@ -473,6 +500,18 @@ class MeasuresController < ApplicationController
     gids = params[:gids].split(',')
 
     res = get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
+    render json: Oj.dump(res)
+  end
+
+  def get_meetings_stats
+    authorize :snapshot, :index?
+    params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
+    interval_type = params[:interval_type]
+    curr_interval = params[:curr_interval]
+    prev_interval = params[:prev_interval]
+    gids = params[:gids].split(',')
+
+    res = get_meetings_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
     render json: Oj.dump(res)
   end
 

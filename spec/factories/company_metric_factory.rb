@@ -5,9 +5,6 @@ FactoryGirl.define do
     network_id 1
 
     before(:create) do |order, evaluator|
-      puts ")))))))))))))))"
-      ap order
-      ap evaluator
       #FactoryGirl.create_list :order_line, evaluator.number_or_order_lines, order: order
     end
   end

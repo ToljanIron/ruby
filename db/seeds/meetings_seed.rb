@@ -2,21 +2,21 @@ require 'faker'
 
   companyid = 11
   sid=94
-  MeetingsSnapshotData.delete_all
-  MeetingAttendee.delete_all
-  MeetingRoom.delete_all
+  #MeetingsSnapshotData.delete_all
+  #MeetingAttendee.delete_all
+  #MeetingRoom.delete_all
 
 empnum = Employee.where(snapshot_id: sid).count
 emparr = Employee.where(snapshot_id: sid).sample(empnum*0.75)
 recent_snapshot = Snapshot.find(sid)
 
-(0..5).each do |i|
-  MeetingRoom.find_or_create_by!(id: i, name: Faker::Address.state, office_id: 1)
-end
+#(0..5).each do |i|
+  #MeetingRoom.find_or_create_by!(id: i, name: Faker::Address.state, office_id: 1)
+#end
 
 #Generates (1/5 of the number of employees) meetings and randomly populates each meeting with different number of employees
 (0..((empnum/5).to_i)).each do |i|
-  MeetingsSnapshotData.find_or_create_by!(id: i, subject: Faker::Lorem.word,   meeting_room_id: Random.rand(5), snapshot_id: recent_snapshot.id,
+  MeetingsSnapshotData.find_or_create_by!(id: i + 100, subject: Faker::Lorem.word,   meeting_room_id: Random.rand(5), snapshot_id: recent_snapshot.id,
                             duration_in_minutes: 1 + Random.rand(300), start_time: Faker::Time.between(30.days.ago, Time.now),
                             company_id: companyid, meeting_uniq_id: Faker::Lorem.word)
   meetingatt = emparr.sample((2 + Random.rand(empnum - 2)/6).to_i) #The "/6).to_i" has been added to make meetings smaller, can be removed if no meeting size limit is needed

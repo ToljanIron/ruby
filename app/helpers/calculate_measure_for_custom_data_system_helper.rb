@@ -21,6 +21,8 @@ module CalculateMeasureForCustomDataSystemHelper
 
   EMAILS_VOLUME ||= 707
   AVG_NUM_RECIPIENTS ||= 709
+  MEETINGS_TIME_SPENT ||= 806
+  MEETINGS_AVG_ATTENDEES ||= 805
 
   AGG_GROUP     = 'group_id'
   AGG_OFFICE    = 'office_id'
@@ -55,8 +57,8 @@ module CalculateMeasureForCustomDataSystemHelper
     return {
       total_time_spent: total_time_spent * scale,
       total_time_spent_diff: time_spent_diff,
-      num_emails_avg: num_emails_avg,
-      num_emails_diff: num_emails_diff
+      num_quantity_avg: num_emails_avg,
+      num_quantity_diff: num_emails_diff
     }
   end
 
@@ -144,6 +146,28 @@ module CalculateMeasureForCustomDataSystemHelper
     return ret
   end
 
+  def get_employees_meetings_scores_from_helper(cid, gids, interval, agg_method, interval_type)
+    puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+    ret = nil
+    if (agg_method == AGG_GROUP || agg_method == AGG_OFFICE)
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [806])
+    end
+
+    if (agg_method == AGG_ALGORITHM)
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [800, 801, 802, 803, 804])
+    end
+
+    ret = convert_group_external_ids_to_gids(ret, cid)
+    ret = convert_emp_emails_to_eids(ret, cid)
+
+    ret.each do |r|
+      name = r.delete('emp_name')
+      r['name'] = name
+      r['score'] = r['score'].to_f.round(2)
+    end
+    return ret
+  end
+
   def get_employees_scores_by_aids(cid, gids, interval, interval_type, aids, score_type = 'score', to_scale = true)
     currgextids = Group.where(id: [gids]).pluck(:external_id)
     groups_condition = currgextids.length != 0 ? "g.external_id IN ('#{currgextids.join('\',\'')}')" : '1 = 1'
@@ -189,9 +213,9 @@ module CalculateMeasureForCustomDataSystemHelper
     return ret
   end
 
-  def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method)
+  def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method, interval_type)
     aids = [800, 801, 802, 803, 804, 805, 806]
-    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method)
+    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method, interval_type)
   end
 
   def get_email_scores_from_helper(cid, currgids, currinter, previnter, limit, offset, agg_method, interval_type)
@@ -335,9 +359,6 @@ module CalculateMeasureForCustomDataSystemHelper
       ORDER BY group_hierarchy_avg DESC"
 
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    #puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-    #ap ret
-    #puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
     return ret
   end
 
@@ -669,7 +690,73 @@ module CalculateMeasureForCustomDataSystemHelper
     return res
   end
 
+  ################################################################
+  # Get two meetings related statistics:
+  #   - Total time spent on meetings
+  #   - Average number of participants
+  ################################################################
+  def get_meetings_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
+    return [-1,-1,-1] if curr_interval.nil? || curr_interval == ''
+
+    cid = Group.find(gids.first).company_id
+    interval_str = Snapshot.field_from_interval_type(interval_type)
+    extgids = Group.where(id: [gids]).pluck(:external_id)
+
+    ## get results for time spent in meetings
+    time_spent_in_curr_interval = total_sum_from_gauge(cid, curr_interval, interval_str, extgids, MEETINGS_TIME_SPENT)
+    time_spent_in_prev_interval = total_sum_from_gauge(cid, prev_interval, interval_str, extgids, MEETINGS_TIME_SPENT)
+    time_spent_diff = time_spent_in_curr_interval - time_spent_in_prev_interval
+
+    ## get results for average number of attendees in meetings
+    avg_attendees_in_curr_interval = total_average_from_gauge(cid, curr_interval, interval_str, extgids, MEETINGS_AVG_ATTENDEES)
+    avg_attendees_in_prev_interval = total_average_from_gauge(cid, prev_interval, interval_str, extgids, MEETINGS_AVG_ATTENDEES)
+    avg_attendees_diff = avg_attendees_in_curr_interval - avg_attendees_in_prev_interval
+
+    return {
+      total_time_spent: time_spent_in_curr_interval / 60.0,
+      total_time_spent_diff: time_spent_diff,
+      num_quantity_avg: avg_attendees_in_curr_interval,
+      num_quantity_diff: avg_attendees_diff
+    }
+  end
+
   private
+
+  def total_sum_from_gauge(cid, interval, snapshot_field, extids, aid)
+    sqlstr = "
+      SELECT SUM(cds.numerator) AS sum
+      FROM cds_metric_scores AS cds
+      JOIN groups AS g ON g.id =  cds.group_id
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
+      WHERE
+        sn.#{snapshot_field} = '#{interval}' AND
+        cds.company_id = #{cid} AND
+        cds.score > #{NA} AND
+        g.external_id IN ('#{extids.join('\',\'')}') AND
+        cds.algorithm_id = #{aid}"
+
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return ret[0]['sum'].to_f.round(2)
+  end
+
+  def total_average_from_gauge(cid, interval, snapshot_field, extids, aid)
+    sqlstr = "
+      SELECT AVG(agg) FROM
+       (SELECT (SUM(cds.numerator) / SUM(cds.denominator)) AS agg, cds.snapshot_id AS snid
+        FROM cds_metric_scores AS cds
+        JOIN groups AS g ON g.id =  cds.group_id
+        JOIN snapshots AS sn ON sn.id = cds.snapshot_id
+        WHERE
+          sn.#{snapshot_field} = '#{interval}' AND
+          cds.company_id = #{cid} AND
+          cds.score > #{NA} AND
+          g.external_id IN ('#{extids.join('\',\'')}') AND
+          cds.algorithm_id = #{aid}
+        GROUP BY snid) inneragg"
+
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return ret[0]['avg'].to_f.round(2)
+  end
 
   def cds_get_data_to_relation(company_metric, algorithm_flow_id, sid, pid, gid)
     data = if algorithm_flow_id != EMAIL

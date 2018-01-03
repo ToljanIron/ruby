@@ -463,8 +463,6 @@ describe 'cds_aggregation_query' do
     aids = [701]
     extids = ['group_1', 'group_2']
 
-    byebug
-
     res = cds_aggregation_query(
       cid,
       interval,
@@ -475,13 +473,76 @@ describe 'cds_aggregation_query' do
       'month',
       extids
     )
+  end
+end
 
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHH"
-    ap res
-    puts "HHHHHHHHHHHHHHHHHHHHHHHHHHH"
+########################################################################
+# These tests are performed on an abstract algorithm, but a good
+#   way to think about is as if it measures average number of
+#   partricipants in meetings. The numberator is number of participants
+#   and the denominator is the number of meetings
+########################################################################
+describe 'gauge aggregations' do
+
+  ######################################################################
+  # Create this group hierarchy:
+  #               g0
+  #              /  \
+  #             g1   g2
+  #                 /  \
+  #                g3  g4
+  #######################################
+  before :all do
+    generate_hierarchy_with_gauge_algo
+    Group.prepare_groups_for_hierarchy_queries(1)
   end
 
+  after :each do
+    CdsMetricScore.delete_all
+  end
+
+  it 'average should be total number divided by occurences ' do
+    CdsMetricScore.create!(numerator: 10.0, denominator: 1.0, group_id: @g2, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 10.0, denominator: 5.0, group_id: @g3, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 10.0, denominator: 4.0, group_id: @g4, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    extids = ['g2', 'g3', 'g4']
+    res = total_average_from_gauge(1, 'Oct/17', 'month', extids, 701)
+    expect(res).to eq(3.0)
+  end
+
+  it 'should work for a deep hierarchy ' do
+    CdsMetricScore.create!(numerator: 11.0, denominator: 1.0, group_id: @g0, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 19.0, denominator: 7.0, group_id: @g1, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 10.0, denominator: 1.0, group_id: @g2, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 13.0, denominator: 5.0, group_id: @g3, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 10.0, denominator: 4.0, group_id: @g4, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    extids = ['g0', 'g1', 'g2', 'g3', 'g4']
+    res = total_average_from_gauge(1, 'Oct/17', 'month', extids, 701)
+    expect(res).to eq(63.0 / 18.0)
+  end
+
+  it 'should work when some groups do not have scores' do
+    CdsMetricScore.create!(numerator: 10.0, denominator: 1.0, group_id: @g2, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    CdsMetricScore.create!(numerator: 10.0, denominator: 4.0, group_id: @g4, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+    extids = ['g2', 'g3', 'g4']
+    res = total_average_from_gauge(1, 'Oct/17', 'month', extids, 701)
+    expect(res).to eq(4.0)
+  end
+
+  describe 'total_sum_from_gauge' do
+    it 'sanity should pass' do
+      CdsMetricScore.create!(numerator: 11.0, denominator: 1.0, group_id: @g0, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+      CdsMetricScore.create!(numerator: 19.0, denominator: 7.0, group_id: @g1, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+      CdsMetricScore.create!(numerator: 10.0, denominator: 1.0, group_id: @g2, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+      CdsMetricScore.create!(numerator: 13.0, denominator: 5.0, group_id: @g3, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+      CdsMetricScore.create!(numerator: 10.0, denominator: 4.0, group_id: @g4, company_metric_id: 7, company_id: 1, snapshot_id: 1, algorithm_id: 701, employee_id: -1, score: 1.0)
+      extids = ['g0', 'g1', 'g2', 'g3', 'g4']
+      res = total_sum_from_gauge(1, 'Oct/17', 'month', extids, 701)
+      expect(res).to eq(63.0)
+    end
+  end
 end
+
 
 def generate_data_for_acme
   Company.create(id: 1, name: 'Acme')
@@ -542,4 +603,22 @@ def generate_data_for_acme
   CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 4, employee_id: @emp3, group_id: @g3, company_metric_id: 8, company_id: 1)
   CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 5, employee_id: @emp4, group_id: @g4, company_metric_id: 8, company_id: 1)
   CdsMetricScore.create!(algorithm_id: 702, snapshot_id: 2, score: 6, employee_id: @emp5, group_id: @g4, company_metric_id: 8, company_id: 1)
+end
+
+def generate_hierarchy_with_gauge_algo
+  Company.create(id: 1, name: 'Acme')
+  FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
+  AlgorithmType.create(id: 5, name: 'measure')
+  FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
+  FactoryGirl.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
+  CompanyWithMetricsFactory.create_network_names
+  FactoryGirl.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
+  FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
+
+  @g0 = FactoryGirl.create(:group, name: 'g0', external_id: 'g0').id
+  @g1 = FactoryGirl.create(:group, name: 'g1', external_id: 'g1', parent_group_id: @g0).id
+  @g2 = FactoryGirl.create(:group, name: 'g2', external_id: 'g2', parent_group_id: @g0).id
+  @g3 = FactoryGirl.create(:group, name: 'g3', external_id: 'g3', parent_group_id: @g2).id
+  @g4 = FactoryGirl.create(:group, name: 'g4', external_id: 'g4', parent_group_id: @g2).id
+
 end

@@ -47,12 +47,18 @@ module MeasuresHelper
     else
       gids = get_relevant_group_ids(sids, current_gids)
     end
-    group_extids =
-      Group
-        .select(:external_id)
-        .where(id: [gids])
-        .distinct
-        .pluck(:external_id)
+
+    algorithm_type = Algorithm.find(806).algorithm_type.name
+    groups_wherepart = '1 = 1'
+    if (algorithm_type != 'gauge')
+      group_extids =
+        Group
+          .select(:external_id)
+          .where(id: [gids])
+          .distinct
+          .pluck(:external_id)
+      groups_wherepart = "g.external_id IN ('#{group_extids.join('\',\'')}')"
+    end
 
     intervals =
       Snapshot
@@ -65,12 +71,12 @@ module MeasuresHelper
 
     sqlstr = "SELECT SUM(#{score_str}) AS score_sum, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
-              JOIN employees AS emps ON emps.id = cds.employee_id
-              JOIN groups AS g ON g.id = emps.group_id
+              LEFT JOIN employees AS emps ON emps.id = cds.employee_id
+              LEFT JOIN groups AS g ON g.id = emps.group_id
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
-                g.external_id IN ('#{group_extids.join('\',\'')}') AND
+                #{groups_wherepart} AND
                 cds.algorithm_id = #{aid}
               GROUP BY period"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
