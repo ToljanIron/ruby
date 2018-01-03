@@ -1277,9 +1277,6 @@ module AlgorithmsHelper
     return calc_avg_num_of_ppl_in_meetings(sid, gid, pid)
   end
 
-  def avg_time_spent_in_meetings_per_group(sid, gid, pid)
-    return calc_avg_time_spent_in_meetings_per_group(sid, gid, pid)
-  end
   ###################################################
 
   ##################### V3 formatting utilities ###################################################
@@ -2100,7 +2097,39 @@ module AlgorithmsHelper
              denominator: num_of_ppl_in_meetings.count}]
   end
 
-  def calc_avg_time_spent_in_meetings_per_group(sid, gid = NO_GROUP, pid = NO_PIN)
+  #############################################################################
+  # This algorithm is similar to avg_time_spent_in_meetings_gauge, only
+  # difference is it counts # per employe (measure, not a gauge).
+  # It is needed for the leaderboard
+  #############################################################################
+  def avg_time_spent_in_meetings_measure(sid, gid = NO_GROUP, pid = NO_PIN)
+    employee_ids = Group.find(gid).extract_employees
+
+    sqlstr = "SELECT AVG(duration_in_minutes) AS avg, emps.id AS empid
+              FROM meetings_snapshot_data AS msd
+              JOIN meeting_attendees AS ma ON msd.id = ma.meeting_id
+              JOIN employees AS emps ON emps.id = ma.employee_id
+              WHERE ma.employee_id IN (#{employee_ids.join(',')}) AND NOT
+              response = #{DECLINE}
+              GROUP BY empid"
+
+    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+
+    ret = []
+    res.each do |r|
+      ret << {id: r['empid'], measure: r['avg'].to_f.round(2)}
+    end
+    ap ret
+    return ret
+  end
+
+  #############################################################################
+  # This algorithm is very similar to avg_time_spent_in_meetings_measure. The
+  # difference is it is a gauge, not a measure.
+  # It is used by the main stats panel and the number is also displayed in the
+  # main widget.
+  #############################################################################
+  def avg_time_spent_in_meetings_gauge(sid, gid = NO_GROUP, pid = NO_PIN)
     employee_ids = Group.find(gid).extract_employees
     employee_count = employee_ids.count
 
@@ -2125,7 +2154,6 @@ module AlgorithmsHelper
              numerator: total_time_spent,
              denominator: employee_count}]
   end
-
   def calc_max_indegree_for_specified_matrix(snapshot_id, matrix_name)
     result_vector = calc_degree_for_specified_matrix(snapshot_id, matrix_name, EMAILS_IN, INSIDE_GROUP, -1, -1)
     calc_max_vector(result_vector)

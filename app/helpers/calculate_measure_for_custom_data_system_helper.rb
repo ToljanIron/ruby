@@ -148,6 +148,8 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_employees_meetings_scores_from_helper(cid, gids, interval, agg_method, interval_type)
     puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+    puts agg_method
+    puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
     ret = nil
     if (agg_method == AGG_GROUP || agg_method == AGG_OFFICE)
       ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [806])
@@ -187,6 +189,10 @@ module CalculateMeasureForCustomDataSystemHelper
              .group('emps.email')
              .order('avg DESC')
              .limit(100)
+
+  puts "RRRRRRRRRRRRRRRRRRRRRRRRR 1"
+  ap emps
+  puts "RRRRRRRRRRRRRRRRRRRRRRRRR 1"
     emails = emps.map { |emp| emp['email'] }
 
     ## Then get their details
