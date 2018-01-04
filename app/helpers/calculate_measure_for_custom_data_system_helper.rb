@@ -147,16 +147,13 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_employees_meetings_scores_from_helper(cid, gids, interval, agg_method, interval_type)
-    puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-    puts agg_method
-    puts "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
     ret = nil
     if (agg_method == AGG_GROUP || agg_method == AGG_OFFICE)
-      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [806])
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [807], 'score', false)
     end
 
     if (agg_method == AGG_ALGORITHM)
-      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [800, 801, 802, 803, 804])
+      ret = get_employees_scores_by_aids(cid, gids, interval, interval_type, [800, 801, 802, 803, 804], 'score', false)
     end
 
     ret = convert_group_external_ids_to_gids(ret, cid)
@@ -165,7 +162,7 @@ module CalculateMeasureForCustomDataSystemHelper
     ret.each do |r|
       name = r.delete('emp_name')
       r['name'] = name
-      r['score'] = r['score'].to_f.round(2)
+      r['score'] = (r['score'].to_f / 60.0).round(2)
     end
     return ret
   end
@@ -190,9 +187,6 @@ module CalculateMeasureForCustomDataSystemHelper
              .order('avg DESC')
              .limit(100)
 
-  puts "RRRRRRRRRRRRRRRRRRRRRRRRR 1"
-  ap emps
-  puts "RRRRRRRRRRRRRRRRRRRRRRRRR 1"
     emails = emps.map { |emp| emp['email'] }
 
     ## Then get their details
@@ -720,7 +714,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
     return {
       total_time_spent: time_spent_in_curr_interval / 60.0,
-      total_time_spent_diff: time_spent_diff,
+      total_time_spent_diff: (time_spent_diff / 60.0).round(2),
       num_quantity_avg: avg_attendees_in_curr_interval,
       num_quantity_diff: avg_attendees_diff
     }
@@ -741,6 +735,9 @@ module CalculateMeasureForCustomDataSystemHelper
         g.external_id IN ('#{extids.join('\',\'')}') AND
         cds.algorithm_id = #{aid}"
 
+  puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& 1"
+  puts sqlstr
+  puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& 1"
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret[0]['sum'].to_f.round(2)
   end

@@ -360,7 +360,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     values = []
     algorithm = Algorithm.find(company_metric_row.algorithm_id)
     CdsMetricScore.where(snapshot_id: sid, company_metric_id: company_metric_row.id).delete_all
-    if algorithm.use_group_context
+    if algorithm.use_group_context || algorithm.algorithm_type_id != 1
       company_groups = Group.by_snapshot(sid)
       company_groups = put_mother_group_first(company_groups)
       company_groups.each do |group|

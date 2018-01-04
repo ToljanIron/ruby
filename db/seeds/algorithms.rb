@@ -20,6 +20,7 @@ Algorithm.find_or_create_by!(id: 804, name: 'observers_measure', algorithm_type_
 Algorithm.find_or_create_by!(id: 805, name: 'num_of_ppl_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 806, name: 'avg_time_spent_in_meetings_gauge', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 807, name: 'avg_time_spent_in_meetings_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 808, name: 'avg_meetings_time', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 
 ############# Dynamics ###############
 Algorithm.find_or_create_by!(id: 200, name: 'closeness_level_gauge', algorithm_type_id: 5)

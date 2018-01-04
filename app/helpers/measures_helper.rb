@@ -14,31 +14,10 @@ module MeasuresHelper
   EMAILS_VOLUME_AID = 707
   TIME_SPENT_IN_MEETINGS_AID = 806
 
-  def get_emails_volume_scores(cid, sids, current_gids, interval_type)
-    ret = get_time_picker_data_by_aid_for_measure(
-            cid, sids, current_gids, interval_type, EMAILS_VOLUME_AID, true)
-    scale = CompanyConfigurationTable.incoming_email_to_time
-    ret.each do |r|
-      score = r['score'] * scale
-      r['score'] = score
-    end
-    return ret
-  end
-
+  #########################################################################
+  # Meetings date picker
+  #########################################################################
   def get_time_spent_in_meetings(cid, sids, current_gids, interval_type)
-    return get_time_picker_data_by_aid_for_measure(
-             cid, sids, current_gids, interval_type, TIME_SPENT_IN_MEETINGS_AID)
-  end
-
-  def get_group_densities(cid, sids, current_gids, interval_type)
-    ret = get_time_picker_data_by_aid_for_gauge(
-            cid, sids, current_gids, interval_type, CLOSENESS_AID, true)
-    return ret
-  end
-
-  def get_time_picker_data_by_aid_for_measure(cid, sids, current_gids, interval_type, aid, score = true)
-    res = []
-    score_str = score ? 'score' : 'z_score' # Use score or z_score
     interval_str = Snapshot.field_from_interval_type(interval_type)
 
     # If empty gids - get the gid for the root - i.e. the company
@@ -48,20 +27,64 @@ module MeasuresHelper
       gids = get_relevant_group_ids(sids, current_gids)
     end
 
-    algorithm_type = Algorithm.find(806).algorithm_type.name
-    groups_wherepart = '1 = 1'
-    if (algorithm_type != 'gauge')
-      group_extids =
-        Group
-          .select(:external_id)
-          .where(id: [gids])
-          .distinct
-          .pluck(:external_id)
-      groups_wherepart = "g.external_id IN ('#{group_extids.join('\',\'')}')"
+    group_extids = Group
+        .select(:external_id)
+        .where(id: [gids])
+        .distinct
+        .pluck(:external_id)
+    groups_wherepart = "g.external_id IN ('#{group_extids.join('\',\'')}')"
+
+    intervals = Snapshot
+        .select("#{interval_str} as interval")
+        .where(id: sids)
+        .distinct
+        .map { |s| s['interval'] }
+
+    sqlstr = "SELECT (SUM(numerator) / SUM(denominator)) AS score_avg, s.#{interval_str} AS period
+              FROM cds_metric_scores AS cds
+              LEFT JOIN groups AS g ON g.id = cds.group_id
+              JOIN snapshots AS s ON cds.snapshot_id = s.id
+              WHERE
+                s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
+                #{groups_wherepart} AND
+                cds.algorithm_id = #{TIME_SPENT_IN_MEETINGS_AID}
+              GROUP BY period"
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    res = []
+    sqlres.each do |entry|
+      res << {
+        'score'       => (entry['score_avg'].to_f / 60.0).round(2),
+        'time_period' => entry['period']
+      }
     end
 
-    intervals =
-      Snapshot
+    res = res.sort { |a,b| Snapshot.compare_periods(a['time_period'],b['time_period']) }
+    return res
+  end
+
+  #######################################################################
+  # Emails date picker
+  #######################################################################
+  def get_emails_volume_scores(cid, sids, current_gids, interval_type)
+    res = []
+    interval_str = Snapshot.field_from_interval_type(interval_type)
+
+    # If empty gids - get the gid for the root - i.e. the company
+    if (current_gids.nil? || current_gids.length === 0)
+      gids << Group.get_root_group(cid)
+    else
+      gids = get_relevant_group_ids(sids, current_gids)
+    end
+
+    group_extids = Group
+        .select(:external_id)
+        .where(id: [gids])
+        .distinct
+        .pluck(:external_id)
+    groups_wherepart = "g.external_id IN ('#{group_extids.join('\',\'')}')"
+
+    intervals = Snapshot
         .select("#{interval_str} as interval")
         .where(id: sids)
         .distinct
@@ -69,7 +92,7 @@ module MeasuresHelper
 
     num_of_emps = Employee.where(group_id: current_gids).count
 
-    sqlstr = "SELECT SUM(#{score_str}) AS score_sum, s.#{interval_str} AS period
+    sqlstr = "SELECT SUM(score) AS score_sum, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
               LEFT JOIN employees AS emps ON emps.id = cds.employee_id
               LEFT JOIN groups AS g ON g.id = emps.group_id
@@ -77,7 +100,7 @@ module MeasuresHelper
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
                 #{groups_wherepart} AND
-                cds.algorithm_id = #{aid}
+                cds.algorithm_id = #{EMAILS_VOLUME_AID}
               GROUP BY period"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
@@ -87,14 +110,15 @@ module MeasuresHelper
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
-    min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
-    min = min_entry['score'] if !min_entry.nil?
+    #min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
+    #min = min_entry['score'] if !min_entry.nil?
 
+    scale = CompanyConfigurationTable.incoming_email_to_time
     sqlres.each do |entry|
       score = entry['score'].to_f.round(2) + min.abs.to_f.round(2)
       score = score
       res << {
-        'score'       => score,
+        'score'       => score  * scale,
         'time_period' => entry['period']
       }
     end
@@ -103,9 +127,11 @@ module MeasuresHelper
     return res
   end
 
-  def get_time_picker_data_by_aid_for_gauge(cid, sids, current_gids, interval_type, aid, score = true)
+  ################################################################
+  # Closeness level
+  ################################################################
+  def get_group_densities(cid, sids, current_gids, interval_type)
     res = []
-    score_str = score ? 'score' : 'z_score' # Use score or z_score
     interval_str = Snapshot.field_from_interval_type(interval_type)
 
     # If empty gids - get the gid for the root - i.e. the company
@@ -130,14 +156,14 @@ module MeasuresHelper
 
     num_of_emps = Employee.where(group_id: current_gids).count
 
-    sqlstr = "SELECT AVG(#{score_str}) AS score_avg, s.#{interval_str} AS period
+    sqlstr = "SELECT AVG(score) AS score_avg, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
               JOIN groups AS g ON g.id = cds.group_id
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
                 g.external_id IN ('#{group_extids.join('\',\'')}') AND
-                cds.algorithm_id = #{aid}
+                cds.algorithm_id = #{CLOSENESS_AID}
               GROUP BY period"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
@@ -147,8 +173,8 @@ module MeasuresHelper
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
-    min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
-    min = min_entry['score'] if !min_entry.nil?
+    #min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
+    #min = min_entry['score'] if !min_entry.nil?
 
     sqlres.each do |entry|
       score = entry['score'].to_f.round(2) + min.abs.to_f.round(2)

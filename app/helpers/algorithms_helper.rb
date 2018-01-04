@@ -2072,9 +2072,7 @@ module AlgorithmsHelper
   end
 
   def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
-    employee_ids = Employee
-                     .where(group_id: gid)
-                     .pluck(:id)
+    employee_ids = Employee.where(group_id: gid).pluck(:id)
 
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees
@@ -2091,7 +2089,7 @@ module AlgorithmsHelper
 
     average_participants_in_meetings = (total_participants_in_meetings.to_f/num_of_ppl_in_meetings.count).round(2)
 
-    return [{id: nil,
+    return [{id: gid,
              measure: average_participants_in_meetings,
              numerator: total_participants_in_meetings.to_f,
              denominator: num_of_ppl_in_meetings.count}]
@@ -2119,7 +2117,6 @@ module AlgorithmsHelper
     res.each do |r|
       ret << {id: r['empid'], measure: r['avg'].to_f.round(2)}
     end
-    ap ret
     return ret
   end
 
@@ -2130,7 +2127,7 @@ module AlgorithmsHelper
   # main widget.
   #############################################################################
   def avg_time_spent_in_meetings_gauge(sid, gid = NO_GROUP, pid = NO_PIN)
-    employee_ids = Group.find(gid).extract_employees
+    employee_ids = Employee.where(group_id: gid).pluck(:id)
     employee_count = employee_ids.count
 
     sqlstr = "SELECT meeting_id, duration_in_minutes, COUNT(meeting_attendees.meeting_id) as ppl_count
@@ -2149,7 +2146,7 @@ module AlgorithmsHelper
       total_time_spent += meeting[:duration_in_minutes] * meeting[:ppl_count]
     end
 
-    return [{id: nil,
+    return [{id: gid,
              measure: total_time_spent/employee_count,
              numerator: total_time_spent,
              denominator: employee_count}]
