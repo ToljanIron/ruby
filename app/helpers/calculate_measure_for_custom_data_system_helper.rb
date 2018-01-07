@@ -214,12 +214,14 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method, interval_type)
-    aids = [800, 801, 802, 803, 804, 805, 806]
+    puts "Meeting scores helper"
+    aids = [807]
     return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method, interval_type)
   end
 
   def get_email_scores_from_helper(cid, currgids, currinter, previnter, limit, offset, agg_method, interval_type)
-    aids = [700, 701, 702, 703, 704, 705, 706, 707]
+    aids = [707,700, 701, 702, 703, 704, 705, 706]
+    aids = [707]
     ret = get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
     return ret
   end
@@ -227,7 +229,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
     currgextids = Group.where(id: [currgids]).pluck(:external_id)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
-    currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [EMAILS_VOLUME], snapshot_field)
+    currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [aids[0]], snapshot_field)
 
     curr_group_wherepart = agg_method == AGG_GROUP ? "outg.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
     prev_group_wherepart = agg_method == AGG_GROUP && !previnter.nil? ? "outg.external_id IN ('#{currtopextgids.join('\',\'')}')" : '1 = 1'
@@ -241,17 +243,8 @@ module CalculateMeasureForCustomDataSystemHelper
     currscores = convert_group_external_ids_to_gids(currscores, cid)
     prevscores = convert_group_external_ids_to_gids(prevscores, cid)
 
-    #puts "####################### 1"
-    #ap currscores[0]
-
     res = collect_cur_and_prev_results(currscores, prevscores)
-    #puts "####################### 2"
-    #ap res[0]
-
     res = format_scores(res)
-    #puts "####################### 3"
-    #ap res[0]
-
     return res
   end
 
@@ -369,6 +362,7 @@ module CalculateMeasureForCustomDataSystemHelper
     prevscores ||= curscores
 
     curscores.each do |s|
+      puts "Working on: #{s}"
       key = s
       cursum = key.delete('group_hierarchy_avg')
       curnum = key.delete('num')
@@ -377,8 +371,10 @@ module CalculateMeasureForCustomDataSystemHelper
       res_hash[key] = [cursum, gid, group_name, curnum]
     end
 
+    puts "TTTTTTTTTTTTTTTTTTTT"
     res_arr = []
     prevscores.each do |s|
+      puts "Now, working on: #{s}"
       key = s
       entry = s.dup
       prevsum = key.delete('group_hierarchy_avg')
@@ -413,6 +409,9 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY group_external_id
       ORDER BY sum DESC
       LIMIT 200"
+      puts "PPPPPPPPPPPPPPPPPPPPPPPPPP"
+      puts sqlstr
+      puts "PPPPPPPPPPPPPPPPPPPPPPPPPP"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return cds_scores.map do |s|
       s['group_external_id']
@@ -735,9 +734,6 @@ module CalculateMeasureForCustomDataSystemHelper
         g.external_id IN ('#{extids.join('\',\'')}') AND
         cds.algorithm_id = #{aid}"
 
-  puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& 1"
-  puts sqlstr
-  puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& 1"
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret[0]['sum'].to_f.round(2)
   end

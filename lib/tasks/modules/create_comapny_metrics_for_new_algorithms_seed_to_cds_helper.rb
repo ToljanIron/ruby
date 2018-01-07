@@ -45,7 +45,6 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: avg_time_spent_in_meetings_gauge_id, network_id: -1, company_id: cid, algorithm_id: 806, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: avg_time_spent_in_meetings_measure_id, network_id: -1, company_id: cid, algorithm_id: 807, algorithm_type_id: 1)
 
-
     ####################### Interfaces ########################
     closeness_level_gauge_id = MetricName.find_or_create_by!(name: 'Closeness Level', company_id: cid).id
     synergy_level_gauge_id   = MetricName.find_or_create_by!(name: 'Synergy Level', company_id: cid).id
