@@ -418,6 +418,60 @@ module AlgorithmsHelper
     return ret
   end
 
+  ################################################################
+  # Find observers and return their time in meetings in minutes.
+  #   Observers are people whose average email correspondance
+  #   with others in their meetings is very low with respect to
+  #   company average.
+  # For an exact explanation of the calculation see the
+  #   algorithms document.
+  ################################################################
+  def calculate_observers(sid,pid, gid)
+    puts "Getting the graph"
+    cid = Snapshot.find(sid).company_id
+    nid = NetworkSnapshotData.emails(cid)
+    sagraph = get_sagraph(sid, nid, gid)
+
+    a = sagraph[:adjacencymat]
+
+    sameetings = get_sameetings(sid, gid)
+    m = sameetings[:meetingsmat]
+
+    ## Create total meetings traffix matrix
+    mt = a.dot(m) + ((m.transpose).dot(a)).transpose
+    ## Now, the same but restricted to the meetings
+    ## Remeber that * of an NMatrix is done element by element
+    mt = mt * m
+
+    total_emails_in_meetings = mt.snm_sum.to_f
+    total_particiapnts_in_meetings = m.snm_sum.to_f
+
+    emails
+    stats = DescriptiveStatistics::Stats.new(mt.to_flat_a)
+    avg_emails_per_participant = stats.mean
+    sd_emails_per_participant  = stats.standard_deviation
+
+
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 1"
+    puts a.pp
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 2"
+    puts m.pp
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 3"
+    puts mt.pp
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 4"
+    puts total_emails_in_meetings
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 5"
+    puts total_particiapnts_in_meetings
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 6"
+    puts "AVG: #{avg_emails_per_participant}"
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 7"
+    puts "SD: #{sd_emails_per_participant}"
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 8"
+
+
+    return 0
+  end
+
   ###########################################################################
   #
   # The connectors algorithm measures how balanced are an employees'
@@ -1467,6 +1521,14 @@ module AlgorithmsHelper
   end
   ############################ ALL MATRIX IMPLEMENTATION #########################################
 
+  #############################################################################
+  # Create a set of structures for handling the email traffic adjaceny matrix.
+  #   The main data structure is adjacencymat which is a matrix used for fast
+  #   calculations (The gem in use here is: nmatrix). Also there are two mappings
+  #   between matrix indexes and real employee IDs.
+  #   The second structure in use here is a matrix mapping employees to groups,
+  #   again, with two accompanying indexes for the groups.
+  ############################################################################
   def get_sagraph(sid, nid, gid)
     key = "sagraph-sid-#{sid}-nid-#{nid}-gid-#{gid}"
     CdsUtilHelper.read_or_calculate_and_write(key) do
@@ -1475,7 +1537,7 @@ module AlgorithmsHelper
   end
 
   def get_sagraph_block(sid, nid, gid)
-    eids = Group.find(gid).extract_employees
+    eids = Group.find(gid).extract_employees.sort
     gids = Group.get_all_subgroups(gid)
 
     dim = eids.length
@@ -1486,12 +1548,7 @@ module AlgorithmsHelper
       .where(from_employee_id: eids, to_employee_id: eids)
 
     ## Create the employee indexes
-    inx2emp = {}
-    emp2inx = {}
-    eids.each do |id|
-      emp2inx[id] = inx2emp.size
-      inx2emp[inx2emp.size] = id
-    end
+    inx2emp, emp2inx = create_employee_indexes(eids)
 
     ## Populate adjacency matrix
     allarr = Array.new(dim ** 2, 0)
@@ -1525,6 +1582,20 @@ module AlgorithmsHelper
     }
   end
 
+  def create_employee_indexes(eidsarr)
+    inx2emp = {}
+    emp2inx = {}
+    eidsarr.each do |id|
+      emp2inx[id] = inx2emp.size
+      inx2emp[inx2emp.size] = id
+    end
+    return [inx2emp, emp2inx]
+  end
+
+  ##################################################################
+  # Create a matrix mapping employees to groups. ie, employee in row
+  #   i belongs to group in column j if Mij = 1.
+  ##################################################################
   def get_sa_membership_matrix(emp2inx, grp2inx, gids)
     sid = Group.find(gids.first).snapshot_id
     groupemps = Employee
@@ -1538,6 +1609,65 @@ module AlgorithmsHelper
       memmat[row, col] = 1
     end
     return memmat
+  end
+
+
+  ##################################################################
+  # If there are p employees and m meetings, then create a b by m
+  #   boolean matrix which maps employees to meetings. Also create
+  #   indexes between meeting IDs and matrix columns.
+  ##################################################################
+  def get_sameetings(sid, gid)
+    key = "sameetings-sid-#{sid}-gid-#{gid}"
+    CdsUtilHelper.read_or_calculate_and_write(key) do
+      return get_sameetings_block(sid, gid)
+    end
+  end
+
+  def get_sameetings_block(sid, gid)
+    eids = Group.find(gid).extract_employees.sort
+
+    meeting_emps_pairs = MeetingsSnapshotData
+      .select('msd.id AS mid, ma.employee_id AS eid')
+      .from('meetings_snapshot_data AS msd')
+      .joins('JOIN meeting_attendees AS ma ON ma.meeting_id = msd.id')
+      .where('msd.snapshot_id = ?', sid)
+      .where("ma.employee_id in (#{eids.join(',')})", eids)
+
+    meetings = MeetingsSnapshotData
+      .select('DISTINCT msd.id')
+      .from('meetings_snapshot_data AS msd')
+      .joins('JOIN meeting_attendees AS ma ON ma.meeting_id = msd.id')
+      .where('msd.snapshot_id = ?', sid)
+      .where("ma.employee_id in (#{eids.join(',')})", eids)
+
+    ## Create the meetings indexes
+    inx2meeting = {}
+    meeting2inx = {}
+    meetings.each do |m|
+      meeting2inx[m[:id]] = inx2meeting.size
+      inx2meeting[inx2meeting.size] = m[:id]
+    end
+
+    empsdim = eids.length
+    meetingsdim = meetings.size
+
+    ## Populate meetings matrix
+    allarr = Array.new(empsdim * meetingsdim, 0)
+    emp2inx = create_employee_indexes(eids)[1]
+    meeting_emps_pairs.each do |pair|
+      emp  = emp2inx[pair[:eid]]
+      meet = meeting2inx[pair[:mid]]
+      index = meetingsdim * emp + meet
+      allarr[index] += 1
+    end
+    meetingsmat = NMatrix.new([empsdim, meetingsdim], allarr, dtype: :int64)
+
+    return {
+      meeting2inx: meeting2inx,
+      inx2meeting: inx2meeting,
+      meetingsmat: meetingsmat,
+    }
   end
 
   def set_one_on_diagonal_of_empty_rows(nm)
@@ -1561,6 +1691,8 @@ module AlgorithmsHelper
   def get_ones_nmatrix(dim)
     return NMatrix.ones([dim, dim], dtype: :float32)
   end
+
+  ######################################################################################
 
   def calc_degree_for_all_matrix(snapshot_id, direction, target_groups, group_id = NO_GROUP, pin_id = NO_PIN)
     if direction == EMAILS_IN
@@ -2113,16 +2245,6 @@ module AlgorithmsHelper
 
     res = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
 
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #############################################################################
-  #  Need to pad with zero scores if needed !!!!!!!!!!!!
-  #############################################################################
     ret = []
     res.each do |r|
       ret << {id: r['empid'], measure: r['avg'].to_f.round(2)}

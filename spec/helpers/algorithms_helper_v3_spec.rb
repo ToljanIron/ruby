@@ -207,10 +207,89 @@ describe AlgorithmsHelper, type: :helper do
 
       it 'should be well formed' do
         m = get_sa_membership_matrix(emp2inx, group2inx, gids)
+        ap m
         expect(m.shape).to eq([8,4])
         expect(m.column(2).to_a.flatten).to eq([0,0,0,0,0,0,0,0])
         expect(m.row(2).to_a).to eq([0,1,0,0])
       end
+    end
+
+    describe 'get_sameetings' do
+      before do
+        Company.find_or_create_by(id: 1, name: "Hevra10")
+        Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
+        FactoryGirl.create(:group, id: 11, name: 'g1')
+        FactoryGirl.create(:employee, id: 1, group_id: 11)
+        FactoryGirl.create(:employee, id: 2, group_id: 11)
+        FactoryGirl.create(:employee, id: 3, group_id: 11)
+        FactoryGirl.create(:employee, id: 4, group_id: 11)
+        FactoryGirl.create(:employee, id: 5, group_id: 11)
+
+        MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1)
+        MeetingsSnapshotData.create!(id: 2, snapshot_id: 1, company_id: 1)
+        MeetingsSnapshotData.create!(id: 3, snapshot_id: 1, company_id: 1)
+
+        MeetingAttendee.create!(meeting_id: 1, employee_id: 1)
+        MeetingAttendee.create!(meeting_id: 1, employee_id: 3)
+        MeetingAttendee.create!(meeting_id: 1, employee_id: 5)
+        MeetingAttendee.create!(meeting_id: 2, employee_id: 1)
+        MeetingAttendee.create!(meeting_id: 3, employee_id: 1)
+        MeetingAttendee.create!(meeting_id: 2, employee_id: 2)
+        MeetingAttendee.create!(meeting_id: 3, employee_id: 3)
+        MeetingAttendee.create!(meeting_id: 3, employee_id: 4)
+      end
+
+      it 'should be well formed' do
+        m = get_sameetings_block(1, 11)
+        meetingsmat = m[:meetingsmat]
+        expect(meetingsmat.shape).to eq([5,3])
+        expect(meetingsmat.column(1).to_a.flatten).to eq([1,1,0,0,0])
+        expect(meetingsmat.row(2).to_a).to eq([1,0,1])
+      end
+
+      it 'should have a valid meeting2inx' do
+        m = get_sameetings_block(1, 11)
+        meeting2inx = m[:meeting2inx]
+        expect( meeting2inx[3] ).to eq(2)
+      end
+
+      it 'should have a valid inx2meeting' do
+        m = get_sameetings_block(1, 11)
+        inx2meeting = m[:inx2meeting]
+        expect( inx2meeting[1] ).to eq(2)
+      end
+    end
+  end
+
+  describe 'observers' do
+    before do
+      Company.find_or_create_by!(id: 1, name: "Hevra10")
+      Snapshot.find_or_create_by!(id: 1, name: "2016-01", company_id: 1, timestamp: Time.now)
+      NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1)
+      FactoryGirl.create(:group, id: 11, name: 'g1')
+      create_emps('moshe', 'acme.com', 4, {gid: 11, sid: 1})
+
+      all = [
+        [0,0,1,2],
+        [1,0,2,3],
+        [2,3,0,4],
+        [2,2,2,0]]
+      fg_emails_from_matrix(all)
+
+      MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1)
+      MeetingsSnapshotData.create!(id: 2, snapshot_id: 1, company_id: 1)
+
+      MeetingAttendee.create!(meeting_id: 1, employee_id: 1)
+      MeetingAttendee.create!(meeting_id: 1, employee_id: 3)
+      MeetingAttendee.create!(meeting_id: 1, employee_id: 4)
+      MeetingAttendee.create!(meeting_id: 2, employee_id: 1)
+      MeetingAttendee.create!(meeting_id: 2, employee_id: 2)
+
+
+    end
+
+    it 'should be well formed' do
+      m = calculate_observers(1, -1, 11)
     end
   end
 
