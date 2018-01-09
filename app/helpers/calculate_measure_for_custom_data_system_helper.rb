@@ -221,7 +221,6 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_email_scores_from_helper(cid, currgids, currinter, previnter, limit, offset, agg_method, interval_type)
     aids = [707,700, 701, 702, 703, 704, 705, 706]
-    aids = [707]
     ret = get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
     return ret
   end

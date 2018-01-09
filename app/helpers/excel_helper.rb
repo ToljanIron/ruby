@@ -178,11 +178,12 @@ module ExcelHelper
       CalculateMeasureForCustomDataSystemHelper.cds_aggregation_query(
         cid,
         interval,
-        "g.external_id IN ('#{extgids.join('\',\'')}')",
+        "outg.external_id IN ('#{extgids.join('\',\'')}')",
         '1 = 1',
         '1 = 1',
         aids,
-        snapshot_field)
+        snapshot_field,
+        extgids)
     return res
   end
 
