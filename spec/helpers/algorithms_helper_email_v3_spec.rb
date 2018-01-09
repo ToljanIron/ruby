@@ -16,19 +16,19 @@ BCC_TYPE ||= 3
 # This test file is for new algorithms for emails network - part of V3 version
 
 describe AlgorithmsHelper, type: :helper do
-  
+
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
     FactoryGirl.reload
   end
-  
+
   before(:each) do
     @cid = 1
     gid = 3
 
     @s = FactoryGirl.create(:snapshot, name: 's3', company_id: @cid)
     FactoryGirl.create(:group, id: gid, company_id: @cid, snapshot_id: @s.id)
-    
+
     em1 = 'p11@email.com'
     em2 = 'p22@email.com'
     em3 = 'p33@email.com'
@@ -192,7 +192,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        
+
         create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -234,7 +234,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-        
+
         create_email_connection(@e2.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -267,7 +267,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e1.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e1.id, @e5.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-      
+
       create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e2.id, @e4.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
@@ -312,7 +312,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
       create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      
+
       # Because of floats - any number below the threshold should be considered as zero.
       # Threshold value set arbitrarily and can be higher/lower
       @zero_threshold = 0.01
@@ -380,7 +380,7 @@ describe AlgorithmsHelper, type: :helper do
       em11 = 'p111@email.com'
       em12 = 'p112@email.com'
       em13 = 'p113@email.com'
-      
+
       FactoryGirl.create(:group, id: gid2, company_id: @cid, snapshot_id: @s.id)
 
       @eid11 = FactoryGirl.create(:employee, email: em11, group_id: gid2).id
@@ -410,7 +410,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid12, @e4.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
-      
+
       # Internal connections for gid2
       create_email_connection(@eid11, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid13, @eid11, INIT, TO_TYPE, @s.id, @cid, @n1.id)
@@ -440,7 +440,7 @@ describe AlgorithmsHelper, type: :helper do
       em11 = 'p111@email.com'
       em12 = 'p112@email.com'
       em13 = 'p113@email.com'
-      
+
       FactoryGirl.create(:group, id: gid2, company_id: @cid, snapshot_id: @s.id)
 
       @eid11 = FactoryGirl.create(:employee, email: em11, group_id: gid2).id
@@ -470,7 +470,7 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid11, @e3.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid12, @e4.id, INIT, TO_TYPE, @s.id, @cid, @n1.id)
-      
+
       # Internal connections for gid2
       create_email_connection(@eid11, @eid12, INIT, TO_TYPE, @s.id, @cid, @n1.id)
       create_email_connection(@eid13, @eid11, INIT, TO_TYPE, @s.id, @cid, @n1.id)

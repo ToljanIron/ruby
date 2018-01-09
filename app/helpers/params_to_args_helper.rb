@@ -157,7 +157,7 @@ module ParamsToArgsHelper
     key = "observers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
-      return AlgorithmsHelper.observers_measure(args[:snapshot_id], args[:gid], args[:pid])
+      return AlgorithmsHelper.calculate_observers(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 

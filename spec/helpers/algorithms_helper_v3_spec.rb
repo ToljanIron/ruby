@@ -269,27 +269,47 @@ describe AlgorithmsHelper, type: :helper do
       FactoryGirl.create(:group, id: 11, name: 'g1')
       create_emps('moshe', 'acme.com', 4, {gid: 11, sid: 1})
 
-      all = [
-        [0,0,1,2],
-        [1,0,2,3],
-        [2,3,0,4],
-        [2,2,2,0]]
-      fg_emails_from_matrix(all)
-
-      MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1)
-      MeetingsSnapshotData.create!(id: 2, snapshot_id: 1, company_id: 1)
+      MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1, duration_in_minutes: 10)
+      MeetingsSnapshotData.create!(id: 2, snapshot_id: 1, company_id: 1, duration_in_minutes: 20)
+      MeetingsSnapshotData.create!(id: 3, snapshot_id: 1, company_id: 1, duration_in_minutes: 30)
+      MeetingsSnapshotData.create!(id: 4, snapshot_id: 1, company_id: 1, duration_in_minutes: 40)
 
       MeetingAttendee.create!(meeting_id: 1, employee_id: 1)
       MeetingAttendee.create!(meeting_id: 1, employee_id: 3)
-      MeetingAttendee.create!(meeting_id: 1, employee_id: 4)
       MeetingAttendee.create!(meeting_id: 2, employee_id: 1)
       MeetingAttendee.create!(meeting_id: 2, employee_id: 2)
-
-
+      MeetingAttendee.create!(meeting_id: 3, employee_id: 3)
+      MeetingAttendee.create!(meeting_id: 3, employee_id: 4)
+      MeetingAttendee.create!(meeting_id: 4, employee_id: 4)
+      MeetingAttendee.create!(meeting_id: 4, employee_id: 2)
     end
 
-    it 'should be well formed' do
-      m = calculate_observers(1, -1, 11)
+    it 'participants in meeting 4 had very little email traffic' do
+      all = [
+        [0,5,5,5],
+        [5,0,5,1],
+        [5,5,0,5],
+        [5,0,5,0]]
+      fg_emails_from_matrix(all)
+
+      res = calculate_observers(1, -1, 11)
+      emp1 = res.find { |r| r[:id] == 1}
+      emp4 = res.find { |r| r[:id] == 4}
+      expect(emp1[:measure]).to eq(0)
+      expect(emp4[:measure]).to eq(40)
+    end
+
+    it 'there should be no observers because all traffic is similar' do
+      all = [
+        [0,1,1,1],
+        [1,0,1,1],
+        [1,1,0,1],
+        [1,1,1,0]]
+      fg_emails_from_matrix(all)
+
+      res = calculate_observers(1, -1, 11)
+      observers_time = res.reduce(0) { |sum, e| sum += e[:measure] }
+      expect(observers_time).to eq(0)
     end
   end
 

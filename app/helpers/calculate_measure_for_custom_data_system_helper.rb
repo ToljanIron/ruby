@@ -215,7 +215,7 @@ module CalculateMeasureForCustomDataSystemHelper
 
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method, interval_type)
     puts "Meeting scores helper"
-    aids = [807]
+    aids = [807, 804]
     return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method, interval_type)
   end
 

@@ -58,6 +58,11 @@ module AlgorithmsHelper
   Q1 ||= 1
   Q3 ||= 4
 
+  ## Standard deviations
+  SD1 = 1
+  SD2 = 2
+  SD3 = 3
+
   ################################################################################
   ## Quartile calculations for number arrays
   ## Typically used for gauges
@@ -426,7 +431,7 @@ module AlgorithmsHelper
   # For an exact explanation of the calculation see the
   #   algorithms document.
   ################################################################
-  def calculate_observers(sid,pid, gid)
+  def calculate_observers(sid, gid, pid)
     puts "Getting the graph"
     cid = Snapshot.find(sid).company_id
     nid = NetworkSnapshotData.emails(cid)
@@ -443,33 +448,57 @@ module AlgorithmsHelper
     ## Remeber that * of an NMatrix is done element by element
     mt = mt * m
 
-    total_emails_in_meetings = mt.snm_sum.to_f
-    total_particiapnts_in_meetings = m.snm_sum.to_f
+    onesvec_meetings = get_ones_vector(a.shape[0]).transpose
+    participants_in_meetings = onesvec_meetings.dot(m)
+    emails_in_meetings = onesvec_meetings.dot(mt).map { |e| e / 2 }
 
-    emails
-    stats = DescriptiveStatistics::Stats.new(mt.to_flat_a)
+    ## create an array in which each entry is the number of emails the participants
+    ## in the corresponding meeting were involved in (send and recieve) divided
+    ## by the number of participants
+    emails_density = []
+    (0..(emails_in_meetings.shape[1]-1)).each do |i|
+      emails_density << emails_in_meetings[0,i] / (participants_in_meetings[0,i])
+    end
+
+    stats = DescriptiveStatistics::Stats.new(emails_density)
     avg_emails_per_participant = stats.mean
     sd_emails_per_participant  = stats.standard_deviation
 
+    observer_bound = avg_emails_per_participant - (SD1 * sd_emails_per_participant)
 
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 1"
-    puts a.pp
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 2"
-    puts m.pp
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 3"
-    puts mt.pp
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 4"
-    puts total_emails_in_meetings
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 5"
-    puts total_particiapnts_in_meetings
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 6"
-    puts "AVG: #{avg_emails_per_participant}"
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 7"
-    puts "SD: #{sd_emails_per_participant}"
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%% 8"
+    ## Go over all meetings and collect observer hours
+    inx2emp = sagraph[:inx2emp]
+    inx2duration = sameetings[:inx2duration]
+    ret = []
+    i = 0
+    mt.each_row do |row|
+      time_in_meetings = 0
+      row.each_with_index do |emailnum, j|
+        emails_density_of_employee  = emailnum / participants_in_meetings[0,j]
+        if m[i,j] == 1 && emails_density_of_employee < observer_bound
+          time_in_meetings += inx2duration[j]
+        end
+      end
+      ret << {id: inx2emp[i], measure: time_in_meetings}
+      i += 1
+    end
 
+    return ret
+  end
 
-    return 0
+  ################################################################################
+  # Recieve array (mtarr) of number of email traffic with meeting participants
+  #   and a matrix specifing which employee was in which meeting. Return
+  #   a filtered version of mtarr with only entries of employees who participated
+  #   in the meeting.
+  ################################################################################
+  def filter_only_meeting_traffic(mtarr, m)
+    filterarr = m.to_flat_a
+    ret = []
+    mtarr.each_with_index do |v, i|
+      ret << v if filterarr[i] == 1
+    end
+    return ret
   end
 
   ###########################################################################
@@ -1323,10 +1352,6 @@ module AlgorithmsHelper
     return calc_inviters(sid, gid, pid)
   end
 
-  def observers_measure(sid, gid, pid)
-    return calc_observers(sid, gid, pid)
-  end
-
   def avg_num_of_ppl_in_meetings(sid, gid, pid)
     return calc_avg_num_of_ppl_in_meetings(sid, gid, pid)
   end
@@ -1633,19 +1658,23 @@ module AlgorithmsHelper
       .joins('JOIN meeting_attendees AS ma ON ma.meeting_id = msd.id')
       .where('msd.snapshot_id = ?', sid)
       .where("ma.employee_id in (#{eids.join(',')})", eids)
+      .order('mid, eid')
 
     meetings = MeetingsSnapshotData
-      .select('DISTINCT msd.id')
+      .select('DISTINCT msd.id, msd.duration_in_minutes AS duration')
       .from('meetings_snapshot_data AS msd')
       .joins('JOIN meeting_attendees AS ma ON ma.meeting_id = msd.id')
       .where('msd.snapshot_id = ?', sid)
       .where("ma.employee_id in (#{eids.join(',')})", eids)
+      .order('msd.id')
 
     ## Create the meetings indexes
     inx2meeting = {}
     meeting2inx = {}
+    inx2duration = {}
     meetings.each do |m|
       meeting2inx[m[:id]] = inx2meeting.size
+      inx2duration[inx2meeting.size] = m[:duration]
       inx2meeting[inx2meeting.size] = m[:id]
     end
 
@@ -1667,6 +1696,7 @@ module AlgorithmsHelper
       meeting2inx: meeting2inx,
       inx2meeting: inx2meeting,
       meetingsmat: meetingsmat,
+      inx2duration: inx2duration
     }
   end
 
@@ -2192,15 +2222,6 @@ module AlgorithmsHelper
     return [] if is_retrieved_snapshot_data_empty(count_of_organized_raw, sqlstr)
 
     return handle_raw_snapshot_data(count_of_organized_raw, employee_ids)
-  end
-
-  def calc_observers(sid, gid = NO_GROUP, pid = NO_PIN)
-
-    count_of_invited = calc_in_the_loop(sid, gid, pid)
-    total_email_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, INSIDE_GROUP, gid, pid)
-
-    res = calc_relative_measure_by_key(count_of_invited, total_email_indegree, 'id', 'measure')
-    return res
   end
 
   def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)

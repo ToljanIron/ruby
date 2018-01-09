@@ -15,6 +15,10 @@ class Hash
 end
 
 class NMatrix
+  #####################################################################
+  # This function is used to write a specific function on each one of
+  # a nmatrix rows. Typically used for normalizing values.
+  #####################################################################
   def snm_map_rows
     m = []
     ii = 0
@@ -27,6 +31,9 @@ class NMatrix
     return NMatrix.new self.shape, m.flatten, dtype: self.dtype
   end
 
+  ####################################################
+  # Return sum of all matrix entries
+  ####################################################
   def snm_sum
     res = 0
     self.each do |eij|
