@@ -54,6 +54,7 @@ module CalculateMeasureForCustomDataSystemHelper
          AVG_NUM_RECIPIENTS)
 
     scale = CompanyConfigurationTable.incoming_email_to_time
+
     return {
       total_time_spent: total_time_spent * scale,
       total_time_spent_diff: time_spent_diff,
@@ -201,9 +202,11 @@ module CalculateMeasureForCustomDataSystemHelper
       JOIN offices AS o ON o.id = emps.office_id
       JOIN company_metrics AS cms ON cms.id = cds.company_metric_id
       JOIN metric_names AS mn ON mn.id = cms.metric_id
+      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
       WHERE
         emps.email IN ('#{emails.join("','")}') AND
-        cds.algorithm_id IN (#{aids_str})
+        cds.algorithm_id IN (#{aids_str}) AND
+        sn.#{snapshot_field} = \'#{interval}\'
       GROUP BY emp_name, img_url, group_extid, group_name, mn.name, office_name, email
       ORDER BY score DESC
       LIMIT 20"
@@ -214,18 +217,17 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def get_meetings_scores_from_helper(cid, currgids, currsid, prevsid, limit, offset, agg_method, interval_type)
-    puts "Meeting scores helper"
     aids = [807, 804]
-    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method, interval_type)
+    return get_scores_from_helper(cid, currgids, currsid, prevsid, aids, limit, offset, agg_method, interval_type, 'meetings')
   end
 
   def get_email_scores_from_helper(cid, currgids, currinter, previnter, limit, offset, agg_method, interval_type)
     aids = [707,700, 701, 702, 703, 704, 705, 706]
-    ret = get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
+    ret = get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type, 'emails')
     return ret
   end
 
-  def get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type)
+  def get_scores_from_helper(cid, currgids, currinter, previnter, aids, limit, offset, agg_method, interval_type, scale_type)
     currgextids = Group.where(id: [currgids]).pluck(:external_id)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     currtopextgids = calculate_group_top_scores(cid, currinter, currgextids, [aids[0]], snapshot_field)
@@ -243,7 +245,7 @@ module CalculateMeasureForCustomDataSystemHelper
     prevscores = convert_group_external_ids_to_gids(prevscores, cid)
 
     res = collect_cur_and_prev_results(currscores, prevscores)
-    res = format_scores(res)
+    res = format_scores(res, scale_type)
     return res
   end
 
@@ -285,11 +287,11 @@ module CalculateMeasureForCustomDataSystemHelper
     return scores
   end
 
-  def format_scores(email_scores)
+  def format_scores(scores, scale_type)
     res = []
-    scale = CompanyConfigurationTable.incoming_email_to_time
+    scale = scale_type == 'emails' ? CompanyConfigurationTable.incoming_email_to_time : (1.0 / 60.0)
     invmode = CompanyConfigurationTable.is_investigation_mode?
-    email_scores.each do |e|
+    scores.each do |e|
       res << {
         gid: e['gid'],
         groupName: create_group_name(e['gid'], e['group_name'],invmode),
@@ -370,7 +372,6 @@ module CalculateMeasureForCustomDataSystemHelper
       res_hash[key] = [cursum, gid, group_name, curnum]
     end
 
-    puts "TTTTTTTTTTTTTTTTTTTT"
     res_arr = []
     prevscores.each do |s|
       puts "Now, working on: #{s}"
@@ -709,6 +710,11 @@ module CalculateMeasureForCustomDataSystemHelper
     avg_attendees_in_curr_interval = total_average_from_gauge(cid, curr_interval, interval_str, extgids, MEETINGS_AVG_ATTENDEES)
     avg_attendees_in_prev_interval = total_average_from_gauge(cid, prev_interval, interval_str, extgids, MEETINGS_AVG_ATTENDEES)
     avg_attendees_diff = avg_attendees_in_curr_interval - avg_attendees_in_prev_interval
+
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    puts "total time spent in meetings: #{time_spent_in_curr_interval / 60.0}"
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+
 
     return {
       total_time_spent: time_spent_in_curr_interval / 60.0,

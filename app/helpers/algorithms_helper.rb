@@ -2270,6 +2270,7 @@ module AlgorithmsHelper
     res.each do |r|
       ret << {id: r['empid'], measure: r['avg'].to_f.round(2)}
     end
+    ret = result_zero_padding(employee_ids, ret)
     return ret
   end
 
