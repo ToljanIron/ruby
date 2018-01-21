@@ -372,10 +372,10 @@ class MeasuresController < ApplicationController
     permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
 
     cid = current_user.company_id
-    gids = permitted[:gids].split(',')
-    sid = permitted[:curr_interval]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    sid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
     agg_method = format_aggregation_method( permitted[:agg_method] )
-    interval_type = permitted[:interval_type]
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     raise 'sid cant be empty' if sid == nil
 
@@ -398,10 +398,10 @@ class MeasuresController < ApplicationController
     permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
 
     cid = current_user.company_id
-    gids = permitted[:gids].split(',')
-    sid = permitted[:curr_interval]
-    agg_method = format_aggregation_method( permitted[:agg_method] )
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    sid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
+    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     raise 'sid cant be empty' if sid == nil
 
@@ -423,13 +423,13 @@ class MeasuresController < ApplicationController
     permitted = params.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type)
 
     cid = current_user.company_id
-    gids = permitted[:gids].split(',')
-    currsid = permitted[:curr_interval]
-    prevsid = permitted[:prev_interval]
-    limit = permitted[:limit] || 10
-    offset = permitted[:offset] || 0
-    agg_method = format_aggregation_method( permitted[:agg_method] )
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
+    prevsid = permitted[:prev_interval].sanitize_is_alphanumeric_with_slash
+    limit = permitted[:limit].safe_sanitize_integer || 10
+    offset = permitted[:offset].safe_sanitize_integer || 0
+    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     raise 'currsid and prevsid can not be empty' if (currsid == nil)
 
@@ -449,13 +449,13 @@ class MeasuresController < ApplicationController
     permitted = params.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type)
 
     cid = current_user.company_id
-    gids = permitted[:gids].split(',')
-    currsid = permitted[:curr_interval]
-    prevsid = permitted[:prev_interval]
-    limit = permitted[:limit] || 10
-    offset = permitted[:offset] || 0
-    agg_method = format_aggregation_method( permitted[:agg_method] )
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
+    prevsid = permitted[:prev_interval].sanitize_is_alphanumeric_with_slash
+    limit = permitted[:limit].safe_sanitize_integer || 10
+    offset = permitted[:offset].safe_sanitize_integer || 0
+    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     raise 'currsid and prevsid can not be empty' if (currsid == nil )
 
@@ -494,10 +494,10 @@ class MeasuresController < ApplicationController
   def get_email_stats
     authorize :snapshot, :index?
     params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
-    interval_type = params[:interval_type]
-    curr_interval = params[:curr_interval]
-    prev_interval = params[:prev_interval]
-    gids = params[:gids].split(',')
+    interval_type = params[:interval_type].sanitize_is_string_with_space
+    curr_interval = params[:curr_interval].sanitize_is_alphanumeric_with_slash
+    prev_interval = params[:prev_interval].sanitize_is_alphanumeric_with_slash
+    gids = params[:gids].split(',').map(&:sanitize_integer)
 
     res = get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
     render json: Oj.dump(res)
@@ -506,10 +506,10 @@ class MeasuresController < ApplicationController
   def get_meetings_stats
     authorize :snapshot, :index?
     params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
-    interval_type = params[:interval_type]
-    curr_interval = params[:curr_interval]
-    prev_interval = params[:prev_interval]
-    gids = params[:gids].split(',')
+    interval_type = params[:interval_type].sanitize_is_string_with_space
+    curr_interval = params[:curr_interval].sanitize_is_alphanumeric_with_slash
+    prev_interval = params[:prev_interval].sanitize_is_alphanumeric_with_slash
+    gids = params[:gids].split(',').map(&:sanitize_integer)
 
     res = get_meetings_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
     render json: Oj.dump(res)
@@ -520,8 +520,8 @@ class MeasuresController < ApplicationController
 
     params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i)
-    gids = params[:gids].split(',')
+    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
+    gids = params[:gids].split(',').map(&:sanitize_integer)
     interval_type = params[:interval_type].to_i
 
     res = get_emails_volume_scores(cid, sids, gids, interval_type)
@@ -535,8 +535,8 @@ class MeasuresController < ApplicationController
 
     params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i)
-    gids = params[:gids].split(',')
+    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
+    gids = params[:gids].split(',').map(&:sanitize_integer)
     interval_type = params[:interval_type].to_i
 
     res = get_time_spent_in_meetings(cid, sids, gids, interval_type)
@@ -550,8 +550,8 @@ class MeasuresController < ApplicationController
 
     permitted = params.permit(:sids, :gids, :interval_type)
     cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i)
-    gids = permitted[:gids].split(',')
+    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
     interval_type = params[:interval_type].to_i
 
     res = get_group_densities(cid, sids, gids, interval_type)
@@ -565,9 +565,9 @@ class MeasuresController < ApplicationController
 
     cid = current_user.company_id
     #sids = params[:sids].split(',').map(&:to_i)
-    gids = permitted[:gids].split(',')
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
     interval_type = params[:interval_type].to_i
-    interval = permitted[:curr_interval]
+    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
 
     res = get_dynamics_stats_from_helper(cid, interval, gids, interval_type)
 
@@ -580,10 +580,10 @@ class MeasuresController < ApplicationController
     permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
 
     cid = current_user.company_id
-    gids = permitted[:gids].split(',')
-    aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
-    interval = permitted[:curr_interval]
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    aggregator_type = permitted[:aggregator_type].sanitize_is_alphanumeric # Aggregator from client. Use in the future - department/office
+    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     res = get_dynamics_scores_from_helper(cid, interval, gids, interval_type, aggregator_type)
 
@@ -597,8 +597,8 @@ class MeasuresController < ApplicationController
 
     cid = current_user.company_id
     interval_type = params[:interval_type].to_i
-    interval = permitted[:curr_interval]
-    gids = permitted[:gids].split(',')
+    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
 
     res = get_dynamics_employee_scores_from_helper(cid, interval, gids, interval_type)
 

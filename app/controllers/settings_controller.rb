@@ -11,10 +11,10 @@ class SettingsController < ApplicationController
   def update_user_info
     authorize :setting, :index?
 
-  	first_name = params[:first_name]
-  	last_name = params[:last_name]
+  	first_name = params[:first_name].sanitize_is_string_with_space
+  	last_name = params[:last_name].sanitize_is_string_with_space
 
-  	doc_encryption_pass = params[:reports_encryption_key]
+  	doc_encryption_pass = params[:reports_encryption_key].sanitize_is_alphanumeric
 
 		current_user.update_user_info(first_name, last_name, doc_encryption_pass)
 
@@ -23,8 +23,8 @@ class SettingsController < ApplicationController
 
   def edit_password
     authorize :setting, :index?
-    old_password = params[:old_password]
-    new_password = params[:new_password]
+    old_password = params[:old_password].sanitize_is_alphanumeric
+    new_password = params[:new_password].sanitize_is_alphanumeric
 
     success = current_user.update_password(old_password, new_password)
     message = success ? 'Password updated successfully' : 'Wrong password'
@@ -42,10 +42,10 @@ class SettingsController < ApplicationController
       return
     end
 
-    session_timeout = params[:session_timeout]
-    password_update_time_interval = params[:password_update_time]
-    max_login_attempts = params[:login_attempts]
-    required_password_chars = params[:required_characters]
+    session_timeout = params[:session_timeout].sanitize_integer
+    password_update_time_interval = params[:password_update_time].sanitize_integer
+    max_login_attempts = params[:login_attempts].sanitize_integer
+    required_password_chars = params[:required_characters].sanitize_has_no_whitespace
 
     company.update_security_settings(session_timeout, password_update_time_interval, max_login_attempts, required_password_chars)
     head :ok

@@ -50,7 +50,7 @@ class SessionsController < ApplicationController
     end
 
     if user
-      max_attempts = CompanyConfigurationTable.max_login_attempts
+      max_attempts = Company.find(user.company_id).max_login_attempts
       lock_delay   = CompanyConfigurationTable.lock_time_after_max_login_attempts
       if !user.can_login?(max_attempts, lock_delay)
         render json: { msg: 'Too many login attempts, locking down.'}, status: 550

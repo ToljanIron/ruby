@@ -11,9 +11,9 @@ class ReportsController < ApplicationController
     cid = current_user.company_id
 
     permitted = params.permit(:gids, :interval, :interval_type)
-    gids = permitted[:gids].split(',')
-    interval = permitted[:interval]
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    interval = permitted[:interval].sanitize_is_alphanumeric_with_slash
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     encryption_key = current_user.document_encryption_password
 
@@ -33,9 +33,9 @@ class ReportsController < ApplicationController
     cid = current_user.company_id
 
     permitted = params.permit(:gids, :interval, :interval_type)
-    gids = permitted[:gids].split(',')
-    interval = permitted[:interval]
-    interval_type = permitted[:interval_type]
+    gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    interval = permitted[:interval].sanitize_is_alphanumeric_with_slash
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space
 
     encryption_key = current_user.document_encryption_password
 

@@ -13,7 +13,7 @@ class SnapshotsController < ApplicationController
 
   def get_snapshots
     authorize :snapshot, :index?
-    limit = params[:limit] || 20
+    limit = params[:limit].sanitize_integer || 20
     cid = current_user.company_id
     cache_key = "get_snapshots-lim#{limit}-cid#{cid}"
     res = cache_read(cache_key)

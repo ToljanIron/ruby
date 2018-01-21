@@ -706,11 +706,6 @@ module CalculateMeasureForCustomDataSystemHelper
     avg_attendees_in_prev_interval = total_average_from_gauge(cid, prev_interval, interval_str, extgids, MEETINGS_AVG_ATTENDEES)
     avg_attendees_diff = avg_attendees_in_curr_interval - avg_attendees_in_prev_interval
 
-    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
-    puts "total time spent in meetings: #{time_spent_in_curr_interval / 60.0}"
-    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
-
-
     return {
       total_time_spent: time_spent_in_curr_interval / 60.0,
       total_time_spent_diff: (time_spent_diff / 60.0).round(2),
@@ -722,19 +717,17 @@ module CalculateMeasureForCustomDataSystemHelper
   private
 
   def total_sum_from_gauge(cid, interval, snapshot_field, extids, aid)
-    sqlstr = "
-      SELECT SUM(cds.numerator) AS sum
-      FROM cds_metric_scores AS cds
-      JOIN groups AS g ON g.id =  cds.group_id
-      JOIN snapshots AS sn ON sn.id = cds.snapshot_id
-      WHERE
-        sn.#{snapshot_field} = '#{interval}' AND
-        cds.company_id = #{cid} AND
-        cds.score > #{NA} AND
-        g.external_id IN ('#{extids.join('\',\'')}') AND
-        cds.algorithm_id = #{aid}"
+    ret = CdsMetricScore
+      .select('SUM(cds.numerator) AS sum')
+      .from('cds_metric_scores AS cds')
+      .joins('JOIN groups AS g ON g.id =  cds.group_id')
+      .joins('JOIN snapshots AS sn ON sn.id = cds.snapshot_id')
+      .where(["sn.%s = '%s'", snapshot_field, interval])
+      .where(["cds.company_id = ?", cid])
+      .where(["cds.score > #{NA}"])
+      .where("g.external_id IN ('#{extids.join("','")}')")
+      .where(["cds.algorithm_id = ?", aid])
 
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return ret[0]['sum'].to_f.round(2)
   end
 
@@ -754,6 +747,12 @@ module CalculateMeasureForCustomDataSystemHelper
         GROUP BY snid) inneragg"
 
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    ret = CdsMetricScore
+      .select('SUM(cds.numerator) AS sum')
+      .from('cds_metric_scores AS cds')
+      .joins('JOIN groups AS g ON g.id =  cds.group_id')
+      .joins('JOIN snapshots AS sn ON sn.id = cds.snapshot_id')
     return ret[0]['avg'].to_f.round(2)
   end
 

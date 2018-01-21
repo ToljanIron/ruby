@@ -72,4 +72,83 @@ class NMatrix
     end
     return res
   end
+
+end
+
+####################### Sanitizing methods #####################
+class Object
+  def is_integer?
+    return false if self.nil?
+    return (Integer(self) != nil) rescue return false
+  end
+
+  def has_no_whitespace?
+    return false if self.nil?
+    return self.match(/[\s]+/).nil?
+  end
+
+  def is_string_with_space?
+    return false if self.nil?
+    selfasarr = self.split(/\s/)
+    ret = true
+    selfasarr.each { |w| ret = ret &= (w.is_alphanumeric? && w != "or") }
+    return ret
+  end
+
+  def is_alphanumeric?
+    return false if self.nil?
+    return self.match(/[!@\#$%\^&\*)(\+=}{\\\?\s]+/).nil?
+  end
+
+  def is_alphanumeric_with_slash?
+    return false if self.nil?
+    return self.match(/[!@\#$%\^&\*)(\+=}{\?\s]+/).nil?
+  end
+
+  def specific_sanitize
+    return self if yield
+    raise "#{self} failed sanitation test"
+  end
+
+  def specific_safe_sanitize
+    return self if yield
+    return nil
+  end
+
+  def safe_sanitize_integer
+    return specific_safe_sanitize do
+      is_integer?
+    end
+  end
+
+  def sanitize_integer
+    return specific_sanitize do
+      is_integer?
+    end
+  end
+
+  def sanitize_has_no_whitespace
+    return specific_sanitize do
+      has_no_whitespace?
+    end
+  end
+
+  def sanitize_is_string_with_space
+    return specific_sanitize do
+      is_string_with_space?
+    end
+  end
+
+  def sanitize_is_alphanumeric
+    return specific_sanitize do
+      is_alphanumeric?
+    end
+  end
+
+  def sanitize_is_alphanumeric_with_slash
+    return specific_sanitize do
+      is_alphanumeric_with_slash?
+    end
+  end
+
 end

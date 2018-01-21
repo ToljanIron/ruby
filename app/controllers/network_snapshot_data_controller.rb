@@ -7,9 +7,9 @@ class NetworkSnapshotDataController < ApplicationController
     permitted = params.permit(:interval, :eid, :aid)
 
     cid = current_user.company_id
-    eid = permitted[:eid]
-    interval = permitted[:interval]
-    aid = Algorithm.get_algorithm_id(permitted[:aid])
+    eid = permitted[:eid].map(&:sanitize_integer)
+    interval = permitted[:interval].sanitize_is_alphanumeric
+    aid = Algorithm.get_algorithm_id(permitted[:aid].sanitize_integer)
 
     cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}-aid-#{aid}"
     puts "cache_key: #{cache_key}"
@@ -27,9 +27,9 @@ class NetworkSnapshotDataController < ApplicationController
     permitted = params.permit(:interval, :group_name, :aid)
 
     cid = current_user.company_id
-    group_name = permitted[:group_name]
-    interval = permitted[:interval]
-    aid = Algorithm.get_algorithm_id(permitted[:aid])
+    group_name = permitted[:group_name].sanitize_is_alphanumeric
+    interval = permitted[:interval].sanitize_is_alphanumeric
+    aid = Algorithm.get_algorithm_id(permitted[:aid]..sanitize_integer)
 
     cache_key = "get_dynamics_map-cid-#{cid}-group_name-#{group_name}-interval-#{interval}-aid-#{aid}"
     puts "cache_key: #{cache_key}"
