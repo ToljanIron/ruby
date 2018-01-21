@@ -363,7 +363,6 @@ module CalculateMeasureForCustomDataSystemHelper
     prevscores ||= curscores
 
     curscores.each do |s|
-      puts "Working on: #{s}"
       key = s
       cursum = key.delete('group_hierarchy_avg')
       curnum = key.delete('num')
@@ -374,7 +373,6 @@ module CalculateMeasureForCustomDataSystemHelper
 
     res_arr = []
     prevscores.each do |s|
-      puts "Now, working on: #{s}"
       key = s
       entry = s.dup
       prevsum = key.delete('group_hierarchy_avg')
@@ -409,9 +407,6 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY group_external_id
       ORDER BY sum DESC
       LIMIT 200"
-      puts "PPPPPPPPPPPPPPPPPPPPPPPPPP"
-      puts sqlstr
-      puts "PPPPPPPPPPPPPPPPPPPPPPPPPP"
     cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return cds_scores.map do |s|
       s['group_external_id']

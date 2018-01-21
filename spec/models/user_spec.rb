@@ -112,4 +112,87 @@ describe User, type: :model do
       it { is_expected.not_to be_blank }
     end
   end
+
+  describe 'can_login?' do
+    user = nil
+    max_attempts = 3
+    lock_delay = 300
+
+    before :each do
+      User.delete_all
+      user = User.create!(email: 'e@mail.com', company_id: 999, password: '12345678')
+    end
+
+    it 'not enough time passed since user was locked' do
+      user.is_locked_due_to_max_attempts = true
+      last_login = 100.seconds.ago
+      user.time_of_last_login_attempt = last_login
+      res = user.can_login?(max_attempts, lock_delay)
+
+      expect(res).to be_falsey
+      expect(user.time_of_last_login_attempt).to be == last_login
+      expect(user.is_locked_due_to_max_attempts).to be_truthy
+      expect(user.number_of_recent_login_attempts).to be == 0
+    end
+
+    it 'user was locked but enough time passed since' do
+      user.is_locked_due_to_max_attempts = true
+      last_login = 400.seconds.ago
+      user.time_of_last_login_attempt = last_login
+      res = user.can_login?(max_attempts, lock_delay)
+
+      expect(res).to be_truthy
+      expect(user.time_of_last_login_attempt).to be > last_login
+      expect(user.is_locked_due_to_max_attempts).to be_falsey
+      expect(user.number_of_recent_login_attempts).to be == 0
+    end
+
+    it 'max attempts reached, but time delay from last attempt was enough' do
+      user.number_of_recent_login_attempts = 3
+      last_login = 400.seconds.ago
+      user.time_of_last_login_attempt = last_login
+      res = user.can_login?(max_attempts, lock_delay)
+
+      expect(res).to be_truthy
+      expect(user.time_of_last_login_attempt).to be > last_login
+      expect(user.is_locked_due_to_max_attempts).to be_falsey
+      expect(user.number_of_recent_login_attempts).to be == 0
+    end
+
+    it 'max attempts reached and time delay is within the bound' do
+      user.number_of_recent_login_attempts = 3
+      last_login = 4.seconds.ago
+      user.time_of_last_login_attempt = last_login
+      res = user.can_login?(max_attempts, lock_delay)
+
+      expect(res).to be_falsey
+      expect(user.time_of_last_login_attempt).to be > last_login
+      expect(user.is_locked_due_to_max_attempts).to be_truthy
+      expect(user.number_of_recent_login_attempts).to be == 0
+    end
+
+    it 'max attempts not reached' do
+      user.number_of_recent_login_attempts = 2
+      last_login = 4.seconds.ago
+      user.time_of_last_login_attempt = last_login
+      res = user.can_login?(max_attempts, lock_delay)
+
+      expect(res).to be_truthy
+      expect(user.time_of_last_login_attempt).to be > last_login
+      expect(user.is_locked_due_to_max_attempts).to be_falsey
+      expect(user.number_of_recent_login_attempts).to be == 3
+    end
+
+    it 'should be locked on the 4th attempt' do
+      res = user.can_login?(max_attempts, lock_delay)
+      expect(res).to be_truthy
+      res = user.can_login?(max_attempts, lock_delay)
+      expect(res).to be_truthy
+      res = user.can_login?(max_attempts, lock_delay)
+      expect(res).to be_truthy
+      res = user.can_login?(max_attempts, lock_delay)
+      expect(res).to be_falsey
+
+    end
+  end
 end

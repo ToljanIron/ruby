@@ -14,6 +14,9 @@ class CompanyConfigurationTable < ActiveRecord::Base
   OUTGOING_EMAIL_TO_TIME_KEY = 'OUTGOING_EMAIL_TO_TIME_KEY'
   MAX_EMPS_IN_MAP_DEFAULT = 100
 
+  MAX_LOGIN_ATTMEPTS = 5
+  LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS = 300
+
   belongs_to :company, foreign_key: 'comp_id'
 
   def self.get_company_locale(cid=-1)
@@ -77,6 +80,25 @@ class CompanyConfigurationTable < ActiveRecord::Base
     ret = MAX_EMPS_IN_MAP_DEFAULT
     entry = CompanyConfigurationTable
               .where(comp_id: -1, key: MAX_EMPS_IN_MAP)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value
+  end
+
+  def self.max_login_attempts
+    ret = MAX_LOGIN_ATTMEPTS
+    entry = CompanyConfigurationTable
+              .where(comp_id: -1, key: MAX_LOGIN_ATTMEPTS)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value
+  end
+
+  ## Time to wait after max attempts was exceeded in seconds
+  def self.lock_time_after_max_login_attempts
+    ret = LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS
+    entry = CompanyConfigurationTable
+              .where(comp_id: -1, key: LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS)
     return ret if entry.nil?
     return ret if entry.first.nil?
     return entry.first.value

@@ -4,6 +4,8 @@ class User < ActiveRecord::Base
   ROLE_EMP     = 'emp'
   ROLE_MANAGER     = 'manager'
 
+  LOGIN_ATTEMPTS_TOLERANCE = 30
+
   attr_accessor :undigest_token
 
   before_save { self.email = email.downcase }
@@ -97,6 +99,41 @@ class User < ActiveRecord::Base
     else
       return false
     end
+  end
+
+  ################## N login attempts API ###########################
+  def can_login?(max_attempts, lock_delay)
+    ret = false
+
+    if is_locked_due_to_max_attempts
+
+      if Time.now.to_i - time_of_last_login_attempt.to_i > lock_delay
+        self[:time_of_last_login_attempt] = Time.now
+        self[:is_locked_due_to_max_attempts] = false
+        ret = true
+      else
+        ret = false
+      end
+
+    else
+
+      self[:number_of_recent_login_attempts] += 1
+      if number_of_recent_login_attempts > max_attempts
+        self[:number_of_recent_login_attempts] = 0
+        if Time.now.to_i - time_of_last_login_attempt.to_i > LOGIN_ATTEMPTS_TOLERANCE
+          ret = true
+        else
+          self[:is_locked_due_to_max_attempts] = true
+          ret = false
+        end
+      else
+        ret = true
+      end
+      self[:time_of_last_login_attempt] = Time.now
+    end
+
+    self.save!
+    return ret
   end
 
   private

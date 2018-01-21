@@ -48,6 +48,17 @@ class SessionsController < ApplicationController
         return
       end
     end
+
+    if user
+      max_attempts = CompanyConfigurationTable.max_login_attempts
+      lock_delay   = CompanyConfigurationTable.lock_time_after_max_login_attempts
+      if !user.can_login?(max_attempts, lock_delay)
+        render json: { msg: 'Too many login attempts, locking down.'}, status: 550
+        EventLog.log_event(event_type_name: 'LOGIN', message: "User: #{user.id} exceeded max login attempts")
+        return
+      end
+    end
+
     puts "@@@@@@@@@@@@@@@@@@@@@ 6"
     logged = log_in user if user && user.authenticate(params[:password])
     if logged && params[:remember_me]
@@ -63,6 +74,7 @@ class SessionsController < ApplicationController
     end
     begin
     puts "@@@@@@@@@@@@@@@@@@@@@ 10"
+      EventLog.log_event(event_type_name: 'LOGIN', message: "User: #{user.id} logged in")
       render json: payload(user), status: 200 if v3_login?
       render json: { token: user.remember_token }, status: 200 if !v3_login?
       return
