@@ -77,7 +77,7 @@ class UsersController < ApplicationController
   end
 
   def user_details
-    authorize :application, :passthrough
+    authorize :setting, :index?
     user = current_user
     company = Company.find(current_user.company_id)
 

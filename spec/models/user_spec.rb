@@ -192,7 +192,61 @@ describe User, type: :model do
       expect(res).to be_truthy
       res = user.can_login?(max_attempts, lock_delay)
       expect(res).to be_falsey
+    end
+  end
 
+  describe 'filter_authorized_groups' do
+    subject { @user }
+
+    before :each do
+      FactoryGirl.create(:group, id: 1, snapshot_id: 1, external_id: 'g1', name: 'g1', company_id: 1)
+      FactoryGirl.create(:group, id: 2, snapshot_id: 1, external_id: 'g2', name: 'g2', company_id: 1, parent_group_id:  1)
+      FactoryGirl.create(:group, id: 3, snapshot_id: 1, external_id: 'g3', name: 'g3', company_id: 1, parent_group_id:  2)
+      FactoryGirl.create(:group, id: 4, snapshot_id: 1, external_id: 'g4', name: 'g4', company_id: 1, parent_group_id:  2)
+      FactoryGirl.create(:group, id: 5, snapshot_id: 1, external_id: 'g5', name: 'g5', company_id: 1, parent_group_id:  1)
+
+      @user = User.create!(permissible_group: 'g2', id: 999, company_id: 999, role: :manager, password: '12341324', email: 'r@q.com')
+    end
+
+    after :each do
+      Rails.cache.clear
+      DatabaseCleaner.clean_with(:truncation)
+    end
+
+    it 'should restrict only to daugter groups' do
+      gids_arr = @user.filter_authorized_groups([1,2,3,4,5]).sort
+      expect(gids_arr).to eq([2,3,4])
+    end
+
+    it 'should restrict for permissible groups with no hierarchy' do
+      @user.update!(permissible_group: 'g5')
+      gids_arr = @user.filter_authorized_groups([1,2,3,4,5]).sort
+      expect(gids_arr).to eq([5])
+    end
+
+    it 'should restrict to correct snapshot' do
+      FactoryGirl.create(:group, id: 11, snapshot_id: 2, external_id: 'g1', name: 'g1', company_id: 1)
+      FactoryGirl.create(:group, id: 12, snapshot_id: 2, external_id: 'g2', name: 'g2', company_id: 1, parent_group_id:  11)
+      FactoryGirl.create(:group, id: 13, snapshot_id: 2, external_id: 'g3', name: 'g3', company_id: 1, parent_group_id:  12)
+      FactoryGirl.create(:group, id: 14, snapshot_id: 2, external_id: 'g4', name: 'g4', company_id: 1, parent_group_id:  12)
+      FactoryGirl.create(:group, id: 15, snapshot_id: 2, external_id: 'g5', name: 'g5', company_id: 1, parent_group_id:  11)
+
+      gids_arr = @user.filter_authorized_groups([12,13,14,15]).sort
+      expect(gids_arr).to eq([12, 13, 14])
+    end
+
+    describe 'authorized_groups' do
+      it 'should get all relevant gids from snapshot' do
+        FactoryGirl.create(:group, id: 11, snapshot_id: 2, external_id: 'g1', name: 'g1', company_id: 1)
+        FactoryGirl.create(:group, id: 12, snapshot_id: 2, external_id: 'g2', name: 'g2', company_id: 1, parent_group_id:  11)
+        FactoryGirl.create(:group, id: 13, snapshot_id: 2, external_id: 'g3', name: 'g3', company_id: 1, parent_group_id:  12)
+
+        gids_arr = @user.authorized_groups(1).sort
+        expect(gids_arr).to eq([2, 3, 4])
+
+        gids_arr = @user.authorized_groups(2).sort
+        expect(gids_arr).to eq([12, 13])
+      end
     end
   end
 end

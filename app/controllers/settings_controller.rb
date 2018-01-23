@@ -9,7 +9,7 @@ class SettingsController < ApplicationController
   end
 
   def update_user_info
-    authorize :setting, :index?
+    authorize :setting, :update?
 
   	first_name = params[:first_name].sanitize_is_string_with_space
   	last_name = params[:last_name].sanitize_is_string_with_space
@@ -22,7 +22,7 @@ class SettingsController < ApplicationController
   end
 
   def edit_password
-    authorize :setting, :index?
+    authorize :setting, :update?
     old_password = params[:old_password].sanitize_is_alphanumeric
     new_password = params[:new_password].sanitize_is_alphanumeric
 
@@ -52,7 +52,7 @@ class SettingsController < ApplicationController
   end
 
   def get_config_params
-    authorize :setting, :index?
+    authorize :setting, :update?
     ret = {
       incomingEmailToTime: CompanyConfigurationTable.incoming_email_to_time,
       outgoingEmailToTime: CompanyConfigurationTable.outgoing_email_to_time

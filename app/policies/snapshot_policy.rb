@@ -1,7 +1,7 @@
 class SnapshotPolicy < ApplicationPolicy
 
   def index?
-    true if user.admin? or user.hr?
+    true if user.admin? || user.hr? || user.manager?
   end
 
   class Scope < Scope

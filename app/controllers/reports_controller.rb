@@ -12,6 +12,7 @@ class ReportsController < ApplicationController
 
     permitted = params.permit(:gids, :interval, :interval_type)
     gids = permitted[:gids].split(',').map(&:sanitize_integer)
+    gids = current_user.filter_authorized_groups(gids)
     interval = permitted[:interval].sanitize_is_alphanumeric_with_slash
     interval_type = permitted[:interval_type].sanitize_is_string_with_space
 

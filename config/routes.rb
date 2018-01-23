@@ -14,7 +14,7 @@ Workships::Application.routes.draw do
 
   #get   '/questionnaire/',              to: 'application#show_mobile'
   get   '/robots.txt',                  to: 'application#robots'
-  #get   '/signin',                      to: 'sessions#signin'
+  get   '/signin',                      to: 'sessions#signin'
   #get   '/signout',                     to: 'sessions#destroy'
   #get   '/v2/backend',                  to: 'backend_v_two#load_csv'
   #get   '/backend',                     to: 'utils#backend'

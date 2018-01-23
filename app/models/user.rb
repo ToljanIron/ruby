@@ -2,7 +2,7 @@ class User < ActiveRecord::Base
   ROLE_ADMIN   = 'admin'
   ROLE_HR      = 'hr'
   ROLE_EMP     = 'emp'
-  ROLE_MANAGER     = 'manager'
+  ROLE_MANAGER = 'manager'
 
   LOGIN_ATTEMPTS_TOLERANCE = 30
 
@@ -21,7 +21,7 @@ class User < ActiveRecord::Base
 
   enum role: [:admin, :hr, :emp, :manager]
 
-  validates :group_id, presence: true, if: :is_manager?
+  validates :permissible_group, presence: true, if: :is_manager?
 
   validates :document_encryption_password, length: { minimum: 7 }, :allow_blank => true
 
@@ -133,6 +133,58 @@ class User < ActiveRecord::Base
     end
 
     self.save!
+    return ret
+  end
+
+  ################## Filter groups according to permissions #####################
+  def get_permissible_groups_hash(sid)
+    cache_key = "filter_authorized_groups-uid-#{id}-sid-#{sid}"
+    permissible_groups_hash = CdsUtilHelper.dev_cache_read(cache_key)
+
+    puts "permissible_groups_hash: #{permissible_groups_hash}"
+
+    if permissible_groups_hash.nil?
+      puts "QQQQQQQQQQQQQQQQQQQQQQQQQqq 1"
+      permissible_groups_arr =
+        Group
+          .where(external_id: permissible_group)
+          .where(snapshot_id: sid)
+          .last
+          .extract_descendants_ids_and_self
+
+      permissible_groups_hash = {}
+      permissible_groups_arr.each do |gid|
+        permissible_groups_hash[gid] = true
+      end
+    end
+      puts "QQQQQQQQQQQQQQQQQQQQQQQQQqq 2"
+    puts "permissible_groups_hash: #{permissible_groups_hash}"
+    CdsUtilHelper.dev_cache_write(cache_key, permissible_groups_hash, 1.minute)
+    return permissible_groups_hash
+  end
+
+  def authorized_groups(sid)
+    permissible_groups_hash = get_permissible_groups_hash(sid)
+    return permissible_groups_hash.keys
+  end
+
+  def filter_authorized_groups(gids_arr)
+    puts "@@@@@@@@@@@@@@@@@@ 0"
+    puts "gids_arr: #{gids_arr}"
+    puts "@@@@@@@@@@@@@@@@@@ 1"
+    puts "role: #{role}"
+    return gids_arr if (role == 'admin' || role == 'hr')
+    puts "@@@@@@@@@@@@@@@@@@ 2"
+    return nil if (role != 'manager')
+    puts "@@@@@@@@@@@@@@@@@@ 3"
+    sid = Group.find(gids_arr.first).snapshot_id
+    puts "@@@@@@@@@@@@@@@@@@ 4"
+    permissible_groups_hash = get_permissible_groups_hash(sid)
+    puts "@@@@@@@@@@@@@@@@@@ 5"
+    ret = gids_arr.select { |gid| permissible_groups_hash[gid.to_i] }
+    puts "test: #{permissible_groups_hash[1212]}"
+    puts "@@@@@@@@@@@@@@@@@@ 5"
+    puts "ret: #{ret}"
     return ret
   end
 

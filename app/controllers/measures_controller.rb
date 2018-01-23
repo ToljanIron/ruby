@@ -18,6 +18,63 @@ class MeasuresController < ApplicationController
   NO_GROUP = -1
   NO_PIN   = -1
 
+  ##################################################################
+  # Generic cache for this controller. First generate a cache key
+  #   from the params (sp), then look for it and add it to the cache
+  #   if it doesn't exist.
+  ##################################################################
+  def measures_cache_result(api_name, sp)
+    cache_key = sp.keys.inject(api_name) { |m, k| m = "#{m}-#{k}-#{sp[k]}" }
+    res = cache_read(cache_key)
+    if res.nil?
+      res = yield
+      cache_write(cache_key, res)
+    end
+    return res
+  end
+
+  ##################################
+  # Same render patter in all calls
+  ##################################
+  def measures_return_result
+    res = yield
+    res = Oj.dump(res)
+    render json: res
+  end
+
+  #########################################################
+  # In most of the calls, pretty much the same params are
+  # used, so handle them here.
+  #########################################################
+  def measures_params_sanitizer(pars)
+    permitted = pars.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type, :sids, :segment_type)
+
+    cid = current_user.company_id
+    currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash   if !permitted[:curr_interval].nil?
+    prevsid = permitted[:prev_interval].sanitize_is_alphanumeric_with_slash   if !permitted[:prev_interval].nil?
+    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric ) if !permitted[:agg_method].nil?
+    interval_type = permitted[:interval_type].sanitize_is_string_with_space   if !permitted[:interval_type].nil?
+    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)       if !permitted[:sids].nil?
+    gids = params[:gids].split(',').map(&:sanitize_integer)                   if !permitted[:gids].nil?
+    gids = current_user.filter_authorized_groups(gids)
+
+    puts "xxxxxxxxxxxxxxxx"
+    puts "gids: #{gids}, pgids: #{params[:gids]}"
+    puts "xxxxxxxxxxxxxxxx"
+
+    return {
+      cid: cid,
+      sids: sids,
+      gids: gids,
+      interval_type: interval_type,
+      currsid: currsid,
+      prevsid: prevsid,
+      limit: 10,
+      offset: 0,
+      agg_method: agg_method
+    }
+  end
+
   def show
     authorize :measure, :index?
     companyid = current_user.company_id
@@ -365,30 +422,30 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-  def get_employees_emails_scores
-    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
+  def get_email_scores
     authorize :measure, :index?
 
-    permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
-
-    cid = current_user.company_id
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    sid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    agg_method = format_aggregation_method( permitted[:agg_method] )
-    interval_type = permitted[:interval_type].sanitize_is_string_with_space
-
-    raise 'sid cant be empty' if sid == nil
-
-    cache_key = "get_employee_email_scores-#{cid}-#{gids}-#{sid}-#{agg_method}-#{interval_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      top_scores = get_employees_emails_scores_from_helper(cid, gids, sid, agg_method, interval_type)
-      res = {
-        top_scores: top_scores,
-      }
-      cache_write(cache_key, res)
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      raise 'currsid and prevsid can not be empty' if (sp[:currsid] == nil)
+      measures_cache_result('get_email_scores', sp) do
+        get_email_scores_from_helper(sp[:cid], sp[:gids], sp[:currsid], sp[:prevsid], sp[:limit], sp[:offset], sp[:agg_method], sp[:interval_type])
+      end
     end
-    render json: Oj.dump(res)
+  end
+
+  def get_employees_emails_scores
+    authorize :measure, :index?
+
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      raise 'sid cant be empty' if sp[:currsid] == nil
+
+      measures_cache_result('get_employees_emails_scores', sp) do
+        top_scores = get_employees_emails_scores_from_helper(sp[:cid], sp[:gids], sp[:currsid], sp[:agg_method], sp[:interval_type])
+        { top_scores: top_scores }
+      end
+    end
   end
 
   def get_employees_meetings_scores
@@ -412,31 +469,6 @@ class MeasuresController < ApplicationController
       res = {
         top_scores: top_scores,
       }
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def get_email_scores
-    authorize :measure, :index?
-
-    permitted = params.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type)
-
-    cid = current_user.company_id
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    prevsid = permitted[:prev_interval].sanitize_is_alphanumeric_with_slash
-    limit = permitted[:limit].safe_sanitize_integer || 10
-    offset = permitted[:offset].safe_sanitize_integer || 0
-    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
-    interval_type = permitted[:interval_type].sanitize_is_string_with_space
-
-    raise 'currsid and prevsid can not be empty' if (currsid == nil)
-
-    cache_key = "get_email_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}-#{interval_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_email_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method, interval_type)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)
@@ -487,20 +519,18 @@ class MeasuresController < ApplicationController
     render json: Oj.dump(res)
   end
 
-
   ## API for getting some statistics like:
   ##   - Total time spent in the entire company
   ##   - Averge time spent on emails by employees
   def get_email_stats
     authorize :snapshot, :index?
-    params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
-    interval_type = params[:interval_type].sanitize_is_string_with_space
-    curr_interval = params[:curr_interval].sanitize_is_alphanumeric_with_slash
-    prev_interval = params[:prev_interval].sanitize_is_alphanumeric_with_slash
-    gids = params[:gids].split(',').map(&:sanitize_integer)
 
-    res = get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
-    render json: Oj.dump(res)
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_email_stats', sp) do
+        get_email_stats_from_helper(sp[:gids], sp[:currsid], sp[:prevsid], sp[:interval_type])
+      end
+    end
   end
 
   def get_meetings_stats
@@ -517,18 +547,12 @@ class MeasuresController < ApplicationController
 
   def get_emails_time_picker_data
     authorize :snapshot, :index?
-
-    params.permit(:sids, :gids, :interval_type)
-    cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
-    gids = params[:gids].split(',').map(&:sanitize_integer)
-    interval_type = params[:interval_type].to_i
-
-    res = get_emails_volume_scores(cid, sids, gids, interval_type)
-    res = Oj.dump(res)
-
-    render json: res
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      get_emails_volume_scores(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+    end
   end
+
 
   def get_meetings_time_picker_data
     authorize :snapshot, :index?
@@ -581,6 +605,7 @@ class MeasuresController < ApplicationController
 
     cid = current_user.company_id
     gids = permitted[:gids].split(',').map(&:sanitize_integer)
+
     aggregator_type = permitted[:aggregator_type].sanitize_is_alphanumeric # Aggregator from client. Use in the future - department/office
     interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
     interval_type = permitted[:interval_type].sanitize_is_string_with_space
