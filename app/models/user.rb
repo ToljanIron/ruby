@@ -144,7 +144,6 @@ class User < ActiveRecord::Base
     puts "permissible_groups_hash: #{permissible_groups_hash}"
 
     if permissible_groups_hash.nil?
-      puts "QQQQQQQQQQQQQQQQQQQQQQQQQqq 1"
       permissible_groups_arr =
         Group
           .where(external_id: permissible_group)
@@ -157,8 +156,6 @@ class User < ActiveRecord::Base
         permissible_groups_hash[gid] = true
       end
     end
-      puts "QQQQQQQQQQQQQQQQQQQQQQQQQqq 2"
-    puts "permissible_groups_hash: #{permissible_groups_hash}"
     CdsUtilHelper.dev_cache_write(cache_key, permissible_groups_hash, 1.minute)
     return permissible_groups_hash
   end
@@ -169,22 +166,11 @@ class User < ActiveRecord::Base
   end
 
   def filter_authorized_groups(gids_arr)
-    puts "@@@@@@@@@@@@@@@@@@ 0"
-    puts "gids_arr: #{gids_arr}"
-    puts "@@@@@@@@@@@@@@@@@@ 1"
-    puts "role: #{role}"
     return gids_arr if (role == 'admin' || role == 'hr')
-    puts "@@@@@@@@@@@@@@@@@@ 2"
     return nil if (role != 'manager')
-    puts "@@@@@@@@@@@@@@@@@@ 3"
     sid = Group.find(gids_arr.first).snapshot_id
-    puts "@@@@@@@@@@@@@@@@@@ 4"
     permissible_groups_hash = get_permissible_groups_hash(sid)
-    puts "@@@@@@@@@@@@@@@@@@ 5"
     ret = gids_arr.select { |gid| permissible_groups_hash[gid.to_i] }
-    puts "test: #{permissible_groups_hash[1212]}"
-    puts "@@@@@@@@@@@@@@@@@@ 5"
-    puts "ret: #{ret}"
     return ret
   end
 

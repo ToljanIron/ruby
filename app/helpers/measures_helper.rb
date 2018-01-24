@@ -262,8 +262,9 @@ module MeasuresHelper
     return scores
   end
 
-  def get_dynamics_scores_from_helper(cid, interval, gids, interval_type, agg_type)
-    interval_str = Snapshot.field_from_interval_type(interval_type.to_i)
+  def get_dynamics_scores_from_helper(cid, interval, gids, interval_str, agg_type)
+
+    snapshot_field = Snapshot.field_from_interval_type(interval_str)
 
     groups_cond = '1 = 1'
     if gids != nil
@@ -273,17 +274,17 @@ module MeasuresHelper
 
     agg_type_select = nil
     agg_type_groupby = nil
-    if agg_type == 'Department'
+    if agg_type == 'group_id'
       agg_type_select = 'g.english_name AS group_name'
       agg_type_groupby = 'group_name'
-    elsif agg_type == 'Offices'
+    elsif agg_type == 'office_id'
       agg_type_select = 'off.name AS officename'
       agg_type_groupby = 'officename'
     end
 
     sqlstr =
       "(SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-         AVG(z_score) AS score, s.#{interval_str} AS period, g.external_id AS group_extid
+         AVG(z_score) AS score, s.#{snapshot_field} AS period, g.external_id AS group_extid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -293,14 +294,14 @@ module MeasuresHelper
       JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
       JOIN metric_names AS mn ON mn.id = cm.metric_id
       WHERE
-        s.#{interval_str} = '#{interval}' AND
+        s.#{snapshot_field} = '#{interval}' AND
         cds.algorithm_id IN (#{DYNAMICS_AIDS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
       GROUP BY #{agg_type_groupby}, algo_id, algo_name, period, g.external_id
       UNION
       SELECT #{agg_type_select}, algo.id AS algo_id, mn.name AS algo_name,
-        AVG(z_score) AS score, s.#{interval_str} AS period, g.external_id AS group_extid
+        AVG(z_score) AS score, s.#{snapshot_field} AS period, g.external_id AS group_extid
       FROM cds_metric_scores AS cds
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -310,7 +311,7 @@ module MeasuresHelper
       JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
       JOIN metric_names AS mn ON mn.id = cm.metric_id
       WHERE
-        s.#{interval_str} = '#{interval}' AND
+        s.#{snapshot_field} = '#{interval}' AND
         cds.algorithm_id IN (#{DYNAMICS_AIDS_WITH_GROUPS.join(',')}) AND
         #{groups_cond} AND
         cds.company_id = #{cid}
@@ -360,7 +361,7 @@ module MeasuresHelper
     res = []
     groups = []
 
-    interval_str = Snapshot.field_from_interval_type(interval_type)
+    snapshot_field = Snapshot.field_from_interval_type(interval_type)
 
     # If empty gids - get the gid for the root - i.e. the company
     if (current_gids.nil? || current_gids.length === 0)
@@ -374,7 +375,7 @@ module MeasuresHelper
     groups = get_groups_for_most_recent_snapshot(sids, groups) if interval_type != 1
 
     sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
-                s.#{interval_str} AS period,
+                s.#{snapshot_field} AS period,
                 CASE
                   when
                   SUM(denominator) = 0 then 0
@@ -558,6 +559,8 @@ module MeasuresHelper
           'groupName'   => group_name,
           'officeName'  => entry['officename'],
         }
+
+        puts "min: #{min}"
 
         if(min < 0) # shift scores up if negative min
           h['min'] = 0

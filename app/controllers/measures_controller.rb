@@ -58,10 +58,6 @@ class MeasuresController < ApplicationController
     gids = params[:gids].split(',').map(&:sanitize_integer)                   if !permitted[:gids].nil?
     gids = current_user.filter_authorized_groups(gids)
 
-    puts "xxxxxxxxxxxxxxxx"
-    puts "gids: #{gids}, pgids: #{params[:gids]}"
-    puts "xxxxxxxxxxxxxxxx"
-
     return {
       cid: cid,
       sids: sids,
@@ -73,257 +69,6 @@ class MeasuresController < ApplicationController
       offset: 0,
       agg_method: agg_method
     }
-  end
-
-  def show
-    authorize :measure, :index?
-    companyid = current_user.company_id
-    pinid = params[:pid].to_i
-    groupid = params[:gid].to_i
-
-    groupid = -1 if groupid.zero?
-
-    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    snapshot_type = params[:snapshot_type].to_i
-    snapshot_type = 1 if snapshot_type.zero?
-    measure_types = params[:measure_types]
-    metrics = Metric.where(metric_type: 'measure')
-    metrics = metrics.where(index: measure_types) unless measure_types.nil? || measure_types.empty? # TODO: move to db select into Metric.where at the line above
-    cache_key = "measure-data-cid-#{companyid}-pid-#{pinid}-types-#{measure_types}-gid-#{groupid}-snapshottype-#{snapshot_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_measure_data(companyid, pinid, metrics, groupid, snapshot_type) || {}
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_show
-    authorize :measure, :index?
-    companyid = current_user.company_id
-    pinid = params[:pid].to_i
-    groupid = params[:gid].to_i
-
-    groupid = -1 if groupid.zero?
-
-    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    snapshot_type = params[:snapshot_type].to_i
-    snapshot_type = 1 if snapshot_type.zero?
-    algorithms = Algorithm.where(algorithm_type_id: 1).pluck(:id)
-    cache_key = "cds-measure-data-cid-#{companyid}-pid-#{pinid}-gid-#{groupid}-snapshottype-#{snapshot_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      comp = Company.find(companyid)
-      res = cds_get_measure_data(companyid, pinid, algorithms, groupid)     unless comp.questionnaire_only?
-      res = cds_get_measure_data_for_questionnaire_only(companyid, groupid) if comp.questionnaire_only?
-
-      res ||= {}
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def show_flag
-    authorize :measure, :index?
-    companyid = current_user.company_id
-    pinid = if !params[:pid].nil?
-              params[:pid].to_i
-            else
-              NO_PIN
-            end
-    group_id = if !params[:gid].nil?
-                 params[:gid].to_i
-               else
-                 NO_GROUP
-               end
-
-    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    flag_types = params[:measure_types]
-    snapshot_type = params[:snapshot_type].to_i
-    snapshot_type = 1 if snapshot_type.zero?
-    metrics = Metric.where(metric_type: 'flag')
-    metrics.select! { |m| flag_types.include? m[:index] } unless flag_types.nil? || flag_types.empty?
-    res = {}
-    metrics.each do |flag_type|
-      cache_key = "flag-data-#{companyid}-#{pinid}-#{group_id}-#{flag_type}"
-      data = cache_read(cache_key)
-      if data.nil?
-        data = get_flag_data(companyid, pinid, group_id, flag_type[:index], snapshot_type)
-        data = {} if data.nil?
-      end
-      cache_write(cache_key, data)
-      res[flag_type[:index]] = data
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_show_flag
-    authorize :measure, :index?
-    companyid = current_user.company_id
-    pinid = if !params[:pid].nil?
-              params[:pid].to_i
-            else
-              NO_PIN
-            end
-    group_id = if !params[:gid].nil?
-                 params[:gid].to_i
-               else
-                 NO_GROUP
-               end
-
-    groupid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    company_metrics = CompanyMetric.where(company_id: companyid, algorithm_type_id: FLAG)
-    res = {}
-    company_metrics.each do |cm|
-      cache_key = "cds-flag-data-#{companyid}-#{pinid}-#{group_id}-#{cm.id}"
-      data = cache_read(cache_key)
-      if data.nil?
-        data = cds_get_flag_data(companyid, pinid, group_id, cm)
-        data = {} if data.nil?
-      end
-      cache_write(cache_key, data)
-      res[cm.id] = data
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_network_dropdown_list
-    authorize :measure, :index?
-    cid = current_user.company_id
-    res = {}
-    if Company.find(cid).questionnaire_only?
-      data = cds_get_network_dropdown_list_for_tab_for_questionnaire_only(cid)
-      res['Collaboration'] = data
-    else
-      first_level_tabs = UiLevelConfiguration.where(company_id: cid, level: 1).order(:name)
-      first_level_tabs.each do |tab|
-        cache_key = "cds-network-dropdown-list-#{tab}"
-        data = cache_read(cache_key)
-        if data.nil?
-          data = cds_get_network_dropdown_list_for_tab(cid, tab)
-          data = {} if data.nil?
-        end
-        cache_write(cache_key, data)
-        res[tab.name] = data unless data.empty?
-      end
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_show_gauge
-    authorize :measure, :index?
-    companyid = current_user.company_id
-    pinid = if !params[:pid].nil?
-              params[:pid].to_i
-            else
-              NO_PIN
-            end
-
-    group_id = if !params[:gid].nil?
-                 params[:gid].to_i
-               else
-                 NO_GROUP
-               end
-
-    group_id = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    company_metrics = nil
-
-    if !params[:type].nil? && params[:type] == 'level1'
-      company_metrics = CompanyMetric.where(company_id: companyid)
-                                     .where("algorithm_type_id in (#{AlgorithmType::GAUGE}, #{AlgorithmType::HIGHER_LEVEL})")
-                                     .where('algorithm_id in (501, 502, 503, 504)')
-      group_id = Group.get_parent_group(companyid).id
-    else
-      company_metrics = CompanyMetric.where(company_id: companyid)
-                                     .where("algorithm_type_id in (#{AlgorithmType::GAUGE}, #{AlgorithmType::HIGHER_LEVEL})")
-                                     .order(:id)
-    end
-
-    res = {}
-    company_metrics.each do |cm|
-      next if cm.algorithm.nil?
-      cache_key = "cds-gauge-data-#{companyid}-#{pinid}-#{group_id}-#{cm.id}"
-      data = cache_read(cache_key)
-      if data.nil?
-        data = cds_get_gauge_data(companyid, pinid, group_id, cm)
-        data = {} if data.nil?
-      end
-      cache_write(cache_key, data)
-      res[cm.id] = data
-    end
-    render json: Oj.dump(res)
-  end
-
-  def show_analyze
-    authorize :measure, :index?
-    cid = current_user.company_id
-    pid = params[:pid].to_i
-    sid = params[:sid].to_i
-    gid = params[:gid].to_i
-    gid = -1 if gid.zero?
-
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    if params[:measure_type]
-      index = params[:measure_type].to_i
-      metrics = Metric.where(metric_type: 'analyze', index: index)
-    else
-      metrics = Metric.where(metric_type: 'analyze')
-    end
-    cache_key = "get_analyze_data-#{cid}-#{pid}-#{gid}-#{sid}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_analyze_data(cid, pid, gid, metrics, sid)
-      cache_write(cache_key, res)
-    end
-    cache_key = "show_analyze_network-#{cid}-#{pid}-#{gid}-#{sid}"
-    networks = cache_read(cache_key)
-    if networks.nil?
-      networks = get_network_relations_data(cid, pid, gid, sid)
-      cache_write(cache_key, networks)
-    end
-    render json: Oj.dump(measuers: res, networks: networks)
-  end
-
-  def cds_show_analyze
-    authorize :measure, :index?
-    cid = current_user.company_id
-    pid = params[:pid].to_i
-    sid = params[:sid].to_i
-    gid = params[:gid].to_i
-    oegid = params[:oegid].try(:to_i)
-    oeid = params[:oeid].try(:to_i)
-    gid = -1 if gid.zero?
-
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-
-    lgid = Group.find_group_in_snapshot(gid, sid)
-
-    company_metrics = find_company_metrics(cid)
-
-    cache_key = "cds_get_analyze_data-#{cid}-#{pid}-#{lgid}-#{sid}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = if Company.find(cid).questionnaire_only?
-              cds_get_analyze_data_questionnaire_only(cid, pid, lgid, company_metrics, sid)
-            else
-              cds_get_analyze_data(cid, pid, lgid, company_metrics, sid)
-            end
-      cache_write(cache_key, res)
-    end
-    cache_key = "cds_show_analyze_network-#{cid}-#{pid}-#{lgid}-#{sid}"
-    networks = cache_read(cache_key)
-    if networks.nil?
-      networks = cds_get_network_relations_data(cid, pid, lgid, sid)
-      cache_write(cache_key, networks)
-    end
-    res = filter_by_overlay_connections(res, oegid, oeid, sid) if oegid || oeid
-    render json: Oj.dump(measuers: res, networks: networks)
   end
 
   def find_company_metrics(cid)
@@ -339,92 +84,8 @@ class MeasuresController < ApplicationController
     return company_metrics
   end
 
-  def cds_show_network_and_metric_names
-    authorize :measure, :index?
-    cid = current_user.company_id
-    cache_key = "cds_network_and_metric_names-#{cid}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = cds_get_network_and_metric_names(cid, ANALYZE)
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_show_flagged_employees
-    authorize :measure, :index?
-    cid = current_user.company_id
-    sid = params[:sid].to_i
-    gid = params[:gid].to_i
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-    company_metric_id = params[:company_metric_id].to_i
-    res = cds_get_flagged_employees(cid, gid, company_metric_id, sid)
-    render json: Oj.dump(flagged_employees: res)
-  end
-
-  def show_play_session
-    authorize :measure, :index?
-    cid = current_user.company_id
-    pid = params[:pid].to_i
-    gid = params[:gid].to_i
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-    network_id = params[:network_id].to_i
-    measure_id = params[:measure_id].to_i
-    cache_key = "show_play_session-#{cid}-#{pid}-#{gid}-#{network_id}-#{measure_id}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_play_to_metric(cid, gid, pid, network_id, measure_id)
-      cache_write(cache_key, res)
-    end
-    render json: Oj.dump(res)
-  end
-
-  def show_group_measures
-    authorize :measure, :index?
-    cid = current_user.company_id
-    gid = params[:gid].to_i
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-    gid = nil if gid.zero?
-    res = []
-    metrics = Metric.where(metric_type: 'group_measure')
-    metrics.each do |metric|
-      cache_key = "group_measure-data-#{cid}-#{gid}-#{metric.name}"
-      data = cache_read(cache_key)
-      if data.nil?
-        data = get_group_measure_data(cid, gid, metric)
-        cache_write(cache_key, data)
-      end
-      next if data.nil?
-      res << data
-    end
-    render json: Oj.dump(res)
-  end
-
-  def cds_show_group_measures
-    authorize :measure, :index?
-    cid = current_user.company_id
-    gid = params[:gid].to_i
-    gid = GroupPolicy.get_max_allowed_group_id_for_user(groupid, current_user.group_id) if current_user.is_manager?
-    gid = nil if gid.zero?
-    res = []
-    company_metrics = CompanyMetric.where(company_id: cid, algorithm_type_id: GROUP)
-    company_metrics.each do |cm|
-      metric_name = MetricName.find(cm.metric_id).name
-      cache_key = "cds_group_measure-data-#{cid}-#{gid}-#{metric_name}"
-      data = cache_read(cache_key)
-      if data.nil?
-        data = cds_get_group_measure_data(cid, gid, cm)
-        cache_write(cache_key, data)
-      end
-      next if data.nil?
-      res << data
-    end
-    render json: Oj.dump(res)
-  end
-
   def get_email_scores
     authorize :measure, :index?
-
     measures_return_result do
       sp = measures_params_sanitizer(params)
       raise 'currsid and prevsid can not be empty' if (sp[:currsid] == nil)
@@ -436,11 +97,9 @@ class MeasuresController < ApplicationController
 
   def get_employees_emails_scores
     authorize :measure, :index?
-
     measures_return_result do
       sp = measures_params_sanitizer(params)
       raise 'sid cant be empty' if sp[:currsid] == nil
-
       measures_cache_result('get_employees_emails_scores', sp) do
         top_scores = get_employees_emails_scores_from_helper(sp[:cid], sp[:gids], sp[:currsid], sp[:agg_method], sp[:interval_type])
         { top_scores: top_scores }
@@ -449,62 +108,26 @@ class MeasuresController < ApplicationController
   end
 
   def get_employees_meetings_scores
-    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
-
-    permitted = params.permit(:gids, :curr_interval, :agg_method, :interval_type)
-
-    cid = current_user.company_id
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    sid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
-    interval_type = permitted[:interval_type].sanitize_is_string_with_space
-
-    raise 'sid cant be empty' if sid == nil
-
-    cache_key = "get_employee_meetings_scores-#{cid}-#{gids}-#{sid}-#{agg_method}-#{interval_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      top_scores = get_employees_meetings_scores_from_helper(cid, gids, sid, agg_method, interval_type)
-      res = {
-        top_scores: top_scores,
-      }
-      cache_write(cache_key, res)
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      raise 'sid cant be empty' if sp[:currsid] == nil
+      measures_cache_result('get_employees_meetings_scores', sp) do
+        top_scores = get_employees_meetings_scores_from_helper(sp[:cid], sp[:gids], sp[:currsid], sp[:agg_method], sp[:interval_type])
+        { top_scores: top_scores }
+      end
     end
-    render json: Oj.dump(res)
   end
 
   def get_meetings_scores
-    puts "*******\nNeed to implement group level authorization !!!!!!\n*******\n"
     authorize :measure, :index?
-
-    permitted = params.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type)
-
-    cid = current_user.company_id
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    prevsid = permitted[:prev_interval].sanitize_is_alphanumeric_with_slash
-    limit = permitted[:limit].safe_sanitize_integer || 10
-    offset = permitted[:offset].safe_sanitize_integer || 0
-    agg_method = format_aggregation_method( permitted[:agg_method].sanitize_is_alphanumeric )
-    interval_type = permitted[:interval_type].sanitize_is_string_with_space
-
-    raise 'currsid and prevsid can not be empty' if (currsid == nil )
-
-    cache_key = "get_meetings_scores-#{cid}-#{gids}-#{currsid}-#{prevsid}-#{limit}-#{offset}-#{agg_method}-#{interval_type}"
-    res = cache_read(cache_key)
-    if res.nil?
-      res = get_meetings_scores_from_helper(cid, gids, currsid, prevsid, limit, offset, agg_method, interval_type)
-      cache_write(cache_key, res)
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      raise 'currsid and prevsid can not be empty' if (sp[:currsid] == nil)
+      measures_cache_result('get_meetings_scores', sp) do
+        get_meetings_scores_from_helper(sp[:cid], sp[:gids], sp[:currsid], sp[:prevsid], sp[:limit], sp[:offset], sp[:agg_method], sp[:interval_type])
+      end
     end
-    render json: Oj.dump(res)
-  end
-
-  def format_aggregation_method(agg_method)
-    return 'group_id'     if (agg_method == 'groupName' || agg_method == 'Department')
-    return 'office_id'    if (agg_method == 'officeName' || agg_method == 'Offices')
-    return 'algorithm_id' if (agg_method == 'algoName' || agg_method == 'Causes')
-    raise "Unrecognized aggregation method: #{agg_method}"
   end
 
   def show_snapshot_list
@@ -524,7 +147,6 @@ class MeasuresController < ApplicationController
   ##   - Averge time spent on emails by employees
   def get_email_stats
     authorize :snapshot, :index?
-
     measures_return_result do
       sp = measures_params_sanitizer(params)
       measures_cache_result('get_email_stats', sp) do
@@ -534,132 +156,102 @@ class MeasuresController < ApplicationController
   end
 
   def get_meetings_stats
-    authorize :snapshot, :index?
-    params.permit(:gids, :interval_type, :curr_interval, :prev_interval)
-    interval_type = params[:interval_type].sanitize_is_string_with_space
-    curr_interval = params[:curr_interval].sanitize_is_alphanumeric_with_slash
-    prev_interval = params[:prev_interval].sanitize_is_alphanumeric_with_slash
-    gids = params[:gids].split(',').map(&:sanitize_integer)
-
-    res = get_meetings_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
-    render json: Oj.dump(res)
-  end
-
-  def get_emails_time_picker_data
-    authorize :snapshot, :index?
+    authorize :measure, :index?
     measures_return_result do
       sp = measures_params_sanitizer(params)
-      get_emails_volume_scores(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      measures_cache_result('get_meetings_stats', sp) do
+        get_meetings_stats_from_helper(sp[:gids], sp[:currsid], sp[:prevsid], sp[:interval_type])
+      end
     end
   end
 
+  def get_emails_time_picker_data
+    authorize :measure, :index?
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_emails_time_picker_data', sp) do
+        get_emails_volume_scores(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      end
+    end
+  end
 
   def get_meetings_time_picker_data
-    authorize :snapshot, :index?
-
-    params.permit(:sids, :gids, :interval_type)
-    cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
-    gids = params[:gids].split(',').map(&:sanitize_integer)
-    interval_type = params[:interval_type].to_i
-
-    res = get_time_spent_in_meetings(cid, sids, gids, interval_type)
-    res = Oj.dump(res)
-
-    render json: res
+    authorize :measure, :index?
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_meetings_stats', sp) do
+        get_time_spent_in_meetings(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      end
+    end
   end
 
   def get_dynamics_time_picker_data
     authorize :measure, :index?
-
-    permitted = params.permit(:sids, :gids, :interval_type)
-    cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    interval_type = params[:interval_type].to_i
-
-    res = get_group_densities(cid, sids, gids, interval_type)
-    render json: Oj.dump(res), status: 200
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_dynamics_time_picker_data', sp) do
+        get_group_densities(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      end
+    end
   end
 
   def get_dynamics_stats
     authorize :measure, :index?
-
-    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
-
-    cid = current_user.company_id
-    #sids = params[:sids].split(',').map(&:to_i)
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-    interval_type = params[:interval_type].to_i
-    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-
-    res = get_dynamics_stats_from_helper(cid, interval, gids, interval_type)
-
-    render json: Oj.dump(res), status: 200
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_dynamics_stats', sp) do
+        get_dynamics_stats_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type])
+      end
+    end
   end
 
   def get_dynamics_scores
     authorize :measure, :index?
-
-    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
-
-    cid = current_user.company_id
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-
-    aggregator_type = permitted[:aggregator_type].sanitize_is_alphanumeric # Aggregator from client. Use in the future - department/office
-    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    interval_type = permitted[:interval_type].sanitize_is_string_with_space
-
-    res = get_dynamics_scores_from_helper(cid, interval, gids, interval_type, aggregator_type)
-
-    render json: Oj.dump(res), status: 200
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_dynamics_scores', sp) do
+        get_dynamics_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type], sp[:agg_method])
+      end
+    end
   end
 
   def get_dynamics_employee_scores
     authorize :measure, :index?
-
-    permitted = params.permit(:interval_type, :curr_interval, :gids, :aggregator_type)
-
-    cid = current_user.company_id
-    interval_type = params[:interval_type].to_i
-    interval = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash
-    gids = permitted[:gids].split(',').map(&:sanitize_integer)
-
-    res = get_dynamics_employee_scores_from_helper(cid, interval, gids, interval_type)
-
-    render json: Oj.dump(res), status: 200
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_dynamics_employee_scores', sp) do
+        get_dynamics_employee_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type])
+      end
+    end
   end
 
+  # FIX ME - this controller returns the same data as dynamics - this is just for mocking
+  # the time picker in the interfaces tab - Michael - 22.10.17
   def get_interfaces_time_picker_data
     authorize :measure, :index?
-
-    permitted = params.permit(:sids, :gids, :interval_type)
-    cid = current_user.company_id
-    sids = params[:sids].split(',').map(&:to_i)
-    gids = permitted[:gids].split(',')
-    interval_type = params[:interval_type].to_i
-
-    # FIX ME - this controller returns the same data as dynamics - this is just for mocking 
-    # the time picker in the interfaces tab - Michael - 22.10.17
-    res = get_group_densities(cid, sids, gids, interval_type)
-
-    render json: Oj.dump(res), status: 200
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_interfaces_time_picker_data', sp) do
+        get_group_densities(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      end
+    end
   end
 
   def get_interfaces_scores
     authorize :measure, :index?
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_interfaces_scores', sp) do
+        get_interfaces_scores_from_helper(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+      end
+    end
+  end
 
-    permitted = params.permit(:interval_type, :sids, :gids, :aggregator_type)
-
-    cid = current_user.company_id
-    interval_type = params[:interval_type].to_i
-    sids = params[:sids].split(',').map(&:to_i)
-    gids = permitted[:gids].split(',')
-    aggregator_type = permitted[:aggregator_type] # Aggregator from client. Use in the future - department/office
-
-    res = get_interfaces_scores_from_helper(cid, sids, gids, interval_type, aggregator_type)
-
-    render json: Oj.dump(res), status: 200
+  def format_aggregation_method(agg_method)
+    return 'group_id'     if (agg_method == 'groupName' || agg_method == 'Department')
+    return 'office_id'    if (agg_method == 'officeName' || agg_method == 'Offices')
+    return 'algorithm_id' if (agg_method == 'algoName' || agg_method == 'Causes')
+    raise "Unrecognized aggregation method: #{agg_method}"
   end
 
   private
