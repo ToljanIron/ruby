@@ -7,15 +7,6 @@ describe RawMeetingsData, :type => :model do
 
   subject { @rdm }
 
-  it { is_expected.to respond_to(:subject) }
-  it { is_expected.to respond_to(:attendees) }
-  it { is_expected.to respond_to(:duration_in_minutes) }
-  it { is_expected.to respond_to(:external_meeting_id) }
-  it { is_expected.to respond_to(:company_id) }
-  it { is_expected.to respond_to(:start_time) }
-  it { is_expected.to respond_to(:location) } 
-  it { is_expected.to respond_to(:processed) }
-
   describe 'when company_id & start_time is present' do
     before do
       @rdm.company_id = 1

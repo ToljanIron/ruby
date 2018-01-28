@@ -59,8 +59,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e4.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_outdegree_for_to_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_outdegree_for_to_matrix(@s.id,[3])
       end
 
       it 'should test higher "to outdegree"' do
@@ -91,8 +90,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_indegree_for_to_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_indegree_for_to_matrix(@s.id,[3])
       end
 
       it 'should test higher "to indegree"' do
@@ -128,8 +126,7 @@ describe AlgorithmsHelper, type: :helper do
 
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_outdegree_for_cc_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_outdegree_for_cc_matrix(@s.id,[3])
       end
 
       it 'should test higher "cc outdegree"' do
@@ -165,8 +162,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e2.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_indegree_for_cc_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_indegree_for_cc_matrix(@s.id, [3])
       end
 
       it 'should test higher "cc indegree"' do
@@ -205,8 +201,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e4.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e5.id, @e1.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_outdegree_for_bcc_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_outdegree_for_bcc_matrix(@s.id, [3])
       end
 
       it 'should test higher "bcc outdegree"' do
@@ -241,8 +236,7 @@ describe AlgorithmsHelper, type: :helper do
         create_email_connection(@e2.id, @e4.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
         create_email_connection(@e2.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
 
-        @res = calc_indegree_for_bcc_matrix(@s.id)
-        # @res.each {|m| puts "#{m}\n"}
+        @res = calc_indegree_for_bcc_matrix(@s.id,[3])
       end
 
       it 'should test higher "bcc indegree"' do
@@ -276,7 +270,6 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e5.id, @e1.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
 
       @res = calc_emails_volume(@s.id)
-      # @res.each {|m| puts "#{m}\n"}
     end
 
     it 'should test higher email volume' do
@@ -285,60 +278,6 @@ describe AlgorithmsHelper, type: :helper do
       higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
       lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
       expect(higher_measure[:measure]).to be > lower_measure[:measure]
-    end
-  end
-
-  describe "Algorithm name: blitzed | fwd's out of total to's | type: relative measure" do
-    before(:each) do
-      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e4.id, FWD, CC_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e1.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e2.id, @e5.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e3.id, @e1.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e3.id, @e2.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e3.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e3.id, @e4.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e3.id, @e5.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e4.id, @e5.id, FWD, BCC_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e5.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e5.id, @e3.id, FWD, TO_TYPE, @s.id, 0, @n1.id)
-
-      # Because of floats - any number below the threshold should be considered as zero.
-      # Threshold value set arbitrarily and can be higher/lower
-      @zero_threshold = 0.01
-
-      @res = calc_relays(@s.id)
-      # @res.each {|m| puts "#{m}\n"}
-    end
-
-    it 'should test higher relay measure' do
-      higher_emp = @e1.id
-      lower_emp = @e5.id
-      higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
-      lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
-      expect(higher_measure[:measure]).to be > lower_measure[:measure]
-    end
-
-    it 'should test zero relay measure' do
-      zero_emp = @e2.id
-      zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
-      expect(zero_indegree[:measure]).to be < @zero_threshold
-    end
-
-    it 'should test zero relay measure' do
-      zero_emp = @e4.id
-      zero_indegree = @res.select{|r| r[:id]==zero_emp}[0]
-      expect(zero_indegree[:measure]).to be < @zero_threshold
     end
   end
 
@@ -356,7 +295,6 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@e5.id, @e1.id, REPLY, CC_TYPE, @s.id, 0, @n1.id)
 
       @res = calc_deadends(@s.id)
-      # @res.each {|m| puts "#{m}\n"}
     end
 
     it 'should test higher sink measure' do

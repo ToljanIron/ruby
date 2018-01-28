@@ -54,14 +54,25 @@ Spork.prefork do
   end
 end
 
+###########################################
+# For running authenticated tests in rspec
+###########################################
 def log_in_with_dummy_user
-  @user = User.new(first_name: 'name', email: 'user@company.com', password: 'qwe123', password_confirmation: 'qwe123')
-  @user.save!
-  log_in @user
+  @user = User.create!(id: 1, role: 1, first_name: 'name', email: 'user@company.com', password: 'qwe123', password_confirmation: 'qwe123')
+  return @user
 end
 
-#def pp(q)
-  #puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-  #ap q
-  #puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-#end
+###############################################################
+# For running authenticated get requests in controller tests
+###############################################################
+def http_get_with_jwt_token(action)
+  request.headers.merge!({'Authorization': "Bearer #{ENV['JWT_TOKEN_FOR_TESTING']}"})
+  ret = get action
+  return ret
+end
+
+def pp(q)
+  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
+  ap q
+  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
+end

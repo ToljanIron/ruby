@@ -79,7 +79,7 @@ describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
       scores = CdsMetricScore.where(algorithm_id: 101)
       expect( scores.first.z_score ).not_to be_nil
       expect( scores[2].z_score ).to be(0.0)
-      expect( scores.first.z_score ).to be( scores.last.z_score * (-1) )
+      expect( scores.first.z_score ).to eq( scores.last.z_score )
     end
 
     it 'should rewrite if rewrite=true' do

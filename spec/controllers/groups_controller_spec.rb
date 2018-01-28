@@ -7,23 +7,20 @@ describe GroupsController, type: :controller do
   before do
     log_in_with_dummy_user_with_role(1, 1)
     company = Company.create(name: 'some_name')
+    Snapshot.create!(id: 1,company_id: 1, timestamp: 1.day.ago)
     @company_id = company.id
-    Group.create(name: 'group_1', company_id: @company_id)
-    Group.create(name: 'group_2', company_id: @company_id)
-    Group.create(name: 'group_3', company_id: @company_id, parent_group_id: 2)
-    Group.create(name: 'group_4', company_id: @company_id, parent_group_id: 2)
-    Group.create(name: 'group_5', company_id: @company_id, parent_group_id: 4)
-    Group.create(name: 'group_6', company_id: @company_id)
-    Group.create(name: 'group_7', company_id: 2)
+    Group.create(name: 'group_1', company_id: @company_id, snapshot_id: 1)
+    Group.create(name: 'group_2', company_id: @company_id, snapshot_id: 1)
+    Group.create(name: 'group_3', company_id: @company_id, parent_group_id: 2, snapshot_id: 1)
+    Group.create(name: 'group_4', company_id: @company_id, parent_group_id: 2, snapshot_id: 1)
+    Group.create(name: 'group_5', company_id: @company_id, parent_group_id: 4, snapshot_id: 1)
+    Group.create(name: 'group_6', company_id: @company_id, snapshot_id: 1)
+    Group.create(name: 'group_7', company_id: 2, snapshot_id: 1)
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
     FactoryGirl.reload
-  end
-
-  it ', should be signed in' do
-    expect(current_user).to eq(@user)
   end
 
   describe ', groups' do
@@ -39,24 +36,17 @@ describe GroupsController, type: :controller do
     end
 
     before do
+      DatabaseCleaner.clean_with(:truncation)
       FactoryGirl.reload
       create_employees
-      tmp = post :groups
+      log_in_with_dummy_user
+      tmp = http_get_with_jwt_token(:groups)
       tmp = JSON.parse tmp.body
       @groups = tmp['groups']
     end
 
     it ', should return same amount of groups' do
       expect(@groups.count).to eq(6)
-    end
-
-    it ', should return employees of each group' do
-      g1 = @groups.select { |obj| obj['id'] == 1 }[0]
-      g2 = @groups.select { |obj| obj['id'] == 2 }[0]
-      g6 = @groups.select { |obj| obj['id'] == 6 }[0]
-      expect(g1['employees_ids'].count).to eq(@employees_counters[:group_1])
-      expect(g2['employees_ids'].count).to eq(@employees_counters[:group_2] + @employees_counters[:group_3] + @employees_counters[:group_4] + @employees_counters[:group_5])
-      expect(g6['employees_ids'].count).to eq(@employees_counters[:group_6])
     end
   end
 end

@@ -74,8 +74,9 @@ module EmailPropertiesTranslator
     return ret
   end
 
-  def self.convert_email_to_employee_id(email, company_id)
-    email_to_employee_id(email, company_id)
+  def self.convert_email_to_employee_id(email, cid, sid = nil)
+    sid ||= Snapshot.last_snapshot_of_company(cid)
+    email_to_employee_id(email, cid, sid)
   end
 
   private

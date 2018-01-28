@@ -5,24 +5,25 @@ SIG_MEANINGFULL ||= 'meaningfull'
 SIG_NOT_SIGNIFICANT ||= 'not_significant'
 
 describe NetworkSnapshotDataHelper, type: :helper do
-  
+
   describe ', running test for weight_algorithm and create a list to view the present in the Graph ' do
     before do
-      NetworkSnapshotData.create_email_adapter
+      NetworkName.create!(company_id: 1, name: 'Communication Flow')
+      NetworkSnapshotData.create_email_adapter(company_id: 1)
       emp_1, emp_2 = FactoryGirl.create_list(:employee, 2)
 
-      @network_nodes_1 = {employee_from_id: emp_1.id, employee_to_id: emp_2.id, snapshot_id: 1}
+      @network_nodes_1 = {company_id:1, employee_from_id: emp_1.id, employee_to_id: emp_2.id, snapshot_id: 1}
       (1..18).each do |i|
         @network_nodes_1['n' + i.to_s] = i
       end
       NetworkSnapshotData.create_email_adapter(@network_nodes_1)
-      @network_nodes_2 = {employee_from_id: emp_2.id, employee_to_id: emp_1.id, snapshot_id: 1}
+      @network_nodes_2 = {company_id: 1,employee_from_id: emp_2.id, employee_to_id: emp_1.id, snapshot_id: 1}
       (1..18).each do |i|
         @network_nodes_2['n' + i.to_s] = i + 2
       end
       NetworkSnapshotData.create_email_adapter(@network_nodes_2)
 
-      @network_nodes_3 = {employee_from_id: emp_1.id, employee_to_id: emp_1.id, snapshot_id: 1}
+      @network_nodes_3 = {company_id: 1, employee_from_id: emp_1.id, employee_to_id: emp_1.id, snapshot_id: 1}
       (1..18).each do |i|
         @network_nodes_3['n' + i.to_s] = i + 1
       end

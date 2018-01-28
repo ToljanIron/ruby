@@ -65,22 +65,9 @@ describe User, type: :model do
     it { is_expected.not_to be_valid }
   end
 
-  describe 'when password is not present' do
-    before do
-      @user = User.new(first_name: 'Example', last_name: 'User', email: 'user@example.com',
-                       password: ' ', password_confirmation: ' ')
-    end
-    it { is_expected.not_to be_valid }
-  end
-
   describe "when password doesn't match confirmation" do
     before { @user.password_confirmation = 'mismatch' }
     it { is_expected.not_to be_valid }
-  end
-
-  describe "with a password that's too short" do
-    before { @user.password = @user.password_confirmation = 'a' * 5 }
-    it { is_expected.to be_invalid }
   end
 
   describe 'return value of authenticate method' do

@@ -141,8 +141,6 @@ class User < ActiveRecord::Base
     cache_key = "filter_authorized_groups-uid-#{id}-sid-#{sid}"
     permissible_groups_hash = CdsUtilHelper.dev_cache_read(cache_key)
 
-    puts "permissible_groups_hash: #{permissible_groups_hash}"
-
     if permissible_groups_hash.nil?
       permissible_groups_arr =
         Group

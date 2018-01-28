@@ -12,29 +12,6 @@ describe Employee, type: :model do
 
   subject { @employee }
 
-  it { is_expected.to respond_to(:company_id) }
-  it { is_expected.to respond_to(:email) }
-  it { is_expected.to respond_to(:role_id) }
-  it { is_expected.to respond_to(:external_id) }
-  it { is_expected.to respond_to(:first_name) }
-  it { is_expected.to respond_to(:last_name) }
-  it { is_expected.to respond_to(:date_of_birth) }
-  it { is_expected.to respond_to(:employment) }
-  it { is_expected.to respond_to(:gender) }
-  it { is_expected.to respond_to(:group_id) }
-  it { is_expected.to respond_to(:home_address) }
-  it { is_expected.to respond_to(:marital_status) }
-  it { is_expected.to respond_to(:middle_name) }
-  it { is_expected.to respond_to(:position_scope) }
-  it { is_expected.to respond_to(:qualifications) }
-  it { is_expected.to respond_to(:rank_id) }
-  it { is_expected.to respond_to(:seniority_id) }
-  it { is_expected.to respond_to(:age_group_id) }
-  it { is_expected.to respond_to(:work_start_date) }
-
-  it { is_expected.to respond_to(:img_url) }
-  it { is_expected.to respond_to(:img_url_last_updated) }
-
   it { is_expected.to be_valid }
 
   it 'direct_managers_by_company should list all employees who are also direct managers' do
@@ -46,23 +23,6 @@ describe Employee, type: :model do
     expect(res.count).to eq(1)
     res2 = Employee.pro_managers_by_company(c.id)
     expect(res2.count).to eq(0)
-  end
-
-  it 'direct_managers_by_company should list managers only in latest snapshot' do
-    cid = Company.create(name: 'company lala').id
-    sid1 = FactoryGirl.create(:snapshot).id
-    e1 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid1)
-    e2 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid1)
-    EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 0)
-    sid2 = FactoryGirl.create(:snapshot).id
-    bump_groups_snpashot(sid1, sid2)
-    Employee.create_snapshot(sid1, sid2)
-    e3 = FactoryGirl.create(:employee, company_id: cid, snapshot_id: sid2, first_name: 'New', last_name: 'Manager')
-    emrel = EmployeeManagementRelation.last
-    emrel.update(manager_id: e3.id)
-
-    res = Employee.direct_managers_by_company(cid)
-    expect( res[0] ).to eq('New Manager')
   end
 
   it 'professional_managers_by_company should list all employees who are also professional managers' do
@@ -132,15 +92,6 @@ describe Employee, type: :model do
     end
   end
 
-  describe 'when email address is already taken' do
-    before do
-      employee_with_same_email = @employee.dup
-      employee_with_same_email.email = @employee.email.upcase
-      employee_with_same_email.save
-    end
-    it { is_expected.not_to be_valid }
-  end
-
   describe ', pack_to_json' do
     g = nil
     o = nil
@@ -176,7 +127,6 @@ describe Employee, type: :model do
       expect(res[:email]).to eq(e.email)
       expect(res[:first_name]).to eq(e.first_name)
       expect(res[:last_name]).to eq(e.last_name)
-      expect(res[:age]).to eq(30)
       expect(res[:age_group]).to eq('25-34')
       expect(res[:group_name]).to eq(g.name)
       expect(res[:job_title]).to eq(e.job_title)
@@ -280,23 +230,23 @@ describe Employee, type: :model do
     end
 
     it 'should create a new snapshot 100 from snapshot 1' do
-      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 1, 100)
       expect(Employee.count).to eq(2)
       expect(Employee.last.snapshot_id).to eq(100)
     end
 
     it 'should do nothing if employees already exists in this snapshot' do
-      Employee.create_snapshot(1, 100)
-      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 1, 100)
+      Employee.create_snapshot(1, 1, 100)
       expect(Employee.count).to eq(2)
       expect(Employee.first.snapshot_id).to eq(1)
       expect(Employee.last.snapshot_id).to eq(100)
     end
 
     it 'should create a new snapshot 101 from snapshot 100 with the change in role_id' do
-      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 1, 100)
       Employee.where(snapshot_id: 100).update_all(role_id: 11)
-      Employee.create_snapshot(100, 101)
+      Employee.create_snapshot(1, 100, 101)
       expect(Employee.count).to eq(3)
       expect(Employee.last.snapshot_id).to eq(101)
       expect(Employee.last.role_id).to eq(11)
@@ -305,19 +255,19 @@ describe Employee, type: :model do
     it 'should not copy over inactive employees to new snapshot' do
       FactoryGirl.create(:employee, role_id: 10)
       Employee.last.update(active: false)
-      Employee.create_snapshot(1, 100)
+      Employee.create_snapshot(1, 1, 100)
       expect(Employee.count).to eq(3)
       expect(Employee.where(snapshot_id: 100).first.email).to eq('employee2@domain.com')
     end
 
     it 'should be assigned to the correct group' do
-      Employee.create_snapshot(1, 100)
-      Employee.create_snapshot(1, 101)
+      Employee.create_snapshot(1, 1, 100)
+      Employee.create_snapshot(1, 1, 101)
       expect(Employee.last.group_id).to eq(Group.last.id)
     end
 
     it 'should throw an exception if creating a snapshot which dont have groups yet' do
-      expect{ Employee.create_snapshot(1, 102) }.to raise_error(RuntimeError, 'Groups have to be bumped into new snapshot before employees')
+      expect{ Employee.create_snapshot(1, 1, 102) }.to raise_error(RuntimeError, 'Groups have to be bumped into new snapshot before employees')
     end
 
     describe 'id_in_snapshot' do

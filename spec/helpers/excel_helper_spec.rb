@@ -16,15 +16,15 @@ describe 'ExcelHelper' do
 
     ## Snapshot
     Snapshot.create!(id: 1, name: "S1", company_id: 1, timestamp: '2017-10-20')
-    Group.create!(id: 6, name: "R&D", company_id: 1, snapshot_id: 1, external_id: 'ext6')
-    Group.create!(id: 8, name: "IT",  company_id: 1, snapshot_id: 1, external_id: 'ext8')
+    Group.create!(id: 6, name: "R&D", company_id: 1, snapshot_id: 1, external_id: 'ext6', nsleft: 0, nsright: 3)
+    Group.create!(id: 8, name: "IT",  company_id: 1, snapshot_id: 1, external_id: 'ext8', nsleft: 1, nsright: 2)
     create_emps('moshe', 'acme.com', 5, {gid: 6})
-    FactoryGirl.create(:cds_metric_score, employee_id: 1, score: 1.1, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 2, score: 1.2, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 3, score: 1.3, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 1, score: 2.1, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
-    FactoryGirl.create(:cds_metric_score, employee_id: 2, score: 2.2, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
-    FactoryGirl.create(:cds_metric_score, employee_id: 3, score: 2.3, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryGirl.create(:cds_metric_score, employee_id: 1, z_score: 1.1, score: 1.1, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryGirl.create(:cds_metric_score, employee_id: 2, z_score: 1.2, score: 1.2, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryGirl.create(:cds_metric_score, employee_id: 3, z_score: 1.3, score: 1.3, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryGirl.create(:cds_metric_score, employee_id: 1, z_score: 2.1, score: 2.1, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryGirl.create(:cds_metric_score, employee_id: 2, z_score: 2.2, score: 2.2, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryGirl.create(:cds_metric_score, employee_id: 3, z_score: 2.3, score: 2.3, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
   end
 
   after(:each) do
@@ -34,7 +34,7 @@ describe 'ExcelHelper' do
 
   it 'the report should not throw an error' do
     file_name = nil
-    expect { file_name = ExcelHelper::create_xls_report_for_emails( 1, [6], 'Oct/17', 'By Month', [700,702])}.not_to raise_error
+    expect { file_name = ExcelHelper::create_xls_report( 1, [6], 'Oct/17', 'By Month', [700,702])}.not_to raise_error
     # move_file_to_shared_folder(file_name)
     remove_file(file_name)
   end
@@ -46,13 +46,13 @@ describe 'ExcelHelper' do
       expect(res[0].key?('group_name')).to be_truthy
       expect(res[0].key?('group_extid')).to be_truthy
       expect(res[0].key?('algorithm_name')).to be_truthy
-      expect(res[0].key?('sum')).to be_truthy
+      expect(res[0].key?('group_hierarchy_avg')).to be_truthy
     end
   end
 
   describe 'get_employees_data' do
     it 'should create 3 entries for the populated snapshot and to be well formatted' do
-      res = ExcelHelper::get_employees_data(1, 'Oct/17', 'By Month', [700, 702])
+      res = ExcelHelper::get_employees_data(1, [6,8], 'Oct/17', 'By Month', [700, 702])
       expect(res.length).to eq(6)
       expect(res[0].key?(:group_name)).to be_truthy
       expect(res[0].key?(:name)).to be_truthy
@@ -67,7 +67,7 @@ describe 'ExcelHelper' do
   describe 'encryption' do
     it 'should be encypted without throwing errors' do
       file_name = nil
-      expect { file_name = ExcelHelper::create_xls_report_for_emails( 1, [6], 'Oct/17', 'By Month', [700,702], 'qwer')}.not_to raise_error
+      expect { file_name = ExcelHelper::create_xls_report( 1, [6], 'Oct/17', 'By Month', [700,702], 'qwer')}.not_to raise_error
       move_file_to_shared_folder(file_name)
     end
   end

@@ -2427,6 +2427,17 @@ module AlgorithmsHelper
     AND snapshot_id = #{snapshot} AND network_id = #{network_id}"
   end
 
+
+  def self.assign_same_score_to_all_emps(sid, gid = NO_GROUP, pid = NO_PIN)
+    a_emps = if gid != NO_GROUP
+               Group.find(gid).extract_employees
+             elsif pid != NO_PIN
+               EmployeesPin.where(pin_id: pid).pluck(:employee_id)
+             else
+               Employee.where(company_id: find_company_by_snapshot(sid)).pluck(:id)
+             end
+    return a_emps.map { |eid| { id: eid, measure: 1 } }
+  end
   ################################### Boolean network helper functions ##################################
   def get_list_of_employees_in(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
     return get_list_of_employees_and_values(snapshot_id, NETWORK_IN, network_id, pid, gid)

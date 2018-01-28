@@ -4,9 +4,9 @@ describe Questionnaire, type: :model do
   before do
     @comp = Company.create(name: 'test-company')
     @questionnaire = Questionnaire.create(company_id: @comp.id, state: :notstarted, name:'test-name', pending_send:'')
-    @e1 = Employee.create!(email: 'e1@mail.com', company_id: @comp.id, first_name: 'E', last_name: 'e', color_id: 1, external_id: 22)
+    @e1 = Employee.create!(email: 'e1@mail.com', company_id: @comp.id, first_name: 'E', last_name: 'e', color_id: 1, external_id: 21)
     @e2 = Employee.create!(email: 'e2@mail.com', company_id: @comp.id, first_name: 'E', last_name: 'e', color_id: 1, external_id: 22)
-    @e3 = Employee.create!(email: 'e3@mail.com', company_id: @comp.id + 1, first_name: 'E', last_name: 'e', color_id: 1, external_id: 22)
+    @e3 = Employee.create!(email: 'e3@mail.com', company_id: @comp.id + 1, first_name: 'E', last_name: 'e', color_id: 1, external_id: 23)
     @e4 = Employee.create!(email: 'e4@mail.com', company_id: @comp.id + 1, first_name: 'E', last_name: 'e', color_id: 2, external_id: 44)
     @question = Question.create(company_id: @comp.id, title: 'this is a test question', body: 'sdfasdf', active: true)
     @questionnair_question = QuestionnaireQuestion.create(questionnaire_id: @questionnaire.id, question_id: @question.id, company_id: @comp.id, title: 'this is a test question', body: 'sdfasdf', active: true)
@@ -42,8 +42,7 @@ describe Questionnaire, type: :model do
     end
     it 'should send only to employees who did not complete their questionnaire' do
       @questionnaire.resend_questionnaire_to_incomplete
-      expect(EventLog.count).to eq(3)
+      expect(EventLog.count).to eq(2)
     end
   end
-
 end

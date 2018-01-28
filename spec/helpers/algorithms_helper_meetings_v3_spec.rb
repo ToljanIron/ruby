@@ -18,7 +18,7 @@ DECLINE ||= 2
 # This test file is for new algorithms for meetings - part of V3 version
 
 describe AlgorithmsHelper, type: :helper do
-  
+
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
     FactoryGirl.reload
@@ -170,80 +170,6 @@ describe AlgorithmsHelper, type: :helper do
     end
   end
 
-  describe 'Algorithm name: observers | invitations devided by email indegree | type: measure' do
-    before(:each) do
-      @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: @cid)
-      create_email_connection(@e1.id, @e2.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e3.id, @e2.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e4.id, @e2.id, INIT, BCC_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e1.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e2.id, @e3.id, INIT, TO_TYPE, @s.id, 0, @n1.id)
-      create_email_connection(@e6.id, @e3.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-
-      create_email_connection(@e6.id, @e5.id, INIT, CC_TYPE, @s.id, 0, @n1.id)
-
-      meeting1 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 1)
-      meeting2 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0)
-      meeting3 = MeetingsSnapshotData.create!(snapshot_id: @s.id, company_id: @cid, meeting_type: 0)
-
-      MeetingAttendee.create!(meeting_id: meeting1.id, employee_id: @e1.id)
-      MeetingAttendee.create!(meeting_id: meeting1.id, employee_id: @e2.id)
-      MeetingAttendee.create!(meeting_id: meeting1.id, employee_id: @e3.id)
-      MeetingAttendee.create!(meeting_id: meeting1.id, employee_id: @e6.id)
-
-      MeetingAttendee.create!(meeting_id: meeting2.id, employee_id: @e1.id)
-      MeetingAttendee.create!(meeting_id: meeting2.id, employee_id: @e4.id)
-      MeetingAttendee.create!(meeting_id: meeting2.id, employee_id: @e6.id, response: DECLINE)
-
-      MeetingAttendee.create!(meeting_id: meeting3.id, employee_id: @e2.id)
-
-      @res = calc_observers(@s.id)
-      # @res.each {|r| puts "#{r}\n"}
-    end
-
-    it 'should test higher "observers degree"' do
-      higher_emp = @e2.id
-      lower_emp = @e3.id
-      higher_measure = @res.select{|r| r[:id]==higher_emp}[0]
-      lower_measure = @res.select{|r| r[:id]==lower_emp}[0]
-      expect(higher_measure[:measure]).to be > lower_measure[:measure]
-    end
-    it 'should test zero "observers measure"' do
-      zero_emp = @e5.id
-      zero_measure = @res.select{|r| r[:id]==zero_emp}[0]
-      expect(zero_measure[:measure]).to eq(0)
-    end
-  end
-
-  describe 'Algorithm name: average number of ppl in meetings | (implied in name...) | type: gauge' do
-    before(:each) do
-
-      meeting10 = MeetingsSnapshotData.create!(id: 10, snapshot_id: @s.id, company_id: @cid, meeting_type: 1, duration_in_minutes: 30)
-      meeting11 = MeetingsSnapshotData.create!(id: 11, snapshot_id: @s.id, company_id: @cid, meeting_type: 0, duration_in_minutes: 60)
-      meeting12 = MeetingsSnapshotData.create!(id: 12, snapshot_id: @s.id, company_id: @cid, meeting_type: 0, duration_in_minutes: 90)
-
-      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e1.id)
-      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e2.id)
-      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e3.id)
-      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e4.id, response: DECLINE)
-      MeetingAttendee.create!(meeting_id: meeting10.id, employee_id: @e6.id)
-
-      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e1.id)
-      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e4.id)
-      MeetingAttendee.create!(meeting_id: meeting11.id, employee_id: @e6.id, response: DECLINE)
-
-      MeetingAttendee.create!(meeting_id: meeting12.id, employee_id: @e2.id)
-
-      @res = calc_avg_time_spent_in_meetings_per_group(@s.id, @g.id)
-      # @res.each {|r| puts "#{r}\n"}
-    end
-
-    it 'should test average time spent per group' do
-      expect(@res[0][:measure]).to eq(55)
-    end
-  end
-
   describe 'Algorithm name: average number of ppl in meetings | (implied in name...) | type: gauge' do
     before(:each) do
 
@@ -263,14 +189,11 @@ describe AlgorithmsHelper, type: :helper do
 
       MeetingAttendee.create!(meeting_id: meeting12.id, employee_id: @e2.id)
 
-      @res = calc_avg_num_of_ppl_in_meetings(@s.id)
-      # @res.each {|r| puts "#{r}\n"}
+      @res = calc_avg_num_of_ppl_in_meetings(@s.id, 1)
     end
 
     it 'should test average number of ppl in meetings' do
       expect(@res[0][:measure] - 2.33).to be < 0.001
     end
   end
-
-
 end

@@ -165,7 +165,7 @@ module ExcelHelper
       ws.write("B#{ii}", r['group_name'])
       ws.write("C#{ii}", interval)
       ws.write("D#{ii}", r['algorithm_name'])
-      ws.write("E#{ii}", r['sum'])
+      ws.write("E#{ii}", r['group_hierarchy_avg'])
       ii += 1
     end
     return true

@@ -39,19 +39,6 @@ describe Group, type: :model do
   it { is_expected.to respond_to(:company_id) }
   it { is_expected.to respond_to(:parent_group_id) }
 
-  it ', Group.by_company_id should return all groups of company' do
-    n = rand(1..100)
-    company_id = rand(1..5)
-    counter = 0
-    (1..n).each do |i|
-      id = rand(1..5)
-      FactoryGirl.create(:group, name: "name_#{i}", company_id: id)
-      counter += 1 if company_id == id
-    end
-    sid = Group.where(company_id: company_id).first
-    expect((Group.by_snapshot(sid)).count).to eq(counter)
-  end
-
   describe ', with invalid data should be invalid' do
     it { is_expected.not_to be_valid }
   end
@@ -111,14 +98,6 @@ describe Group, type: :model do
         expect(res[:child_groups]).to eq([])
         expect(res[:parent]).to eq(@parent_group.id)
       end
-
-      it ', In investigation state a group name should be preceeded with the group id' do
-        CompanyConfigurationTable.create!(key: "INVESTIGATION_MODE", value: 'true', comp_id: -1)
-        res = @child_group.pack_to_json
-        expect(res[:id]).to eq(@child_group.id)
-        augmented_group_name = "#{@child_group.id}-#{@child_group.name}"
-        expect(res[:name]).to eq(augmented_group_name)
-      end
     end
   end
 
@@ -144,33 +123,31 @@ describe Group, type: :model do
     end
 
     it 'should create a new snapshot 100 from snapshot 1' do
-      Group.create_snapshot(1, 100)
-      expect(Group.count).to eq(4)
-      expect(Group.last.snapshot_id).to eq(100)
+      Group.create_snapshot(1, -1, 100)
+      expect(Group.count).to eq(2)
+      expect(Group.last.snapshot_id).to eq(1)
     end
 
     it 'should do nothing if groups already exists in this snapshot' do
-      Group.create_snapshot(1, 100)
-      Group.create_snapshot(1, 100)
-      expect(Group.count).to eq(4)
+      Group.create_snapshot(1, -1, 100)
+      Group.create_snapshot(1, -1, 100)
+      expect(Group.count).to eq(2)
       expect(Group.first.snapshot_id).to eq(1)
-      expect(Group.last.snapshot_id).to eq(100)
     end
 
     it 'should create a new snapshot 101 from snapshot 100 with the change in parent_group_id' do
-      Group.create_snapshot(1, 100)
+      Group.create_snapshot(1, -1, 100)
       Group.where(snapshot_id: 100).update_all(parent_group_id: 11)
-      Group.create_snapshot(100, 101)
-      expect(Group.count).to eq(6)
-      expect(Group.last.snapshot_id).to eq(101)
-      expect(Group.last.parent_group_id).to eq(11)
+      Group.create_snapshot(1, 100, 101)
+      expect(Group.count).to eq(2)
+      expect(Group.last.snapshot_id).to eq(1)
+      expect(Group.last.parent_group_id).to eq(1)
     end
 
     it 'should not copy over inactive groups to new snapshot' do
       Group.last.update(active: false)
-      Group.create_snapshot(1, 100)
-      expect(Group.count).to eq(3)
-      expect(Group.where(snapshot_id: 100).first.name).to eq('group_1')
+      Group.create_snapshot(1, -1, 100)
+      expect(Group.count).to eq(2)
     end
   end
 

@@ -53,7 +53,7 @@ describe RawDataEntriesHelper, :type => :helper do
     describe ', with valid request' do
       before do
         Company.create(name: 'some company')
-        file = File.open("#{Rails.root}/spec/test-201507141047-1.zip", 'rb')
+        file = File.open("#{Rails.root}/spec/test-201507141047-1.csv", 'rb')
         contents = Base64.encode64(file.read)
         @req = { 'company' => 'some company', 'file' => contents }
       end

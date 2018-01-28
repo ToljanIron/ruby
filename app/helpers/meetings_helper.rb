@@ -1,6 +1,6 @@
 module MeetingsHelper
   MEETING_ATTRIBUTES = %w(meeting_uniq_id company_id snapshot_id meeting_room_id start_time duration_in_minutes subject).freeze
-  ATTENDEES_ATTRIBUTES = %w(meeting_id attendee_id attendee_type).freeze
+  ATTENDEES_ATTRIBUTES = %w(meeting_id employee_id).freeze
 
   def self.create_meetings_for_snapshot(sid, start_date, end_date)
     relevant_meetings = RawMeetingsData.where('start_time >= ?', start_date).where('start_time < ?', end_date)
@@ -19,34 +19,33 @@ module MeetingsHelper
     return if meetings_values.empty?
     ActiveRecord::Base.connection.execute("INSERT INTO meetings (#{MEETING_ATTRIBUTES.join(',')})
                                            VALUES #{meetings_values.join(',')}")
-    create_attendees(meetings_attendees)
+    create_attendees(meetings_attendees, sid)
   end
 
-  def self.create_attendees(meetings_attendees)
+  def self.create_attendees(meetings_attendees, sid)
     return if meetings_attendees.empty?
     attendees_values = []
     meetings_attendees.each do |external_meeting_id, attendees|
       meeting = Meeting.find_by(meeting_uniq_id: external_meeting_id)
       cid = meeting.company_id
-      attendees_converted = convert_attendees_to_attendee_entries(attendees, cid, meeting.id)
+      attendees_converted = convert_attendees_to_attendee_entries(attendees, cid, meeting.id, sid)
       attendees_values << attendees_converted
     end
     return if attendees_values.empty?
-    ActiveRecord::Base.connection.execute("INSERT INTO meeting_attendees (#{ATTENDEES_ATTRIBUTES.join(',')})
-                                           VALUES #{attendees_values.join(',')}")
+    ActiveRecord::Base.connection.execute(
+      "INSERT INTO meeting_attendees (#{ATTENDEES_ATTRIBUTES.join(',')})
+       VALUES #{attendees_values.join(',')}")
   end
 
-  def self.convert_attendees_to_attendee_entries(attendees_emails, cid, meeting_id)
+  def self.convert_attendees_to_attendee_entries(attendees_emails, cid, meeting_id, sid)
     return attendees_emails.map do |email|
       email = email.downcase.strip.tr("'\"", '')
       if in_company_domain?(email, cid)
-        id = EmailPropertiesTranslator.convert_email_to_employee_id(email, cid)
-        type = 0
+        id = EmailPropertiesTranslator.convert_email_to_employee_id(email, cid, sid)
       else
         id = convert_email_to_external_entity_id(email, cid)
-        type = 1
       end
-      '(' + [meeting_id, id, type].join(',') + ')'
+      '(' + [meeting_id, id].join(',') + ')'
     end.join(',')
   end
 

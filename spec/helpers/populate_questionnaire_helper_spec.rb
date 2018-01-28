@@ -299,63 +299,6 @@ describe PopulateQuestionnaireHelper, type: :helper do
     end
   end
 
-  describe 'friends_of_friends' do
-    let(:emp) { create(:employee) }
-
-    before do
-      create_list(:employee, 5)
-      create_list(:question, 4)
-      @q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
-    end
-
-    it 'should return friends of friends in last questionnaire, not counting himself' do
-      all_emps = Employee.where(company_id: emp[:company_id])
-      friendship_questions = create_friendship_questions(emp, [@q1.questionnaire_questions.first])
-      all_emps.each do |e|
-        QuestionnaireParticipant.create(employee_id: e.id)
-      end
-      all_emps.each do |e|
-        participant = QuestionnaireParticipant.find_by(employee_id: e.id)
-        make_friends(participant, friendship_questions, QuestionnaireParticipant.all.pluck(:id).delete_if { |fr_id| fr_id == participant.id })
-      end
-      expected_array = all_emps.pluck(:id).delete_if { |fr_id| fr_id == emp.id }.select(&:even?)
-      expect(PopulateQuestionnaireHelper.friends_of_friends(emp).length).to eq(expected_array.length)
-      expect(PopulateQuestionnaireHelper.friends_of_friends(emp)).to eq(expected_array.map { |e| [e, PopulateQuestionnaireHelper::FRIEND_OF_FRIEND] }.to_h)
-    end
-  end
-
-  describe 'previous_friends' do
-    let(:emp) { create(:employee) }
-
-    before do
-      create_list(:question, 4)
-      @q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
-    end
-
-    it 'should return [] if no previous questionnaires' do
-      Questionnaire.where(company_id: emp[:company_id]).delete_all
-      expect(PopulateQuestionnaireHelper.previous_friends(emp)).to eq([])
-    end
-
-    it 'should return an array of friends from last questionnaire if theres one with friend question' do
-      friendship_questions = create_friendship_questions(emp, [@q1.questionnaire_questions.first])
-      (100..110).each { |id| QuestionnaireParticipant.create(employee_id: id) }
-      participant = QuestionnaireParticipant.create(employee_id: emp.id)
-      make_friends(participant, friendship_questions, QuestionnaireParticipant.pluck(:id))
-      expect(PopulateQuestionnaireHelper.previous_friends(emp)).to eq([100, 102, 104, 106, 108, 110])
-    end
-
-    it 'should return an array of friends from all previous questionnaires' do
-      q2 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 2')
-      friendship_questions = [@q1.questionnaire_questions.first, q2.questionnaire_questions.first]
-      friendship_questions = create_friendship_questions(emp, friendship_questions)
-      (100..110).each { |id| QuestionnaireParticipant.create(employee_id: id) }
-      participant = QuestionnaireParticipant.create(employee_id: emp.id)
-      make_friends(participant, friendship_questions, QuestionnaireParticipant.pluck(:id))
-      expect(PopulateQuestionnaireHelper.previous_friends(emp)).to eq([100, 102, 104, 106, 108, 110])
-    end
-  end
-
   describe 'answered_before?' do
     let(:emp) { create(:employee) }
 

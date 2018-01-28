@@ -2,10 +2,11 @@
 require 'base64'
 
 module RawMeetingsDataHelper
-  
+
   def process_meetings_request(request_parsed_to_csv)
-    
+
     company_id = request_parsed_to_csv['company_id']
+
     zipped_str = Base64.decode64(request_parsed_to_csv['file'])
 
     company = Company.where(id: company_id)[0]
@@ -17,7 +18,7 @@ module RawMeetingsDataHelper
     data = CSV.parse(csv)
 
     raise 'process_meetings_request: Cannot process more then 500 meetings' if data.length > 500
-    
+
     data.shift
     data.each do |meeting|
       start_time = format_meeting_item(meeting[2])
@@ -39,10 +40,10 @@ module RawMeetingsDataHelper
         external_meeting_id: format_meeting_item(meeting[12]),
         company_id: company_id
       )
-      existing_meeting = get_meeting(incoming_entry.company_id, 
-        incoming_entry.external_meeting_id, incoming_entry.subject, 
+      existing_meeting = get_meeting(incoming_entry.company_id,
+        incoming_entry.external_meeting_id, incoming_entry.subject,
         incoming_entry.start_time, incoming_entry.location)
-        
+
       # existing_meeting = RawMeetingsData.where(company_id: incoming_entry.company_id, external_meeting_id: incoming_entry.external_meeting_id).first
 
       # Found meeting - update fields
