@@ -2,6 +2,7 @@ include CdsUtilHelper
 
 class Group < ActiveRecord::Base
   has_many :employees
+  has_many :alerts
   belongs_to :company
   belongs_to :color
   belongs_to :snapshot

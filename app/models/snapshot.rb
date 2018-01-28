@@ -10,6 +10,7 @@ class Snapshot < ActiveRecord::Base
   enum status: [:inactive, :before_precalculate, :active]
   belongs_to :company
   has_many :network_snapshot_data
+  has_many :alerts
 
   before_save do
     self.month = get_month

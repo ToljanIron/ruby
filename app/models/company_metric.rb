@@ -5,6 +5,7 @@ class CompanyMetric < ActiveRecord::Base
   belongs_to :metric_name,         foreign_key: :metric_id
   belongs_to :gauge_configuration, foreign_key: :gauge_id
   belongs_to :network, foreign_key: :network_id, class_name: 'NetworkName'
+  has_many :alerts
 
   validates :algorithm_type_id, presence: true
   validates :network_id, presence: true

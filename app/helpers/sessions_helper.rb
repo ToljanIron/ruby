@@ -95,9 +95,6 @@ def current_user_v3
     puts "JWT could not find user in token - not authenticated"
     return
   end
-  puts "*********************************"
-  ap auth_token(http_token)
-  puts "*********************************"
   @current_user = User.find(auth_token(http_token)[:user_id])
 rescue JWT::VerificationError, JWT::DecodeError
   puts "JWT exception - not authenticated"

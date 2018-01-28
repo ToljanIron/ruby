@@ -10,6 +10,7 @@ class Company < ActiveRecord::Base
   has_many :questionnaire_questions
   has_many :questionnaire
   has_many :snapshots
+  has_many :alerts
 
   has_many :netowrk_snapshot_data
 

@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :metric_name do
     name 'test'
-    company 2
+    company_id 1
   end
 end

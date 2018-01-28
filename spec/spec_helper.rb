@@ -58,16 +58,22 @@ end
 # For running authenticated tests in rspec
 ###########################################
 def log_in_with_dummy_user
-  @user = User.create!(id: 1, role: 1, first_name: 'name', email: 'user@company.com', password: 'qwe123', password_confirmation: 'qwe123')
+  @user = User.create!(id: 1, role: 1, company_id: 1, first_name: 'name', email: 'user@company.com', password: 'qwe123', password_confirmation: 'qwe123')
   return @user
 end
 
 ###############################################################
 # For running authenticated get requests in controller tests
 ###############################################################
-def http_get_with_jwt_token(action)
+def http_get_with_jwt_token(action, p = {})
   request.headers.merge!({'Authorization': "Bearer #{ENV['JWT_TOKEN_FOR_TESTING']}"})
-  ret = get action
+  ret = get(action, params: p)
+  return ret
+end
+
+def http_post_with_jwt_token(action, p = {})
+  request.headers.merge!({'Authorization': "Bearer #{ENV['JWT_TOKEN_FOR_TESTING']}"})
+  ret = post(action, params: p)
   return ret
 end
 

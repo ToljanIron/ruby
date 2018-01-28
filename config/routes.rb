@@ -105,6 +105,10 @@ Workships::Application.routes.draw do
   get 'v3/get_dynamics_employee_map'         ,to: 'network_snapshot_data#get_dynamics_employee_map'
 
   # Interfaces
-  get 'v3/get_interfaces_time_picker_data'     ,to: 'measures#get_interfaces_time_picker_data'
-  get 'v3/get_interfaces_scores'               ,to: 'measures#get_interfaces_scores'
+  get 'v3/get_interfaces_time_picker_data'   ,to: 'measures#get_interfaces_time_picker_data'
+  get 'v3/get_interfaces_scores'             ,to: 'measures#get_interfaces_scores'
+
+  # Alerts
+  get 'v3/get_alerts'                        ,to: 'alerts#get_alerts'
+  post 'v3/discard_alerts'                   ,to: 'alerts#discard_alerts'
 end

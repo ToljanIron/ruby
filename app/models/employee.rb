@@ -6,6 +6,7 @@ class Employee < ActiveRecord::Base
 
   attr_accessor :group_name
   has_many    :employee_alias_email
+  has_many    :alerts
   belongs_to  :group
   belongs_to  :office
   belongs_to  :role
