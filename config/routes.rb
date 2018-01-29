@@ -110,5 +110,5 @@ Workships::Application.routes.draw do
 
   # Alerts
   get 'v3/get_alerts'                        ,to: 'alerts#get_alerts'
-  post 'v3/discard_alerts'                   ,to: 'alerts#discard_alerts'
+  post 'v3/acknowledge_alert'                ,to: 'alerts#acknowledge_alert'
 end

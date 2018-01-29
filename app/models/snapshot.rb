@@ -171,7 +171,8 @@ class Snapshot < ActiveRecord::Base
     raise "Unknown interval_type: #{type}"
   end
 
-  def self.last_snapshot_in_interval(interval, snapshot_field)
+  def self.last_snapshot_in_interval(interval, snapshot_field = nil)
+    snapshot_field ||= Snapshot.field_from_interval(interval)
     return Snapshot
              .select(:id)
              .where("%s = '%s'", snapshot_field, interval)
