@@ -48,9 +48,9 @@ namespace :db do
 
     if true
       #[127,128,129,132,133,134,135,136].each do |sid|
-      [94,145].each do |sid|
-        #[800, 801, 802, 803, 804, 805, 806, 807, 700,701,702,703,704,705,706,707,709,200,201,203,204,205,206,207].each do |aid|
-        [200,201,203,204,205,206,207].each do |aid|
+      [145].each do |sid|
+        [800, 801, 802, 803, 804, 805, 806, 807, 700,701,702,703,704,705,706,707,709,200,201,203,204,205,206,207].each do |aid|
+        #[200,201,203,204,205,206,207].each do |aid|
           puts "========================> sid: #{sid}, aid: #{aid}"
           PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(11, -1, -1, aid, sid, true)
         end

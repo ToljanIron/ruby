@@ -41,6 +41,15 @@ class Group < ActiveRecord::Base
     res
   end
 
+  def size_of_hierarchy
+    if hierarchy_size.nil?
+      size = extract_employees.count
+      update!(hierarchy_size: size)
+      return size
+    end
+    return hierarchy_size
+  end
+
   def self.num_of_emps(gid)
     cache_key = "Group.num_of_emps-#{gid}"
     res = cache_read(cache_key)

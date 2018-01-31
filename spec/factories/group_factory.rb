@@ -3,6 +3,7 @@ FactoryGirl.define do
     sequence(:name) { |n| "group_#{n}" }
     sequence(:external_id) { |n| "group_#{n}" }
     company_id 1
+    snapshot_id 1
   end
 end
 
