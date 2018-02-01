@@ -12,8 +12,19 @@ module CreateAlertsTaskHelper
     raise "snapshot: #{sid} does not exist" if snapshot.nil?
     cm = CompanyMetric.where(company_id: cid, algorithm_id: aid).last
     raise "no company metric for algorithm with id: #{aid}" if cm.nil?
+    al = Algorithm.find(aid)
+    raise "no such algorithm: #{aid}" if al.nil?
 
-    alerts = create_alerts_for_extreme_z_score_gauges(cid, sid, aid)
+    alerts = []
+    case al.algorithm_type_id
+    when 1
+      alerts = create_alerts_for_extreme_z_score_measures(cid, sid, aid)
+    when 5
+      alerts = create_alerts_for_extreme_z_score_gauges(cid, sid, aid)
+    else
+      raise "Can not handle algorithm type: #{al.algorithm_type_id}"
+    end
+
     alerts.each do |a|
       a.save!
     end
