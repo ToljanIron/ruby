@@ -5,7 +5,6 @@ include SessionsHelper
 describe GroupsController, type: :controller do
 
   before do
-    log_in_with_dummy_user_with_role(1, 1)
     company = Company.create(name: 'some_name')
     Snapshot.create!(id: 1,company_id: 1, timestamp: 1.day.ago)
     @company_id = company.id
@@ -36,8 +35,6 @@ describe GroupsController, type: :controller do
     end
 
     before do
-      DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
       create_employees
       log_in_with_dummy_user
       tmp = http_get_with_jwt_token(:groups)
@@ -46,7 +43,7 @@ describe GroupsController, type: :controller do
     end
 
     it ', should return same amount of groups' do
-      expect(@groups.count).to eq(6)
+      expect(@groups.count).to eq(7)
     end
   end
 end

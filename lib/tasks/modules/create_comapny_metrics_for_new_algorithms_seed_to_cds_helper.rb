@@ -33,7 +33,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     observers_id                        = MetricName.find_or_create_by!(name: 'Observers', company_id: cid).id
     avg_meeting_participants_gauge_id   = MetricName.find_or_create_by!(name: 'Participants', company_id: cid).id
     avg_time_spent_in_meetings_gauge_id = MetricName.find_or_create_by!(name: 'Time spent in meetings - Gauge', company_id: cid).id
-    avg_time_spent_in_meetings_measure_id = MetricName.find_or_create_by!(name: 'Time spent in meetings', company_id: cid).id
+    time_spent_in_meetings_measure_id   = MetricName.find_or_create_by!(name: 'Time spent in meetings', company_id: cid).id
+    recurring_meetings_id               = MetricName.find_or_create_by!(name: 'Recurring meetings', company_id: cid).id
 
 
     CompanyMetric.find_or_create_by!(metric_id: in_the_loop_id, network_id: -1, company_id: cid, algorithm_id: 800, algorithm_type_id: 1)
@@ -43,7 +44,8 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: observers_id, network_id: -1, company_id: cid, algorithm_id: 804, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by!(metric_id: avg_meeting_participants_gauge_id, network_id: -1, company_id: cid, algorithm_id: 805, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: avg_time_spent_in_meetings_gauge_id, network_id: -1, company_id: cid, algorithm_id: 806, algorithm_type_id: 5)
-    CompanyMetric.find_or_create_by!(metric_id: avg_time_spent_in_meetings_measure_id, network_id: -1, company_id: cid, algorithm_id: 807, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: time_spent_in_meetings_measure_id, network_id: -1, company_id: cid, algorithm_id: 807, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: recurring_meetings_id, network_id: -1, company_id: cid, algorithm_id: 808, algorithm_type_id: 1)
 
     ####################### Interfaces ########################
     closeness_level_gauge_id = MetricName.find_or_create_by!(name: 'Closeness Level', company_id: cid).id

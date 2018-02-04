@@ -530,7 +530,7 @@ module AlgorithmsHelper
     inx2emp = sagraph[:inx2emp]
 
     ## This matrix product produces a new matrix of size employes x groups
-    ##   whose entry i,j is how many emails did employee i sent towards group j
+    ##   whose entry i,j is how many emails employee i sent towards group j
     am = a.dot m
 
     empsnum, groupsnum = am.shape
@@ -2248,15 +2248,38 @@ module AlgorithmsHelper
              denominator: num_of_ppl_in_meetings.count}]
   end
 
+  def recurring_meetings_measure(sid, gid = NO_GROUP, pid = NO_PIN)
+    employee_ids = Group.find(gid).extract_employees
+
+    sqlstr = "SELECT SUM(duration_in_minutes) AS sum, emps.id AS empid
+              FROM meetings_snapshot_data AS msd
+              JOIN meeting_attendees AS ma ON msd.id = ma.meeting_id
+              JOIN employees AS emps ON emps.id = ma.employee_id
+              WHERE
+                ma.employee_id IN (#{employee_ids.join(',')}) AND NOT
+                response = #{DECLINE} AND
+                meeting_type = 1
+              GROUP BY empid"
+
+    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+
+    ret = []
+    res.each do |r|
+      ret << {id: r['empid'], measure: r['sum'].to_f.round(2)}
+    end
+    ret = result_zero_padding(employee_ids, ret)
+    return ret
+  end
+
   #############################################################################
   # This algorithm is similar to avg_time_spent_in_meetings_gauge, only
   # difference is it counts # per employe (measure, not a gauge).
   # It is needed for the leaderboard
   #############################################################################
-  def avg_time_spent_in_meetings_measure(sid, gid = NO_GROUP, pid = NO_PIN)
+  def time_spent_in_meetings_measure(sid, gid = NO_GROUP, pid = NO_PIN)
     employee_ids = Group.find(gid).extract_employees
 
-    sqlstr = "SELECT AVG(duration_in_minutes) AS avg, emps.id AS empid
+    sqlstr = "SELECT SUM(duration_in_minutes) AS sum, emps.id AS empid
               FROM meetings_snapshot_data AS msd
               JOIN meeting_attendees AS ma ON msd.id = ma.meeting_id
               JOIN employees AS emps ON emps.id = ma.employee_id
@@ -2268,14 +2291,14 @@ module AlgorithmsHelper
 
     ret = []
     res.each do |r|
-      ret << {id: r['empid'], measure: r['avg'].to_f.round(2)}
+      ret << {id: r['empid'], measure: r['sum'].to_f.round(2)}
     end
     ret = result_zero_padding(employee_ids, ret)
     return ret
   end
 
   #############################################################################
-  # This algorithm is very similar to avg_time_spent_in_meetings_measure. The
+  # This algorithm is very similar to time_spent_in_meetings_measure. The
   # difference is it is a gauge, not a measure.
   # It is used by the main stats panel and the number is also displayed in the
   # main widget.

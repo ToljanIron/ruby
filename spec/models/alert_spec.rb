@@ -1,7 +1,13 @@
 require 'spec_helper'
 
+SNAPSHOT_NAME1 = 'Jan/18'
+SNAPSHOT_NAME2 = 'Feb/18'
+
 describe Alert, type: :model do
   before :all do
+    FactoryGirl.create(:snapshot, id: 1, timestamp: DateTime.new(2018, 1, 1), company_id: 1)
+    FactoryGirl.create(:snapshot, id: 2, timestamp: DateTime.new(2018, 2, 1), company_id: 1)
+
     FactoryGirl.create(:metric_name, id: 13, name: 'Test13')
     FactoryGirl.create(:metric_name, id: 14, name: 'Test14')
     FactoryGirl.create(:metric_name, id: 15, name: 'Test15')
@@ -24,15 +30,15 @@ describe Alert, type: :model do
   end
 
   it 'should only get meetings that are pending from requested sid and gids' do
-    ret = Alert.alerts_for_snapshot(1,1, [2, 3, 4])
-    expect(ret.length).to eq(3)
+    ret = Alert.alerts_for_snapshot(1,SNAPSHOT_NAME1, [3, 4])
+    expect(ret.length).to eq(1)
     expect(ret[0].metric_name).to start_with('Test')
-    expect(ret[1].state).to satisfy { |value| value == 'pending' || value == 'viewed' }
+    expect(ret[0].state).to satisfy { |value| value == 'pending' || value == 'viewed' }
   end
 
   it 'should all meetings from sid' do
-    ret = Alert.alerts_for_snapshot(1,1)
-    expect(ret.length).to eq(4)
+    ret = Alert.alerts_for_snapshot(1,SNAPSHOT_NAME1)
+    expect(ret.length).to eq(2)
   end
 
   it 'shoud mark alert as dicarded' do
