@@ -295,7 +295,7 @@ module CalculateMeasureForCustomDataSystemHelper
       res << {
         gid: e['gid'],
         groupName: create_group_name(e['gid'], e['group_name'],invmode),
-        groupSize: Group.exact_num_of_emps(e['gid']),
+        groupSize: Group.num_of_emps(e['gid']),
         aid: e['algorithm_id'],
         algoName: e['algorithm_name'],
         officeName: e['office_name'],
@@ -747,12 +747,6 @@ module CalculateMeasureForCustomDataSystemHelper
         GROUP BY snid) inneragg"
 
     ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-
-    ret = CdsMetricScore
-      .select('SUM(cds.numerator) AS sum')
-      .from('cds_metric_scores AS cds')
-      .joins('JOIN groups AS g ON g.id =  cds.group_id')
-      .joins('JOIN snapshots AS sn ON sn.id = cds.snapshot_id')
     return ret[0]['avg'].to_f.round(2)
   end
 
