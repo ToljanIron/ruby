@@ -27,12 +27,11 @@ class NetworkSnapshotDataController < ApplicationController
     permitted = params.permit(:interval, :group_name, :aid)
 
     cid = current_user.company_id
-    group_name = permitted[:group_name].sanitize_is_alphanumeric
+    group_name = permitted[:group_name].sanitize_is_string_with_space
     interval = permitted[:interval].sanitize_is_alphanumeric
-    aid = Algorithm.get_algorithm_id(permitted[:aid]..sanitize_integer)
+    aid = Algorithm.get_algorithm_id(permitted[:aid].sanitize_integer)
 
     cache_key = "get_dynamics_map-cid-#{cid}-group_name-#{group_name}-interval-#{interval}-aid-#{aid}"
-    puts "cache_key: #{cache_key}"
     res = cache_read(cache_key)
     if res.nil?
       res = get_dynamics_map_from_helper(cid, group_name, interval, aid)
