@@ -340,7 +340,7 @@ module ParamsToArgsHelper
   end
 
   def self.calculate_non_reciprocity_between_employees_to_args(args)
-    return AlgorithmsHelper.calculate_non_reciprocity_between_employees(args[:snapshot_id], args[:network_id], args[:network_b_id], args[:pid].to_i, args[:gid].to_i)
+    return AlgorithmsHelper.calculate_non_reciprocity_between_employees(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
   end
 
   def self.calculate_powerful_non_managers_to_args(args)

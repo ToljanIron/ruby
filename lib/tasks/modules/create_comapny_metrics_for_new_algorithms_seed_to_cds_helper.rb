@@ -47,10 +47,9 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: time_spent_in_meetings_measure_id, network_id: -1, company_id: cid, algorithm_id: 807, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by!(metric_id: recurring_meetings_id, network_id: -1, company_id: cid, algorithm_id: 808, algorithm_type_id: 1)
 
-    ####################### Interfaces ########################
+    ####################### Dynamics  #########################
     closeness_level_gauge_id = MetricName.find_or_create_by!(name: 'Closeness Level', company_id: cid).id
     synergy_level_gauge_id   = MetricName.find_or_create_by!(name: 'Synergy Level', company_id: cid).id
-
     bottleneck_id            = MetricName.find_or_create_by!(name: 'Bottlenecks', company_id: cid).id
     internal_champions_id    = MetricName.find_or_create_by!(name: 'Internal Champions', company_id: cid).id
     connectors_id            = MetricName.find_or_create_by!(name: 'Connectors', company_id: cid).id
@@ -59,7 +58,6 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
 
     CompanyMetric.find_or_create_by!(metric_id: closeness_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 200, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: synergy_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 201, algorithm_type_id: 5)
-
     CompanyMetric.find_or_create_by!(metric_id: bottleneck_id, network_id: -1, company_id: cid, algorithm_id: 203, algorithm_type_id: 2, active: true)
     CompanyMetric.find_or_create_by!(metric_id: internal_champions_id, network_id: -1, company_id: cid, algorithm_id: 204, algorithm_type_id: 1, active: true)
     CompanyMetric.find_or_create_by!(metric_id: isolate_id, network_id: -1, company_id: cid, algorithm_id: 205, algorithm_type_id: 1, active: true)
@@ -67,11 +65,13 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: deadends_id, network_id: -1, company_id: cid, algorithm_id: 207, algorithm_type_id: 1)
 
 
-    ####################### Dynamics  #########################
+    ####################### Interfaces ########################
     external_recievers_id  = MetricName.find_or_create_by!(name: 'External Receivers', company_id: cid).id
     external_senders_id    = MetricName.find_or_create_by!(name: 'External Senders', company_id: cid).id
+    non_reciprocity_id     = MetricName.find_or_create_by!(name: 'Non Reciprocity', company_id: cid).id
 
-    CompanyMetric.find_or_create_by!(metric_id: external_recievers_id, network_id: -1, company_id: cid, algorithm_id: 709, algorithm_type_id: 1)
-    CompanyMetric.find_or_create_by!(metric_id: external_senders_id, network_id: -1, company_id: cid, algorithm_id: 710, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: external_recievers_id, network_id: -1, company_id: cid, algorithm_id: 300, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: external_senders_id, network_id: -1, company_id: cid, algorithm_id: 310, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: non_reciprocity_id, network_id: -1, company_id: cid, algorithm_id: 311, algorithm_type_id: 1)
   end
 end

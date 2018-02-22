@@ -669,12 +669,17 @@ module AlgorithmsHelper
   ## Non-reciprocity here means the difference between sending emails and
   ## reciving emails from same employees.
   ##
+  ## The score between each pair of employees is between 1 and -1, where:
+  ##   0 - email traffic is same in both directions
+  ##   1 - Only sending
+  ##  -1 - Only receiving
+  ##
   ## 1 - select rows like:
   ##   {"from_employee_id"=>"1", "to_employee_id"=>"2", "outsum"=>"2", "diff"=>"0"}
   ##   where outsum are emp 1 outdegrees and diff is the difference between his
   ##   outdgree to emp 2 and the indgree from emp2
   ## 2 - for each entry calculate the ratio between indegree and outdgree
-  ## 3 - Sum for every employee, and return the result
+  ## 3 - Sum for every employee, and return the average
   ############################################################################
   def self.employees_email_non_reciprocity_scores(sid, pid, gid)
     cid = Snapshot.find(sid).company_id
@@ -705,6 +710,7 @@ module AlgorithmsHelper
             ORDER BY out.from_employee_id"
     outdegrees = ActiveRecord::Base.connection.select_all(sqlstr)
     outdegrees_hash = {}
+    number_of_emails = {}
     outdegrees.each do |indeg|
       ratio = -1
 
@@ -712,28 +718,38 @@ module AlgorithmsHelper
       ## It will return a negative number if the email traffix was less
       ## and positive diff otherwise.
       ratio = if indeg['diff'].nil?
+                outdegrees_hash[indeg['to_employee_id']] = -1
+                number_of_emails[indeg['to_employee_id']] = number_of_emails[indeg['to_employee_id']].nil? ? 0 : number_of_emails[indeg['to_employee_id']] + 1
                 1
-              elsif indeg['diff'].to_i <= 0
-                0
               else
                 (indeg['diff'].to_f / indeg['outsum'].to_f).round(2)
               end
 
       if outdegrees_hash[indeg['from_employee_id']].nil?
         outdegrees_hash[indeg['from_employee_id']] = ratio
+        number_of_emails[indeg['from_employee_id']] = 1
       else
         outdegrees_hash[indeg['from_employee_id']] += ratio
+        number_of_emails[indeg['from_employee_id']] += 1
       end
     end
 
     outdegrees_unique_hash = {}
     outdegrees_hash.each do |e|
-      outdegrees_unique_hash[e[0].to_s] = e[1]
+      outdegrees_unique_hash[e[0].to_s] = e[1].to_f / number_of_emails[e[0]]
     end
 
     return outdegrees_unique_hash
   end
 
+  def self.calculate_non_reciprocity_between_employees(sid, pid = NO_PIN, gid = NO_GROUP)
+    res = employees_email_non_reciprocity_scores(sid, pid, gid)
+    ret = []
+    res.each do |k, v|
+      ret << { id: k.to_i, measure: v }
+    end
+    return ret
+  end
 
   def self.find_empty_networks(sid, nid_1, nid_2, emps)
     NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_1, to_employee_id: emps, from_employee_id: emps).empty? && NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_2, to_employee_id: emps, from_employee_id: emps).empty?
@@ -741,26 +757,6 @@ module AlgorithmsHelper
 
   def self.find_empty_network_and_email(sid, nid_1, emps)
     NetworkSnapshotData.where(snapshot_id: sid, network_id: nid_1, to_employee_id: emps, from_employee_id: emps).empty?
-  end
-
-  def self.calculate_non_reciprocity_between_employees(sid, pid = NO_PIN, gid = NO_GROUP)
-    res = employees_email_non_reciprocity_scores(sid, pid, gid)
-    ret = []
-    res.each do |emp|
-      ret << { id: res['something'], measure: res['something_else'] }
-      raise "FIX ME !!"
-    end
-    return flagged_emps
-  end
-
-  def self.calculate_non_reciprocity_between_employees_explore(sid, pid = NO_PIN, gid = NO_GROUP)
-    emps, high_in_all_networks = employees_email_non_reciprocity_scores(sid, pid, gid)
-    v_res = []
-    emps.each do |emp|
-      s_measure = high_in_all_networks.call(emp) ? 1 : 0
-      v_res << { id: emp, measure: s_measure }
-    end
-    return v_res
   end
 
   def self.volume_json_to_array(v_email_degs)

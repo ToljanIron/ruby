@@ -439,4 +439,75 @@ describe AlgorithmsHelper, type: :helper do
       expect(res1[0][:measure]).to eq(res2[0][:measure])
     end
   end
+
+  describe 'calculate_non_reciprocity_between_employees' do
+    all = nil
+    nid = nil
+    before do
+      Company.find_or_create_by(id: 1, name: "Hevra10")
+      Snapshot.create!(id: 1, name: "2016-01", company_id: 1, timestamp: '2016-01-01 00:12:12')
+      nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
+
+      FactoryGirl.create(:group, id: 11, name: 'g1')
+      FactoryGirl.create(:employee, id: 1, group_id: 11)
+      FactoryGirl.create(:employee, id: 2, group_id: 11)
+      FactoryGirl.create(:employee, id: 3, group_id: 11)
+    end
+
+    it 'should be zero only if traffic is symetric' do
+      all = [
+        [0,3,3],
+        [3,0,2],
+        [1,2,0]]
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)
+      expect(res.find{ |r| r[:id] == 1}[:measure]).not_to eq(0)
+      expect(res.find{ |r| r[:id] == 2}[:measure]).to eq(0)
+      expect(res.find{ |r| r[:id] == 3}[:measure]).not_to eq(0)
+    end
+
+    it 'should be 1 and -1 if there is no reciprocity at all' do
+      all = [
+        [0,3,3],
+        [0,0,2],
+        [0,0,0]]
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)
+      expect(res.find{ |r| r[:id] == 1}[:measure]).to eq(1.0)
+      expect(res.find{ |r| r[:id] == 3}[:measure]).to eq(-1.0)
+    end
+
+    it 'should be 1 and -1 if there is no reciprocity at all' do
+      all = [
+        [0,3,3],
+        [3,0,2],
+        [2,2,0]]
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)
+      reciprocity0 = res.find{ |r| r[:id] == 1}[:measure]
+
+      all = [
+        [0,3,4],
+        [3,0,2],
+        [2,2,0]]
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)
+      reciprocity1 = res.find{ |r| r[:id] == 1}[:measure]
+
+      all = [
+        [0,3,4],
+        [1,0,2],
+        [2,2,0]]
+      fg_emails_from_matrix(all)
+      res = AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)
+      reciprocity2 = res.find{ |r| r[:id] == 1}[:measure]
+
+      expect(reciprocity0).to be < reciprocity1
+      expect(reciprocity1).to be < reciprocity2
+    end
+
+    it 'should not crash if there is no email trffic' do
+      expect{ AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)}.not_to raise_error
+    end
+  end
 end
