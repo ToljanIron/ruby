@@ -5,11 +5,12 @@ module MeasuresHelper
 
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
+  NON_RECIPROCITY_AIS = 311
 
   DYNAMICS_AIDS = [203, 205, 206, 207]
   DYNAMICS_AIDS_WITH_GROUPS = [204]
 
-  INTERFACES_AIDS = [300, 310]
+  INTERFACES_AIDS = [300, 301]
 
   EMAILS_VOLUME_AID = 707
   TIME_SPENT_IN_MEETINGS_AID = 806
@@ -132,6 +133,22 @@ module MeasuresHelper
   # Closeness level
   ################################################################
   def get_group_densities(cid, sids, current_gids, interval_type)
+    get_date_for_date_picker(cid, sids, current_gids, interval_type, CLOSENESS_AID)
+  end
+
+  ################################################################
+  # Non-reciprocity for date picker
+  ################################################################
+  def get_group_non_reciprocity(cid, sids, current_gids, interval_type)
+    get_date_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AIS)
+  end
+
+
+  ################################################################
+  # Get data for date picker.
+  #   - Total average for all employees in the give groups
+  ################################################################
+  def get_date_for_date_picker(cid, sids, current_gids, interval_type, aid)
     res = []
     interval_str = Snapshot.field_from_interval_type(interval_type)
 
@@ -164,7 +181,7 @@ module MeasuresHelper
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
                 g.external_id IN ('#{group_extids.join('\',\'')}') AND
-                cds.algorithm_id = #{CLOSENESS_AID}
+                cds.algorithm_id = #{aid}
               GROUP BY period"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
@@ -189,7 +206,6 @@ module MeasuresHelper
     res = res.sort { |a,b| Snapshot.compare_periods(a['time_period'],b['time_period']) }
     return res
   end
-
 
   def get_dynamics_stats_from_helper(cid, interval, gids, interval_type)
     res = {}
@@ -349,65 +365,82 @@ module MeasuresHelper
     return ret
   end
 
-  def get_interfaces_scores_from_helper(cid, sids, current_gids, interval_type, aggregator_type)
+  def get_interfaces_scores_from_helper(cid, interval, current_gids, interval_type, aggregator_type)
     if(aggregator_type === 'Department')
-      return get_interfaces_scores_for_departments(cid, sids, current_gids, interval_type)
+      return get_interfaces_scores_for_departments(cid, interval, current_gids, interval_type)
     elsif (aggregator_type === 'Offices')
-      return get_interfaces_scores_for_offices(cid, sids, interval_type)
+      return get_interfaces_scores_for_offices(cid, interval, interval_type)
     end
   end
 
-  def get_interfaces_scores_for_departments(cid, sids, current_gids, interval_type)
+  def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
 
-    res = []
-    groups = []
+    puts "))))))))))))))))))))))))))))))))))))"
+    puts "interval: #{interval}"
+    puts "current_gids: #{gids}"
+    puts "interval_type: #{interval_type}"
+    puts "))))))))))))))))))))))))))))))))))))"
 
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
 
-    # If empty gids - get the gid for the root - i.e. the company
-    if (current_gids.nil? || current_gids.length === 0)
-      gids << Group.get_root_group(cid)
-    else
-      groups = get_relevant_groups(sids, current_gids)
-      gids = groups.map{|g| g['id'].to_i}
+    groups_cond = '1 = 1'
+    if gids != nil
+      groupextids = Group.where(id: gids).pluck(:external_id)
+      groups_cond = "outg.external_id IN ('#{groupextids.join('\',\'')}')"
     end
 
-    # Interval larger than month - need to find latest sid - so we can display updated group names
-    groups = get_groups_for_most_recent_snapshot(sids, groups) if interval_type != 1
+    sqlstr = "
+      SELECT avg(outmost.inavg) AS group_hierarchy_avg, outmost.gextid AS group_extid,
+             outmost.group_name, outmost.algorithm_id AS algorithm_id, outmost.algorithm_name
+      FROM
+        (SELECT
+          (SELECT CASE WHEN SUM(denominator) = 0 THEN 0
+                  ELSE (SUM(numerator)/SUM(denominator))
+                  END AS percent
+           FROM groups as ing
+           JOIN employees AS inemps ON inemps.group_id = ing.id
+           JOIN cds_metric_scores AS incds ON incds.employee_id = inemps.id
+           WHERE
+             ing.nsleft >= outg.nsleft AND
+             ing.nsright <= outg.nsright AND
+             ing.snapshot_id = outg.snapshot_id AND
+             ing.external_id IN ('#{groupextids.join('\',\'')}') AND
+             inemps.snapshot_id = outg.snapshot_id AND
+             incds.algorithm_id = outcds.algorithm_id ) AS inavg,
+           outcds.snapshot_id AS sid, outg.external_id AS gextid, outg.english_name AS group_name,
+           outcds.algorithm_id AS algorithm_id, outmn.name AS algorithm_name
+         FROM cds_metric_scores AS outcds
+         JOIN employees AS outemps ON outemps.id = outcds.employee_id
+         JOIN groups AS outg ON outg.id = outemps.group_id
+         JOIN company_metrics AS outcm ON outcm.id = outcds.company_metric_id
+         JOIN algorithms AS outal ON outal.id = outcm.algorithm_id
+         INNER JOIN metric_names AS outmn ON outmn.id = outcm.metric_id
+         JOIN snapshots AS outsn ON outsn.id = outcds.snapshot_id
+         WHERE
+           #{groups_cond} AND
+           outsn.#{snapshot_field} = '#{interval}' AND
+           outcds.company_id = #{cid} AND
+           outcds.score > #{NA} AND
+           outcds.algorithm_id IN (#{INTERFACES_AIDS.join(',')})
+         GROUP BY outcds.snapshot_id, outg.external_id, outcds.algorithm_id, outg.nsleft, outg.nsright,
+                  outg.snapshot_id, outg.english_name, outmn.name
+         ) AS outmost
+      GROUP BY outmost.gextid, outmost.group_name, outmost.algorithm_id, outmost.algorithm_name
+      ORDER BY group_hierarchy_avg DESC"
 
-    sqlstr = "SELECT g.external_id AS group_name, algo.id AS algo_id, mn.name AS algo_name,
-                s.#{snapshot_field} AS period,
-                CASE
-                  when
-                  SUM(denominator) = 0 then 0
-                  else
-                  (SUM(numerator)/SUM(denominator))
-                  end AS score
-              FROM cds_metric_scores AS cds
-              JOIN snapshots AS s ON cds.snapshot_id = s.id
-              JOIN groups AS g ON g.id = cds.group_id
-              JOIN algorithms AS algo ON algo.id = cds.algorithm_id
-              JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
-              JOIN metric_names AS mn ON mn.id = cm.metric_id
-              WHERE
-                cds.snapshot_id IN (#{sids.join(',')}) AND
-                cds.group_id IN (#{gids.join(',')}) AND
-                cds.algorithm_id IN (#{INTERFACES_AIDS.join(',')}) AND
-                cds.company_id = #{cid}
-              GROUP BY group_name, algo_id, algo_name, period
-              ORDER BY period"
-
+    puts "----------------------------"
+    puts sqlstr
+    puts "----------------------------"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
+    res = []
     a_min_max = find_min_max_values_per_algorithm(INTERFACES_AIDS, sqlres)
     a_min_max.each do |a|
       sqlres.each do |entry|
         next if a['aid'] != entry['algo_id']
 
-        group = groups.find{|g| g['external_id'] === entry['group_name']}
-
         res << {
-          'groupName'   => !group.nil? ? group['name'] : entry['group_name'],
+          'groupName'   => entry['group_name'],
           'algoName'    => entry['algo_name'],
           'aid'         => entry['algo_id'],
           'curScore'    => entry['score'].to_f.round(2),

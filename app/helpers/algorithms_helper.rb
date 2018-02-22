@@ -2061,15 +2061,16 @@ module AlgorithmsHelper
     total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, ALL_COMPANY, gid, pid)
 
     received_from_outside_my_group = NetworkSnapshotData.select('nsd.to_employee_id AS id, count(*) AS measure')
-              .group('nsd.to_employee_id')
-              .order('nsd.to_employee_id')
               .from('network_snapshot_data AS nsd')
               .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
               .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
+              .where(nsd: {network_id: nid})
               .where("emps_from.group_id <> emps_to.group_id")
               .where.not(nsd: {from_employee_id: employee_ids})
               .where(nsd: {to_employee_id: employee_ids})
               .where(nsd: {snapshot_id: sid, company_id: cid})
+              .group('nsd.to_employee_id')
+              .order('nsd.to_employee_id')
               .map(&:attributes)
 
     received_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(received_from_outside_my_group))
@@ -2100,21 +2101,26 @@ module AlgorithmsHelper
     employee_ids = get_inner_select_as_arr(cid, pid, gid)
 
     total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, ALL_COMPANY, gid, pid)
-    
+
     sent_from_outside_my_group = NetworkSnapshotData.select('nsd.from_employee_id AS id, count(*) AS measure')
-              .group('nsd.from_employee_id')
-              .order('nsd.from_employee_id')
               .from('network_snapshot_data AS nsd')
               .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
               .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
+              .where(nsd: {network_id: nid})
               .where("emps_from.group_id <> emps_to.group_id")
               .where.not(nsd: {to_employee_id: employee_ids})
               .where(nsd: {from_employee_id: employee_ids})
               .where(emps_from: {group_id: gid})
               .where(nsd: {snapshot_id: sid, company_id: cid})
+              .group('nsd.from_employee_id')
+              .order('nsd.from_employee_id')
               .map(&:attributes)
+
+    puts "&&&&&&&&&&&&&&&&&&&&&&"
+    ap sent_from_outside_my_group
+    puts "&&&&&&&&&&&&&&&&&&&&&&"
     sent_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(sent_from_outside_my_group))
-    
+
     # Divide (sent to outside/total sent)
     relative_measures = calc_relative_measure_by_key(sent_from_outside_my_group, total_outdegree, 'id', 'measure')
 

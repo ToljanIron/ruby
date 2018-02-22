@@ -225,14 +225,12 @@ class MeasuresController < ApplicationController
     end
   end
 
-  # FIX ME - this controller returns the same data as dynamics - this is just for mocking
-  # the time picker in the interfaces tab - Michael - 22.10.17
   def get_interfaces_time_picker_data
     authorize :measure, :index?
     measures_return_result do
       sp = measures_params_sanitizer(params)
       measures_cache_result('get_interfaces_time_picker_data', sp) do
-        get_group_densities(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+        get_group_non_reciprocity(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
       end
     end
   end
@@ -242,7 +240,7 @@ class MeasuresController < ApplicationController
     measures_return_result do
       sp = measures_params_sanitizer(params)
       measures_cache_result('get_interfaces_scores', sp) do
-        get_interfaces_scores_from_helper(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
+        get_interfaces_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type], 'Department')
       end
     end
   end

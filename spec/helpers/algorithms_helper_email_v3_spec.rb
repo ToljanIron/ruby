@@ -355,7 +355,6 @@ describe AlgorithmsHelper, type: :helper do
       create_email_connection(@eid12, @eid13, INIT, TO_TYPE, @s.id, @cid, @n1.id)
 
       @res = calc_external_receivers(@s.id, gid2)
-      @res.each {|m| puts "#{m}\n"}
     end
 
     it 'should test higher external receiver' do

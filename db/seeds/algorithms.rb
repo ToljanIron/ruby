@@ -33,8 +33,8 @@ Algorithm.find_or_create_by!(id: 206, name: 'calculate_connectors', algorithm_ty
 Algorithm.find_or_create_by!(id: 207, name: 'deadends_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interfaces   ###############
-Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
-Algorithm.find_or_create_by!(id: 310, name: 'external_senders_measure', algorithm_type_id: 1, algorithm_flow_id: 2)
+Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 301, name: 'external_senders_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 311, name: 'calculate_non_reciprocity_between_employees_to_args', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interact ####################
