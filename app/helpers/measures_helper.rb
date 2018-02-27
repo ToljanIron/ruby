@@ -2,6 +2,7 @@ include SnapshotsHelper
 require './app/helpers/calculate_measure_for_custom_data_system_helper.rb'
 
 module MeasuresHelper
+  include CdsUtilHelper
 
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
@@ -373,82 +374,67 @@ module MeasuresHelper
     end
   end
 
+  def self.extids_cond(gids, table_name='groups')
+    return '1 = 1' if gids.try(:empty?)
+    cachekey = "groups_condition-#{gids.hash}-#{table_name.hash}"
+    return read_or_calculate_and_write(cachekey) do
+      groupextids = Group.where(id: gids).pluck(:external_id)
+      "#{table_name}.external_id IN ('#{groupextids.join('\',\'')}')"
+    end
+  end
+
   def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
-
-    puts "))))))))))))))))))))))))))))))))))))"
-    puts "interval: #{interval}"
-    puts "current_gids: #{gids}"
-    puts "interval_type: #{interval_type}"
-    puts "))))))))))))))))))))))))))))))))))))"
-
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
 
-    groups_cond = '1 = 1'
-    if gids != nil
-      groupextids = Group.where(id: gids).pluck(:external_id)
-      groups_cond = "outg.external_id IN ('#{groupextids.join('\',\'')}')"
-    end
-
     sqlstr = "
-      SELECT avg(outmost.inavg) AS group_hierarchy_avg, outmost.gextid AS group_extid,
-             outmost.group_name, outmost.algorithm_id AS algorithm_id, outmost.algorithm_name
-      FROM
-        (SELECT
-          (SELECT CASE WHEN SUM(denominator) = 0 THEN 0
-                  ELSE (SUM(numerator)/SUM(denominator))
-                  END AS percent
-           FROM groups as ing
-           JOIN employees AS inemps ON inemps.group_id = ing.id
-           JOIN cds_metric_scores AS incds ON incds.employee_id = inemps.id
-           WHERE
-             ing.nsleft >= outg.nsleft AND
-             ing.nsright <= outg.nsright AND
-             ing.snapshot_id = outg.snapshot_id AND
-             ing.external_id IN ('#{groupextids.join('\',\'')}') AND
-             inemps.snapshot_id = outg.snapshot_id AND
-             incds.algorithm_id = outcds.algorithm_id ) AS inavg,
-           outcds.snapshot_id AS sid, outg.external_id AS gextid, outg.english_name AS group_name,
-           outcds.algorithm_id AS algorithm_id, outmn.name AS algorithm_name
-         FROM cds_metric_scores AS outcds
-         JOIN employees AS outemps ON outemps.id = outcds.employee_id
-         JOIN groups AS outg ON outg.id = outemps.group_id
-         JOIN company_metrics AS outcm ON outcm.id = outcds.company_metric_id
-         JOIN algorithms AS outal ON outal.id = outcm.algorithm_id
-         INNER JOIN metric_names AS outmn ON outmn.id = outcm.metric_id
-         JOIN snapshots AS outsn ON outsn.id = outcds.snapshot_id
-         WHERE
-           #{groups_cond} AND
-           outsn.#{snapshot_field} = '#{interval}' AND
-           outcds.company_id = #{cid} AND
-           outcds.score > #{NA} AND
-           outcds.algorithm_id IN (#{INTERFACES_AIDS.join(',')})
-         GROUP BY outcds.snapshot_id, outg.external_id, outcds.algorithm_id, outg.nsleft, outg.nsright,
-                  outg.snapshot_id, outg.english_name, outmn.name
-         ) AS outmost
-      GROUP BY outmost.gextid, outmost.group_name, outmost.algorithm_id, outmost.algorithm_name
-      ORDER BY group_hierarchy_avg DESC"
-
-    puts "----------------------------"
-    puts sqlstr
-    puts "----------------------------"
+      SELECT outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive
+      FROM ( SELECT outg.id AS group_id, outg.name AS group_name,
+               (SELECT COUNT(*)
+                FROM network_snapshot_data AS nsd
+                JOIN employees AS inemps ON inemps.id = nsd.from_employee_id
+                JOIN employees AS outemps ON outemps.id = nsd.to_employee_id
+                JOIN groups AS ingroups ON ingroups.id = inemps.group_id
+                JOIN groups AS outgroups ON outgroups.id = outemps.group_id
+                WHERE
+                  (ingroups.nsleft >= outg.nsleft AND ingroups.nsright <= outg.nsright) AND
+                  (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
+                  #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
+                  nsd.snapshot_id = outsn.id) AS insend,
+               (SELECT COUNT(*)
+                FROM network_snapshot_data as NSD
+                JOIN employees AS inemps ON inemps.id = nsd.to_employee_id
+                JOIN employees AS outemps ON outemps.id = nsd.from_employee_id
+                JOIN groups AS ingroups ON ingroups.id = inemps.group_id
+                JOIN groups AS outgroups ON outgroups.id = outemps.group_id
+                WHERE
+                  (ingroups.nsleft >= outg.nsleft AND ingroups.nsright <= outg.nsright) AND
+                  (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
+                  #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
+                  nsd.snapshot_id = outsn.id) AS inreceive
+             FROM groups AS outg
+             JOIN snapshots AS outsn ON outsn.id = outg.snapshot_id
+             WHERE
+               #{MeasuresHelper.extids_cond(gids, 'outg')} AND
+               outsn.#{snapshot_field} = '#{interval}' AND
+               outg.company_id = #{cid}) AS outmost
+      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive
+      ORDER BY outmost.insend DESC
+      LIMIT 100"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
     res = []
-    a_min_max = find_min_max_values_per_algorithm(INTERFACES_AIDS, sqlres)
-    a_min_max.each do |a|
-      sqlres.each do |entry|
-        next if a['aid'] != entry['algo_id']
+    sqlres.each do |entry|
+      snd = entry['insend'].to_f
+      rcv = entry['inreceive'].to_f
+      all = snd + rcv
+      next if all == 0
 
-        res << {
-          'groupName'   => entry['group_name'],
-          'algoName'    => entry['algo_name'],
-          'aid'         => entry['algo_id'],
-          'curScore'    => entry['score'].to_f.round(2),
-          'time_period' => entry['period'],
-          'min'         => a['min'].to_f.round(2),
-          'max'         => a['max'].to_f.round(2)
-        }
-      end
+      res << {
+        'name' => entry['group_name'],
+        'sending'   => (100 * snd / all).to_f.round(1),
+        'receiving' => (100 * rcv / all).to_f.round(1),
+        'volume'    => all
+      }
     end
     return res
   end

@@ -147,7 +147,8 @@ module CdsUtilHelper
     Rails.cache.clear if to_cache?
   end
 
-  def read_or_calculate_and_write(key) # takes a block, a returned value of which will be written to cache and returned
+  # takes a block, a returned value of which will be written to cache and returned
+  def read_or_calculate_and_write(key)
     result = cache_read(key)
     return result unless result.nil?
     result = yield
