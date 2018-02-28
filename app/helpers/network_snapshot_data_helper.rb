@@ -1,8 +1,107 @@
 # module NetworkSnapshotNodesHelper
 module NetworkSnapshotDataHelper
+  include AlgorithmsHelper
 
   NO_SNAPSHOT = -1
 
+  ##################### Map for Interfaces ##################################
+
+  ##########################################################################
+  # We're using some sciruby code here because the calculations
+  #   are clearer when carried out with linear algebra tools.
+  #
+  # e_num - number of employees
+  # g_num - 1 + the number of sister groups of gid
+  #
+  # Get all sister groups of gid, for each one get all employees in its
+  #   hierarchy and create a matrix g of shape (e_num, g_num) showing which
+  #   employees belongs to which hierarchy.
+  #
+  # Get the adjacency matrix of the emails traffic. This matrix is called e
+  #   and has shape (e_num, e_num)
+  #
+  # Calculate traffic volumes among the groups by this matrix multiplication:
+  #    gg = g.T x e x g
+  #
+  # We then normalize the various volumes into sizes of 1 to 6.
+  #
+  ###########################################################################
+  def get_interfaces_map(cid, interval, cgid)
+    snapshot_field = Snapshot.field_from_interval(interval)
+    sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
+    nid = NetworkName.get_emails_network(cid)
+    cg  = Group.find(cgid)
+
+    ## Get adjacency matrix object from algorithms_helper
+    sagraph = get_sagraph(sid, nid, cg.parent_group_id)
+    e = sagraph[:adjacencymat]
+
+    ## Get all sister groups
+    groups = Group.select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col, g.snapshot_id")
+            .from('groups AS g')
+            .joins("JOIN colors AS col ON col.id = g.color_id")
+            .where("g.parent_group_id = ?", cg.parent_group_id)
+            .where("g.snapshot_id = ?", sid)
+
+    ## Create groups indexes
+    grp2inx = {}
+    inx2grp = {}
+    groups.each_with_index do |group, inx|
+      grp2inx[group.id] = inx
+      inx2grp[inx] = group.id
+    end
+
+    ## Create the membership matrix. It is not the one we get from get_sagraph
+    ##  because we restrict to all L2 groups, not below.
+    g = NMatrix.zeros([e.shape[0], groups.length], dtype: :int64)
+    groups.each do |group|
+      col = grp2inx[group.id]
+      eids = group.extract_employees
+      eids.each do |eid|
+        row = sagraph[:emp2inx][eid]
+        g[row,col] = 1
+      end
+    end
+
+    ## Now we can calculate the volumes among the groups
+    gg = g.transpose.dot(e).dot(g)
+
+    ## Place the results in a proper strucuture
+    gids = groups.map { |gr| gr.id }
+
+    links = []
+    max = 0
+    min = 10000000
+    gg.each_with_indices do |val, row, col|
+      next if row == col
+      next if val == 0
+      next if !gids.include?(inx2grp[row])
+      next if !gids.include?(inx2grp[col])
+      max = val if val > max
+      min = val if val < min
+      links << {
+        source: inx2grp[row],
+        target: inx2grp[col],
+        volume: val
+      }
+    end
+
+    ## Normalize the volume numbers to a 1-6 scale
+    interval = (max - min).to_f
+    links.each do |l|
+      vol = l[:volume]
+      l[:volume] = (5 * (vol / interval)).ceil
+    end
+
+    return {
+      links: links,
+      nodes: groups,
+      selected_group: cgid
+    }
+  end
+
+
+  ##################### Map for Dynamics ##################################
   def get_dynamics_employee_map_from_helper(cid, eid, interval, aid)
     snapshot_field = Snapshot.field_from_interval(interval)
     sid = Employee.find(eid).snapshot_id
@@ -105,7 +204,7 @@ module NetworkSnapshotDataHelper
     links = nil
 
     if (empids.length > max_emps)
-      nodes = get_groups_for_map(empids, last_sid, group)
+      nodes = get_groups_for_map(last_sid, group)
       links = get_group_links_for_map(empids, snapshot_field, interval, last_sid)
     else
       result_type = 'emps'
@@ -123,7 +222,7 @@ module NetworkSnapshotDataHelper
 
   ## For groups with more than max_emps employees use this to get nodes
   ## which are groups
-  def get_groups_for_map(empids, sid, group)
+  def get_groups_for_map(sid, group)
     gids = group.extract_descendants_ids_and_self
     nodes = Group
             .select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col")
@@ -212,6 +311,7 @@ module NetworkSnapshotDataHelper
     end
     return links
   end
+  ################################################################################
 
   def format_snapshot(p, i)
     {
@@ -325,7 +425,7 @@ module NetworkSnapshotDataHelper
       when p90..max_weight
         weight_res[index] = 6
       else
-        puts 'create_weight_to_netowrk_node - Error: problem in calculate the weight'
+        raise 'create_weight_to_netowrk_node - Error: problem in calculate the weight'
       end
     end
     weight_res

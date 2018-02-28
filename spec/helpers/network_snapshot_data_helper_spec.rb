@@ -139,4 +139,92 @@ describe NetworkSnapshotDataHelper, type: :helper do
       expect(NetworkSnapshotData.find(16).significant_level).to eq 'sporadic'
     end
   end
+
+  describe 'get_interfaces_map' do
+    cid = 1
+    sid = 1
+    res = nil
+    links_hash = {}
+
+    before :all do
+
+      Company.create!(id: cid, name: "Hevra10")
+      Snapshot.create!(id: sid, name: "2016-01", company_id: cid, month: 'Jul/17', timestamp: '2017-07-11')
+      NetworkName.create!(id: 1, name: "Communication Flow", company_id: cid).id
+      Color.create!(id: 1, rgb: 'red')
+      Color.create!(id: 2, rgb: 'green')
+      Color.create!(id: 3, rgb: 'blue')
+
+      Group.create!(id: 0, name: "root", company_id: cid, snapshot_id: sid, english_name: "root")
+      Group.create!(id: 9, name: "subroot", company_id: cid, parent_group_id: 0,  snapshot_id: sid, english_name: "subroot")
+      Group.create!(id: 1, name: "sister1", company_id: cid, parent_group_id: 9, color_id: 1, snapshot_id: sid, english_name: "sister1")
+      Group.create!(id: 2, name: "sister2", company_id: cid, parent_group_id: 9, color_id: 2, snapshot_id: sid, english_name: "sister2")
+      Group.create!(id: 3, name: "sister3", company_id: cid, parent_group_id: 9, color_id: 3, snapshot_id: sid, english_name: "sister3")
+      Group.create!(id: 4, name: "sister4", company_id: cid, parent_group_id: 9, color_id: 1, snapshot_id: sid, english_name: "sister4")
+      Group.create!(id: 5, name: "loner",   company_id: cid, parent_group_id: 0, color_id: 3, snapshot_id: sid, english_name: "loner")
+
+      all = [
+      ## groups:
+      ##   1 1 2 2 3 3 4 4 5 5
+          [0,9,1,1,1,2,1,0,2,2], # 1
+          [4,0,0,1,0,0,0,1,9,0], # 1
+          [2,2,0,0,1,0,0,0,0,0], # 2
+          [1,1,0,0,0,0,0,0,0,0], # 2
+          [2,0,1,1,0,8,1,1,0,0], # 3
+          [1,0,0,1,0,0,1,1,8,0], # 3
+          [1,0,0,0,1,0,0,5,8,0], # 4
+          [0,2,0,0,1,1,5,0,0,0], # 4
+          [1,0,1,0,2,0,0,2,0,2], # 5
+          [0,2,0,2,0,0,0,2,4,0]] # 5
+      create_emps('moshe', 'acme.com', 10, {snapshot_id: sid})
+      Employee.all.each { |e| e.update!(group_id: (5 * e.id / 10.0).ceil) }
+      fg_emails_from_matrix(all)
+
+      res = NetworkSnapshotDataHelper.get_interfaces_map(1, "Jul/17", 2)
+      res[:links].each do |l|
+        links_hash[[l[:source], l[:target]]] = l[:volume]
+      end
+    end
+
+    after :all do
+      DatabaseCleaner.clean_with(:truncation)
+    end
+
+    it 'should have only values between 1 and 6' do
+      res[:links].each do |l|
+        expect(l[:volume]).to be >= 1
+        expect(l[:volume]).to be <= 6
+      end
+    end
+
+    it 'groups with the most traffic should have score 6' do
+      expect( links_hash[[2,1]] ).to eq 6
+    end
+
+    it 'groups with the list traffic should have score 1' do
+      expect( links_hash[[2,3]] ).to eq 1
+    end
+
+    it 'there should be no link for groups without traffic' do
+      expect( links_hash[[2,4]] ).to be_nil
+      expect( links_hash[[4,2]] ).to be_nil
+    end
+
+    it 'groups with more traffic than other groups should have a bigger score' do
+      expect( links_hash[[3,4]] ).to be > links_hash[[4,3]]
+    end
+
+    it 'should be well formatted' do
+      expect( res[:nodes]).not_to be_nil
+      expect( res[:nodes][0][:col] ).to eq 'red'
+      expect( res[:selected_group] ).to eq 2
+    end
+
+    it 'should not fail for groups with no sisters' do
+      empty_res = NetworkSnapshotDataHelper.get_interfaces_map(1, "Jul/17", 5)
+      expect( empty_res[:links].length ).to eq 0
+      expect( empty_res[:nodes].length ).to eq 1
+      expect( empty_res[:selected_group] ).to eq 5
+    end
+  end
 end

@@ -35,7 +35,10 @@ class Group < ActiveRecord::Base
     cache_key = "Group.extract_employees-#{id}"
     res = cache_read(cache_key)
     if res.nil?
-      res = Employee.by_snapshot(snapshot_id).where(group_id: extract_descendants_ids_and_self, active: true).pluck(:id)
+      res = Employee
+              .by_snapshot(snapshot_id)
+              .where(group_id: extract_descendants_ids_and_self, active: true)
+              .pluck(:id)
       cache_write(cache_key, res)
     end
     res
