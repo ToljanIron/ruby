@@ -1,25 +1,12 @@
 Workships::Application.routes.draw do
 
 
-  #get 'backend_v_two/load_csv'
-
-  #resources :company_configuration_tables
-  #get 'log/getlog'
-  #mount JasmineRails::Engine => '/specs' if defined?(JasmineRails)
-  #resources :users
-  #resources :app_viewrs
   resources :sessions, only: [:new, :create, :destroy, :forgot_password, :set_password, :signin]
 
   root to: redirect('/v2')
 
-  #get   '/questionnaire/',              to: 'application#show_mobile'
   get   '/robots.txt',                  to: 'application#robots'
   get   '/signin',                      to: 'sessions#signin'
-  #get   '/signout',                     to: 'sessions#destroy'
-  #get   '/v2/backend',                  to: 'backend_v_two#load_csv'
-  #get   '/backend',                     to: 'utils#backend'
-  #post  '/upload_csv',                  to: 'utils#upload_csv_v2'
-  #post  '/upload_excel',                to: 'utils#upload_excel'
   get   '/qqq',                         to: 'utils#qqq'
 
   get   '/get_questionnaires',             to: 'mobile/questionnaire#get_questionnaires_for_settings_tab'
@@ -29,12 +16,6 @@ Workships::Application.routes.draw do
   get     '/API/signout',               to: 'sessions#destroy'
 
   post    '/API/import_emails',         to: 'raw_data_entries#import_emails'
-
-  #post    '/API/export_to_csv',         to: 'clients#export_to_csv'
-  #post    '/API/init_report_xls',       to: 'utils#init_report_xls'
-  #get     '/API/export_xls',            to: 'utils#export_xls'
-  #get     '/API/download_interact',     to: 'utils#download_interact_report'
-
   post    '/API/import_meetings',       to: 'raw_meetings_data#import_meetings'
 
   ############ mobile ###############
@@ -107,6 +88,7 @@ Workships::Application.routes.draw do
   # Interfaces
   get 'v3/get_interfaces_time_picker_data'   ,to: 'measures#get_interfaces_time_picker_data'
   get 'v3/get_interfaces_scores'             ,to: 'measures#get_interfaces_scores'
+  get 'v3/get_interfaces_map'                ,to: 'network_snapshot_data#get_interfaces_map'
 
   # Alerts
   get 'v3/get_alerts'                        ,to: 'alerts#get_alerts'

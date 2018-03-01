@@ -430,6 +430,7 @@ module MeasuresHelper
       next if all == 0
 
       res << {
+        'gid' => entry['group_id'],
         'name' => entry['group_name'],
         'sending'   => (100 * snd / all).to_f.round(1),
         'receiving' => (100 * rcv / all).to_f.round(1),

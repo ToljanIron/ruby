@@ -26,7 +26,7 @@ module NetworkSnapshotDataHelper
   # We then normalize the various volumes into sizes of 1 to 6.
   #
   ###########################################################################
-  def get_interfaces_map(cid, interval, cgid)
+  def get_interfaces_map_from_helper(cid, interval, cgid)
     snapshot_field = Snapshot.field_from_interval(interval)
     sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
     nid = NetworkName.get_emails_network(cid)
