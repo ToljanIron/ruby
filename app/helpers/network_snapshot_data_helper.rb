@@ -70,27 +70,17 @@ module NetworkSnapshotDataHelper
     gids = groups.map { |gr| gr.id }
 
     links = []
-    max = 0
-    min = 10000000
     gg.each_with_indices do |val, row, col|
-      next if row == col
       next if val == 0
       next if !gids.include?(inx2grp[row])
       next if !gids.include?(inx2grp[col])
-      max = val if val > max
-      min = val if val < min
+      #max = val if val > max
+      #min = val if val < min
       links << {
         source: inx2grp[row],
         target: inx2grp[col],
         volume: val
       }
-    end
-
-    ## Normalize the volume numbers to a 1-6 scale
-    interval = (max - min).to_f
-    links.each do |l|
-      vol = l[:volume]
-      l[:volume] = (5 * (vol / interval)).ceil
     end
 
     return {

@@ -180,7 +180,7 @@ describe NetworkSnapshotDataHelper, type: :helper do
       Employee.all.each { |e| e.update!(group_id: (5 * e.id / 10.0).ceil) }
       fg_emails_from_matrix(all)
 
-      res = NetworkSnapshotDataHelper.get_interfaces_map(1, "Jul/17", 2)
+      res = NetworkSnapshotDataHelper.get_interfaces_map_from_helper(1, "Jul/17", 2)
       res[:links].each do |l|
         links_hash[[l[:source], l[:target]]] = l[:volume]
       end
@@ -192,17 +192,24 @@ describe NetworkSnapshotDataHelper, type: :helper do
 
     it 'should have only values between 1 and 6' do
       res[:links].each do |l|
-        expect(l[:volume]).to be >= 1
-        expect(l[:volume]).to be <= 6
+        expect(l[:volume]).to be >= 0
+        expect(l[:volume]).to be <= 20 
       end
     end
 
     it 'groups with the most traffic should have score 6' do
-      expect( links_hash[[2,1]] ).to eq 6
+      links_hash.each do |k,v|
+        ## Compare only traffic volumes outside the group
+        expect( links_hash[[2,1]] ).to  be >= v if k[0] != k[1]
+      end
     end
 
     it 'groups with the list traffic should have score 1' do
       expect( links_hash[[2,3]] ).to eq 1
+      links_hash.each do |k,v|
+        ## Compare only traffic volumes outside the group
+        expect( links_hash[[2,3]] ).to  be <= v if k[0] != k[1]
+      end
     end
 
     it 'there should be no link for groups without traffic' do
@@ -221,8 +228,8 @@ describe NetworkSnapshotDataHelper, type: :helper do
     end
 
     it 'should not fail for groups with no sisters' do
-      empty_res = NetworkSnapshotDataHelper.get_interfaces_map(1, "Jul/17", 5)
-      expect( empty_res[:links].length ).to eq 0
+      empty_res = NetworkSnapshotDataHelper.get_interfaces_map_from_helper(1, "Jul/17", 5)
+      expect( empty_res[:links].length ).to eq 1
       expect( empty_res[:nodes].length ).to eq 1
       expect( empty_res[:selected_group] ).to eq 5
     end
