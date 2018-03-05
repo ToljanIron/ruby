@@ -179,7 +179,7 @@ class MeasuresController < ApplicationController
     authorize :measure, :index?
     measures_return_result do
       sp = measures_params_sanitizer(params)
-      measures_cache_result('get_meetings_stats', sp) do
+      measures_cache_result('get_meetings_time_picker', sp) do
         get_time_spent_in_meetings(sp[:cid], sp[:sids], sp[:gids], sp[:interval_type])
       end
     end
@@ -221,6 +221,16 @@ class MeasuresController < ApplicationController
       sp = measures_params_sanitizer(params)
       measures_cache_result('get_dynamics_employee_scores', sp) do
         get_dynamics_employee_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type])
+      end
+    end
+  end
+
+  def get_interfaces_stats
+    authorize :measure, :index?
+    measures_return_result do
+      sp = measures_params_sanitizer(params)
+      measures_cache_result('get_interfaces_stats', sp) do
+        get_interfaces_stats_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type])
       end
     end
   end

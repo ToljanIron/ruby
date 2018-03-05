@@ -89,6 +89,7 @@ Workships::Application.routes.draw do
   get 'v3/get_interfaces_time_picker_data'   ,to: 'measures#get_interfaces_time_picker_data'
   get 'v3/get_interfaces_scores'             ,to: 'measures#get_interfaces_scores'
   get 'v3/get_interfaces_map'                ,to: 'network_snapshot_data#get_interfaces_map'
+  get 'v3/get_interfaces_stats'              ,to: 'measures#get_interfaces_stats'
 
   # Alerts
   get 'v3/get_alerts'                        ,to: 'alerts#get_alerts'

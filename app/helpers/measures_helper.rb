@@ -6,7 +6,7 @@ module MeasuresHelper
 
   CLOSENESS_AID = 200
   SYNERGY_AID = 201
-  NON_RECIPROCITY_AIS = 311
+  NON_RECIPROCITY_AID = 311
 
   DYNAMICS_AIDS = [203, 205, 206, 207]
   DYNAMICS_AIDS_WITH_GROUPS = [204]
@@ -137,11 +137,24 @@ module MeasuresHelper
     get_date_for_date_picker(cid, sids, current_gids, interval_type, CLOSENESS_AID)
   end
 
+  def get_interfaces_stats_from_helper(cid, currsid, gids, interval_type)
+    interval_str = Snapshot.field_from_interval_type(interval_type)
+    sid = Snapshot
+            .where(company_id: cid)
+            .where("#{interval_str} = '#{currsid}'")
+            .order("timestamp desc")
+            .pluck(:id)
+    res = get_data_for_date_picker(cid, sid, gids, interval_type, NON_RECIPROCITY_AID, false)
+    return {
+      closeness: res[0]['score'],
+    }
+  end
+
   ################################################################
   # Non-reciprocity for date picker
   ################################################################
   def get_group_non_reciprocity(cid, sids, current_gids, interval_type)
-    get_date_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AIS)
+    get_data_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AID)
   end
 
 
@@ -149,7 +162,7 @@ module MeasuresHelper
   # Get data for date picker.
   #   - Total average for all employees in the give groups
   ################################################################
-  def get_date_for_date_picker(cid, sids, current_gids, interval_type, aid)
+  def get_data_for_date_picker(cid, sids, current_gids, interval_type, aid, normalize=true)
     res = []
     interval_str = Snapshot.field_from_interval_type(interval_type)
 
@@ -173,11 +186,10 @@ module MeasuresHelper
         .distinct
         .map { |s| s['interval'] }
 
-    num_of_emps = Employee.where(group_id: current_gids).count
-
     sqlstr = "SELECT AVG(score) AS score_avg, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
-              JOIN groups AS g ON g.id = cds.group_id
+              JOIN employees AS emps ON emps.id = cds.employee_id
+              JOIN groups AS g ON g.id = emps.group_id
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
@@ -186,18 +198,21 @@ module MeasuresHelper
               GROUP BY period"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
-    sqlres.each do |r|
-      r['score'] = r['score_avg'].to_f / num_of_emps
-    end
-
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum
-    #min_entry = sqlres.min {|a,b| a['score'] <=> b['score']} if !score
-    #min = min_entry['score'] if !min_entry.nil?
+    sqlres2 = sqlres.map { |r|
+      r[:score_avg] = r['score_avg'].to_f.round(2)
+      r
+    }
 
-    sqlres.each do |entry|
-      score = entry['score'].to_f.round(2) + min.abs.to_f.round(2)
-      score = score
+    if normalize
+      min_entry = sqlres2.min {|a,b| a[:score_avg] <=> b[:score_avg]}
+      min = min_entry[:score_avg] if !min_entry.nil?
+    end
+
+    sqlres2.each do |entry|
+      score = entry[:score_avg].to_f + min.abs.to_f
+      score = score.round(2)
       res << {
         'score'       => score,
         'time_period' => entry['period']
