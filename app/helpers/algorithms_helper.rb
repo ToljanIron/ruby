@@ -1068,8 +1068,6 @@ module AlgorithmsHelper
       GROUP BY empid
       ORDER BY totalscore ASC"
 
-      puts sqlstr
-
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     res.each do |e|
       eid = e['empid']
@@ -1561,6 +1559,33 @@ module AlgorithmsHelper
     eids = Group.find(gid).extract_employees.sort
     gids = Group.get_all_subgroups(gid)
 
+    emps_structures = get_sagraph_block_from_eids(sid, nid, eids)
+    emp2inx = emps_structures[:emp2inx]
+    inx2emp = emps_structures[:inx2emp]
+    adjacencymat = emps_structures[:adjacencymat]
+
+    ## group indexes
+    inx2grp = {}
+    grp2inx = {}
+    gids.each do |id|
+      grp2inx[id] = inx2grp.size
+      inx2grp[inx2grp.size] = id
+    end
+
+    ## Popoulate group membership matrix
+    memmat = get_sa_membership_matrix(emp2inx, grp2inx, gids)
+
+    return {
+      emp2inx: emp2inx,
+      inx2emp: inx2emp,
+      adjacencymat: adjacencymat,
+      grp2inx: grp2inx,
+      inx2grp: inx2grp,
+      membershipmat: memmat
+    }
+  end
+
+  def get_sagraph_block_from_eids(sid, nid, eids)
     dim = eids.length
 
     edges = NetworkSnapshotData
@@ -1581,25 +1606,10 @@ module AlgorithmsHelper
     end
     adjacencymat = NMatrix.new([dim, dim], allarr, dtype: :float32)
     adjacencymat = set_one_on_diagonal_of_empty_rows(adjacencymat)
-
-    ## group indexes
-    inx2grp = {}
-    grp2inx = {}
-    gids.each do |id|
-      grp2inx[id] = inx2grp.size
-      inx2grp[inx2grp.size] = id
-    end
-
-    ## Popoulate group membership matrix
-    memmat = get_sa_membership_matrix(emp2inx, grp2inx, gids)
-
     return {
       emp2inx: emp2inx,
       inx2emp: inx2emp,
-      adjacencymat: adjacencymat,
-      grp2inx: grp2inx,
-      inx2grp: inx2grp,
-      membershipmat: memmat
+      adjacencymat: adjacencymat
     }
   end
 

@@ -134,7 +134,7 @@ module MeasuresHelper
   # Closeness level
   ################################################################
   def get_group_densities(cid, sids, current_gids, interval_type)
-    get_date_for_date_picker(cid, sids, current_gids, interval_type, CLOSENESS_AID)
+    get_data_for_date_picker(cid, sids, current_gids, interval_type, CLOSENESS_AID)
   end
 
   def get_interfaces_stats_from_helper(cid, currsid, gids, interval_type)
@@ -144,7 +144,7 @@ module MeasuresHelper
             .where("#{interval_str} = '#{currsid}'")
             .order("timestamp desc")
             .pluck(:id)
-    res = get_data_for_date_picker(cid, sid, gids, interval_type, NON_RECIPROCITY_AID, false)
+    res = get_data_for_date_picker(cid, sid, gids, interval_type, NON_RECIPROCITY_AID, false, false)
     return {
       closeness: res[0]['score'],
     }
@@ -154,7 +154,7 @@ module MeasuresHelper
   # Non-reciprocity for date picker
   ################################################################
   def get_group_non_reciprocity(cid, sids, current_gids, interval_type)
-    get_data_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AID)
+    get_data_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AID, true, false)
   end
 
 
@@ -162,7 +162,7 @@ module MeasuresHelper
   # Get data for date picker.
   #   - Total average for all employees in the give groups
   ################################################################
-  def get_data_for_date_picker(cid, sids, current_gids, interval_type, aid, normalize=true)
+  def get_data_for_date_picker(cid, sids, current_gids, interval_type, aid, normalize=true, is_gauge=true)
     res = []
     interval_str = Snapshot.field_from_interval_type(interval_type)
 
@@ -186,10 +186,17 @@ module MeasuresHelper
         .distinct
         .map { |s| s['interval'] }
 
+    join_part = "
+              JOIN employees AS emps ON emps.id = cds.employee_id
+              JOIN groups AS g ON g.id = emps.group_id"
+
+    if is_gauge
+      join_part = " JOIN groups AS g ON g.id = cds.group_id"
+    end
+
     sqlstr = "SELECT AVG(score) AS score_avg, s.#{interval_str} AS period
               FROM cds_metric_scores AS cds
-              JOIN employees AS emps ON emps.id = cds.employee_id
-              JOIN groups AS g ON g.id = emps.group_id
+              #{join_part}
               JOIN snapshots AS s ON cds.snapshot_id = s.id
               WHERE
                 s.#{interval_str} IN ('#{intervals.join('\',\'')}') AND
@@ -595,8 +602,6 @@ module MeasuresHelper
           'groupName'   => group_name,
           'officeName'  => entry['officename'],
         }
-
-        puts "min: #{min}"
 
         if(min < 0) # shift scores up if negative min
           h['min'] = 0

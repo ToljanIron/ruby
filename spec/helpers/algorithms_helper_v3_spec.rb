@@ -199,7 +199,6 @@ describe AlgorithmsHelper, type: :helper do
 
       it 'should be well formed' do
         m = get_sa_membership_matrix(emp2inx, group2inx, gids)
-        ap m
         expect(m.shape).to eq([8,4])
         expect(m.column(2).to_a.flatten).to eq([0,0,0,0,0,0,0,0])
         expect(m.row(2).to_a).to eq([0,1,0,0])
