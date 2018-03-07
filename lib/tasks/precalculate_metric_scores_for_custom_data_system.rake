@@ -54,8 +54,8 @@ namespace :db do
           puts "========================> sid: #{sid}, aid: #{aid}"
           PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(1, -1, -1, aid, sid, true)
         end
-        PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(1, sid, true)
-        PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(1, sid, true)
+        #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(1, sid, true)
+        #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(1, sid, true)
       end
     end
 
