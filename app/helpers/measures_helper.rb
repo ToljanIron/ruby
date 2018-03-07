@@ -129,7 +129,6 @@ module MeasuresHelper
     return res
   end
 
-
   ################################################################
   # Closeness level
   ################################################################
@@ -137,24 +136,42 @@ module MeasuresHelper
     get_data_for_date_picker(cid, sids, current_gids, interval_type, CLOSENESS_AID)
   end
 
-  def get_interfaces_stats_from_helper(cid, currsid, gids, interval_type)
-    interval_str = Snapshot.field_from_interval_type(interval_type)
-    sid = Snapshot
-            .where(company_id: cid)
-            .where("#{interval_str} = '#{currsid}'")
-            .order("timestamp desc")
-            .pluck(:id)
-    res = get_data_for_date_picker(cid, sid, gids, interval_type, NON_RECIPROCITY_AID, false, false)
+  ###############################################################
+  # It's the same numbers as in the main widget only averated out
+  # over all groups.
+  ###############################################################
+  def get_interfaces_stats_from_helper(cid, interval, gids, interval_type)
+    res = get_interfaces_scores_for_departments_cached(cid, interval, gids, interval_type)
+
+    score = 0
+    res.each { |r| score += r['receiving']}
+
     return {
-      closeness: res[0]['score'],
+      closeness: (score.to_f / res.length).round(2)
     }
   end
 
   ################################################################
-  # Non-reciprocity for date picker
+  # It's the same numbers as in the main widget only averaged out
+  # and spread over snapshots.
   ################################################################
   def get_group_non_reciprocity(cid, sids, current_gids, interval_type)
-    get_data_for_date_picker(cid, sids, current_gids, interval_type, NON_RECIPROCITY_AID, true, false)
+    ret = []
+
+    ret = sids.map do |sid|
+      interval = Snapshot.interval_from_sid(sid, interval_type)
+      res = get_interfaces_scores_for_departments_cached(cid, interval, current_gids, interval_type)
+
+      score = 0
+      res.each { |r| score += r['receiving'] / 100.0 }
+
+      {
+        time_period: interval,
+        score: (score.to_f / res.length).round(2)
+      }
+    end
+
+    return ret
   end
 
 
@@ -390,7 +407,7 @@ module MeasuresHelper
 
   def get_interfaces_scores_from_helper(cid, interval, current_gids, interval_type, aggregator_type)
     if(aggregator_type === 'Department')
-      return get_interfaces_scores_for_departments(cid, interval, current_gids, interval_type)
+      return get_interfaces_scores_for_departments_cached(cid, interval, current_gids, interval_type)
     elsif (aggregator_type === 'Offices')
       return get_interfaces_scores_for_offices(cid, interval, interval_type)
     end
@@ -403,6 +420,17 @@ module MeasuresHelper
       groupextids = Group.where(id: gids).pluck(:external_id)
       "#{table_name}.external_id IN ('#{groupextids.join('\',\'')}')"
     end
+  end
+
+  def get_interfaces_scores_for_departments_cached(cid, interval, gids, interval_type)
+    puts "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1"
+    puts "interval: #{interval}, interval_type: #{interval_type}"
+    puts "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1"
+    key = "interfaces-scores-for-dept-#{cid}-#{interval}-#{gids}-#{interval_type}"
+    ret = read_or_calculate_and_write(key) do
+      get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
+    end
+    return ret
   end
 
   def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)

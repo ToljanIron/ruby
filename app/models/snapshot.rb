@@ -203,4 +203,10 @@ class Snapshot < ActiveRecord::Base
       return m1 <=> m2
     end
   end
+
+  def self.interval_from_sid(sid, interval_type)
+    type = Snapshot.field_from_interval_type(interval_type)
+    Snapshot.select(type).where(id: sid).last[type]
+  end
+
 end

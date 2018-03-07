@@ -616,11 +616,12 @@ module AlgorithmsHelper
   ## 3 - return the reult vector
   ##
   ###########################################################################
-  def self.employees_network_non_reciprocity_scores(sid, nid, pid, gid)
+  def self.employees_network_non_reciprocity_scores(sid, pid, gid)
     cid = Snapshot.find(sid).company_id
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
+    nid = NetworkSnapshotData.emails(cid)
 
     sqlstr =
       "select from_employee_id, count(*) from network_snapshot_data as out
@@ -737,7 +738,18 @@ module AlgorithmsHelper
     outdegrees_unique_hash = {}
     outdegrees_hash.each do |e|
       outdegrees_unique_hash[e[0].to_s] = e[1].to_f / number_of_emails[e[0]]
+      if e[0].to_s == "143497"
+        puts "*************"
+        puts ">>>#{e[1].to_f}<<<"
+        puts ">>>#{number_of_emails[e[0]]}<<<"
+
+      end
     end
+
+
+    #puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    #ap outdegrees_unique_hash
+    #puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
     return outdegrees_unique_hash
   end
