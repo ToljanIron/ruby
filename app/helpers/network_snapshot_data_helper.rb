@@ -1,4 +1,5 @@
-# module NetworkSnapshotNodesHelper
+require './app/helpers/algorithms_helper.rb'
+
 module NetworkSnapshotDataHelper
   include AlgorithmsHelper
 
