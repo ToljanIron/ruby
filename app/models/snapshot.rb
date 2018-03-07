@@ -164,10 +164,10 @@ class Snapshot < ActiveRecord::Base
 
   def self.field_from_interval_type(type)
     raise 'Nil interval_type not alowed' if type.nil?
-    return 'month' if type == 'By Month' || type == 1
-    return 'quarter' if type == 'By Quarter' || type == 2
-    return 'half_year' if type == 'By 6 Months' || type == 3
-    return 'year' if type == 'By Year' || type == 4
+    return 'month' if type == 'By Month' || type.to_i == 1
+    return 'quarter' if type == 'By Quarter' || type.to_i == 2
+    return 'half_year' if type == 'By 6 Months' || type.to_i == 3
+    return 'year' if type == 'By Year' || type.to_i == 4
     raise "Unknown interval_type: #{type}"
   end
 
