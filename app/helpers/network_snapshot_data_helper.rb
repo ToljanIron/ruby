@@ -196,7 +196,7 @@ module NetworkSnapshotDataHelper
 
     if (empids.length > max_emps)
       nodes = get_groups_for_map(last_sid, group)
-      links = get_group_links_for_map(empids, snapshot_field, interval, last_sid)
+      links = get_group_links_for_map(empids, snapshot_field, interval, last_sid, group)
     else
       result_type = 'emps'
       nodes = get_employees_for_map(empids, snapshot_field, interval, last_sid, aid)
@@ -214,7 +214,7 @@ module NetworkSnapshotDataHelper
   ## For groups with more than max_emps employees use this to get nodes
   ## which are groups
   def get_groups_for_map(sid, group)
-    gids = group.extract_descendants_ids_and_self
+    gids = group.extract_l2_ids_and_self
     nodes = Group
             .select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col")
             .from('groups AS g')
@@ -225,9 +225,9 @@ module NetworkSnapshotDataHelper
   end
 
   ## Aggregate connections among groups
-  def get_group_links_for_map(empids, snapshot_field, interval, sid)
+  def get_group_links_for_map(empids, snapshot_field, interval, sid, group)
     extempids = Employee.where(id: empids).pluck(:external_id)
-    links = NetworkSnapshotData
+    ar_links = NetworkSnapshotData
             .select('fromg.external_id AS source, tog.external_id AS target,
                      count(*) AS weight')
             .joins('JOIN employees AS fromemps ON fromemps.id = from_employee_id')
@@ -238,14 +238,57 @@ module NetworkSnapshotDataHelper
             .where("sn.%s = '%s'",snapshot_field, interval)
             .where("fromemps.external_id IN ('#{extempids.join("','")}')")
             .where("toemps.external_id IN ('#{extempids.join("','")}')")
-            .group('source, target')
-            .order('source, target')
+            .group('fromg.external_id, tog.external_id')
+            .order('fromg.external_id, tog.external_id')
 
-    links = links.map do |l|
-      l['source'] = Group.external_id_to_id_in_snapshot(l['source'], sid)
-      l['target'] = Group.external_id_to_id_in_snapshot(l['target'], sid)
-      l
+    extids = group.extract_l2_external_ids
+    extids_cond = "topg.external_id IN ('#{extids.join('\',\'')}')"
+    sqlstr =
+      "SELECT g.external_id AS dgroup, topg.external_id AS pgroup
+      FROM groups AS g
+      JOIN groups AS topg ON topg.nsleft <= g.nsleft AND topg.nsright >= g.nsright
+      WHERE
+        #{extids_cond} AND
+        topg.snapshot_id = #{sid} AND
+        g.snapshot_id = #{sid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+
+    l2_map = {}
+    res.each do |r|
+      l2_map[r['dgroup']] = r['pgroup']
     end
+
+    ## Collapse hierarchies into the top L2 groups
+    links_map = {}
+    ar_links.each do |l|
+      src1 = l['source']
+      src2 = l2_map[src1]
+      src3 = src2.nil? ? l['source'] : src2
+      src = Group.external_id_to_id_in_snapshot(src3, sid)
+
+      trgt = l['target']
+      trgt = l2_map[trgt]
+      trgt = trgt.nil? ? l['target'] : trgt
+      trgt = Group.external_id_to_id_in_snapshot(trgt, sid)
+
+      if links_map[[src,trgt]].nil?
+        links_map[[src,trgt]] = l['weight']
+      else
+        links_map[[src,trgt]] += l['weight']
+      end
+    end
+
+    ## Convert to result format
+    links = []
+    links_map.each do |k,v|
+      elem = {
+        source: k[0],
+        target: k[1],
+        weight: v
+      }
+      links.push elem
+    end
+
     return links
   end
 

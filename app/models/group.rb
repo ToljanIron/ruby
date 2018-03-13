@@ -133,6 +133,16 @@ class Group < ActiveRecord::Base
     return res_arr
   end
 
+  def extract_l2_ids_and_self
+    ret = [id]
+    daughter_ids = Group.where(parent_group_id: id).pluck(:id)
+    return ret + daughter_ids
+  end
+
+  def extract_l2_external_ids
+    return Group.where(parent_group_id: id).pluck(:external_id)
+  end
+
   def extract_descendants_ids_and_self
     groups = extract_descendants_ids
     groups.push(id)

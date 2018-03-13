@@ -423,9 +423,6 @@ module MeasuresHelper
   end
 
   def get_interfaces_scores_for_departments_cached(cid, interval, gids, interval_type)
-    puts "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1"
-    puts "interval: #{interval}, interval_type: #{interval_type}"
-    puts "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ 1"
     key = "interfaces-scores-for-dept-#{cid}-#{interval}-#{gids}-#{interval_type}"
     ret = read_or_calculate_and_write(key) do
       get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
