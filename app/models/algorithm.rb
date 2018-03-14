@@ -34,11 +34,13 @@ class Algorithm < ActiveRecord::Base
     return nil
   end
 
-  def self.get_algorithm_id(algorithm)
+  def self.get_algorithm_id(cid, algorithm)
     if algorithm.is_integer?
       return algorithm.to_i
     else
-      CompanyMetric.where(metric_id:  MetricName.where(company_id: 1,name: algorithm).last.id ).last.algorithm_id
+      CompanyMetric
+        .where(metric_id:  MetricName.where(company_id: cid, name: algorithm).last.id )
+        .last.algorithm_id
     end
 
   end

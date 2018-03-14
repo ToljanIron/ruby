@@ -143,11 +143,18 @@ module MeasuresHelper
   def get_interfaces_stats_from_helper(cid, interval, gids, interval_type)
     res = get_interfaces_scores_for_departments_cached(cid, interval, gids, interval_type)
 
-    score = 0
-    res.each { |r| score += r['receiving']}
+    receiving = 0
+    intraffic = 0
+    outtraffic = 0
+    res.each do |r|
+      receiving  += r['receiving']
+      intraffic  += r['intraffic']
+      outtraffic += r['volume']
+    end
 
     return {
-      closeness: (score.to_f / res.length).round(2)
+      closeness: (receiving.to_f / res.length).round(2),
+      synergy: ((outtraffic.to_f / (outtraffic + intraffic).to_f)).round(2)
     }
   end
 
@@ -433,9 +440,16 @@ module MeasuresHelper
   def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
 
+    ## This query is a little long, so here's an explanation:
+    ## It gathers for each group in gids it counts number of emails between the group's
+    ##   hierarchy (the parts with nsleft & nsright) and groups not in it's hierarchy, both
+    ##   inbound and outbound. It also counts number of emails inside the hierarchy.
+    ## These numbers are counted as three separate internal queries, called: insend, inreceive
+    ##   and inttraffic
     sqlstr = "
-      SELECT outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive
+      SELECT outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive, outmost.inttraffic
       FROM ( SELECT outg.id AS group_id, outg.name AS group_name,
+
                (SELECT COUNT(*)
                 FROM network_snapshot_data AS nsd
                 JOIN employees AS inemps ON inemps.id = nsd.from_employee_id
@@ -447,8 +461,9 @@ module MeasuresHelper
                   (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
                   #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
                   nsd.snapshot_id = outsn.id) AS insend,
+
                (SELECT COUNT(*)
-                FROM network_snapshot_data as NSD
+                FROM network_snapshot_data AS nsd
                 JOIN employees AS inemps ON inemps.id = nsd.to_employee_id
                 JOIN employees AS outemps ON outemps.id = nsd.from_employee_id
                 JOIN groups AS ingroups ON ingroups.id = inemps.group_id
@@ -457,14 +472,28 @@ module MeasuresHelper
                   (ingroups.nsleft >= outg.nsleft AND ingroups.nsright <= outg.nsright) AND
                   (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
                   #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
-                  nsd.snapshot_id = outsn.id) AS inreceive
+                  nsd.snapshot_id = outsn.id) AS inreceive,
+
+               (SELECT COUNT(*)
+                FROM network_snapshot_data AS nsd
+                JOIN employees AS femps ON femps.id = nsd.from_employee_id
+                JOIN employees AS temps ON temps.id = nsd.to_employee_id
+                JOIN groups AS fgroups ON fgroups.id = femps.group_id
+                JOIN groups AS tgroups ON tgroups.id = temps.group_id
+                WHERE
+                  (tgroups.nsleft >= outg.nsleft AND tgroups.nsright <= outg.nsright) AND
+                  (fgroups.nsleft >= outg.nsleft AND fgroups.nsright <= outg.nsright) AND
+                  #{MeasuresHelper.extids_cond(gids, 'fgroups')} AND
+                  #{MeasuresHelper.extids_cond(gids, 'tgroups')} AND
+                  nsd.snapshot_id = outsn.id) AS inttraffic
+
              FROM groups AS outg
              JOIN snapshots AS outsn ON outsn.id = outg.snapshot_id
              WHERE
                #{MeasuresHelper.extids_cond(gids, 'outg')} AND
                outsn.#{snapshot_field} = '#{interval}' AND
                outg.company_id = #{cid}) AS outmost
-      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive
+      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive, outmost.inttraffic
       ORDER BY outmost.insend DESC
       LIMIT 100"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
@@ -473,15 +502,16 @@ module MeasuresHelper
     sqlres.each do |entry|
       snd = entry['insend'].to_f
       rcv = entry['inreceive'].to_f
-      all = snd + rcv
-      next if all == 0
+      allout = snd + rcv
+      next if allout == 0
 
       res << {
         'gid' => entry['group_id'],
         'name' => entry['group_name'],
-        'sending'   => (100 * snd / all).to_f.round(1),
-        'receiving' => (100 * rcv / all).to_f.round(1),
-        'volume'    => all
+        'sending'   => (100 * snd / allout).to_f.round(1),
+        'receiving' => (100 * rcv / allout).to_f.round(1),
+        'intraffic' => entry['inttraffic'],
+        'volume'    => allout
       }
     end
     return res

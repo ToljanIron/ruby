@@ -738,18 +738,7 @@ module AlgorithmsHelper
     outdegrees_unique_hash = {}
     outdegrees_hash.each do |e|
       outdegrees_unique_hash[e[0].to_s] = e[1].to_f / number_of_emails[e[0]]
-      if e[0].to_s == "143497"
-        puts "*************"
-        puts ">>>#{e[1].to_f}<<<"
-        puts ">>>#{number_of_emails[e[0]]}<<<"
-
-      end
     end
-
-
-    #puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
-    #ap outdegrees_unique_hash
-    #puts "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
     return outdegrees_unique_hash
   end
