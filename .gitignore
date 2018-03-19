@@ -28,7 +28,6 @@
 
 .directory
 .env
-qqq.txt
 
 /backup/.db_tables_backup
 
@@ -36,7 +35,6 @@ design
 
 large_files.txt
 clear_large_files_from_git_history.rb
-config/newrelic.yml
 .byebug_history
 spec/helpers/*.csv
 
