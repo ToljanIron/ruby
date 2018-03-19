@@ -447,8 +447,9 @@ module MeasuresHelper
     ## These numbers are counted as three separate internal queries, called: insend, inreceive
     ##   and inttraffic
     sqlstr = "
-      SELECT outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive, outmost.inttraffic
-      FROM ( SELECT outg.id AS group_id, outg.name AS group_name,
+      SELECT outmost.group_id, outmost.group_name, outmost.hierarchy_size, outmost.insend,
+             outmost.inreceive, outmost.inttraffic
+      FROM ( SELECT outg.id AS group_id, outg.name AS group_name, outg.hierarchy_size,
 
                (SELECT COUNT(*)
                 FROM network_snapshot_data AS nsd
@@ -493,7 +494,8 @@ module MeasuresHelper
                #{MeasuresHelper.extids_cond(gids, 'outg')} AND
                outsn.#{snapshot_field} = '#{interval}' AND
                outg.company_id = #{cid}) AS outmost
-      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive, outmost.inttraffic
+      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive,
+               outmost.inttraffic, outmost.hierarchy_size
       ORDER BY outmost.insend DESC
       LIMIT 100"
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
@@ -511,7 +513,8 @@ module MeasuresHelper
         'sending'   => (100 * snd / allout).to_f.round(1),
         'receiving' => (100 * rcv / allout).to_f.round(1),
         'intraffic' => entry['inttraffic'],
-        'volume'    => allout
+        'volume'    => allout,
+        'hierarchy_size' => entry['hierarchy_size']
       }
     end
     return res
