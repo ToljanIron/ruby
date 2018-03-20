@@ -440,16 +440,18 @@ module MeasuresHelper
   def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
+    invmode = CompanyConfigurationTable.is_investigation_mode?
 
     sqlstr = "
-      SELECT innerq.external_id AS external_id, innerq.group_name, innerq.hierarchy_size,
+      SELECT innerq.external_id AS external_id, innerq.group_name,
+             innerq.hierarchy_size, innerq.english_name,
              SUM(sending) AS snd, SUM(receiving) AS rcv, SUM(intraffic) AS int
       FROM
-        (SELECT g.external_id AS external_id, g.name AS group_name, g.hierarchy_size,
+        (SELECT g.external_id AS external_id, g.name AS group_name,
+                g.hierarchy_size, g.english_name, g.snapshot_id,
                sending.score AS sending,
                receiving.score AS receiving,
-               internal.score AS intraffic,
-               g.snapshot_id
+               internal.score AS intraffic
         FROM groups AS g
         JOIN cds_metric_scores as sending ON sending.group_id = g.id
         JOIN cds_metric_scores as receiving ON receiving.group_id = g.id
@@ -466,29 +468,26 @@ module MeasuresHelper
           receiving.algorithm_id = 300 AND
           internal.algorithm_id = 302 AND
           g.company_id = #{cid}) AS innerq
-        GROUP BY external_id, group_name, hierarchy_size
+        GROUP BY external_id, group_name, hierarchy_size, english_name
         "
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-    puts sqlres.length
-    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
-
     res = []
-    sqlres.each do |entry|
-      snd = entry['snd'].to_f
-      rcv = entry['rcv'].to_f
+    sqlres.each do |e|
+      snd = e['snd'].to_f
+      rcv = e['rcv'].to_f
       allout = snd + rcv
       next if allout == 0
+      gid = Group.external_id_to_id_in_snapshot(e['external_id'], sid)
 
       res << {
-        'gid' => Group.external_id_to_id_in_snapshot(entry['external_id'], sid),
-        'name' => entry['group_name'],
+        'gid' => gid,
+        'name' => create_group_name(gid, e['english_name'],invmode),
         'sending'   => (100 * snd / allout).to_f.round(1),
         'receiving' => (100 * rcv / allout).to_f.round(1),
-        'intraffic' => entry['int'].to_i,
+        'intraffic' => e['int'].to_i,
         'volume'    => allout,
-        'hierarchy_size' => entry['hierarchy_size']
+        'hierarchy_size' => e['hierarchy_size']
       }
     end
     return res
