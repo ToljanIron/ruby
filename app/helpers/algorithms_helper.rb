@@ -1309,14 +1309,6 @@ module AlgorithmsHelper
     return calc_deadends(sid, gid, pid)
   end
 
-  def external_receivers_measure(sid, gid, pid)
-    return calc_external_receivers(sid, gid, pid)
-  end
-
-  def external_senders_measure(sid, gid, pid)
-    return calc_external_senders(sid, gid, pid)
-  end
-
   def closeness_of_email_network(sid, gid, pid)
     nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
     return density_of_network(sid, gid, pid, nid)
@@ -2063,92 +2055,67 @@ module AlgorithmsHelper
     return res
   end
 
-  def calc_external_receivers(sid, gid = NO_GROUP, pid = NO_PIN)
-    res = []
+  def external_receivers_volume(sid, gid = NO_GROUP, pid = NO_PIN)
     cid = find_company_by_snapshot(sid)
     nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
-    employee_ids = get_inner_select_as_arr(cid, pid, gid)
-
-    total_indegree = calc_degree_for_all_matrix(sid, EMAILS_IN, ALL_COMPANY, gid, pid)
-
-    received_from_outside_my_group = NetworkSnapshotData.select('nsd.to_employee_id AS id, count(*) AS measure')
-              .from('network_snapshot_data AS nsd')
-              .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
-              .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
-              .where(nsd: {network_id: nid})
-              .where("emps_from.group_id <> emps_to.group_id")
-              .where.not(nsd: {from_employee_id: employee_ids})
-              .where(nsd: {to_employee_id: employee_ids})
-              .where(nsd: {snapshot_id: sid, company_id: cid})
-              .group('nsd.to_employee_id')
-              .order('nsd.to_employee_id')
-              .map(&:attributes)
-
-    received_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(received_from_outside_my_group))
-
-    # Divide (received from outside/total received)
-    relative_measures = calc_relative_measure_by_key(received_from_outside_my_group, total_indegree, 'id', 'measure')
-
-    # Sort all data by id
-    received_from_outside_my_group = received_from_outside_my_group.sort_by { |r| r[:id] }
-    total_indegree = total_indegree.sort_by { |t| t[:id] }
-    relative_measures = relative_measures.sort_by { |r| r[:id] }
-
-    relative_measures.each_with_index do |r, i|
-      res << {
-        id: r[:id],
-        measure: r[:measure],
-        numerator: received_from_outside_my_group[i][:measure],
-        denominator: total_indegree[i][:measure]
-      }
-    end
-    return res
+    g = Group.find(gid)
+    sqlstr = "
+        SELECT COUNT(*) AS receiving
+        FROM network_snapshot_data AS nsd
+        JOIN employees AS inemps ON inemps.id = nsd.to_employee_id
+        JOIN employees AS outemps ON outemps.id = nsd.from_employee_id
+        JOIN groups AS ingroups ON ingroups.id = inemps.group_id
+        JOIN groups AS outgroups ON outgroups.id = outemps.group_id
+        WHERE
+          (ingroups.nsleft >= #{g.nsleft} AND ingroups.nsright <= #{g.nsright}) AND
+          (outgroups.nsleft < #{g.nsleft} OR  outgroups.nsright > #{g.nsright}) AND
+          nsd.network_id = #{nid} AND
+          nsd.snapshot_id = #{sid} AND
+          nsd.company_id = #{cid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    return [{ id: gid, measure: res[0]['receiving']}]
   end
 
-  def calc_external_senders(sid, gid = NO_GROUP, pid = NO_PIN)
-    res = []
+  def external_senders_volume(sid, gid = NO_GROUP, pid = NO_PIN)
     cid = find_company_by_snapshot(sid)
     nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
-    employee_ids = get_inner_select_as_arr(cid, pid, gid)
+    g = Group.find(gid)
+    sqlstr = "
+        SELECT COUNT(*) AS sending
+        FROM network_snapshot_data AS nsd
+        JOIN employees AS inemps ON inemps.id = nsd.from_employee_id
+        JOIN employees AS outemps ON outemps.id = nsd.to_employee_id
+        JOIN groups AS ingroups ON ingroups.id = inemps.group_id
+        JOIN groups AS outgroups ON outgroups.id = outemps.group_id
+        WHERE
+          (ingroups.nsleft >= #{g.nsleft} AND ingroups.nsright <= #{g.nsright}) AND
+          (outgroups.nsleft < #{g.nsleft} OR  outgroups.nsright > #{g.nsright}) AND
+          nsd.network_id = #{nid} AND
+          nsd.snapshot_id = #{sid} AND
+          nsd.company_id = #{cid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    return [{ id: gid, measure: res[0]['sending']}]
+  end
 
-    total_outdegree = calc_degree_for_all_matrix(sid, EMAILS_OUT, ALL_COMPANY, gid, pid)
-
-    sent_from_outside_my_group = NetworkSnapshotData.select('nsd.from_employee_id AS id, count(*) AS measure')
-              .from('network_snapshot_data AS nsd')
-              .joins('JOIN employees AS emps_from ON nsd.from_employee_id = emps_from.id')
-              .joins('JOIN employees AS emps_to ON nsd.to_employee_id = emps_to.id')
-              .where(nsd: {network_id: nid})
-              .where("emps_from.group_id <> emps_to.group_id")
-              .where.not(nsd: {to_employee_id: employee_ids})
-              .where(nsd: {from_employee_id: employee_ids})
-              .where(emps_from: {group_id: gid})
-              .where(nsd: {snapshot_id: sid, company_id: cid})
-              .group('nsd.from_employee_id')
-              .order('nsd.from_employee_id')
-              .map(&:attributes)
-
-    puts "&&&&&&&&&&&&&&&&&&&&&&"
-    ap sent_from_outside_my_group
-    puts "&&&&&&&&&&&&&&&&&&&&&&"
-    sent_from_outside_my_group = result_zero_padding(employee_ids, symbolize_hash_arr(sent_from_outside_my_group))
-
-    # Divide (sent to outside/total sent)
-    relative_measures = calc_relative_measure_by_key(sent_from_outside_my_group, total_outdegree, 'id', 'measure')
-
-    # Sort all data by id
-    sent_from_outside_my_group = sent_from_outside_my_group.sort_by { |r| r[:id] }
-    total_outdegree = total_outdegree.sort_by { |t| t[:id] }
-    relative_measures = relative_measures.sort_by { |r| r[:id] }
-
-    relative_measures.each_with_index do |r, i|
-      res << {
-        id: r[:id],
-        measure: r[:measure],
-        numerator: sent_from_outside_my_group[i][:measure],
-        denominator: total_outdegree[i][:measure]
-      }
-    end
-    return res
+  def internal_traffic_volume(sid, gid = NO_GROUP, pid = NO_PIN)
+    cid = find_company_by_snapshot(sid)
+    nid = NetworkName.get_emails_network(Snapshot.find(sid).company_id)
+    g = Group.find(gid)
+    sqlstr = "
+        SELECT COUNT(*) AS int_traffic
+        FROM network_snapshot_data AS nsd
+        JOIN employees AS femps ON femps.id = nsd.from_employee_id
+        JOIN employees AS temps ON temps.id = nsd.to_employee_id
+        JOIN groups AS fgroups ON fgroups.id = femps.group_id
+        JOIN groups AS tgroups ON tgroups.id = temps.group_id
+        WHERE
+          (fgroups.nsleft >= #{g.nsleft} AND fgroups.nsright <= #{g.nsright}) AND
+          (tgroups.nsleft >= #{g.nsleft} AND tgroups.nsright > #{g.nsright}) AND
+          nsd.network_id = #{nid} AND
+          nsd.snapshot_id = #{sid} AND
+          nsd.company_id = #{cid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    return [{ id: gid, measure: res[0]['int_traffic']}]
   end
 
   def calc_in_the_loop(sid, gid = NO_GROUP, pid = NO_PIN)

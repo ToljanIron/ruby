@@ -11,7 +11,7 @@ module MeasuresHelper
   DYNAMICS_AIDS = [203, 205, 206, 207]
   DYNAMICS_AIDS_WITH_GROUPS = [204]
 
-  INTERFACES_AIDS = [300, 301]
+  INTERFACES_AIDS = [300, 301, 302]
 
   EMAILS_VOLUME_AID = 707
   TIME_SPENT_IN_MEETINGS_AID = 806
@@ -439,80 +439,54 @@ module MeasuresHelper
 
   def get_interfaces_scores_for_departments(cid, interval, gids, interval_type)
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
+    sid = Snapshot.last_snapshot_in_interval(interval, snapshot_field)
 
-    ## This query is a little long, so here's an explanation:
-    ## It gathers for each group in gids it counts number of emails between the group's
-    ##   hierarchy (the parts with nsleft & nsright) and groups not in it's hierarchy, both
-    ##   inbound and outbound. It also counts number of emails inside the hierarchy.
-    ## These numbers are counted as three separate internal queries, called: insend, inreceive
-    ##   and inttraffic
     sqlstr = "
-      SELECT outmost.group_id, outmost.group_name, outmost.hierarchy_size, outmost.insend,
-             outmost.inreceive, outmost.inttraffic
-      FROM ( SELECT outg.id AS group_id, outg.name AS group_name, outg.hierarchy_size,
-
-               (SELECT COUNT(*)
-                FROM network_snapshot_data AS nsd
-                JOIN employees AS inemps ON inemps.id = nsd.from_employee_id
-                JOIN employees AS outemps ON outemps.id = nsd.to_employee_id
-                JOIN groups AS ingroups ON ingroups.id = inemps.group_id
-                JOIN groups AS outgroups ON outgroups.id = outemps.group_id
-                WHERE
-                  (ingroups.nsleft >= outg.nsleft AND ingroups.nsright <= outg.nsright) AND
-                  (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
-                  #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
-                  nsd.snapshot_id = outsn.id) AS insend,
-
-               (SELECT COUNT(*)
-                FROM network_snapshot_data AS nsd
-                JOIN employees AS inemps ON inemps.id = nsd.to_employee_id
-                JOIN employees AS outemps ON outemps.id = nsd.from_employee_id
-                JOIN groups AS ingroups ON ingroups.id = inemps.group_id
-                JOIN groups AS outgroups ON outgroups.id = outemps.group_id
-                WHERE
-                  (ingroups.nsleft >= outg.nsleft AND ingroups.nsright <= outg.nsright) AND
-                  (outgroups.nsleft < outg.nsleft OR outgroups.nsright > outg.nsright) AND
-                  #{MeasuresHelper.extids_cond(gids, 'ingroups')} AND
-                  nsd.snapshot_id = outsn.id) AS inreceive,
-
-               (SELECT COUNT(*)
-                FROM network_snapshot_data AS nsd
-                JOIN employees AS femps ON femps.id = nsd.from_employee_id
-                JOIN employees AS temps ON temps.id = nsd.to_employee_id
-                JOIN groups AS fgroups ON fgroups.id = femps.group_id
-                JOIN groups AS tgroups ON tgroups.id = temps.group_id
-                WHERE
-                  (tgroups.nsleft >= outg.nsleft AND tgroups.nsright <= outg.nsright) AND
-                  (fgroups.nsleft >= outg.nsleft AND fgroups.nsright <= outg.nsright) AND
-                  #{MeasuresHelper.extids_cond(gids, 'fgroups')} AND
-                  #{MeasuresHelper.extids_cond(gids, 'tgroups')} AND
-                  nsd.snapshot_id = outsn.id) AS inttraffic
-
-             FROM groups AS outg
-             JOIN snapshots AS outsn ON outsn.id = outg.snapshot_id
-             WHERE
-               #{MeasuresHelper.extids_cond(gids, 'outg')} AND
-               outsn.#{snapshot_field} = '#{interval}' AND
-               outg.company_id = #{cid}) AS outmost
-      GROUP BY outmost.group_id, outmost.group_name, outmost.insend, outmost.inreceive,
-               outmost.inttraffic, outmost.hierarchy_size
-      ORDER BY outmost.insend DESC
-      LIMIT 100"
+      SELECT innerq.external_id AS external_id, innerq.group_name, innerq.hierarchy_size,
+             SUM(sending) AS snd, SUM(receiving) AS rcv, SUM(intraffic) AS int
+      FROM
+        (SELECT g.external_id AS external_id, g.name AS group_name, g.hierarchy_size,
+               sending.score AS sending,
+               receiving.score AS receiving,
+               internal.score AS intraffic,
+               g.snapshot_id
+        FROM groups AS g
+        JOIN cds_metric_scores as sending ON sending.group_id = g.id
+        JOIN cds_metric_scores as receiving ON receiving.group_id = g.id
+        JOIN cds_metric_scores as internal ON internal.group_id = g.id
+        JOIN snapshots AS ssn ON ssn.id = sending.snapshot_id
+        JOIN snapshots AS rsn ON rsn.id = receiving.snapshot_id
+        JOIN snapshots AS isn ON isn.id = internal.snapshot_id
+        WHERE
+          #{MeasuresHelper.extids_cond(gids, 'g')} AND
+          ssn.#{snapshot_field} = '#{interval}' AND
+          rsn.#{snapshot_field} = '#{interval}' AND
+          isn.#{snapshot_field} = '#{interval}' AND
+          sending.algorithm_id = 301 AND
+          receiving.algorithm_id = 300 AND
+          internal.algorithm_id = 302 AND
+          g.company_id = #{cid}) AS innerq
+        GROUP BY external_id, group_name, hierarchy_size
+        "
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
+
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+    puts sqlres.length
+    puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
     res = []
     sqlres.each do |entry|
-      snd = entry['insend'].to_f
-      rcv = entry['inreceive'].to_f
+      snd = entry['snd'].to_f
+      rcv = entry['rcv'].to_f
       allout = snd + rcv
       next if allout == 0
 
       res << {
-        'gid' => entry['group_id'],
+        'gid' => Group.external_id_to_id_in_snapshot(entry['external_id'], sid),
         'name' => entry['group_name'],
         'sending'   => (100 * snd / allout).to_f.round(1),
         'receiving' => (100 * rcv / allout).to_f.round(1),
-        'intraffic' => entry['inttraffic'],
+        'intraffic' => entry['int'].to_i,
         'volume'    => allout,
         'hierarchy_size' => entry['hierarchy_size']
       }

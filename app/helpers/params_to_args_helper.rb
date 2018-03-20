@@ -80,19 +80,27 @@ module ParamsToArgsHelper
     end
   end
 
-  def self.external_receivers_measure(args)
+  def self.external_receivers_volume(args)
     key = "external_receivers_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
-      return AlgorithmsHelper.external_receivers_measure(args[:snapshot_id], args[:gid], args[:pid])
+      return AlgorithmsHelper.external_receivers_volume(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 
-  def self.external_senders_measure(args)
+  def self.external_senders_volume(args)
     key = "external_senders_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
     puts "params to args: #{args[:gid]}"
     return CdsUtilHelper.read_or_calculate_and_write(key) do
-      return AlgorithmsHelper.external_senders_measure(args[:snapshot_id], args[:gid], args[:pid])
+      return AlgorithmsHelper.external_senders_volume(args[:snapshot_id], args[:gid], args[:pid])
+    end
+  end
+
+  def self.internal_traffic_volume(args)
+    key = "internal_traffic_#{args[:snapshot_id]}_false_#{args[:pid]}_#{args[:gid]}"
+    puts "params to args: #{args[:gid]}"
+    return CdsUtilHelper.read_or_calculate_and_write(key) do
+      return AlgorithmsHelper.internal_traffic_volume(args[:snapshot_id], args[:gid], args[:pid])
     end
   end
 
