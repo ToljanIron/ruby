@@ -445,7 +445,8 @@ module MeasuresHelper
     sqlstr = "
       SELECT innerq.external_id AS external_id, innerq.group_name,
              innerq.hierarchy_size, innerq.english_name,
-             SUM(sending) AS snd, SUM(receiving) AS rcv, SUM(intraffic) AS int
+             SUM(sending) AS snd, SUM(receiving) AS rcv, SUM(intraffic) AS int,
+             SUM(sending + receiving) AS tot
       FROM
         (SELECT g.external_id AS external_id, g.name AS group_name,
                 g.hierarchy_size, g.english_name, g.snapshot_id,
@@ -469,6 +470,7 @@ module MeasuresHelper
           internal.algorithm_id = 302 AND
           g.company_id = #{cid}) AS innerq
         GROUP BY external_id, group_name, hierarchy_size, english_name
+        ORDER BY tot DESC
         "
     sqlres = ActiveRecord::Base.connection.select_all(sqlstr)
 

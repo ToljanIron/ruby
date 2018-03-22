@@ -44,16 +44,17 @@ class NetworkSnapshotDataController < ApplicationController
   # API/get_interfaces_map
   def get_interfaces_map
     authorize :network_snapshot_data, :index?
-    permitted = params.permit(:interval, :gid)
+    permitted = params.permit(:interval, :gid, :gids)
 
     cid = current_user.company_id
     gid      = permitted[:gid].safe_sanitize_integer
     interval = permitted[:interval].sanitize_is_alphanumeric
+    gids     = permitted[:gids].split(',').map(&:sanitize_integer)
 
-    cache_key = "get_interfaces_map-cid-#{cid}-gid-#{gid}-interval-#{interval}"
+    cache_key = "get_interfaces_map-cid-#{cid}-gid-#{gid}-interval-#{interval}-#{gids}"
     res = cache_read(cache_key)
     if res.nil?
-      res = get_interfaces_map_from_helper(cid, interval, gid)
+      res = get_interfaces_map_from_helper(cid, interval, gid, gids)
       cache_write(cache_key, res)
     end
     render json: Oj.dump(res)

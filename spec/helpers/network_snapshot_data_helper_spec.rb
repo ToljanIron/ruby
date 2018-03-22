@@ -155,13 +155,13 @@ describe NetworkSnapshotDataHelper, type: :helper do
       Color.create!(id: 2, rgb: 'green')
       Color.create!(id: 3, rgb: 'blue')
 
-      Group.create!(id: 0, name: "root", company_id: cid, snapshot_id: sid, english_name: "root")
-      Group.create!(id: 9, name: "subroot", company_id: cid, parent_group_id: 0,  snapshot_id: sid, english_name: "subroot")
-      Group.create!(id: 1, name: "sister1", company_id: cid, parent_group_id: 9, color_id: 1, snapshot_id: sid, english_name: "sister1")
-      Group.create!(id: 2, name: "sister2", company_id: cid, parent_group_id: 9, color_id: 2, snapshot_id: sid, english_name: "sister2")
-      Group.create!(id: 3, name: "sister3", company_id: cid, parent_group_id: 9, color_id: 3, snapshot_id: sid, english_name: "sister3")
-      Group.create!(id: 4, name: "sister4", company_id: cid, parent_group_id: 9, color_id: 1, snapshot_id: sid, english_name: "sister4")
-      Group.create!(id: 5, name: "loner",   company_id: cid, parent_group_id: 0, color_id: 3, snapshot_id: sid, english_name: "loner")
+      Group.create!(id: 0, name: "root", company_id: cid, snapshot_id: sid, external_id: "root", nsleft: 1, nsright: 14)
+      Group.create!(id: 9, name: "subroot", company_id: cid, parent_group_id: 0,  snapshot_id: sid,             external_id: "subroot", nsleft: 2,  nsright: 7)
+      Group.create!(id: 1, name: "sister1", company_id: cid, parent_group_id: 9, color_id: 1, snapshot_id: sid, external_id: "sister1", nsleft: 3,  nsright: 4)
+      Group.create!(id: 2, name: "sister2", company_id: cid, parent_group_id: 9, color_id: 2, snapshot_id: sid, external_id: "sister2", nsleft: 5,  nsright: 6)
+      Group.create!(id: 3, name: "loner1",  company_id: cid, parent_group_id: 0, color_id: 3, snapshot_id: sid, external_id: "loner1",  nsleft: 8,  nsright: 9)
+      Group.create!(id: 4, name: "loner2",  company_id: cid, parent_group_id: 0, color_id: 1, snapshot_id: sid, external_id: "loner2",  nsleft: 10, nsright: 11)
+      Group.create!(id: 5, name: "loner3",  company_id: cid, parent_group_id: 0, color_id: 3, snapshot_id: sid, external_id: "loner3",  nsleft: 12, nsright: 13)
 
       all = [
       ## groups:
@@ -180,58 +180,86 @@ describe NetworkSnapshotDataHelper, type: :helper do
       Employee.all.each { |e| e.update!(group_id: (5 * e.id / 10.0).ceil) }
       fg_emails_from_matrix(all)
 
-      res = NetworkSnapshotDataHelper.get_interfaces_map_from_helper(1, "Jul/17", 2)
-      res[:links].each do |l|
-        links_hash[[l[:source], l[:target]]] = l[:volume]
-      end
     end
 
     after :all do
       DatabaseCleaner.clean_with(:truncation)
     end
 
-    it 'should have only values between 1 and 6' do
-      res[:links].each do |l|
-        expect(l[:volume]).to be >= 0
-        expect(l[:volume]).to be <= 20 
+    describe 'syntax checking for interfaces_traffic_volumes_query' do
+      inside = 1
+      outside = 2
+      nid = 1
+      extids = ['subroot', 'loner1', 'loner2', 'loner3', 'root']
+
+      it 'out in' do
+        ret = NetworkSnapshotDataHelper.interfaces_traffic_volumes_query(outside, inside, 'month', 'Jul/17', cid, nid, 2, 7, extids)
+        expect(ret.length).to eq(3)
+        expect(ret[0]['fromextid']).not_to be_nil
+        expect(ret[0]['toextid']).to be_nil
+      end
+
+      it 'in in' do
+        ret = NetworkSnapshotDataHelper.interfaces_traffic_volumes_query(inside, inside, 'month', 'Jul/17', cid, nid, 2, 7, extids)
+        expect(ret.length).to eq(1)
+        expect(ret[0]['fromextid']).to be_nil
+        expect(ret[0]['toextid']).to be_nil
+      end
+
+      it 'out out' do
+        ret = NetworkSnapshotDataHelper.interfaces_traffic_volumes_query(outside, outside, 'month', 'Jul/17', cid, nid, 2, 7, extids)
+        expect(ret.length).to eq(9)
+        expect(ret[0]['fromextid']).not_to be_nil
+        expect(ret[0]['toextid']).not_to be_nil
+      end
+
+      it 'in out' do
+        ret = NetworkSnapshotDataHelper.interfaces_traffic_volumes_query(inside, outside, 'month', 'Jul/17', cid, nid, 2, 7, extids)
+        expect(ret.length).to eq(3)
+        expect(ret[0]['fromextid']).to be_nil
+        expect(ret[0]['toextid']).not_to be_nil
       end
     end
 
-    it 'groups with the most traffic should have score 6' do
-      links_hash.each do |k,v|
-        ## Compare only traffic volumes outside the group
-        expect( links_hash[[2,1]] ).to  be >= v if k[0] != k[1]
+    describe 'get_interfaces_map_from_helper' do
+      before :all do
+        gids = [0,4,5,9]
+        res = NetworkSnapshotDataHelper.get_interfaces_map_from_helper(1, "Jul/17", 9, gids)
+        res[:links].each do |l|
+          links_hash[[l[:source], l[:target]]] = l[:volume]
+        end
       end
-    end
 
-    it 'groups with the list traffic should have score 1' do
-      expect( links_hash[[2,3]] ).to eq 1
-      links_hash.each do |k,v|
-        ## Compare only traffic volumes outside the group
-        expect( links_hash[[2,3]] ).to  be <= v if k[0] != k[1]
+      it 'should have internal traffic of 20' do
+        expect( links_hash[[9,9]] ).to eq(22)
       end
-    end
 
-    it 'there should be no link for groups without traffic' do
-      expect( links_hash[[2,4]] ).to be_nil
-      expect( links_hash[[4,2]] ).to be_nil
-    end
+      it 'links should have traffic of less than 20' do
+        res[:links].each do |l|
+          expect(l[:volume]).to be >= 0
+          expect(l[:volume]).to be <= 22
+        end
+      end
 
-    it 'groups with more traffic than other groups should have a bigger score' do
-      expect( links_hash[[3,4]] ).to be > links_hash[[4,3]]
-    end
+      it 'Group hierarchy 9 has more traffic towards 5 then 4' do
+        expect( links_hash[[9,5]] ).to  be > links_hash[[9,4]]
+      end
 
-    it 'should be well formatted' do
-      expect( res[:nodes]).not_to be_nil
-      expect( res[:nodes][0][:col] ).to eq 'red'
-      expect( res[:selected_group] ).to eq 2
-    end
+      it 'there should be no link for groups without traffic' do
+        expect( links_hash[[0,4]] ).to be_nil
+        expect( links_hash[[4,0]] ).to be_nil
+      end
 
-    it 'should not fail for groups with no sisters' do
-      empty_res = NetworkSnapshotDataHelper.get_interfaces_map_from_helper(1, "Jul/17", 5)
-      expect( empty_res[:links].length ).to eq 1
-      expect( empty_res[:nodes].length ).to eq 1
-      expect( empty_res[:selected_group] ).to eq 5
+      it 'should have correct traffic to unincluded groups' do
+        expect( links_hash[[9,-1]] ).to eq(4)
+        expect( links_hash[[-1,9]] ).to eq(6)
+      end
+
+      it 'should be well formatted' do
+        expect( res[:nodes]).not_to be_nil
+        expect( res[:nodes][0][:col] ).to eq 'red'
+        expect( res[:selected_group] ).to eq 9
+      end
     end
   end
 end

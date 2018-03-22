@@ -10,6 +10,9 @@ AllCops:
 Rails:
   Enabled: true
 
+Rails/Output:
+  Enabled: false
+
 Documentation:
   Enabled: false
 
@@ -22,7 +25,7 @@ Metrics/MethodLength:
 
 
 Metrics/AbcSize:
-  Max: 40
+  Max: 100
 
 Style/SpaceBeforeFirstArg:
   Enabled: false
@@ -34,13 +37,19 @@ Style/AccessorMethodName:
   Enabled: false
 
 Metrics/CyclomaticComplexity:
+  Max: 30
+
+Metrics/ParameterLists:
   Max: 10
 
 Metrics/PerceivedComplexity:
-  Max: 10
+  Max: 30
 
 Metrics/ClassLength:
   Max: 500
+
+Metrics/MethodLength:
+  Max: 100
 
 Metrics/ModuleLength:
   Max: 500
