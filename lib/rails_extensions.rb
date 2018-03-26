@@ -82,6 +82,11 @@ class Object
     return (Integer(self) != nil) rescue return false
   end
 
+  def is_integer_or_nil?
+    return true if self.nil? || self.empty?
+    return (Integer(self) != nil) rescue return false
+  end
+
   def has_no_whitespace?
     return false if self.nil?
     return self.match(/[\s]+/).nil?
@@ -124,6 +129,12 @@ class Object
   def sanitize_integer
     return specific_sanitize do
       is_integer?
+    end
+  end
+
+  def sanitize_integer_or_nil
+    return specific_sanitize do
+      is_integer_or_nil?
     end
   end
 

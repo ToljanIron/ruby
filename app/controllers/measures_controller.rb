@@ -47,7 +47,7 @@ class MeasuresController < ApplicationController
   # used, so handle them here.
   #########################################################
   def measures_params_sanitizer(pars)
-    permitted = pars.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type, :sids, :segment_type)
+    permitted = pars.permit(:gids, :curr_interval, :prev_interval, :limit, :offset, :agg_method, :interval_type, :sids, :segment_type, :aid)
 
     cid = current_user.company_id
     currsid = permitted[:curr_interval].sanitize_is_alphanumeric_with_slash   if !permitted[:curr_interval].nil?
@@ -57,6 +57,7 @@ class MeasuresController < ApplicationController
     sids = params[:sids].split(',').map(&:to_i).map(&:sanitize_integer)       if !permitted[:sids].nil?
     gids = params[:gids].split(',').map(&:sanitize_integer)                   if !permitted[:gids].nil?
     gids = current_user.filter_authorized_groups(gids)
+    aid  = permitted[:aid].sanitize_integer_or_nil.to_i                       if !permitted[:aid].nil?
 
     return {
       cid: cid,
@@ -67,7 +68,8 @@ class MeasuresController < ApplicationController
       prevsid: prevsid,
       limit: 10,
       offset: 0,
-      agg_method: agg_method
+      agg_method: agg_method,
+      aid: aid
     }
   end
 
@@ -220,7 +222,7 @@ class MeasuresController < ApplicationController
     measures_return_result do
       sp = measures_params_sanitizer(params)
       measures_cache_result('get_dynamics_employee_scores', sp) do
-        get_dynamics_employee_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type])
+        get_dynamics_employee_scores_from_helper(sp[:cid], sp[:currsid], sp[:gids], sp[:interval_type], sp[:aid])
       end
     end
   end

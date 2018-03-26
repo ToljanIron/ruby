@@ -390,14 +390,14 @@ module MeasuresHelper
     return ret
   end
 
-  def get_dynamics_employee_scores_from_helper(cid, interval, gids, interval_type)
-    puts "Looking for employees data"
+  def get_dynamics_employee_scores_from_helper(cid, interval, gids, interval_type, aid)
+    aid = (aid.nil? || aid == 0) ? 206 : aid
     ret = get_employees_scores_by_aids(
             cid,
             gids,
             interval,
             interval_type,
-            [206],
+            [aid],
             'z_score',
             false)
     ret = convert_group_external_ids_to_gids(ret, cid)
