@@ -2110,7 +2110,7 @@ module AlgorithmsHelper
         JOIN groups AS tgroups ON tgroups.id = temps.group_id
         WHERE
           (fgroups.nsleft >= #{g.nsleft} AND fgroups.nsright <= #{g.nsright}) AND
-          (tgroups.nsleft >= #{g.nsleft} AND tgroups.nsright > #{g.nsright}) AND
+          (tgroups.nsleft >= #{g.nsleft} AND tgroups.nsright <= #{g.nsright}) AND
           nsd.network_id = #{nid} AND
           nsd.snapshot_id = #{sid} AND
           nsd.company_id = #{cid}"
