@@ -52,7 +52,7 @@ namespace :db do
         #[800, 801, 802, 803, 804, 805, 806, 807, 808, 700,701,702,703,704,705,706,707,709,200,201,203,204,205,206,207].each do |aid|
         [302].each do |aid|
           puts "========================> sid: #{sid}, aid: #{aid}"
-          PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(1, -1, -1, aid, sid, true)
+          PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(11, -1, -1, aid, sid, true)
         end
         #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(1, sid, true)
         #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(1, sid, true)
