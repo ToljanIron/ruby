@@ -1171,7 +1171,6 @@ module AlgorithmsHelper
   ##
   #################################################################################
   def self.density_of_network(sid, gid, pid, nid)
-    puts "%%%%%%%%%%% DENSITY"
     cid = find_company_by_snapshot(sid)
 
     n = get_all_emps(cid, pid, gid).count
@@ -1187,14 +1186,10 @@ module AlgorithmsHelper
       network_density = (s_sum_traffic_network.to_f / (n * s_max_email_traffic)).round(3)
     end
 
-    puts "s_max_email_traffic: #{s_max_email_traffic}"
-    puts "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD #{network_density}"
-
     return [{ group_id: group_id, measure: network_density }]
   end
 
   def self.network_traffic_standard_err(sid, gid, pid, nid)
-    puts "%%%%%%%%%%% Synergy"
     group_id = (gid == -1 ? pid : gid)
 
     traffic = calc_emails_volume(sid, gid, pid)
