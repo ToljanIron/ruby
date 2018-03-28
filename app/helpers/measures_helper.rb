@@ -303,8 +303,18 @@ module MeasuresHelper
     res.each {|r| sum += r['curScore']}
 
     avg = (sum / count.to_f).round(2)
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    ap sqlres
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    puts "avg: #{avg}"
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    puts "aid: #{aid}"
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    puts sqlstr
+    puts "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
 
-    return get_gauge_level(avg)
+
+    return avg
   end
 
   def convert_group_external_ids_to_gids(scores, cid)
@@ -540,19 +550,6 @@ module MeasuresHelper
       end
     end
     return res
-  end
-
-  # Get integer representing level of gauge, from number 'z_score' - 0,1,2 corresponding to Low, Medium or High
-  def get_gauge_level(z_score)
-    level = -1
-    if(z_score < -1)
-      level = 0
-    elsif (z_score > -1 && z_score < 1)
-      level = 1
-    else
-      level = 2
-    end
-    return level
   end
 
   def get_relevant_groups(sids, current_gids)
