@@ -9,7 +9,7 @@ class JsonWebToken
     return ret
   rescue => e
     puts "###################################"
-    puts "Exception while decoding with messame: #{e.message}"
+    puts "Exception while decoding with message: #{e.message}"
     puts "###################################"
   end
 end

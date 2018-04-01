@@ -20,6 +20,10 @@ development-interact:
   <<: *default
   database: workships_interact
 
+protractor:
+  <<: *default
+  database: workships_protractor
+
 test:
   <<: *default
   database: workships_test
