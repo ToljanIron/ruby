@@ -7,7 +7,7 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    emps = Employee.where(snapshot_id: 145).select(:id, :group_id).order(:group_id, :id).pluck(:group_id, :id)
+    emps = Employee.where(snapshot_id: 94).select(:id, :group_id).order(:group_id, :id).pluck(:group_id, :id)
     group_managers = {}
 
     prevgid = 0
