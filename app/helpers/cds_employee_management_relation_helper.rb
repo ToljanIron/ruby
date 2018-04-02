@@ -2,120 +2,99 @@ module CdsEmployeeManagementRelationHelper
   NO_PIN   = -1
   NO_GROUP = -1
 
-  ID      = 0
-  MEASURE = 1
-
-  IN  = 'manager_id'
-  OUT = 'employee_id'
-
-  def self.create_relation_matrix(company_id, pid = NO_PIN, gid  = NO_GROUP)
-    res = []
-    inner_select = CdsSelectionHelper.get_inner_select_as_arr(company_id, pid, gid)
-    all_relations = EmployeeManagementRelation.where(relation_type: 0, employee_id: inner_select, manager_id: inner_select).select(:manager_id, :employee_id)
-    all_relations.each do |active_manager|
-      res << { from: active_manager.employee_id, to: active_manager.manager_id, value: 1 }
-    end
-    # add null relations
-    all_possible_relations = inner_select.permutation(2).to_a
-    count = 0
-    # find if exist in already, else push them with value 0
-    all_possible_relations.each do |rel_arr|
-      possible_existing_relation = { from: rel_arr[0], to: rel_arr[1], value: 1 }
-      unless res.include? possible_existing_relation
-        count += 1
-        res << { from: rel_arr[0], to: rel_arr[1], value: 0 }
-      end
-    end
-
-    res = res.sort { |a, b| [a[:from], a[:to]] <=> [b[:from], b[:to]] }
-    return res
-  end
-
-  def self.create_informal_matrix_per_snapshot(snapshot_id, network_id, pid = NO_PIN, gid = NO_GROUP)
-    company_id = find_company_by_snapshot(snapshot_id)
-    employee_management_relations = create_relation_matrix(company_id, pid, gid)
-    advise_relations = AlgorithmsHelper.create_advise_matrix_per_snapshot(snapshot_id, network_id, pid, gid)
-    minimum = [employee_management_relations.length, advise_relations.length].min
-    (0..(minimum) - 1).each do |index|
-      advise_relations[index][:value] = 10 * advise_relations[index][:value]
-      advise_relations[index][:value] = advise_relations[index][:value] + employee_management_relations[index][:value]
-    end
-    return advise_relations
-  end
-
-  def self.get_bypassed_in(informal_matrix, cid, pid = NO_PIN, gid = NO_GROUP)
-    value_of_non_advised_but_subordinate = 1
-    filtered_for_subordinate_non_advised = informal_matrix.map { |x| x if x[:value] == value_of_non_advised_but_subordinate }.compact
-    informal_in = reduce_informal_subordinate_non_advised_by_to(filtered_for_subordinate_non_advised)
-    unit_employees = Employee.by_company(cid).ids
-    managers_count = EmployeeManagementRelation.where(relation_type: 0).pluck(:manager_id).select { |m| unit_employees.include? m }.uniq.length
-    return [] if managers_count < 5
-    r_in = get_r_in(cid, pid, gid)
-    res = []
-    # check only for managers: look for their corresponding informal entry and divide it by the corresponding value in r_in
-    r_in.map do |candidate|
-      to_push = informal_in.select { |entry| entry[:id] == candidate[:id] }
-      unless to_push.empty?
-        to_push.first[:measure] = to_push.first[:measure] / candidate[:measure].to_f
-        res.push(to_push.first)
-      end
-    end
-    return res
-  end
-
-  def self.reduce_informal_subordinate_non_advised_by_to(informal_matrix)
-    res = []
-    memoized_tos = []
-    informal_matrix.each do |x|
-      next if memoized_tos.include? x[:to]
-      memoized_tos.push x[:to]
-      c = informal_matrix.select { |y| y[:to] == x[:to] }.count
-      temp_hash_res = {}
-      temp_hash_res[:id] = x[:to]
-      temp_hash_res[:measure] = c
-      res.push(temp_hash_res)
-    end
-    res = res.sort_by { |k| k[:measure] }.reverse
-    return res
-  end
-
-  def self.combine_r_and_a_matrices(advise_rel, employee_management_relations)
-    (0..(advise_rel.length) - 1).each do |index|
-      advise_rel[index][:value] = 10 *  advise_rel[index][:value]
-      advise_rel[index][:value] = advise_rel[index][:value] + employee_management_relations[index][:value]
-    end
-    return advise_rel
-  end
-
-  def self.get_r_in(company_id, pid = NO_PIN, gid = NO_GROUP)
-    res = get_r(company_id, IN, pid, gid)
-    return CdsSelectionHelper.format_from_activerecord_result(res)
-  end
-
   module_function
 
-  def get_r(company_id, groupby, sid,  pid = NO_PIN, gid = NO_GROUP)
-    inner_select = get_inner_select_for_employee_management(company_id, pid, gid)
-    sqlstr = "
-      select employee_id
-      from employee_management_relations as emr
-      join employees as emps on emps.id = emr.employee_id
-      where emps.snapshot_id = #{sid}"
-    employees = ActiveRecord::Base.connection.select_all(sqlstr).rows.join(',')
-    query = "select #{groupby}, count(employee_id)  from employee_management_relations where relation_type = 0"
-    query += " and employee_id in (#{inner_select} ) " \
-    " and manager_id in (#{inner_select}) and manager_id in (#{employees}) "
-    query += " group by #{groupby} order by count(employee_id) desc"
-    return ActiveRecord::Base.connection.select_all(query)
+  ####################################
+  # Return eids of all managers
+  ####################################
+  def get_all_managers(sid, gid)
+    managers =
+      EmployeeManagementRelation
+        .select("emr.manager_id")
+        .from("employee_management_relations AS emr")
+        .joins("JOIN employees AS emps ON emps.id = emr.manager_id")
+        .where("emps.snapshot_id = %s and emps.group_id = %s", sid, gid)
+        .distinct
+    return managers.map { |emr| emr.manager_id }
   end
 
-  def get_inner_select_for_employee_management(cid, pid, gid, sid)
-    return CdsGroupsHelper.get_inner_select_by_group(gid) if pid == NO_PIN && gid != NO_GROUP
-    return CdsPinsHelper.get_inner_select_by_pin(pid) if pid != NO_PIN && gid == NO_GROUP
-    fail 'Ambiguous sub-group request with both pin-id and group-id' if pinid != NO_PIN && gid != NO_GROUP
-    return "select id from employees where company_id = #{cid} and snapshot_id = #{sid}"
+  ####################################
+  # Return all peers of eid
+  ####################################
+  def get_peers(eid)
+    manager = EmployeeManagementRelation.where(employee_id: eid).last
+    return nil if manager.nil?
+    peers =
+      EmployeeManagementRelation
+        .where(manager_id: manager.id)
+        .where.not(employee_id: eid)
+        .pluck(:employee_id)
+    return nil if peers.empty?
+    return peers
   end
 
+  ####################################
+  # Return top manager of company
+  ####################################
+  def get_top_manager(eid=nil, depth=0)
+    eid = Employee.first.id if eid == nil
+    mid = EmployeeManagementRelation.where(employee_id: eid).last.try(:manager_id)
+    return eid if mid == nil
+    newdepth = depth + 1
+    raise "Recursive search went too deep, eid: #{eid}, mid: #{mid}" if newdepth == 20
+    return get_top_manager(mid, depth + 1)
+  end
+
+  ####################################
+  # Return a quick access structure of the following type:
+  # {
+  #   topeid: <manager id>,
+  #   peers: { eid: array of peers, .... },
+  #   managers: { eid: manager id, ... },
+  #   reportees: { eid: array of emps, ...}
+  # }
+  ####################################
+  def formal_structure_index(sid)
+    rels =
+      EmployeeManagementRelation
+        .select("emr.manager_id, emr.employee_id")
+        .from("employee_management_relations AS emr")
+        .joins("JOIN employees AS emps ON emps.id = emr.manager_id")
+        .where("emps.snapshot_id = %s", sid)
+
+    ret = {
+      topid: get_top_manager(),
+      peers: {},
+      managers: {},
+      reportees:{}
+    }
+
+    ## First pass to identify managers and reportees
+    rels.each do |rel|
+      mid = rel.manager_id
+      eid = rel.employee_id
+      ret[:managers][eid] = mid
+      ret[:reportees][mid] << eid  if !ret[:reportees][mid].nil?
+      ret[:reportees][mid] = [eid] if ret[:reportees][mid].nil?
+      ret[:peers][mid] = [] if ret[:peers][mid].nil?
+    end
+
+    ## Second pass for manager the peers
+    managers = ret[:managers].values.uniq
+    managers.each do |mid,v|
+      next if ret[:reportees][mid].nil?
+      mmid = ret[:managers][mid]
+      next if mmid.nil?
+      peer_candidates = ret[:reportees][mmid]
+      peer_candidates.each do |pc|
+        next if pc == mid
+        next if ret[:reportees][pc].nil?
+        ret[:peers][mid] << pc
+      end
+    end
+
+    return ret
+  end
 
   def get_all_emps(cid, pid, gid)
     if pid == NO_PIN && gid != NO_GROUP

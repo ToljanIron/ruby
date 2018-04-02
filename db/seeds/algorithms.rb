@@ -31,6 +31,7 @@ Algorithm.find_or_create_by!(id: 204, name: 'internal_champions', algorithm_type
 Algorithm.find_or_create_by!(id: 205, name: 'calculate_information_isolate_to_args', algorithm_type_id: 1, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD, use_group_context: false)
 Algorithm.find_or_create_by!(id: 206, name: 'calculate_connectors', algorithm_type_id: 1, algorithm_flow_id: 1, use_group_context: false)
 Algorithm.find_or_create_by!(id: 207, name: 'deadends_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 208, name: 'bypassed_managers', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interfaces   ###############
 Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)

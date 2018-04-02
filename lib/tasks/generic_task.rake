@@ -7,23 +7,51 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    nsds = NetworkSnapshotData.where(snapshot_id: [94,145])
-    nsds.each do |nsd|
-      next if rand(1..10) > 3
-      puts "Adding some emails"
-      (1..rand(1..5)).each do
-        NetworkSnapshotData.create!(
-          snapshot_id: nsd[:snapshot_id],
-          network_id: nsd[:network_id],
-          company_id: 11,
-          from_employee_id: nsd[:from_employee_id],
-          to_employee_id: nsd[:to_employee_id],
-          value: 1,
-          message_id: SecureRandom.base58(24),
-          from_type: 2,
-          to_type: 1
-        )
+    emps = Employee.where(snapshot_id: 145).select(:id, :group_id).order(:group_id, :id).pluck(:group_id, :id)
+    group_managers = {}
+
+    prevgid = 0
+    mid = -1
+    ii = 0
+
+    puts "Relations with employees"
+    puts "==============================="
+    emps.each do |e|
+      eid = e[1]
+      gid = e[0]
+
+      if gid != prevgid
+        mid = eid
+        prevgid = gid
+        group_managers[gid] = mid
+        next
       end
+
+      ii += 1
+      puts "[#{ii}] - group: #{gid}, mid: #{mid}, eid: #{eid}"
+      EmployeeManagementRelation.create!(
+        manager_id: mid,
+        employee_id: eid,
+        relation_type: :recursive
+      )
+    end
+
+    puts "Relations with managers"
+    puts "==============================="
+    group_managers.keys.each do |gid|
+      g = Group.find(gid)
+      pgid = g.parent_group_id
+      next if pgid.nil?
+      pgid_mid = group_managers[pgid]
+      g_mid = group_managers[gid]
+
+      ii += 1
+      puts "[#{ii}] - gid: #{gid}, pgid: #{pgid}, pgid_mid: #{pgid_mid}, g_mid: #{g_mid}"
+      EmployeeManagementRelation.create!(
+        manager_id: pgid_mid,
+        employee_id: g_mid,
+        relation_type: :recursive
+      )
     end
 
     puts "Done"

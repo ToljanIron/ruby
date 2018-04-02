@@ -55,6 +55,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     connectors_id            = MetricName.find_or_create_by!(name: 'Connectors', company_id: cid).id
     isolate_id               = MetricName.find_or_create_by!(name: 'Information Isolates', company_id: cid).id
     deadends_id              = MetricName.find_or_create_by!(name: 'Deadends', company_id: cid).id
+    bypassed_manager_id      = MetricName.find_or_create_by!(name: 'Bypassed Manager', company_id: cid).id
 
     CompanyMetric.find_or_create_by!(metric_id: closeness_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 200, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: synergy_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 201, algorithm_type_id: 5)
@@ -63,6 +64,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: isolate_id, network_id: -1, company_id: cid, algorithm_id: 205, algorithm_type_id: 1, active: true)
     CompanyMetric.find_or_create_by!(metric_id: connectors_id, network_id: -1, company_id: cid, algorithm_id: 206, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by!(metric_id: deadends_id, network_id: -1, company_id: cid, algorithm_id: 207, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: bypassed_manager_id, network_id: -1, company_id: cid, algorithm_id: 208, algorithm_type_id: 1)
 
 
     ####################### Interfaces ########################
