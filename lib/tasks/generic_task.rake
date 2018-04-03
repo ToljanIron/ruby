@@ -7,52 +7,35 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    emps = Employee.where(snapshot_id: 94).select(:id, :group_id).order(:group_id, :id).pluck(:group_id, :id)
-    group_managers = {}
+    emps = Employee.where(snapshot_id: 118).select(:id, :snapshot_id, :external_id)
 
-    prevgid = 0
-    mid = -1
-    ii = 0
-
-    puts "Relations with employees"
-    puts "==============================="
+    h_extid = {}
     emps.each do |e|
-      eid = e[1]
-      gid = e[0]
-
-      if gid != prevgid
-        mid = eid
-        prevgid = gid
-        group_managers[gid] = mid
-        next
-      end
-
-      ii += 1
-      puts "[#{ii}] - group: #{gid}, mid: #{mid}, eid: #{eid}"
-      EmployeeManagementRelation.create!(
-        manager_id: mid,
-        employee_id: eid,
-        relation_type: :recursive
-      )
+      h_extid[e[:external_id]] = e[:id]
     end
 
-    puts "Relations with managers"
-    puts "==============================="
-    group_managers.keys.each do |gid|
-      g = Group.find(gid)
-      pgid = g.parent_group_id
-      next if pgid.nil?
-      pgid_mid = group_managers[pgid]
-      g_mid = group_managers[gid]
 
+    ff = File.open("./insert.sql","w")
+    ii = 0
+    puts "start going over csv"
+    CSV.foreach('bog-management2.csv') do |r|
       ii += 1
-      puts "[#{ii}] - gid: #{gid}, pgid: #{pgid}, pgid_mid: #{pgid_mid}, g_mid: #{g_mid}"
-      EmployeeManagementRelation.create!(
-        manager_id: pgid_mid,
-        employee_id: g_mid,
-        relation_type: :recursive
-      )
+      puts "#{ii} out of 4800" if (ii % 100 == 0)
+      mid = h_extid[r[0]]
+      eid = h_extid[r[1]]
+
+      next if (mid.nil? || eid.nil?)
+      str = "(#{mid},#{eid},2,current_timestamp,current_timestamp),\n"
+      ff.write(str)
     end
+    ff.close
+
+    #puts "[#{ii}] - group: #{gid}, mid: #{mid}, eid: #{eid}"
+    #EmployeeManagementRelation.create!(
+      #manager_id: mid,
+      #employee_id: eid,
+      #relation_type: :recursive
+    #)
 
     puts "Done"
 
