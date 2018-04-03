@@ -71,9 +71,11 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     external_recievers_id  = MetricName.find_or_create_by!(name: 'External Receivers', company_id: cid).id
     external_senders_id    = MetricName.find_or_create_by!(name: 'External Senders', company_id: cid).id
     internal_traffic_id    = MetricName.find_or_create_by!(name: 'Internal Traffic', company_id: cid).id
+    non_reciprocity_id     = MetricName.find_or_create_by!(name: 'Non-Reciprocity', company_id: cid).id
 
     CompanyMetric.find_or_create_by!(metric_id: external_recievers_id, network_id: -1, company_id: cid, algorithm_id: 300, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: external_senders_id, network_id: -1, company_id: cid, algorithm_id: 301, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: internal_traffic_id, network_id: -1, company_id: cid, algorithm_id: 302, algorithm_type_id: 5)
+    CompanyMetric.find_or_create_by!(metric_id: non_reciprocity_id, network_id: -1, company_id: cid, algorithm_id: 303, algorithm_type_id: 5)
   end
 end

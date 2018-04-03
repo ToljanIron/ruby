@@ -64,6 +64,7 @@ module AlgorithmsHelper
   SD3 = 3
 
   EPSILON = 0.001
+  NA = -99999
 
   ################################################################################
   ## Quartile calculations for number arrays
@@ -605,6 +606,41 @@ module AlgorithmsHelper
      res = res.map { |r| r['cnt'] }
      med = array_mean(res)
      return [{group_id: gid, measure: med}]
+  end
+
+
+  ###########################################################################
+  ## Group non-reciprocity
+  ## This algorithm expects to find resutls for external_receive and for
+  ## external_send.
+  ###########################################################################
+  def group_non_reciprocity(sid, gid)
+    rec = CdsMetricScore
+      .where(snapshot_id: sid)
+      .where(group_id: gid)
+      .where(algorithm_id: 300)
+      .last
+
+    snd = CdsMetricScore
+      .where(snapshot_id: sid)
+      .where(group_id: gid)
+      .where(algorithm_id: 301)
+      .last
+
+    if rec.nil? || snd.nil?
+      puts "Could not calculate non-reciprocity for group: #{gid}, because pre-requises are not present"
+      return [{id: gid, measure: NA}]
+    end
+
+    rec = rec[:score].to_f
+    snd = snd[:score].to_f
+
+    if (snd == 0 && rec == 0)
+      return [{id: gid, measure: NA}]
+    end
+
+    score = 1 - (rec.to_f / (snd.to_f + rec.to_f + EPSILON) ).round(2)
+    return [{id: gid, measure: score}]
   end
 
   ###########################################################################

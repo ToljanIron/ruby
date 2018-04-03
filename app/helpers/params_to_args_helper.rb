@@ -346,6 +346,10 @@ module ParamsToArgsHelper
     return AlgorithmsHelper.calculate_bottlenecks_for_flag(args[:snapshot_id], args[:pid], args[:gid])
   end
 
+  def self.non_reciprocity(args)
+    return AlgorithmsHelper.group_non_reciprocity(args[:snapshot_id], args[:gid].to_i)
+  end
+
   def self.calculate_non_reciprocity_between_employees_to_args(args)
     return AlgorithmsHelper.employees_network_non_reciprocity_scores(args[:snapshot_id], args[:pid].to_i, args[:gid].to_i)
   end

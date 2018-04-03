@@ -142,4 +142,5 @@ module CreateAlertsTaskHelper
   def min_group_size
     return 5
   end
+
 end

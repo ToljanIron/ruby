@@ -18,7 +18,7 @@ namespace :db do
 
 
     begin
-      [200,201,203,204,205,206,207].each do |aid|
+      [200,201,203,204,205,206,207,208,303].each do |aid|
         puts "Working on algorithm: #{aid}"
         CreateAlertsTaskHelper.create_alerts(cid, sid, aid)
       end

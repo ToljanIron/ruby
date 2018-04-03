@@ -37,6 +37,7 @@ Algorithm.find_or_create_by!(id: 208, name: 'bypassed_managers', algorithm_type_
 Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 301, name: 'external_senders_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 302, name: 'internal_traffic_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 303, name: 'non_reciprocity', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interact ####################
 Algorithm.find_or_create_by!(id: 601, name: 'interact_indegree',  algorithm_type_id: 8, algorithm_flow_id: 1)
