@@ -38,7 +38,7 @@ namespace :db do
       calc_all = false
     end
 
-    if true
+    if false
       if Company.find(cid).questionnaire_only?
         PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores_for_generic_networks(cid.to_i, sid.to_i, gid.to_i)
       else
