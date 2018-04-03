@@ -414,14 +414,10 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         gid: lgid,
         algorithm_type: algorithm.algorithm_type_id
       }
-      puts "going into algo with args: "
-      ap args
       calculated = algorithm.run(args)
       pid = nil if pid == NO_PIN
       gid = nil if gid == NO_GROUP
-      puts "Done calculating"
       unless calculated.nil?
-        puts "preparing values"
         calculated.each do |obj|
           row = []
           score = nil
@@ -449,7 +445,6 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
         end
       end
 
-      puts "entries_count: #{entries_count}"
       entries_count = values.count
 
       (0..entries_count / 1000).each do |i|
