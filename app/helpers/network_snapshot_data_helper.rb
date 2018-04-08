@@ -102,7 +102,9 @@ module NetworkSnapshotDataHelper
 
     ## Get all groups
     topextids << cg.external_id
-    groups = Group.select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col, g.snapshot_id")
+    group_size = "select count(*) from employees where group_id = g.id"
+    groups = Group.select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col, g.snapshot_id,
+                           g.hierarchy_size, (#{group_size}) AS group_size")
                   .from('groups AS g')
                   .joins('JOIN colors AS col ON col.id = g.color_id')
                   .where('g.snapshot_id = ?', sid)
@@ -376,18 +378,20 @@ module NetworkSnapshotDataHelper
   def get_employees_for_map(empids, snapshot_field, interval, sid, aid)
     extids = Employee.where(id: empids).pluck(:external_id)
     nodes = Employee
-            .select("emps.external_id AS id, email,
+            .select("emps.external_id AS id, first_name, last_name,
                      g.name AS gname, g.id AS groupid, col.rgb AS col,
-                     gender, avg(cds.score) AS score")
+                     gender, avg(cds.score) AS score, o.name AS office,
+                     emps.office_id")
             .from('employees AS emps')
             .joins('JOIN groups AS g ON g.id = emps.group_id')
             .joins('JOIN colors AS col ON col.id = g.color_id')
-            .joins('JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id')
+            .joins("LEFT JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id AND cds.algorithm_id = #{aid}")
             .joins('JOIN snapshots AS sn ON sn.id = emps.snapshot_id')
+            .joins('JOIN offices AS o ON o.id = emps.office_id')
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
-            .where('cds.algorithm_id = %i AND cds.snapshot_id = sn.id', aid)
-            .group('emps.external_id, email, g.name, g.id, col, gender')
+            .group('emps.external_id, first_name, last_name, g.name, g.id, col,
+                    o.name, gender, emps.office_id')
 
     nodes = nodes.as_json
     invmode = CompanyConfigurationTable.is_investigation_mode?
@@ -395,10 +399,10 @@ module NetworkSnapshotDataHelper
       n['group_id'] = n['groupid']
       n['group_name'] = n['gname']
       n['id'] = Employee.external_id_to_id_in_snapshot(n['id'].to_s, sid)
-      # n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
-      # n['name'] = "#{n['first_name']} #{n['last_name']}"
-      n['name'] = "#{n['id']}_#{n['email']}" if invmode
-      n['name'] = (n['email']).to_s
+      n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
+      n['name'] = "#{n['first_name']} #{n['last_name']}"
+      #n['name'] = "#{n['id']}_#{n['email']}" if invmode
+      #n['name'] = (n['email']).to_s
       n
     end
     return nodes
@@ -406,6 +410,7 @@ module NetworkSnapshotDataHelper
 
   ## Aggregate connections among emplyees
   def get_employee_links_for_map(empids, snapshot_field, interval, sid)
+
     extids = Employee.where(id: empids).pluck(:external_id)
     links = NetworkSnapshotData
             .select('femps.external_id AS source, temps.external_id AS target,

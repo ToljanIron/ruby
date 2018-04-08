@@ -7,24 +7,35 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    nsds = NetworkSnapshotData.where(snapshot_id: [94,145])
-    nsds.each do |nsd|
-      next if rand(1..10) > 3
-      puts "Adding some emails"
-      (1..rand(1..5)).each do
-        NetworkSnapshotData.create!(
-          snapshot_id: nsd[:snapshot_id],
-          network_id: nsd[:network_id],
-          company_id: 11,
-          from_employee_id: nsd[:from_employee_id],
-          to_employee_id: nsd[:to_employee_id],
-          value: 1,
-          message_id: SecureRandom.base58(24),
-          from_type: 2,
-          to_type: 1
-        )
-      end
+    emps = Employee.where(snapshot_id: 118).select(:id, :snapshot_id, :external_id)
+
+    h_extid = {}
+    emps.each do |e|
+      h_extid[e[:external_id]] = e[:id]
     end
+
+
+    ff = File.open("./insert.sql","w")
+    ii = 0
+    puts "start going over csv"
+    CSV.foreach('bog-management2.csv') do |r|
+      ii += 1
+      puts "#{ii} out of 4800" if (ii % 100 == 0)
+      mid = h_extid[r[0]]
+      eid = h_extid[r[1]]
+
+      next if (mid.nil? || eid.nil?)
+      str = "(#{mid},#{eid},2,current_timestamp,current_timestamp),\n"
+      ff.write(str)
+    end
+    ff.close
+
+    #puts "[#{ii}] - group: #{gid}, mid: #{mid}, eid: #{eid}"
+    #EmployeeManagementRelation.create!(
+      #manager_id: mid,
+      #employee_id: eid,
+      #relation_type: :recursive
+    #)
 
     puts "Done"
 

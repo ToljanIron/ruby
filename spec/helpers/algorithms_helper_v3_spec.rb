@@ -509,4 +509,50 @@ describe AlgorithmsHelper, type: :helper do
       expect{ AlgorithmsHelper.calculate_non_reciprocity_between_employees(1, -1, 11)}.not_to raise_error
     end
   end
+
+  describe 'group_non_reciprocity' do
+    it 'should be high if receiving is low' do
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      res1 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      CdsMetricScore.find(1).update!(score: 1)
+      res2 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect(res1).to be < res2
+    end
+
+    it 'should be low if receiving is high' do
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      res1 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      CdsMetricScore.find(1).update!(score: 30)
+      res2 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect(res1).to be > res2
+    end
+
+    it 'should be NA if there are no receiving and sending' do
+      res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect( res ).to eq(-99999)
+    end
+
+    it 'shhould be NA if both values are zero' do
+      FactoryGirl.create(:cds_metric_score, score: 0, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryGirl.create(:cds_metric_score, score: 0, id: 2, group_id: 6, algorithm_id: 301)
+      res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect( res ).to eq(-99999)
+    end
+
+    it 'should be zero if sending is zero' do
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryGirl.create(:cds_metric_score, score:  0, id: 2, group_id: 6, algorithm_id: 301)
+      res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect( res ).to eq(0.0)
+    end
+
+    it 'should be close to one if receving is zero' do
+      FactoryGirl.create(:cds_metric_score, score:  0, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
+      expect( res ).to be > 0.99
+    end
+  end
 end

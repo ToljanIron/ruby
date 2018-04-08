@@ -31,11 +31,13 @@ Algorithm.find_or_create_by!(id: 204, name: 'internal_champions', algorithm_type
 Algorithm.find_or_create_by!(id: 205, name: 'calculate_information_isolate_to_args', algorithm_type_id: 1, algorithm_flow_id: 1, meaningful_sqew: Algorithm::SCORE_SKEW_HIGH_IS_BAD, use_group_context: false)
 Algorithm.find_or_create_by!(id: 206, name: 'calculate_connectors', algorithm_type_id: 1, algorithm_flow_id: 1, use_group_context: false)
 Algorithm.find_or_create_by!(id: 207, name: 'deadends_measure', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 208, name: 'bypassed_managers', algorithm_type_id: 1, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interfaces   ###############
 Algorithm.find_or_create_by!(id: 300, name: 'external_receivers_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 301, name: 'external_senders_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 Algorithm.find_or_create_by!(id: 302, name: 'internal_traffic_volume', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
+Algorithm.find_or_create_by!(id: 303, name: 'non_reciprocity', algorithm_type_id: 5, algorithm_flow_id: 2, use_group_context: false)
 
 ############## Interact ####################
 Algorithm.find_or_create_by!(id: 601, name: 'interact_indegree',  algorithm_type_id: 8, algorithm_flow_id: 1)

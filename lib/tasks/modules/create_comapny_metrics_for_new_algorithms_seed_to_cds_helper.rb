@@ -55,6 +55,7 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     connectors_id            = MetricName.find_or_create_by!(name: 'Connectors', company_id: cid).id
     isolate_id               = MetricName.find_or_create_by!(name: 'Information Isolates', company_id: cid).id
     deadends_id              = MetricName.find_or_create_by!(name: 'Deadends', company_id: cid).id
+    bypassed_manager_id      = MetricName.find_or_create_by!(name: 'Bypassed Manager', company_id: cid).id
 
     CompanyMetric.find_or_create_by!(metric_id: closeness_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 200, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: synergy_level_gauge_id, network_id: -1, company_id: cid, algorithm_id: 201, algorithm_type_id: 5)
@@ -63,15 +64,18 @@ module CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
     CompanyMetric.find_or_create_by!(metric_id: isolate_id, network_id: -1, company_id: cid, algorithm_id: 205, algorithm_type_id: 1, active: true)
     CompanyMetric.find_or_create_by!(metric_id: connectors_id, network_id: -1, company_id: cid, algorithm_id: 206, algorithm_type_id: 1)
     CompanyMetric.find_or_create_by!(metric_id: deadends_id, network_id: -1, company_id: cid, algorithm_id: 207, algorithm_type_id: 1)
+    CompanyMetric.find_or_create_by!(metric_id: bypassed_manager_id, network_id: -1, company_id: cid, algorithm_id: 208, algorithm_type_id: 1)
 
 
     ####################### Interfaces ########################
     external_recievers_id  = MetricName.find_or_create_by!(name: 'External Receivers', company_id: cid).id
     external_senders_id    = MetricName.find_or_create_by!(name: 'External Senders', company_id: cid).id
     internal_traffic_id    = MetricName.find_or_create_by!(name: 'Internal Traffic', company_id: cid).id
+    non_reciprocity_id     = MetricName.find_or_create_by!(name: 'Non-Reciprocity', company_id: cid).id
 
     CompanyMetric.find_or_create_by!(metric_id: external_recievers_id, network_id: -1, company_id: cid, algorithm_id: 300, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: external_senders_id, network_id: -1, company_id: cid, algorithm_id: 301, algorithm_type_id: 5)
     CompanyMetric.find_or_create_by!(metric_id: internal_traffic_id, network_id: -1, company_id: cid, algorithm_id: 302, algorithm_type_id: 5)
+    CompanyMetric.find_or_create_by!(metric_id: non_reciprocity_id, network_id: -1, company_id: cid, algorithm_id: 303, algorithm_type_id: 5)
   end
 end

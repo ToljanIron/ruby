@@ -63,6 +63,9 @@ module AlgorithmsHelper
   SD2 = 2
   SD3 = 3
 
+  EPSILON = 0.001
+  NA = -99999
+
   ################################################################################
   ## Quartile calculations for number arrays
   ## Typically used for gauges
@@ -605,6 +608,41 @@ module AlgorithmsHelper
      return [{group_id: gid, measure: med}]
   end
 
+
+  ###########################################################################
+  ## Group non-reciprocity
+  ## This algorithm expects to find resutls for external_receive and for
+  ## external_send.
+  ###########################################################################
+  def group_non_reciprocity(sid, gid)
+    rec = CdsMetricScore
+      .where(snapshot_id: sid)
+      .where(group_id: gid)
+      .where(algorithm_id: 300)
+      .last
+
+    snd = CdsMetricScore
+      .where(snapshot_id: sid)
+      .where(group_id: gid)
+      .where(algorithm_id: 301)
+      .last
+
+    if rec.nil? || snd.nil?
+      puts "Could not calculate non-reciprocity for group: #{gid}, because pre-requises are not present"
+      return [{id: gid, measure: NA}]
+    end
+
+    rec = rec[:score].to_f
+    snd = snd[:score].to_f
+
+    if (snd == 0 && rec == 0)
+      return [{id: gid, measure: NA}]
+    end
+
+    score = 1 - (rec.to_f / (snd.to_f + rec.to_f + EPSILON) ).round(2)
+    return [{id: gid, measure: score}]
+  end
+
   ###########################################################################
   ##
   ## Non-reciprocity is high for employees who tend to say be connected to
@@ -1114,17 +1152,84 @@ module AlgorithmsHelper
     return ret
   end
 
-  def most_bypassed_managers(cid, sid, nid, pid = NO_PIN, gid = NO_GROUP)
-    max_size = 5
-    informal_matrix = CdsEmployeeManagementRelationHelper.create_informal_matrix_per_snapshot(sid, nid, pid, gid)
-    bypassed_managers = CdsEmployeeManagementRelationHelper.get_bypassed_in(informal_matrix, cid, pid, gid)
-    potential_candidates_size = bypassed_managers.length > max_size ? max_size : bypassed_managers.length
-    res = if potential_candidates_size != 0
-            bypassed_managers[0..potential_candidates_size - 1].map { |elem| elem.except(:measure) }
-          else
-            []
-          end
-    return res
+  ###############################################################################
+  # Assign each manager a bypassed score. If an employee is not a manager  then
+  # they do not get a score at all.
+  # There are 4 types of players in this calculation:
+  # i - The employees
+  # j - The manager
+  # k - The manager's manager
+  # m - The manager's peers
+  #
+  # We designate Traffic from one group to another, for example from employees
+  #   to the manager by: Aij.
+  #
+  # The overall score is 1 minus the average of the following qoutients:
+  # 1. a1 = Aik / (Aij + Aik)
+  # 2. a2 = Aki / (Akj + Aki)
+  # 3. a3 = Aim / (Aij + Aim)
+  # 4. a4 = Ami / (Amj + Ami)
+  #
+  # So, the lower the score the more bypassed is the manager k.
+  #
+  ###############################################################################
+  def most_bypassed_managers(cid, sid, pid = NO_PIN, gid = NO_GROUP)
+    nid = NetworkName.get_emails_network(cid)
+    sag = get_sagraph(sid, nid, gid)
+    fsi = formal_structure_index(sid)
+    mids = fsi[:managers].clone.values.uniq
+    mids.delete( fsi[:topid] )
+
+    a        = sag[:adjacencymat]
+    emp2inx  = sag[:emp2inx]
+    emps_num = a.shape[0]
+
+    ret = []
+
+    mids.each do |mid|
+      j = emp2inx[mid]
+      mmid = fsi[:managers][mid]
+      next if mmid.nil?
+      k = emp2inx[mmid]
+
+      ## Get vectors of: Managers' peers and reportees
+      vp, vr = get_identification_vecotrs(emps_num, fsi, mid, emp2inx)
+
+      ## Employees to manager and top manager
+      aik = vr.transpose.dot( a.col(k) )[0]
+      aij = vr.transpose.dot( a.col(j) )[0]
+      a1 = (aik / (aik + aij + EPSILON)).round(3)
+
+      ## Top manager to employees and manager
+      aki = a.row(k).dot(vr)[0]
+      akj = a[k,j]
+      a2 = (aki / (aki + akj + EPSILON)).round(3)
+
+      ## Employees to peers and manager
+      aim = vr.transpose.dot( a.dot(vp) )[0,0]
+      a3 = (aim / (aim + aij + EPSILON)).round(3)
+
+      ## Peers to manager and employees
+      ami = vp.transpose.dot( a.dot(vr) )[0,0]
+      amj = vp.transpose.dot( a.col(j) )[0]
+      a4 = (ami / (amj + ami + EPSILON)).round(3)
+
+      measure = 1 - (0.25 * (a1 + a2 + a3 + a4)).round(2)
+      ret << {id: mid, measure: measure}
+    end
+    return ret
+  end
+
+  def get_identification_vecotrs(emps_num, fsi, mid, emp2inx)
+    zeros =  NMatrix.zeros([emps_num, 1], dtype: :float32)
+
+    vp  = zeros.clone
+    fsi[:peers][mid].each { |peerid| vp[emp2inx[peerid]] = 1 }
+
+    vr  = zeros.clone
+    fsi[:reportees][mid].each { |eid| vr[emp2inx[eid]] = 1 }
+
+    return [vp, vr]
   end
 
   ################################################## Gauges #############################################

@@ -235,9 +235,8 @@ module ParamsToArgsHelper
     return ParamsToArgsHelper.calculate_flags(res)
   end
 
-  def self.most_bypassed_manager_to_args(args)
-    res = most_bypassed_managers(args[:company_id], args[:snapshot_id], args[:network_id], args[:pid], args[:gid])
-    return ParamsToArgsHelper.calculate_flags(res)
+  def self.bypassed_managers(args)
+    return AlgorithmsHelper.most_bypassed_managers(args[:company_id], args[:snapshot_id], args[:pid], args[:gid])
   end
 
   def self.in_the_loop_to_args(args)
@@ -345,6 +344,10 @@ module ParamsToArgsHelper
 
   def self.calculate_bottlenecks_for_flag(args)
     return AlgorithmsHelper.calculate_bottlenecks_for_flag(args[:snapshot_id], args[:pid], args[:gid])
+  end
+
+  def self.non_reciprocity(args)
+    return AlgorithmsHelper.group_non_reciprocity(args[:snapshot_id], args[:gid].to_i)
   end
 
   def self.calculate_non_reciprocity_between_employees_to_args(args)
