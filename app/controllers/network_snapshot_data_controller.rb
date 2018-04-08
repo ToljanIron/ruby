@@ -9,7 +9,7 @@ class NetworkSnapshotDataController < ApplicationController
     cid = current_user.company_id
     eid = permitted[:eid].sanitize_integer
     interval = permitted[:interval].sanitize_is_alphanumeric
-    algo = permitted[:aid].sanitize_is_alphanumeric
+    algo = permitted[:aid].sanitize_is_string_with_space
     aid = Algorithm.get_algorithm_id(cid, algo)
 
     cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}-aid-#{aid}"
