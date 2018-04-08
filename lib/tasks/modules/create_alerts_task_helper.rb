@@ -122,15 +122,21 @@ module CreateAlertsTaskHelper
   ###################################################################################
 
   def create_alert(cid, sid, gid, eid, alert_type, cmid, direction)
-      return Alert.new(
-        company_id: cid,
-        snapshot_id: sid,
-        group_id: gid,
-        employee_id: eid,
-        alert_type: alert_type,
-        company_metric_id: cmid,
-        direction: direction,
-      )
+    alert = Alert
+      .find_by(company_id: cid, snapshot_id: sid, group_id: gid,
+             employee_id: eid, alert_type: alert_type,
+             company_metric_id: cmid, direction: direction)
+    return alert if !alert.nil?
+
+    return Alert.new(
+      company_id: cid,
+      snapshot_id: sid,
+      group_id: gid,
+      employee_id: eid,
+      alert_type: alert_type,
+      company_metric_id: cmid,
+      direction: direction
+    )
   end
 
   def filter_groups_by_sizes(groups)
