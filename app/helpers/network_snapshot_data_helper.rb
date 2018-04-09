@@ -378,8 +378,8 @@ module NetworkSnapshotDataHelper
   def get_employees_for_map(empids, snapshot_field, interval, sid, aid)
     extids = Employee.where(id: empids).pluck(:external_id)
     nodes = Employee
-            .select("emps.external_id AS id, first_name, last_name,
-                     g.name AS gname, g.id AS groupid, col.rgb AS col,
+            .select("emps.external_id AS id, first_name, last_name, emps.email,
+                     g.name AS gname, g.english_name AS egname, g.id AS groupid, col.rgb AS col,
                      gender, avg(cds.score) AS score, o.name AS office,
                      emps.office_id")
             .from('employees AS emps')
@@ -391,18 +391,18 @@ module NetworkSnapshotDataHelper
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
             .group('emps.external_id, first_name, last_name, g.name, g.id, col,
-                    o.name, gender, emps.office_id')
+                    o.name, gender, emps.office_id, g.english_name, emps.email')
 
     nodes = nodes.as_json
     invmode = CompanyConfigurationTable.is_investigation_mode?
     nodes = nodes.map do |n|
       n['group_id'] = n['groupid']
-      n['group_name'] = n['gname']
+      n['group_name'] = n['gname']  if !invmode
+      n['group_name'] = n['egname'] if invmode
       n['id'] = Employee.external_id_to_id_in_snapshot(n['id'].to_s, sid)
-      n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
-      n['name'] = "#{n['first_name']} #{n['last_name']}"
-      #n['name'] = "#{n['id']}_#{n['email']}" if invmode
-      #n['name'] = (n['email']).to_s
+      #n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
+      n['name'] = "#{n['first_name']} #{n['last_name']}" if !invmode
+      n['name'] = "#{n['id']}_#{n['email']}" if invmode
       n
     end
     return nodes
