@@ -103,7 +103,8 @@ module NetworkSnapshotDataHelper
     ## Get all groups
     topextids << cg.external_id
     group_size = "select count(*) from employees where group_id = g.id"
-    groups = Group.select("g.id, g.id || '_' || g.english_name AS name, col.rgb AS col, g.snapshot_id,
+    name_field = CompanyConfigurationTable.is_investigation_mode? ? 'english_name' : 'name'
+    groups = Group.select("g.id, g.id || '_' || g.#{name_field} AS name, col.rgb AS col, g.snapshot_id,
                            g.hierarchy_size, (#{group_size}) AS group_size")
                   .from('groups AS g')
                   .joins('JOIN colors AS col ON col.id = g.color_id')

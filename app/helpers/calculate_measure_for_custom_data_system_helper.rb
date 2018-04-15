@@ -175,6 +175,16 @@ module CalculateMeasureForCustomDataSystemHelper
     snapshot_field = Snapshot.field_from_interval_type(interval_type)
     aids_str = aids.join(",")
 
+    if CompanyConfigurationTable.is_investigation_mode?
+      emp_name_field = 'emps.email'
+      emp_groupby_field = 'emps.email'
+      group_field = 'english_name'
+    else
+      emp_name_field = "emps.first_name || ' ' || emps.last_name"
+      emp_groupby_field = "emps.first_name, emps.last_name, emps.email"
+      group_field = 'name'
+    end
+
     ## First, get top employees
     emps = CdsMetricScore
              .select("avg(#{score_type}) as avg, emps.email")
@@ -193,8 +203,8 @@ module CalculateMeasureForCustomDataSystemHelper
     ## Then get their details
     ## SELECT (avg(#{score_type}) * #{scale}) AS score, emps.first_name || ' ' || emps.last_name AS emp_name,
     sqlstr = "
-      SELECT (avg(#{score_type}) * #{scale}) AS score, emps.email AS emp_name,
-             emps.img_url AS img_url, g.external_id AS group_extid, g.english_name AS group_name, o.name AS office_name,
+      SELECT (avg(#{score_type}) * #{scale}) AS score, emps.email, #{emp_name_field} AS emp_name,
+             emps.img_url AS img_url, g.external_id AS group_extid, g.#{group_field} AS group_name, o.name AS office_name,
              mn.name AS metric_name, emps.email
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
@@ -207,7 +217,7 @@ module CalculateMeasureForCustomDataSystemHelper
         emps.email IN ('#{emails.join("','")}') AND
         cds.algorithm_id IN (#{aids_str}) AND
         sn.#{snapshot_field} = \'#{interval}\'
-      GROUP BY emp_name, img_url, group_extid, group_name, mn.name, office_name, email
+      GROUP BY #{emp_groupby_field}, img_url, group_extid, g.#{group_field}, mn.name, office_name
       ORDER BY score DESC
       LIMIT 20"
 
@@ -314,6 +324,7 @@ module CalculateMeasureForCustomDataSystemHelper
   end
 
   def cds_aggregation_query(cid, interval, group_wherepart, algo_wherepart, office_wherepart, aids, snapshot_field, extids)
+    group_name_field = CompanyConfigurationTable.is_investigation_mode? ? 'english_name' : 'name'
     sqlstr = "
       SELECT avg(outmost.inavg) AS group_hierarchy_avg, outmost.gextid AS group_extid,
              outmost.group_name, outmost.algorithm_id AS algorithm_id, outmost.algorithm_name
@@ -330,7 +341,7 @@ module CalculateMeasureForCustomDataSystemHelper
              ing.external_id IN ('#{extids.join('\',\'')}') AND
              inemps.snapshot_id = outg.snapshot_id AND
              incds.algorithm_id = outcds.algorithm_id ) AS inavg,
-           outcds.snapshot_id AS sid, outg.external_id AS gextid, outg.english_name AS group_name,
+           outcds.snapshot_id AS sid, outg.external_id AS gextid, outg.#{group_name_field} AS group_name,
            outcds.algorithm_id AS algorithm_id, outmn.name AS algorithm_name
          FROM cds_metric_scores AS outcds
          JOIN employees AS outemps ON outemps.id = outcds.employee_id
@@ -347,7 +358,7 @@ module CalculateMeasureForCustomDataSystemHelper
            outcds.score > #{NA} AND
            outcds.algorithm_id IN (#{aids.join(',')})
          GROUP BY outcds.snapshot_id, outg.external_id, outcds.algorithm_id, outg.nsleft, outg.nsright,
-                  outg.snapshot_id, outg.english_name, outmn.name
+                  outg.snapshot_id, outg.#{group_name_field}, outmn.name
          ) AS outmost
       GROUP BY outmost.gextid, outmost.group_name, outmost.algorithm_id, outmost.algorithm_name
       ORDER BY group_hierarchy_avg DESC"

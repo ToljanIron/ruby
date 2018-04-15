@@ -335,10 +335,11 @@ module MeasuresHelper
       groups_cond = "g.external_id IN ('#{groupextids.join('\',\'')}')"
     end
 
+    invmode = CompanyConfigurationTable.is_investigation_mode?
     agg_type_select = nil
     agg_type_groupby = nil
     if agg_type == 'group_id'
-      agg_type_select = 'g.english_name AS group_name'
+      agg_type_select = invmode ? 'g.english_name AS group_name' : 'g.name AS group_name'
       agg_type_groupby = 'group_name'
     elsif agg_type == 'office_id'
       agg_type_select = 'off.name AS officename'
@@ -480,10 +481,11 @@ module MeasuresHelper
       allout = snd + rcv
       next if allout == 0
       gid = Group.external_id_to_id_in_snapshot(e['external_id'], sid)
+      gname = invmode ? create_group_name(gid, e['english_name'],invmode) : e['group_name']
 
       res << {
         'gid' => gid,
-        'name' => create_group_name(gid, e['english_name'],invmode),
+        'name' => gname,
         'sending'   => (100 * snd / allout).to_f.round(1),
         'receiving' => (100 * rcv / allout).to_f.round(1),
         'intraffic' => e['int'].to_i,
