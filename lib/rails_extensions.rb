@@ -77,6 +77,11 @@ end
 
 ####################### Sanitizing methods #####################
 class Object
+  def is_float?
+    return false if self.nil?
+    return (Integer(self) != nil) rescue return false
+  end
+
   def is_integer?
     return false if self.nil?
     return (Integer(self) != nil) rescue return false

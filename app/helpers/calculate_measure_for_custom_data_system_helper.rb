@@ -55,6 +55,9 @@ module CalculateMeasureForCustomDataSystemHelper
 
     scale = CompanyConfigurationTable.incoming_email_to_time
 
+    time_spent_diff = 0 if !time_spent_diff.is_float?
+    num_emails_diff = 0 if !num_emails_diff.is_float?
+
     return {
       total_time_spent: total_time_spent * scale,
       total_time_spent_diff: time_spent_diff,
