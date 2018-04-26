@@ -28,17 +28,22 @@ module NetworkSnapshotDataHelper
     extids = Group.where(id: gids).pluck(:external_id)
 
     ## Top traffic from cgid (Sending)
+    puts "==============================="
     ret = interfaces_traffic_volumes_query(G_INSIDE, G_OUTSIDE, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, extids, 10)
     topextids = []
     ret.each do |r|
+      puts "To: #{r['toextid']} - #{r['vol']}"
       topextids << r['toextid']
     end
 
     ## Top traffic to cgid (Receiving)
+    puts "==============================="
     ret = interfaces_traffic_volumes_query(G_OUTSIDE, G_INSIDE, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, extids, 10)
     ret.each do |r|
+      puts "From: #{r['fromextid']} - #{r['vol']}"
       topextids | [r['fromextid']]
     end
+    puts "==============================="
 
     links = []
 
