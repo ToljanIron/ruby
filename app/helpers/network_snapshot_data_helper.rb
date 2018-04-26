@@ -91,6 +91,9 @@ module NetworkSnapshotDataHelper
 
     # Traffic to other groups
     ret = interfaces_traffic_volumes_query(G_INSIDE, G_NOT_IN, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, topextids, nil)
+puts "***************************"
+ap ret
+puts "***************************"
     links << {
       source: cgid.to_i,
       target: -1,
