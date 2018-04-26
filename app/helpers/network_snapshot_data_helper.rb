@@ -160,10 +160,10 @@ puts "***************************"
     textidswhere = "tg.external_id in ('#{extidsstr}')"     if (toside == G_OUTSIDE)
     textidswhere = "tg.external_id not in ('#{extidsstr}')" if (toside == G_NOT_IN)
 
-    groupby = 'GROUP BY' if fromside != G_INSIDE || toside != G_INSIDE
-    groupby = "#{groupby} fg.external_id" if fromside != G_INSIDE
-    groupby = "#{groupby}, " if fromside != G_INSIDE && toside != G_INSIDE
-    groupby = "#{groupby} tg.external_id" if toside != G_INSIDE
+    groupby = 'GROUP BY' if fromside == G_OUTSIDE || toside == G_OUTSIDE
+    groupby = "#{groupby} fg.external_id" if fromside == G_OUTSIDE
+    groupby = "#{groupby}, " if fromside == G_OUTSIDE && toside == G_OUTSIDE
+    groupby = "#{groupby} tg.external_id" if toside == G_OUTSIDE
 
     sqlstr = "
       #{select_str}
