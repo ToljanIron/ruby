@@ -143,8 +143,8 @@ puts "***************************"
   ############################################################################
   def interfaces_traffic_volumes_query(fromside, toside, snfield, interval, cid, nid, nsleft, nsright, extids, limit = nil)
     select_str = 'SELECT COUNT(*) AS vol'
-    select_str = "#{select_str},tg.external_id AS toextid" if toside != G_INSIDE
-    select_str = "#{select_str},fg.external_id AS fromextid" if fromside != G_INSIDE
+    select_str = "#{select_str},tg.external_id AS toextid" if toside == G_OUTSIDE
+    select_str = "#{select_str},fg.external_id AS fromextid" if fromside == G_OUTSIDE
 
     fhierarchy_dir = "(fg.nsleft >= #{nsleft} AND fg.nsright <= #{nsright})" if fromside == G_INSIDE
     fhierarchy_dir = "(fg.nsleft < #{nsleft} OR fg.nsright > #{nsright})" if fromside != G_INSIDE
