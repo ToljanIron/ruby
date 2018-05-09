@@ -251,4 +251,53 @@ class Questionnaire < ActiveRecord::Base
     end
     return data
   end
+
+  #####################################################################
+  # Get all questionnaires with number of particpants in each statge
+  #####################################################################
+  def self.get_all_questionnaires(cid)
+    sqlstr =
+      "SELECT count(*), qp.status, q.id, q.name, q.sent_date, l.name AS language, q.delivery_method,
+              q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
+              q.test_user_phone, q.test_user_email, q.state, l.id AS language_id
+       FROM questionnaire_participants AS qp
+       JOIN questionnaires AS q ON q.id = qp.questionnaire_id
+       LEFT JOIN languages AS l ON l.id = q.language_id
+       WHERE q.company_id = #{cid}
+       GROUP BY qp.status, q.id, q.name, q.sent_date, l.name, q.delivery_method,
+                q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
+                q.test_user_phone, q.test_user_email, q.state, l.id
+       ORDER BY snapshot_id DESC"
+
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = []
+    res.each do |r|
+      quest = ret.find {|e| e[:id] == r['id'] }
+      if quest.nil?
+        quest = {
+          id: r['id'],
+          name: r['name'],
+          state: r['state'],
+          participantsNum: 0,
+          percentCompleted: 0,
+          sentAt: r['sent_date'],
+          stats: [],
+          languageId: r['language_id'],
+          deliveryMethod: r['delivery_method'],
+          smsText: r['sms_text'],
+          emailText: r['email_text'],
+          emailFrom: r['email_from'],
+          emailSubject: r['email_subject'],
+          testUserName: r['test_user_name'],
+          testUserPhone: r['test_user_phone'],
+          testUserEMail: r['test_user_email']
+        }
+        ret << quest
+      end
+      quest[:stats][r['status']] = r['count']
+      quest[:participantsNum] += r['count']
+    end
+    return ret
+  end
+
 end

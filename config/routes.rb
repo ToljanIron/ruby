@@ -25,29 +25,33 @@ Workships::Application.routes.draw do
   get    'get_questionnaire_employees' => 'mobile/employees#all_employees'
   post   'get_next_question' => 'mobile/questions#next'
 
-  post  'question/create' => 'mobile/questions#create'
-  post  'question/remove' => 'mobile/questions#remove'
-
-  post  'questionnaire/send_questionnaire'             => 'mobile/questionnaire#send_questionnaire'
-  post  'questionnaire/resend_questionnaire_for_emp'   => 'mobile/questionnaire#send_questionnaire_for_emp'
-  post  'questionnaire/reset_questionnaire_for_emp'    => 'mobile/questionnaire#reset_questionnaire_for_emp'
-  post  'questionnaire/generate_questionnaire_report'  => 'mobile/questionnaire#generate_questionnaire_report'
-  post  'questionnaire/send_questionnaire_to_all_ajax' => 'mobile/questionnaire#send_questionnaire_to_all_ajax'
-  post  'questionnaire/send_questionnaire_desktop'     => 'mobile/questionnaire#send_questionnaire_desktop'
-  post  'questionnaire/download_csv'                   => 'mobile/questionnaire#download_csv'
-  get   'questionnaire/capture_snapshot'               ,to:  'mobile/questionnaire#capture_quesitonnaire_in_snapshot'
-  get   'questionnaire/get_questionnaire_state'        ,to:  'mobile/questionnaire#get_questionnaires_state'
-
   get   'keep_alive'     => 'mobile/mobile#keep_alive'
-
-  post  'questionnaire_questions/update', to: 'mobile/questionnaire_questions#update_questionnaire_question'
-
   get  'question/active_employess', to: 'mobile/questionnaire#active_employees'
-
-  post 'v2/mobile_questionnaire/update' , to: 'mobile/questionnaire#update_questionnaire'
-  post 'v2/mobile_questionnaire/create', to: 'mobile/questionnaire#create_new_questionnaire'
-
   post 'receive_sms', to: 'sms#receive_and_respond'
+
+  get '/interact_backoffice',                      to: 'interact_backoffice#questionnaire'
+  get '/interact_backoffice/get_questionnaires',   to: 'interact_backoffice#get_questionnaires'
+  get '/interact_backoffice/questionnaire',        to: 'interact_backoffice#questionnaire'
+  post '/interact_backoffice/questionnaire_update',to: 'interact_backoffice#questionnaire_update'
+  get '/interact_backoffice/questionnaire_create', to: 'interact_backoffice#questionnaire_create'
+  get '/interact_backoffice/test',                 to: 'interact_backoffice#test'
+  get '/interact_backoffice/test_update',          to: 'interact_backoffice#test_update'
+  get '/interact_backoffice/questions',            to: 'interact_backoffice#questions'
+  get '/interact_backoffice/questions_create',     to: 'interact_backoffice#questions_create'
+  get '/interact_backoffice/questions_update',     to: 'interact_backoffice#questions_update'
+  get '/interact_backoffice/participants',         to: 'interact_backoffice#participants'
+  get '/interact_backoffice/participants_create',  to: 'interact_backoffice#participants_create'
+  get '/interact_backoffice/participants_update',  to: 'interact_backoffice#participants_update'
+  get '/interact_backoffice/participants_filter',  to: 'interact_backoffice#participants_filter'
+  get '/interact_backoffice/participants_bulk_actions', to: 'interact_backoffice#participants_bulk_actions'
+  post '/interact_backoffice/participants_load',   to: 'interact_backoffice#participants_load'
+  get '/interact_backoffice/reports',              to: 'interact_backoffice#reports'
+  get '/interact_backoffice/reports_network',      to: 'interact_backoffice#reports_network'
+  get '/interact_backoffice/reports_measures',     to: 'interact_backoffice#reports_measures'
+  get '/interact_backoffice/reports_bidirectional_network', to: 'interact_backoffice#reports_bidirectional_network'
+
+  post '/interact_backoffice/actions_img_upload',     to: 'interact_actions#img_upload'
+  post '/interact_backoffice/actions_img_bulk_upload',to: 'interact_actions#actions_img_bulk_upload'
 
   ############################ v3 ############################
 

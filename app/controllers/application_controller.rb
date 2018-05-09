@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 include ApplicationHelper
-include Mobile::Utils
+#include Mobile::Utils
 include SessionsHelper
 include Pundit
 include CdsUtilHelper
