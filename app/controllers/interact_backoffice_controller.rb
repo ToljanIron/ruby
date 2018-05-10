@@ -70,57 +70,41 @@ class InteractBackofficeController < ApplicationController
   def questionnaire_create
     authorize :application, :passthrough
 
-    errors = nil
-    begin
-      InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
-    rescue => ex
-      errors = ex.message
-      puts errors[0..1000]
-      puts ex.backtrace
-      EventLog.log_event(event_type_name: 'ERROR', message: errors[0..1000])
-    end
+    InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
+    quests = Questionnaire.get_all_questionnaires(@cid)
+    res = {quests: quests}
+    render json: Oj.dump(res), status: 200
+  end
 
-    quests = Questionnaire.get_all_questionnaires(cid)
-    res = {quests: quests, errors: errors}
+  def questionnaire_delete
+    authorize :application, :passthrough
+
+    qid = params['qid']
+    Questionnaire.find(qid).delete
+    quests = Questionnaire.get_all_questionnaires(@cid)
+    res = {quests: quests}
     render json: Oj.dump(res), status: 200
   end
 
   def questionnaire_update
     authorize :application, :passthrough
 
-    errors = ibo_error_handler do
-      ActiveRecord::Base.transaction do
-        if !params['update'].nil?
-          update_questionnaire_properties
-        elsif !params['create'].nil?
-          InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
-        else
-          raise "Illegal action sent"
-        end
-      end
-    end
-
-    prepare_questionnaire_data(errors)
-    redirect_to(
-      controller: :interact_backoffice,
-      action: :questionnaire,
-      errors: errors
-    )
+    update_questionnaire_properties
+    render json: 'ok', status: 200
   end
 
   def update_questionnaire_properties
-    name = params['questName']
+    quest = params['questionnaire']
+    name = quest['name']
 
     questState = @aq.state == 'created' ? 'delivery_method_ready' : @aq.state
 
-    deliveryMethod = 0 if params['deliveryMethod'] == 'sms'
-    deliveryMethod = 1 if params['deliveryMethod'] == 'email'
+    deliveryMethod = quest['delivery_method']
+    smsText = quest['sms_text']
+    emailText = quest['email_text']
+    emailSubject = quest['email_subject']
 
-    smsText = params['smsText']
-    emailText = params['emailText']
-    emailSubject = params['emailSubject']
-
-    language_id = params['language']
+    language_id = quest['language_id']
 
     @aq.update!(
       name: name,

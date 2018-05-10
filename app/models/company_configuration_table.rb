@@ -17,6 +17,8 @@ class CompanyConfigurationTable < ActiveRecord::Base
   MAX_LOGIN_ATTMEPTS = 5
   LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS = 300
 
+  HIDE_EMPLOYEES     = 'hide_employee_names'
+
   belongs_to :company, foreign_key: 'comp_id'
 
   def self.get_company_locale(cid=-1)

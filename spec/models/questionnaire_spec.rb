@@ -49,9 +49,8 @@ describe Questionnaire, type: :model do
   describe 'get_all_questionnaires' do
     it 'should work' do
       res = Questionnaire.get_all_questionnaires(1)
-      expect( res[0][:stats] ).to eq([1,nil,nil,2])
-      expect( res[0][:participantsNum] ).to eq(3)
-      expect( res[0][:emailSubject] ).to eq('StepAhead questionnaire')
+      expect( res[0]['stats'] ).to eq([1,nil,nil,2])
+      expect( res[0]['email_subject'] ).to eq('StepAhead questionnaire')
 
     end
   end

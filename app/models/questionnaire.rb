@@ -1,22 +1,32 @@
 # frozen_string_literal: true
-require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
-require './lib/tasks/modules/create_snapshot_helper.rb'
-
 include Mobile::QuestionnaireHelper
 include XlsHelper
-include PrecalculateMetricScoresForCustomDataSystemHelper
-include CreateSnapshotHelper
+require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
 
 class Questionnaire < ActiveRecord::Base
+  include PrecalculateMetricScoresForCustomDataSystemHelper
+
   belongs_to :company
   has_many :questions, through: :questionnaire_questions
   has_many :questionnaire_questions
   has_many :questionnaire_participant
   has_many :employees, through: :questionnaire_participant
 
-  enum state: [:notstarted, :sent, :processing, :completed]
 
   belongs_to :language
+
+  enum state: [
+    :created,
+    :delivery_method_ready,
+    :questions_ready,
+    :notstarted,
+    :ready,
+    :sent,
+    :processing,
+    :completed
+  ]
+  enum delivery_method: [:sms, :email]
+
 
   @@in_process = []
   @@completed = []
@@ -44,7 +54,6 @@ class Questionnaire < ActiveRecord::Base
     self.state = :sent
     save!
   end
-
 
   # Reset the questionnaire for this employee. Next time he will enter the questionnaire
   # he will be able to start over.
@@ -80,11 +89,14 @@ class Questionnaire < ActiveRecord::Base
 
     EmailMessage.where(questionnaire_participant_id: q_participants).update_all(pending: true)
     pending_emails = EmailMessage.where(pending: true)
-
+    puts "************************"
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
+
+      puts "Sending mail..."
+      puts "************************"
       # Remove comment from next line when you want to send emails.
-      # ExampleMailer.sample_email(email).deliver_now
+      ExampleMailer.sample_email(email).deliver_now
       email.send_email
       puts "\n\nWARNING: Emails will not be sent. Check MAILER_ENABLED env var\n\n#{(caller.to_s)[0...1000]}\n\n" if !(ENV['MAILER_ENABLED'].to_s.downcase == 'true')
     end
@@ -191,20 +203,20 @@ class Questionnaire < ActiveRecord::Base
       return
     end
 
-    update(state: 2)
-    CreateSnapshotHelper::create_company_snapshot_by_weeks(company_id, Time.now.strftime('%Y-%m-%d'), false)
+    update(state: :processing)
     sid = Mobile::QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
 
     puts "Working on Snapshot: #{sid}"
     cid = Snapshot.find(sid).company_id
     puts 'In precalculate'
     EventLog.create!(message: "Precalculate for compay: #{cid}, snapshot: #{sid}", event_type_id: 1)
-    PrecalculateMetricScoresForCustomDataSystemHelper.cds_calculate_scores_for_generic_networks(cid, sid)
+    cds_calculate_scores_for_generic_networks(cid, sid)
+    #PrecalculateMetricScoresForCustomDataSystemHelper.cds_calculate_scores_for_generic_networks(cid, sid)
 
     puts 'Done with precalculate, clearing cache'
     EventLog.create!(message: 'Clear cache', event_type_id: 1)
     Rails.cache.clear
-    update(state: 3)
+    update(state: :completed)
     puts 'Done'
     EventLog.create!(message: 'Freeze questionnaire completed', event_type_id: 1)
   end
@@ -219,14 +231,14 @@ class Questionnaire < ActiveRecord::Base
 
     Dir.mkdir("#{public_folder}/#{report_folder}") unless Dir.exists?("#{public_folder}/#{report_folder}")
 
-    quest_report_raw = ReportHelper.get_questionnaire_report_raw(company_id)
-    sheets << quest_report_raw unless quest_report_raw.nil? || quest_report_raw.count == 0
+    sheets << ReportHelper.get_questionnaire_report_raw(company_id)
 
     quest_scores_report_raw = parse_gender(ReportHelper.create_interact_report(company_id))
-    sheets << hashes_to_arr(quest_scores_report_raw) unless quest_scores_report_raw.nil? || quest_scores_report_raw.count == 0
+
+    sheets << hashes_to_arr(quest_scores_report_raw)
 
     quest_network_report_raw = parse_gender(ReportHelper.create_snapshot_report(company_id))
-    sheets << hashes_to_arr(quest_network_report_raw) unless quest_network_report_raw.nil? || quest_network_report_raw.count == 0
+    sheets << hashes_to_arr(quest_network_report_raw)
 
     XlsHelper.create_excel_file(sheets, report_path)
     return "#{report_folder}/#{report_name}"
@@ -257,47 +269,29 @@ class Questionnaire < ActiveRecord::Base
   #####################################################################
   def self.get_all_questionnaires(cid)
     sqlstr =
-      "SELECT count(*), qp.status, q.id, q.name, q.sent_date, l.name AS language, q.delivery_method,
+      "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-              q.test_user_phone, q.test_user_email, q.state, l.id AS language_id
+              q.test_user_phone, q.test_user_email, q.state, q.language_id
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
-       LEFT JOIN languages AS l ON l.id = q.language_id
        WHERE q.company_id = #{cid}
-       GROUP BY qp.status, q.id, q.name, q.sent_date, l.name, q.delivery_method,
+       GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-                q.test_user_phone, q.test_user_email, q.state, l.id
+                q.test_user_phone, q.test_user_email, q.state, language_id
        ORDER BY snapshot_id DESC"
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ap res
     ret = []
     res.each do |r|
-      quest = ret.find {|e| e[:id] == r['id'] }
+      quest = ret.find {|e| e['id'] == r['id'] }
       if quest.nil?
-        quest = {
-          id: r['id'],
-          name: r['name'],
-          state: r['state'],
-          participantsNum: 0,
-          percentCompleted: 0,
-          sentAt: r['sent_date'],
-          stats: [],
-          languageId: r['language_id'],
-          deliveryMethod: r['delivery_method'],
-          smsText: r['sms_text'],
-          emailText: r['email_text'],
-          emailFrom: r['email_from'],
-          emailSubject: r['email_subject'],
-          testUserName: r['test_user_name'],
-          testUserPhone: r['test_user_phone'],
-          testUserEMail: r['test_user_email']
-        }
+        quest = r
+        quest['stats'] = []
         ret << quest
       end
-      quest[:stats][r['status']] = r['count']
-      quest[:participantsNum] += r['count']
+      quest['stats'][r['status']] = r['count']
     end
     return ret
   end
-
 end
