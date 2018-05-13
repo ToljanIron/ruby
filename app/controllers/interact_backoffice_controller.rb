@@ -16,13 +16,6 @@ class InteractBackofficeController < ApplicationController
     @showErrors = 'none'
   end
 
-  def get_questionnaires
-    authorize :application, :passthrough
-
-    res = Questionnaire.get_all_questionnaires(@cid)
-    render json: Oj.dump(res), status: 200
-  end
-
   def questionnaire
     authorize :application, :passthrough
 
@@ -67,30 +60,40 @@ class InteractBackofficeController < ApplicationController
     @errorText = errors.nil? ? [] : errors
   end
 
+  def get_questionnaires
+    authorize :application, :passthrough
+    ibo_process_request do
+      quests = Questionnaire.get_all_questionnaires(@cid)
+      [quests, nil]
+    end
+  end
+
   def questionnaire_create
     authorize :application, :passthrough
-
-    InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
-    quests = Questionnaire.get_all_questionnaires(@cid)
-    res = {quests: quests}
-    render json: Oj.dump(res), status: 200
+    ibo_process_request do
+      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
+      quests = Questionnaire.get_all_questionnaires(@cid)
+      [quests, err]
+    end
   end
 
   def questionnaire_delete
     authorize :application, :passthrough
-
-    qid = params['qid']
-    Questionnaire.find(qid).delete
-    quests = Questionnaire.get_all_questionnaires(@cid)
-    res = {quests: quests}
-    render json: Oj.dump(res), status: 200
+    ibo_process_request do
+      qid = params['qid']
+      err = Questionnaire.find(qid).delete
+      quests = Questionnaire.get_all_questionnaires(@cid)
+      [quests, err]
+    end
   end
 
   def questionnaire_update
     authorize :application, :passthrough
-
-    update_questionnaire_properties
-    render json: 'ok', status: 200
+    ibo_process_request do
+      update_questionnaire_properties
+      quests = Questionnaire.get_all_questionnaires(@cid)
+      [{quests: quests, activeQuest: @aq}, nil]
+    end
   end
 
   def update_questionnaire_properties
@@ -129,7 +132,6 @@ class InteractBackofficeController < ApplicationController
     else
       ret.delete if !ret.nil?
     end
-
   end
 
   ####################### Test  #######################
@@ -580,5 +582,19 @@ class InteractBackofficeController < ApplicationController
       return ["Error: #{e.message}"]
     end
     return nil
+  end
+
+  def ibo_process_request
+    res = nil
+    err = nil
+    begin
+      res, err = yield
+    rescue => e
+      puts "Error in questionnaire_update action: #{e.message}"
+      puts e.backtrace.join("\n")
+      EventLog.log_event(event_type_name: 'ERROR', message: e.message)
+      err = ["Error: #{e.message}"]
+    end
+    render json: Oj.dump({data: res, err: err}), status: 200
   end
 end

@@ -93,6 +93,8 @@ module InteractBackofficeActionsHelper
       participant_type: 1
     )
     qp.create_token
+
+    return nil
   end
 
   ################## Send questionnaire ###############################
