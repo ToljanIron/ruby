@@ -2,6 +2,7 @@ class QuestionnaireQuestion < ActiveRecord::Base
   belongs_to :question
   has_many :question_replies
   belongs_to :questionnaire
+  belongs_to :network_name, class_name: 'NetworkName', foreign_key: :network_id
 
   def init_replies(questionnaire_participants)
     ActiveRecord::Base.transaction do

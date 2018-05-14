@@ -194,102 +194,103 @@ class InteractBackofficeController < ApplicationController
   end
 
   #################### Question #######################
-  def questions
+  def get_questions
     authorize :application, :passthrough
+    ibo_process_request do
 
-    @active_nav = 'questions'
+      qid = params['qid']
 
-    @questions =
-      QuestionnaireQuestion
-        .where(questionnaire_id: @aq.id)
-        .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
-        .order(:order)
+      questions =
+        QuestionnaireQuestion
+          .where(questionnaire_id: qid)
+          .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
+          .order(:order)
 
-    @networks =
-      NetworkName
-        .select(:id, :name)
-        .where(company_id: @cid)
-        .order(:id)
-  end
-
-  ## Each row is a form, and each form has 2 buttons, so here
-  ## we check which one was clicked before taking the action.
-  def questions_update
-    authorize :application, :passthrough
-
-    if !params['update'].nil?
-      update_question
-    elsif !params['delete'].nil?
-      delete_question
-    else
-      raise "Unknown action"
+      [{questions: questions}, nil]
     end
-
-    redirect_to '/interact_backoffice/questions'
   end
 
-  def update_question
-    id = params['id']
-    order = params['order']
-    title = params['heading']
-    body = params['body']
-    min = params['min']
-    max = params['max']
-    active = params['active'].nil? ? false : true
-
-    qq = QuestionnaireQuestion.find(id)
-    qq.update!(
-      title: title,
-      body: body,
-      min: min,
-      max: max,
-      order: order,
-      active: active
-    )
-
-    if active && !participants_tab_enabled(@aq)
-      @aq.update(state: :questions_ready)
-    end
-
-  end
-
-  def delete_question
-    id = params['id']
-    qq = QuestionnaireQuestion.find(id)
-    qq.network_name.delete
-    qq.delete
-  end
-
-  def questions_create
+  def question_update
     authorize :application, :passthrough
+    ibo_process_request do
+      params.require(:question).permit!
+      question = params[:question]
 
-    order = params['order']
-    title = params['heading']
-    body = params['body']
-    min = params['min']
-    max = params['max']
+      qid = question['id']
+      title = question['title']
+      body = question['body']
+      min = question['min']
+      max = question['max']
+      active = question['active']
 
-    network = NetworkName.where(company_id: @cid, name: title).last
-    if network.nil?
-      network = NetworkName.create!(
-        company_id: @cid,
-        name: title
+      qq = QuestionnaireQuestion.find(qid)
+      qq.update!(
+        title: title,
+        body: body,
+        min: min,
+        max: max,
+        active: active
       )
+
+      if active && !participants_tab_enabled(@aq)
+        @aq.update(state: :questions_ready)
+      end
+
+      ['ok', nil]
     end
+  end
 
-    QuestionnaireQuestion.create!(
-      company_id: @cid,
-      questionnaire_id: @aq.id,
-      title: title,
-      body: body,
-      network_id: network.id,
-      min: min,
-      max: max,
-      order: order
-    )
+  def question_delete
+    authorize :application, :passthrough
+    ibo_process_request do
+      id = params['qid']
+      qq = QuestionnaireQuestion.find(id)
+      qq.network_name.delete
+      qq.delete
+      questions =
+        QuestionnaireQuestion
+          .where(questionnaire_id: qq.questionnaire_id)
+          .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
+          .order(:order)
 
+      [{questions: questions}, nil]
+    end
+  end
 
-    redirect_to '/interact_backoffice/questions'
+  def question_create
+    authorize :application, :passthrough
+    ibo_process_request do
+      params.require(:question).permit!
+      question = params[:question]
+
+      title = question['title']
+      body = question['body']
+      min = question['min']
+      max = question['max']
+      active = question['active']
+      order = params['order']
+
+      network = NetworkName.where(company_id: @cid, name: title).last
+      if network.nil?
+        network = NetworkName.create!(
+          company_id: @cid,
+          name: title
+        )
+      end
+
+      QuestionnaireQuestion.create!(
+        company_id: @cid,
+        questionnaire_id: @aq.id,
+        title: title,
+        body: body,
+        network_id: network.id,
+        min: min,
+        max: max,
+        order: order,
+        active: active
+      )
+      ['ok', nil]
+    end
   end
 
   ################# Participants #######################
@@ -587,13 +588,15 @@ class InteractBackofficeController < ApplicationController
   def ibo_process_request
     res = nil
     err = nil
+    action = params['action']
     begin
       res, err = yield
     rescue => e
-      puts "Error in questionnaire_update action: #{e.message}"
+      msg = "Error in action - #{action}: #{e.message}"
+      puts msg
       puts e.backtrace.join("\n")
-      EventLog.log_event(event_type_name: 'ERROR', message: e.message)
-      err = ["Error: #{e.message}"]
+      EventLog.log_event(event_type_name: 'ERROR', message: msg)
+      err = ["Error: #{msg}"]
     end
     render json: Oj.dump({data: res, err: err}), status: 200
   end
