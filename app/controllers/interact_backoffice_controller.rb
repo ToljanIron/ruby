@@ -342,9 +342,10 @@ class InteractBackofficeController < ApplicationController
       Employee
         .select("qp.id as pid, e.id as eid, e.first_name, e.last_name, e.external_id, e.img_url,
                  g.name as group_name, qp.status as status, ro.name as role, rank_id as rank ,
-                 o.name as office, e.gender, jt.name as job_title, e.phone_number, e.email")
+                 o.name as office, e.gender, jt.name as job_title, e.phone_number, e.email,
+                 qp.active")
         .from("employees as e")
-        .joins("left join groups as g on g.id = e.group_id")
+        .joins("left join groups as g on g.id = e.group_id and g.snapshot_id = e.snapshot_id")
         .joins("left join roles as ro on ro.id = e.role_id")
         .joins("left join offices as o on o.id = e.office_id")
         .joins("left join job_titles as jt on jt.id = e.job_title_id")
@@ -370,7 +371,7 @@ class InteractBackofficeController < ApplicationController
     qps.each do |qp|
       begin
         status = InteractBackofficeHelper.resolve_status_name(qp['status'])
-        active = status == 'Not in' ? false : true
+        active = (qp['active'].nil? ? false : qp['active'])
         ret << {
           pid: qp['pid'],
           eid: qp['eid'],
@@ -421,9 +422,9 @@ class InteractBackofficeController < ApplicationController
       params.require(:participant).permit!
       par = params[:participant]
       qid = par[:questionnaire_id]
-      InteractBackofficeHelper.create_employee(@cid, par, qid)
-      participants, errors = prepare_data(qid)
       aq = Questionnaire.find(qid)
+      InteractBackofficeHelper.create_employee(@cid, par, aq)
+      participants, errors = prepare_data(qid)
       if !test_tab_enabled(aq)
         aq.update!(state: :notstarted)
       end
@@ -432,15 +433,25 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def participants_delete
+    authorize :application, :passthrough
+    ibo_process_request do
+      qpid = params[:qpid]
+      qp = QuestionnaireParticipant.find(qpid)
+      Employee.find(qp.employee_id).delete
+      qp.try(:question_replies).try(:delete)
+      qp.try(:delete)
+
+      participants, errors = prepare_data(qp.questionnaire_id)
+      [{participants: participants}, errors]
+    end
+  end
+
   def qqqqqqqqqqq
     authorize :application, :passthrough
 
     errors = ibo_error_handler do
-      if !params['update'].nil?
-        InteractBackofficeHelper.update_employee(@cid, params, @aq.id)
-      elsif !params['delete'].nil?
-        delete_participant
-      elsif !params['send'].nil?
+      if !params['send'].nil?
         send_questionnaire
       elsif !params['reset'].nil?
         reset_questionnaire
@@ -455,19 +466,6 @@ class InteractBackofficeController < ApplicationController
       action: :participants,
       errors: errors
     )
-  end
-
-  def delete_participant
-    eid = params['id']
-    ActiveRecord::Base.transaction do
-      Employee.find(eid).delete
-      qp = QuestionnaireParticipant.where(
-             questionnaire_id: @aq.id,
-             employee_id: eid
-           ).last
-      qp.try(:question_replies).try(:delete)
-      qp.try(:delete)
-    end
   end
 
   def send_questionnaire

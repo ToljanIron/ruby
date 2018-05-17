@@ -44,6 +44,7 @@ Workships::Application.routes.draw do
   get '/interact_backoffice/get_participants',     to: 'interact_backoffice#participants'
   post '/interact_backoffice/participants_create', to: 'interact_backoffice#participants_create'
   post '/interact_backoffice/participants_update', to: 'interact_backoffice#participants_update'
+  post '/interact_backoffice/participants_delete', to: 'interact_backoffice#participants_delete'
   get '/interact_backoffice/participants_filter',  to: 'interact_backoffice#participants_filter'
   get '/interact_backoffice/participants_bulk_actions', to: 'interact_backoffice#participants_bulk_actions'
   post '/interact_backoffice/participants_load',   to: 'interact_backoffice#participants_load'

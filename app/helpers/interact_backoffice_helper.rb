@@ -466,6 +466,7 @@ module InteractBackofficeHelper
 
   def self.update_employee(cid, p, qid)
     eid = p['id']
+    eid = eid.nil? ? p['eid'] : eid
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
@@ -476,7 +477,7 @@ module InteractBackofficeHelper
     rank = p['rank']
     job_title = p['job_title']
     gender = p['gender']
-    active = p['active']
+    active = p['active'].nil? ? false : p['active']
 
     ## Group
     root_gid = Group.get_root_group(cid)
@@ -532,7 +533,9 @@ module InteractBackofficeHelper
     end
   end
 
-  def self.create_employee(cid, p, qid)
+  def self.create_employee(cid, p, aq)
+    qid = aq.id
+    sid = aq.snapshot_id
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
@@ -547,7 +550,12 @@ module InteractBackofficeHelper
     root_gid = Group.get_root_group(cid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
-      gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+      gid = Group.find_or_create_by!(
+        name: group_name,
+        company_id: cid,
+        parent_group_id: root_gid,
+        snapshot_id: sid
+      ).id
     else
       gid = root_gid
     end
@@ -573,7 +581,8 @@ module InteractBackofficeHelper
       role_id: roid,
       job_title_id: jtid,
       rank_id: rank,
-      gender: gender
+      gender: gender,
+      snapshot_id: sid
     )
 
     QuestionnaireParticipant.create!(
