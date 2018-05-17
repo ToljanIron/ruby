@@ -1,6 +1,6 @@
 module CdsEmployeeManagementRelationHelper
-  NO_PIN   = -1
-  NO_GROUP = -1
+  NO_PIN   ||= -1
+  NO_GROUP ||= -1
 
   module_function
 

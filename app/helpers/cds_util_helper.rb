@@ -1,5 +1,5 @@
 module CdsUtilHelper
-  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  VALID_EMAIL_REGEX ||= /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
 
   def safe_titleize(str)
     return nil if str.nil?

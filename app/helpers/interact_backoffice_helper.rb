@@ -382,6 +382,71 @@ module InteractBackofficeHelper
     return report_name
   end
 
+  ###################### Summary report ###########################
+  def self.summary_report(sid)
+    cid = Snapshot.find(sid).company_id
+    company_name = Company.find(cid).name
+    report_name = "summary_report-#{company_name}-#{Time.now.strftime("%Y%m%d")}.xlsx"
+
+    res, h_emps, h_networks, rels = network_report_queries(cid, sid)
+
+    ## How many networks
+    nnum = h_networks.length
+
+    ## prepare employees hash
+    h_emps.each do |k, e|
+      e['uni_rels_num'] = 0
+      e['bi_rels_num']  = 0
+    end
+
+    ## Count relations
+    res.each do |r|
+      nid = r['nid']
+      fid = r['fid']
+      tid = r['tid']
+      emp = h_emps[fid]
+      emp['uni_rels_num'] += 1
+      emp['bi_rels_num'] += 1 if rels["#{nid}-#{tid}-#{fid}"]
+    end
+
+    wb = create_excel_file(report_name)
+    ws = wb.add_worksheet('Report')
+
+    ## Create heading
+    ws.write('A1', 'Name')
+    ws.write('B1', 'Id')
+    ws.write('C1', 'job title')
+    ws.write('D1', 'Rank')
+    ws.write('E1', 'Role')
+    ws.write('F1', 'Office')
+    ws.write('G1', 'Group')
+    ws.write('H1', 'Gender')
+    ws.write('I1', 'Avg number relations')
+    ws.write('J1', 'Avg number bi-directional relations')
+
+    ## Write rows
+    ii = 2
+    h_emps.each do |k,r|
+      gender = r['gender'] == '0' ? 'Male' : 'Female'
+
+      ws.write("A#{ii}", "#{r['first_name']} #{r['last_name']}")
+      ws.write("B#{ii}", r['id_number'])
+      ws.write("c#{ii}", r['job_title'])
+      ws.write("D#{ii}", r['rank_id'])
+      ws.write("e#{ii}", r['role'])
+      ws.write("F#{ii}", r['office'])
+      ws.write("g#{ii}", r['group'])
+      ws.write("h#{ii}", gender)
+      ws.write("I#{ii}", (r['uni_rels_num'].to_f / nnum).round(2))
+      ws.write("J#{ii}", (r['bi_rels_num'].to_f / nnum).round(2))
+      ii += 1
+    end
+
+    wb.close
+    return report_name
+  end
+  ##############################################################
+  #
   def self.resolve_status_name(status)
     ret = nil
     case status
@@ -400,8 +465,7 @@ module InteractBackofficeHelper
   end
 
   def self.update_employee(cid, p, qid)
-    puts "In update_emplyee"
-    id = p['id']
+    eid = p['id']
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
@@ -416,7 +480,12 @@ module InteractBackofficeHelper
 
     ## Group
     root_gid = Group.get_root_group(cid)
-    gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+    gid = nil
+    if !group_name.nil? && !group_name.empty?
+      gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+    else
+      gid = root_gid
+    end
 
     ## Office
     if !office.nil? && !office.empty?
@@ -434,7 +503,7 @@ module InteractBackofficeHelper
     end
 
 
-    Employee.find(id).update!(
+    Employee.find(eid).update!(
       first_name: first_name,
       last_name: last_name,
       email: email,
@@ -451,19 +520,19 @@ module InteractBackofficeHelper
     ## If not, then make sure he doesn't.
     if active
       QuestionnaireParticipant.find_or_create_by(
-        employee_id: id,
+        employee_id: eid,
         questionnaire_id: qid
       ).create_token
     else
       qp = QuestionnaireParticipant.where(
-        employee_id: id,
+        employee_id: eid,
         questionnaire_id: qid
       ).last
       qp.delete if !qp.nil?
     end
   end
 
-  def self.create_employee(cid, qpid, p)
+  def self.create_employee(cid, p, qid)
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
@@ -475,18 +544,22 @@ module InteractBackofficeHelper
     job_title = p['job_title']
     gender = p['gender']
 
-    ## Group
     root_gid = Group.get_root_group(cid)
-    gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+    gid = nil
+    if !group_name.nil? && !group_name.empty?
+      gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+    else
+      gid = root_gid
+    end
 
     ## Office
-    oid = Office.find_or_create_by!(name: office, company_id: cid).id
+    oid = office.nil? ? nil : Office.find_or_create_by!(name: office, company_id: cid).id
 
     ## role
-    roid = Role.find_or_create_by!(name: role, company_id: cid).id
+    roid = role.nil? ? nil : Role.find_or_create_by!(name: role, company_id: cid).id
 
     ## Job title
-    jtid = JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
+    jtid = job_title.nil? ? nil : JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
 
     e = Employee.create!(
       email: email,
@@ -505,7 +578,7 @@ module InteractBackofficeHelper
 
     QuestionnaireParticipant.create!(
       employee_id: e.id,
-      questionnaire_id: qpid
+      questionnaire_id: qid
     ).create_token
   end
 
@@ -531,41 +604,6 @@ module InteractBackofficeHelper
     ret = states_arr.include?(state)
     return '' if ret
     return 'disabled'
-  end
-
-  #class Employee::ActiveRecord_Relation
-    #def add_filter(field_name, value)
-      #return self if value.nil? || value == '' || value == -1
-      #return self.where("#{field_name} like '%#{value}%'") if value.class == String
-      #return self.where("#{field_name} = #{value}") if value.class == Fixnum
-    #end
-  #end
-
-  ##################### HTML ##########################
-  def sort_arrows(field_name, sort_field_name, sort_dir)
-    up_full =    'none'
-    up_empty =   'initial'
-    down_full =  'none'
-    down_empty = 'initial'
-
-    if field_name == sort_field_name
-      if sort_dir == 'asc'
-        up_full =    'initial'
-        up_empty =   'none'
-      else
-        down_full =  'initial'
-        down_empty = 'none'
-      end
-    end
-
-    sort_html =
-      "<div class='btn-group ibo-sort'>
-         <input style='display: #{up_full}; font-size: 18px;' class='btn btn-light btn-sm ibo-sort-arrow' type='submit' name='#{field_name}|asc' value='&#x25B2'>
-         <input style='display: #{up_empty}; font-size: 14px;' class='btn btn-light btn-sm ibo-sort-arrow' type='submit' name='#{field_name}|asc' value='&#x25B3'>
-         <input style='display: #{down_full}; font-size: 18px;' class='btn btn-light btn-sm ibo-sort-arrow' type='submit' name='#{field_name}|desc' value='&#x25BC'>
-         <input style='display: #{down_empty}; font-size: 14px;' class='btn btn-light btn-sm ibo-sort-arrow' type='submit' name='#{field_name}|desc' value='&#x25BD'>
-       </div>"
-    return raw(sort_html)
   end
 
   def self.get_sort_field(p)

@@ -12,7 +12,6 @@ class InteractBackofficeController < ApplicationController
     @cid = current_user.company_id
     @company_name = Company.find(@cid).name
     @user_name = "#{current_user.first_name} #{current_user.last_name}"
-    @aq = InteractBackofficeHelper.active_questionnaire(@cid)
     @showErrors = 'none'
   end
 
@@ -232,11 +231,12 @@ class InteractBackofficeController < ApplicationController
         active: active
       )
 
-      if active && !participants_tab_enabled(@aq)
-        @aq.update(state: :questions_ready)
+      aq = qq.questionnaire
+      if active && !participants_tab_enabled(aq)
+        aq.update!(state: :questions_ready)
       end
 
-      ['ok', nil]
+      [{questionnaire: aq}, nil]
     end
   end
 
@@ -297,10 +297,11 @@ class InteractBackofficeController < ApplicationController
 
   def participants
     authorize :application, :passthrough
-    @active_nav = 'participants'
-    errors = params[:errors]
-
-    prepare_data(errors)
+    ibo_process_request do
+      qid = params['qid']
+     ret, errors = prepare_data(qid)
+     [ret, errors]
+    end
   end
 
   def participants_filter
@@ -335,21 +336,22 @@ class InteractBackofficeController < ApplicationController
 
   end
 
-  def prepare_data(errors = nil)
+  def prepare_data(qid)
 
     qps =
       Employee
-        .select("e.id as emp_id, e.first_name, e.last_name, e.external_id, e.img_url,
+        .select("qp.id as pid, e.id as eid, e.first_name, e.last_name, e.external_id, e.img_url,
                  g.name as group_name, qp.status as status, ro.name as role, rank_id as rank ,
                  o.name as office, e.gender, jt.name as job_title, e.phone_number, e.email")
         .from("employees as e")
         .joins("left join groups as g on g.id = e.group_id")
-        .joins("left join questionnaire_participants as qp on qp.employee_id = e.id")
         .joins("left join roles as ro on ro.id = e.role_id")
         .joins("left join offices as o on o.id = e.office_id")
         .joins("left join job_titles as jt on jt.id = e.job_title_id")
+        .joins("join questionnaires as quest on quest.snapshot_id = e.snapshot_id")
+        .joins("left join questionnaire_participants as qp on qp.employee_id = e.id and qp.questionnaire_id = quest.id")
         .where("e.company_id = #{@cid}")
-        .where("qp.questionnaire_id = ?", @aq.id)
+        .where("quest.id = ?", qid)
         .add_filter('first_name', @filter_first_name)
         .add_filter('last_name', @filter_last_name)
         .add_filter('email', @filter_email)
@@ -363,13 +365,15 @@ class InteractBackofficeController < ApplicationController
         .add_filter('gender', (@filter_gender == -1 || @filter_gender.nil?) ? '' : @filter_gender.to_i)
         .order("#{@sort_field_name} #{@sort_dir}")
 
-    @qps = []
+    ret = []
+    errors = nil
     qps.each do |qp|
       begin
         status = InteractBackofficeHelper.resolve_status_name(qp['status'])
         active = status == 'Not in' ? false : true
-        @qps << {
-          emp_id: qp['emp_id'],
+        ret << {
+          pid: qp['pid'],
+          eid: qp['eid'],
           first_name: qp['first_name'],
           last_name: qp['last_name'],
           external_id: qp['external_id'],
@@ -386,33 +390,49 @@ class InteractBackofficeController < ApplicationController
           active: active
         }
       rescue => e
-        raise "Error loading employee: #{qp['emp_id']}: #{e.message}"
+        errmsg = "Error loading employee: #{qp['emp_id']}: #{e.message}"
+        errors = [] if errors.nil?
+        errors << errmsg
       end
     end
-
-    stats =
-      QuestionnaireParticipant
-        .where(questionnaire_id: @aq.id)
-        .where.not(employee_id: -1)
-        .group(:status)
-        .count
-    comp     = stats[3] ||= 0
-    open     = stats[1] ||= 0
-    start    = stats[2] ||= 0
-    not_comp = stats[0] ||= 0
-    @stats = {
-      completed: comp,
-      started: open + start,
-      not_started: not_comp
-    }
-
-    @showErrors = errors.nil? ? 'none' : 'initial'
-    @errorText = errors.nil? ? [] : errors
+    return [ret, errors]
   end
 
-  ## Each row is a form, and each form has 4 buttons, so here
-  ## we check which one was clicked before taking the action.
   def participants_update
+    authorize :application, :passthrough
+    ibo_process_request do
+      params.require(:participant).permit!
+      par = params[:participant]
+      qid = par[:questionnaire_id]
+      InteractBackofficeHelper.update_employee(@cid, par, qid)
+      participants, errors = prepare_data(qid)
+      aq = Questionnaire.find(qid)
+      if !test_tab_enabled(aq)
+        aq.update!(state: :notstarted)
+      end
+
+      [{participants: participants, questionnaire: aq}, errors]
+    end
+  end
+
+  def participants_create
+    authorize :application, :passthrough
+    ibo_process_request do
+      params.require(:participant).permit!
+      par = params[:participant]
+      qid = par[:questionnaire_id]
+      InteractBackofficeHelper.create_employee(@cid, par, qid)
+      participants, errors = prepare_data(qid)
+      aq = Questionnaire.find(qid)
+      if !test_tab_enabled(aq)
+        aq.update!(state: :notstarted)
+      end
+
+      [{participants: participants, questionnaire: aq}, errors]
+    end
+  end
+
+  def qqqqqqqqqqq
     authorize :application, :passthrough
 
     errors = ibo_error_handler do
@@ -473,11 +493,6 @@ class InteractBackofficeController < ApplicationController
          ).last.reset_questionnaire
   end
 
-  def participants_create
-    authorize :application, :passthrough
-    InteractBackofficeHelper.create_employee(@cid, @aq.id, params)
-    redirect_to '/interact_backoffice/participants'
-  end
 
   ## Load employees from excel
   def participants_load
@@ -571,6 +586,15 @@ class InteractBackofficeController < ApplicationController
       type: 'application/vnd.ms-excel')
   end
 
+  def reports_summary
+    authorize :application, :passthrough
+    sid = params['sid']
+    report_name = InteractBackofficeHelper.summary_report(sid)
+    send_file(
+      "#{Rails.root}/tmp/#{report_name}",
+      filename: report_name,
+      type: 'application/vnd.ms-excel')
+  end
   ################## Some utilities ###################################
 
   def ibo_error_handler
@@ -590,7 +614,9 @@ class InteractBackofficeController < ApplicationController
     err = nil
     action = params['action']
     begin
-      res, err = yield
+      ActiveRecord::Base.transaction do
+        res, err = yield
+      end
     rescue => e
       msg = "Error in action - #{action}: #{e.message}"
       puts msg

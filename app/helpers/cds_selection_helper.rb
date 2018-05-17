@@ -1,9 +1,9 @@
 module CdsSelectionHelper
-  NO_PIN = -1
-  NO_GROUP = -1
+  NO_PIN ||= -1
+  NO_GROUP ||= -1
 
-  ID      = 0
-  MEASURE = 1
+  ID      ||= 0
+  MEASURE ||= 1
 
   def get_inner_select(pinid, gid)
     return CdsGroupsHelper.get_inner_select_by_group(gid)    if pinid == NO_PIN && gid != NO_GROUP

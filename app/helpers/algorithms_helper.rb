@@ -59,12 +59,12 @@ module AlgorithmsHelper
   Q3 ||= 4
 
   ## Standard deviations
-  SD1 = 1
-  SD2 = 2
-  SD3 = 3
+  SD1 ||= 1
+  SD2 ||= 2
+  SD3 ||= 3
 
-  EPSILON = 0.001
-  NA = -99999
+  EPSILON ||= 0.001
+  NA ||= -99999
 
   ################################################################################
   ## Quartile calculations for number arrays

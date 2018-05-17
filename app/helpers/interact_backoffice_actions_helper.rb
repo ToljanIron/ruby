@@ -33,11 +33,16 @@ module InteractBackofficeActionsHelper
   ##   - create test participant
   ############################################################
   def self.create_new_questionnaire(cid)
+
+    ## Attached a snapshot to the questionnaire
+    snapshot = Snapshot.create_snapshot_by_weeks(cid, Time.now)
+    sid = snapshot.id
+
     ## Create questionnaire
     quest = Questionnaire.create!(
       company_id: cid,
       state: 0,
-      name: "Q-#{cid}-#{Time.now.strftime('%d-%m-%Y')}",
+      name: "Q-#{cid}-#{Time.now.strftime('%Y%m%d-%M')}",
       language_id: 2,
       sms_text: SMS_TEXT,
       email_text: EMAIL_TEXT,
@@ -45,7 +50,8 @@ module InteractBackofficeActionsHelper
       email_subject: EMAIL_SUBJECT,
       test_user_name: 'Test user',
       test_user_email: 'danny@step-ahead.com',
-      test_user_phone: '052-6141030'
+      test_user_phone: '052-6141030',
+      snapshot_id: sid
     )
 
     ## Copy over template qestions

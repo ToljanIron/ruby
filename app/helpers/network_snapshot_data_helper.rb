@@ -5,11 +5,11 @@ require './app/helpers/algorithms_helper.rb'
 module NetworkSnapshotDataHelper
   include AlgorithmsHelper
 
-  NO_SNAPSHOT = -1
+  NO_SNAPSHOT ||= -1
 
-  G_INSIDE  = 1
-  G_OUTSIDE = 2
-  G_NOT_IN  = 3
+  G_INSIDE  ||= 1
+  G_OUTSIDE ||= 2
+  G_NOT_IN  ||= 3
 
   ##################### Map for Interfaces ##################################
 
@@ -28,22 +28,17 @@ module NetworkSnapshotDataHelper
     extids = Group.where(id: gids).pluck(:external_id)
 
     ## Top traffic from cgid (Sending)
-    puts "==============================="
     ret = interfaces_traffic_volumes_query(G_INSIDE, G_OUTSIDE, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, extids, 10)
     topextids = []
     ret.each do |r|
-      puts "To: #{r['toextid']} - #{r['vol']}"
       topextids << r['toextid']
     end
 
     ## Top traffic to cgid (Receiving)
-    puts "==============================="
     ret = interfaces_traffic_volumes_query(G_OUTSIDE, G_INSIDE, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, extids, 10)
     ret.each do |r|
-      puts "From: #{r['fromextid']} - #{r['vol']}"
       topextids | [r['fromextid']]
     end
-    puts "==============================="
 
     links = []
 
@@ -60,7 +55,6 @@ module NetworkSnapshotDataHelper
     # Traffic volumes (Sending)
     ret = interfaces_traffic_volumes_query(G_INSIDE, G_OUTSIDE, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, topextids)
     ret.each do |r|
-      ap r if Group.external_id_to_id_in_snapshot(r['toextid'], sid) == 5
       links << {
         source: cgid.to_i,
         target: Group.external_id_to_id_in_snapshot(r['toextid'], sid),
@@ -91,9 +85,6 @@ module NetworkSnapshotDataHelper
 
     # Traffic to other groups
     ret = interfaces_traffic_volumes_query(G_INSIDE, G_NOT_IN, snapshot_field, interval, cid, nid, cg.nsleft, cg.nsright, topextids, nil)
-puts "***************************"
-ap ret
-puts "***************************"
     links << {
       source: cgid.to_i,
       target: -1,

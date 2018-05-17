@@ -24,11 +24,11 @@ module CalculateMeasureForCustomDataSystemHelper
   MEETINGS_TIME_SPENT ||= 806
   MEETINGS_AVG_ATTENDEES ||= 805
 
-  AGG_GROUP     = 'group_id'
-  AGG_OFFICE    = 'office_id'
-  AGG_ALGORITHM = 'algorithm_id'
+  AGG_GROUP     ||= 'group_id'
+  AGG_OFFICE    ||= 'office_id'
+  AGG_ALGORITHM ||= 'algorithm_id'
 
-  NA = -1000000
+  NA ||= -1000000
 
   def get_email_stats_from_helper(gids, curr_interval, prev_interval, interval_type)
     return [-1,-1,-1] if curr_interval.nil? || curr_interval == ''

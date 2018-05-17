@@ -268,13 +268,22 @@ class Questionnaire < ActiveRecord::Base
   # Get all questionnaires with number of particpants in each statge
   #####################################################################
   def self.get_all_questionnaires(cid)
+    qids = Questionnaire.where(company_id: cid).pluck(:id)
+    return get_questionnaires(qids)
+  end
+
+  def self.get_one_questionnaire(qid)
+    return get_questionnaires([qid])
+  end
+
+  def self.get_questionnaires(qids)
     sqlstr =
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
-       WHERE q.company_id = #{cid}
+       WHERE q.id in ( #{qids.join(',')})
        GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
                 q.test_user_phone, q.test_user_email, q.state, language_id
@@ -291,6 +300,31 @@ class Questionnaire < ActiveRecord::Base
         ret << quest
       end
       quest['stats'][r['status']] = r['count']
+    end
+    return ret
+  end
+
+  def self.state_name_to_number(state)
+    ret = nil
+    case state
+      when 'created'
+        ret = 0
+      when 'delivery_method_ready'
+        ret = 1
+      when 'questions_ready'
+        ret = 2
+      when 'notstarted'
+        ret = 3
+      when 'ready'
+        ret = 4
+      when 'sent'
+        ret = 5
+      when 'processing'
+        ret = 6
+      when 'completed'
+        ret = 7
+      else
+        raise "Unknown state: #{state}"
     end
     return ret
   end

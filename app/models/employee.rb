@@ -36,7 +36,7 @@ class Employee < ActiveRecord::Base
     end
   end
 
-  validates :email, presence:   true, format:     { with: CdsUtilHelper::VALID_EMAIL_REGEX }
+  validates :email, presence:   true, format:     { with: VALID_EMAIL_REGEX }
   validates :company_id, presence: true
   validates :external_id, presence: true, length: { maximum: 50 }
   validates :first_name, presence: true, length: { maximum: 50 }
@@ -154,6 +154,15 @@ class Employee < ActiveRecord::Base
     h[:professioal_manager] = nil
 
     return h
+  end
+
+  ##############################################
+  # Used by interact_backoffice_controller
+  ##############################################
+  def self.add_filter(field_name, value)
+    return self.where("1 = 1") if value.nil? || value == '' || value == -1
+    return self.where("#{field_name} like '%#{value}%'") if value.class == String
+    return self.where("#{field_name} = #{value}") if value.class == Fixnum
   end
 
   def self.build_from_hash(attrs)
