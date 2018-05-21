@@ -290,7 +290,6 @@ class Questionnaire < ActiveRecord::Base
        ORDER BY snapshot_id DESC"
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    ap res
     ret = []
     res.each do |r|
       quest = ret.find {|e| e['id'] == r['id'] }

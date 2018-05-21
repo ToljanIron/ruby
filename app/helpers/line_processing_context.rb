@@ -68,7 +68,8 @@ module LineProcessingContextClasses
       fail unless @attrs[:company_id] && !Company.where(id: @attrs[:company_id]).empty?
       g = Group.find_or_create_by(
         company_id: @attrs[:company_id],
-        external_id: @attrs[:external_id]
+        external_id: @attrs[:external_id],
+        snapsht_id: @attrs[:snapshot_id]
       )
 
       g.name = @attrs[:name]

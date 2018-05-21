@@ -48,7 +48,7 @@ describe AlgorithmsHelper, type: :helper do
         EmployeeManagementRelation.create!(manager_id: rel[0], employee_id: rel[1], relation_type: 'recursive')
       end
 
-      res = AlgorithmsHelper.most_bypassed_managers(1,1,1,-1,6)
+      res = AlgorithmsHelper.most_bypassed_managers(1,1,-1,6)
     end
 
     it 'should rank managers by how much they are bypassed' do
@@ -73,14 +73,14 @@ describe AlgorithmsHelper, type: :helper do
       it 'should decrease where there is one more email from employee to manager of manager' do
         ids << NetworkSnapshotData.create!(snapshot_id: 1, network_id: 1, company_id: 1, from_employee_id: 5, to_employee_id: 1, value: 1).id
         ids << NetworkSnapshotData.create!(snapshot_id: 1, network_id: 1, company_id: 1, from_employee_id: 5, to_employee_id: 1, value: 1).id
-        res2 = AlgorithmsHelper.most_bypassed_managers(1,1,1,-1,6)
+        res2 = AlgorithmsHelper.most_bypassed_managers(1,1,-1,6)
         expect( res2.f(2) ).to be < res.f(2)
       end
 
       it 'should decrease when peer sends more emails to employees' do
         ids << NetworkSnapshotData.create!(snapshot_id: 1, network_id: 1, company_id: 1, from_employee_id: 2, to_employee_id: 8, value: 1).id
         ids << NetworkSnapshotData.create!(snapshot_id: 1, network_id: 1, company_id: 1, from_employee_id: 2, to_employee_id: 9, value: 1).id
-        res3 = AlgorithmsHelper.most_bypassed_managers(1,1,1,-1,6)
+        res3 = AlgorithmsHelper.most_bypassed_managers(1,1,-1,6)
         expect( res3.f(4) ).to be < res.f(4)
       end
     end

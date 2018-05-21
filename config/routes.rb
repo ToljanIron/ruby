@@ -54,15 +54,16 @@ Workships::Application.routes.draw do
   get '/interact_backoffice/reports_bidirectional_network', to: 'interact_backoffice#reports_bidirectional_network'
   get '/interact_backoffice/reports_summary',      to: 'interact_backoffice#reports_summary'
 
-  post '/interact_backoffice/actions_img_upload',     to: 'interact_actions#img_upload'
-  post '/interact_backoffice/actions_img_bulk_upload',to: 'interact_actions#actions_img_bulk_upload'
+  post '/interact_backoffice/actions_img_upload',     to: 'interact_backoffice#img_upload'
+  post '/interact_backoffice/actions_img_bulk_upload',to: 'interact_backoffice#actions_img_bulk_upload'
+  get  '/interact_backoffice/actions_download_sample' ,to: 'interact_backoffice#download_sample'
+  post '/interact_backoffice/actions_upload_participants', to: 'interact_backoffice#upload_participants'
 
   ############################ v3 ############################
 
   post 'v3/setting/update_user_info'         ,to: 'settings#update_user_info'
   post 'v3/setting/update_security_settings' ,to: 'settings#update_security_settings'
   post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
-
   get 'v3/get_config_params'                 ,to: 'settings#get_config_params'
 
   get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'

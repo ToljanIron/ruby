@@ -63,18 +63,18 @@ module ImportDataHelper
 
   ## This loader can use two formats, one full, with 20 fields, and the other
   ## lean with only 11.
-  def load_excel_sheet(cid, spreadsheet, lean=false)
+  def load_excel_sheet(cid, spreadsheet, sid, lean=false)
     ex = Roo::Excelx.new(spreadsheet.path)
 
     groups_sht = ex.sheet('Groups')
-    groups_context_list = lift_excel_to_context_list(cid, groups_sht, 'groups', lean)
+    groups_context_list = lift_excel_to_context_list(cid, groups_sht, 'groups', sid, lean)
 
     context_list = groups_context_list
     ## This is not a mistake. It's done in order to make sure all group parent groups are accounted for
     context_list += groups_context_list
 
     emps_sht = ex.sheet('Employees')
-    context_list += lift_excel_to_context_list(cid, emps_sht, 'emps', lean)
+    context_list += lift_excel_to_context_list(cid, emps_sht, 'emps', sid, lean)
 
     ii = 0
     context_list.each do |co|
@@ -90,12 +90,12 @@ module ImportDataHelper
     return context_list_errors(context_list)
   end
 
-  def lift_excel_to_context_list(cid, xls, sht_type, lean)
+  def lift_excel_to_context_list(cid, xls, sht_type, sid, lean)
     context_list = xls.each_with_index.map do |xls_line, xls_line_number|
       ret = nil
       if xls_line_number > 0
-        ret = process_xls_employee(xls_line, cid, xls_line, xls_line_number, lean) if sht_type == 'emps'
-        ret = process_xls_groups(xls_line, cid, xls_line, xls_line_number, lean) if sht_type == 'groups'
+        ret = process_xls_employee(xls_line, cid, xls_line, xls_line_number, sid, lean) if sht_type == 'emps'
+        ret = process_xls_groups(xls_line, cid, xls_line, xls_line_number, sid, lean) if sht_type == 'groups'
       end
       ret
     end
@@ -110,7 +110,7 @@ module ImportDataHelper
     return d.strftime("%Y-%m-%d")
   end
 
-  def process_xls_employee(parsed, company_id, csv_line, csv_line_number, lean)
+  def process_xls_employee(parsed, company_id, csv_line, csv_line_number, sid, lean)
 
     if !lean
       puts "Warning: Line size: #{parsed.length} is incorrect for line number: #{csv_line_number},
@@ -192,6 +192,7 @@ module ImportDataHelper
         group_name:       group_name,
         id_number:        id_number,
         phone_number:     phone_number,
+        snapshot_id:      sid,
         delete:           del
       )
     rescue => e
@@ -216,7 +217,8 @@ module ImportDataHelper
       parent_external_id: (lean ? parsed[1] : parsed[2]),
       delete: parsed[3].nil? ? false : !parsed[3].empty?,
       date: date,
-      english_name: english_name
+      english_name: english_name,
+      snapshot_id: sid
     )
     return [group_context]
   end

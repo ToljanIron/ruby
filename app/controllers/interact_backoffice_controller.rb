@@ -492,32 +492,6 @@ class InteractBackofficeController < ApplicationController
   end
 
 
-  ## Load employees from excel
-  def participants_load
-    authorize :application, :passthrough
-    @active_nav = 'participants'
-
-    emps_excel = params[:employeesExcel]
-    errors = ['No excel file uploaded']
-    if !emps_excel.nil?
-      errors = load_excel_sheet(@cid, params[:employeesExcel], true)
-      InteractBackofficeHelper.add_all_employees_as_participants(@aq)
-
-      ## Update the questinnaire's state if needed
-      if !test_tab_enabled(@aq)
-        if QuestionnaireParticipant.where(questionnaire_id: @aq.id).count > 1
-          @aq.update!(state: :notstarted)
-        end
-      end
-    end
-
-    prepare_data(errors)
-    redirect_to(
-      controller: :interact_backoffice,
-      action: :participants,
-      errors: errors[0..2]
-    )
-  end
 
   def participants_bulk_actions
     authorize :application, :passthrough
@@ -526,28 +500,12 @@ class InteractBackofficeController < ApplicationController
       InteractBackofficeActionsHelper.send_questionnaires(@aq)
       redirect_to '/interact_backoffice/participants'
 
-    elsif !params['example'].nil?
-      file_name = InteractBackofficeHelper.create_example_excel
-      send_file(
-        "#{Rails.root}/tmp/#{file_name}",
-        filename: file_name,
-        type: 'application/vnd.ms-excel')
-
     elsif !params['status'].nil?
       file_name = InteractBackofficeHelper.create_status_excel(@aq.id)
       send_file(
         "#{Rails.root}/tmp/#{file_name}",
         filename: file_name,
         type: 'application/vnd.ms-excel')
-
-    elsif !params['filterCompleted'].nil?
-      redirect_to '/interact_backoffice/participants'
-
-    elsif !params['filterStarted'].nil?
-      redirect_to '/interact_backoffice/participants'
-
-    elsif !params['filterNotStated'].nil?
-      redirect_to '/interact_backoffice/participants'
     end
   end
 
@@ -593,6 +551,53 @@ class InteractBackofficeController < ApplicationController
       filename: report_name,
       type: 'application/vnd.ms-excel')
   end
+
+  ################## Actions #########################################
+  def img_upload
+    authorize :application, :passthrough
+    ibo_process_request do
+      img = params[:img_file]
+      eid = params[:id]
+      res = InteractBackofficeActionsHelper.upload_employee_img(img, eid)
+      [nil, errors: [res]]
+    end
+  end
+
+  def download_sample
+    authorize :application, :passthrough
+    file_name = InteractBackofficeHelper.create_example_excel
+    send_file(
+      "#{Rails.root}/tmp/#{file_name}",
+      filename: file_name,
+      type: 'application/vnd.ms-excel')
+  end
+
+  ## Load employees from excel
+  def upload_participants
+    authorize :application, :passthrough
+    puts "UPLOAING PART'S ........................"
+
+    ibo_process_request do
+      emps_excel = params[:employeesExcel]
+      qid = params[:qid]
+      aq = Questionnaire.find(qid)
+      errors = ['No excel file uploaded']
+      if !emps_excel.nil?
+        sid = aq.snapshot_id
+        errors = load_excel_sheet(@cid, params[:employeesExcel], sid, true)
+        InteractBackofficeHelper.add_all_employees_as_participants(aq)
+
+        ## Update the questinnaire's state if needed
+        if !test_tab_enabled(aq)
+          if QuestionnaireParticipant.where(questionnaire_id: aq.id).count > 1
+            aq.update!(state: :notstarted)
+          end
+        end
+      end
+      [nil, errors: [res]]
+    end
+  end
+
   ################## Some utilities ###################################
 
   def ibo_error_handler
