@@ -581,11 +581,12 @@ class InteractBackofficeController < ApplicationController
       emps_excel = params[:employeesExcel]
       qid = params[:qid]
       aq = Questionnaire.find(qid)
-      errors = ['No excel file uploaded']
+      errors1 = ['No excel file uploaded']
       if !emps_excel.nil?
         sid = aq.snapshot_id
-        errors = load_excel_sheet(@cid, params[:employeesExcel], sid, true)
-        InteractBackofficeHelper.add_all_employees_as_participants(aq)
+        puts "sid: #{sid}"
+        eids, errors2 = load_excel_sheet(@cid, params[:employeesExcel], sid, true)
+        InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
 
         ## Update the questinnaire's state if needed
         if !test_tab_enabled(aq)
@@ -594,7 +595,13 @@ class InteractBackofficeController < ApplicationController
           end
         end
       end
-      [nil, errors: [res]]
+
+      ret, errors3 = prepare_data(qid)
+      errors = []
+      errors << errors1 unless errors1
+      errors << errors2 unless errors2
+      errors << errors3 unless errors3
+      [ret, errors: errors ]
     end
   end
 

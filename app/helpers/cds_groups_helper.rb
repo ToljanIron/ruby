@@ -128,7 +128,6 @@ module CdsGroupsHelper
   end
 
   def self.group_depth(groups_inx, gid, depth)
-    ap "groups_inx: #{groups_inx}, gid: #{gid}"
     groups_inx[gid][:depth] = depth
     child_ids = groups_inx[gid][:childrenIds]
     child_ids.each do |cgid|

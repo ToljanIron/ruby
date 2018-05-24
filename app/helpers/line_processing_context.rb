@@ -45,6 +45,7 @@ module LineProcessingContextClasses
       return s.id if s
     end
   end
+
   ########################################## ErrorLineProcessingContext ##########################################
   class ErrorLineProcessingContext < LineProcessingContext
     def initialize(original_line, original_line_number, company_id, csv_type = nil)
@@ -69,7 +70,7 @@ module LineProcessingContextClasses
       g = Group.find_or_create_by(
         company_id: @attrs[:company_id],
         external_id: @attrs[:external_id],
-        snapsht_id: @attrs[:snapshot_id]
+        snapshot_id: @attrs[:snapshot_id]
       )
 
       g.name = @attrs[:name]
@@ -77,20 +78,26 @@ module LineProcessingContextClasses
       g.save!
       return if g.persisted?
     rescue => e
-      @error_log << "unable to create group with external_id #{@attrs[:external_id]}. #{e}, #{log_suffix}"
+      msg = "unable to create group with external_id #{@attrs[:external_id]}. #{e}, #{log_suffix}"
+      @error_log << msg
+      puts "======================================="
+      puts msg
+      puts e.message
+      puts e.backtrace
+
     end
 
     def connect
       begin
-        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
         g.update(name: @attrs[:name]) if (@attrs[:name] && !g.nil? && g.name == @attrs[:name])
         g.update(color_id: choose_random_color) if (!g.nil? && g.color_id.nil?)
 
-        parent = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:parent_external_id])
+        parent = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:parent_external_id], snapshot_id: attrs[:snapshot_id])
 
         ## Do this because in some cases parent groups may be specified in terms of their names
         if parent.nil?
-          parent = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:parent_external_id])
+          parent = Group.find_by(company_id: @attrs[:company_id], name: @attrs[:parent_external_id], snapshot_id: @attrs[:snapshot_id])
         end
         g.update( parent_group_id: parent.id) if !parent.nil?
       rescue => ex
@@ -99,14 +106,14 @@ module LineProcessingContextClasses
         @error_log << ex.message + " - unable to connect group #{@attrs[:name]} with parent group #{@parent_name}, #{log_suffix}"
         return
       end
-      return
+      return g.id
     end
 
     def delete
       return unless @attrs[:delete]
       begin
-        higest_group = Group.find_by(company_id: @attrs[:company_id], parent_group_id: nil)
-        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        higest_group = Group.find_by(company_id: @attrs[:company_id], parent_group_id: nil, snapshot_id: @attrs[:snapshot_id])
+        g = Group.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
         child_groups = Group.where(parent_group_id: g.id)
         child_groups.each do |cg|
           cg.update(parent_group_id: higest_group.id)
@@ -184,8 +191,9 @@ module LineProcessingContextClasses
     end
 
     def connect
+      e = nil
       begin
-        e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+        e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
         return unless e
         connect_offices e
         connect_group e
@@ -194,14 +202,19 @@ module LineProcessingContextClasses
         connect_rank e
         add_color e
       rescue => ex
-        @error_log << ex.message + " unable to create employee with external id #{@attrs[:external_id]} - #{ex}, #{log_suffix}"
+        msg = " unable to create employee with external id #{@attrs[:external_id]} - #{ex}, #{log_suffix}"
+        @error_log << ex.message + msg
+        puts "=========================================="
+        puts msg
+        puts ex.message
         puts ex.backtrace
         return
       end
+      return e.id
     end
 
     def delete
-      e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id])
+      e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
       e.delete if e
     end
 
@@ -221,7 +234,7 @@ module LineProcessingContextClasses
 
     def connect_group(employee)
       return nil if @satellite_tables_attrs[:group_name].nil?
-      g = Group.find_by(name: @satellite_tables_attrs[:group_name], company_id: employee.company_id)
+      g = Group.find_by(name: @satellite_tables_attrs[:group_name], company_id: employee.company_id, snapshot_id: @attrs[:snapshot_id])
       if g
         employee.group_id = g.id
         employee.save

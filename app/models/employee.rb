@@ -169,7 +169,8 @@ class Employee < ActiveRecord::Base
     errors = []
     processed_attrs = attrs.clone
 
-    sid = Snapshot.last_snapshot_of_company(processed_attrs[:company_id])
+    sid = attrs[:snapshot_id]
+    sid = Snapshot.last_snapshot_of_company(processed_attrs[:company_id]) unless sid
     processed_attrs[:snapshot_id] = sid
 
     alias_emails  = processed_attrs.delete(:alias_emails)   if processed_attrs[:alias_emails]

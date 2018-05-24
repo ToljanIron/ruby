@@ -597,9 +597,9 @@ module InteractBackofficeHelper
     return errors.join('<br>')
   end
 
-  def self.add_all_employees_as_participants(aq)
+  def self.add_all_employees_as_participants(eids, aq)
     cid = aq.company_id
-    emps = Employee.where(company_id: cid, active: true)
+    emps = Employee.where(id: eids, active: true, company_id: cid)
     emps.each do |emp|
       QuestionnaireParticipant.find_or_create_by(
         employee_id: emp.id,

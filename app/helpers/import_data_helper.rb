@@ -77,6 +77,7 @@ module ImportDataHelper
     context_list += lift_excel_to_context_list(cid, emps_sht, 'emps', sid, lean)
 
     ii = 0
+    eids = []
     context_list.each do |co|
       ii += 1
       puts "Working on context number: #{ii}" if (ii % 50 == 0)
@@ -84,10 +85,12 @@ module ImportDataHelper
         co.delete
       else
         co.create_if_not_existing
-        co.connect
+        id = co.connect
+        eids << id if co.class == EmployeeLineProcessingContext
       end
     end
-    return context_list_errors(context_list)
+    errors = context_list_errors(context_list)
+    return [eids, errors]
   end
 
   def lift_excel_to_context_list(cid, xls, sht_type, sid, lean)
@@ -204,7 +207,7 @@ module ImportDataHelper
     return [employee_context]
   end
 
-  def process_xls_groups(parsed, company_id, csv_line, csv_line_number, lean)
+  def process_xls_groups(parsed, company_id, csv_line, csv_line_number, sid, lean)
     date = parsed[4] || Time.now
     date = date.strftime('%Y-%m-%d')
     name = lean ? safe_titleize(parsed[0]) : safe_titleize(parsed[1])
