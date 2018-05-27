@@ -12,7 +12,18 @@ class QuestionnaireParticipant < ActiveRecord::Base
   def create_link
     create_token
     if Rails.env == 'test' || Rails.env == 'development'
-      base_url = 'http://localhost:3000/'
+      base_url = 'http://dev.com:3000/'
+    else
+      Dotenv.load
+      base_url = ENV['STEPAHEAD_BASE_URL']
+    end
+
+    return base_url + "/questionnaire?token=#{token}"
+  end
+
+  def get_link
+    if Rails.env == 'test' || Rails.env == 'development'
+      base_url = 'http://dev.com:3000/'
     else
       Dotenv.load
       base_url = ENV['STEPAHEAD_BASE_URL']

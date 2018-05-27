@@ -295,6 +295,8 @@ class Questionnaire < ActiveRecord::Base
       quest = ret.find {|e| e['id'] == r['id'] }
       if quest.nil?
         quest = r
+        qp = QuestionnaireParticipant.find_by(employee_id: -1, questionnaire_id: r['id'])
+        quest['test_user_url'] = qp.get_link if !qp.nil?
         quest['stats'] = []
         ret << quest
       end

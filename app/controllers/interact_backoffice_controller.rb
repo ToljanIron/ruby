@@ -134,22 +134,9 @@ class InteractBackofficeController < ApplicationController
   end
 
   ####################### Test  #######################
-  def test
-    authorize :application, :passthrough
 
-    @quest_name    = @aq.name
-    @questState = InteractBackofficeHelper.format_questionnaire_state(@aq.state)
-    @testUserName  = @aq.test_user_name
-    @testUserEmail = @aq.test_user_email
-    @testUserPhone = @aq.test_user_phone
-    @testUserUrl   = QuestionnaireParticipant
-                       .where(questionnaire_id: @aq.id)
-                       .where(employee_id: -1)
-                       .last
-                       .create_link
-  end
 
-  def test_update
+  def ttttttttttttttttest
     authorize :application, :passthrough
 
     errors = ibo_error_handler do
@@ -180,16 +167,36 @@ class InteractBackofficeController < ApplicationController
     redirect_to '/interact_backoffice/test'
   end
 
-  def update_test_participant
-    testUserName = params['testUserName']
-    testUserEmail = params['testUserEmail']
-    testUserPhone = params['testUserPhone']
+  def create_new_test(aq)
+    InteractBackofficeHelper.format_questionnaire_state(aq.state)
+    testUserUrl = QuestionnaireParticipant
+                    .where(questionnaire_id: aq.id)
+                    .where(employee_id: -1)
+                    .last
+                    .create_link
+    return testUserUrl
+  end
 
-    @aq.update!(
-      test_user_name: testUserName,
-      test_user_email: testUserEmail,
-      test_user_phone: testUserPhone
-    )
+  def update_test_participant
+    authorize :application, :passthrough
+
+    ibo_process_request do
+      quest = params[:questionnaire]
+      qid           = quest[:id]
+      testUserName  = quest[:test_user_name]
+      testUserEmail = quest[:test_user_email]
+      testUserPhone = quest[:test_user_phone]
+
+      aq = Questionnaire.find(qid)
+      aq.update!(
+        test_user_name: testUserName,
+        test_user_email: testUserEmail,
+        test_user_phone: testUserPhone
+      )
+
+      testUserUrl = create_new_test(aq)
+      [{questionnaire: aq, test_user_url: testUserUrl}, nil]
+    end
   end
 
   #################### Question #######################
@@ -556,10 +563,27 @@ class InteractBackofficeController < ApplicationController
   def img_upload
     authorize :application, :passthrough
     ibo_process_request do
-      img = params[:img_file]
-      eid = params[:id]
-      res = InteractBackofficeActionsHelper.upload_employee_img(img, eid)
-      [nil, errors: [res]]
+
+      file = params[:file_name]
+      file_name = file.original_filename
+      empident = file_name[0..-5]
+
+      qid = params[:qid]
+      quest = Questionnaire.find(qid)
+      sid = quest.snapshot_id
+
+      emp = Employee.find_by(email: empident, snapshot_id: sid)
+      emp = Employee.find_by(phone_number: empident, snapshot_id: sid) if emp.nil?
+      err = []
+      if emp.nil?
+        err << "No participant with email or phone: #{empident}"
+      else
+        eid = emp.id
+        err << InteractBackofficeActionsHelper.upload_employee_img(file, eid)
+        ret, err2 = prepare_data(qid)
+        err.concat(err2) if !err2.nil?
+      end
+      [ret, errors: err]
     end
   end
 
@@ -578,14 +602,14 @@ class InteractBackofficeController < ApplicationController
     puts "UPLOAING PART'S ........................"
 
     ibo_process_request do
-      emps_excel = params[:employeesExcel]
+      emps_excel = params[:fileToUpload]
       qid = params[:qid]
       aq = Questionnaire.find(qid)
       errors1 = ['No excel file uploaded']
       if !emps_excel.nil?
         sid = aq.snapshot_id
         puts "sid: #{sid}"
-        eids, errors2 = load_excel_sheet(@cid, params[:employeesExcel], sid, true)
+        eids, errors2 = load_excel_sheet(@cid, params[:fileToUpload], sid, true)
         InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
 
         ## Update the questinnaire's state if needed
