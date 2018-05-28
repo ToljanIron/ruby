@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 include ApplicationHelper
-#include Mobile::Utils
+include Mobile::Utils
 include SessionsHelper
 include Pundit
 include CdsUtilHelper
@@ -29,7 +29,6 @@ class ApplicationController < ActionController::Base
 
   def show_mobile
     authorize :application, :passthrough
-    # @token = JSON.parse(params[:data])['token']
 
     @token = params['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
@@ -42,10 +41,13 @@ class ApplicationController < ActionController::Base
 	      return
       end
       I18n.locale = qp.gt_locale
-      @name = qp.employee.first_name
-      if params['desktop'] == 'true' || !mobile?
+      @name = qp.employee.first_name          if qp.participant_type == 'participant'
+      @name = qp.questionnaire.test_user_name if qp.participant_type == 'tester'
+
+      if (params['desktop'] == 'true' || !mobile?) && params['mobile'] != 'true'
         render 'desk', layout: 'mobile_application'
       else
+        response.headers['X-Frame-Options'] = 'ALLOWALL'
         render 'mobile', layout: 'mobile_application'
       end
     else

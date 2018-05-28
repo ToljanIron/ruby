@@ -42,6 +42,14 @@ class CompanyConfigurationTable < ActiveRecord::Base
     end
   end
 
+  def self.hide_employee_names?(cid = -1)
+    entry = CompanyConfigurationTable.where(comp_id: cid, key: HIDE_EMPLOYEES)
+    return false if entry.nil?
+    return false if entry.first.nil?
+    ret = entry.first.value
+    return (ret == 'true' || ret == 't')
+  end
+
   private
 
   def self.is_investigation_mode_configured_in_db?
@@ -52,9 +60,15 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return (ret == 'true' || ret == 't')
   end
 
-  def self.display_field_in_questionnaire
+  def self.display_field_in_questionnaire(cid=nil)
     ret = 'role'
-    entry = CompanyConfigurationTable.where(comp_id: -1, key: DISPLAY_FIELD_IN_QUESTIONNAIRE)
+    entry = nil
+    if !cid.nil?
+      entry = CompanyConfigurationTable.where(comp_id: cid, key: DISPLAY_FIELD_IN_QUESTIONNAIRE)
+    end
+    if entry.nil? || entry.first.nil?
+      entry = CompanyConfigurationTable.where(comp_id: -1, key: DISPLAY_FIELD_IN_QUESTIONNAIRE)
+    end
     return ret if entry.nil?
     return ret if entry.first.nil?
     ret = entry.first.value

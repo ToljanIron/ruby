@@ -264,6 +264,21 @@ class Questionnaire < ActiveRecord::Base
     return data
   end
 
+  def is_questionnaire_test_ready?
+    num_of_questions = questionnaire_questions.where(active: true).count
+    return false if num_of_questions.zero?
+    num_of_participants = questionnaire_participant.count
+    return false if (num_of_participants < 3)
+    return true
+  end
+
+  def self.drop_questionnaire(qid)
+    QuestionnaireParticipant.where(questionnaire_id: qid).delete_all
+    QuestionnaireQuestion.where(questionnaire_id: qid).delete_all
+    QuestionReply.where(questionnaire_id: qid).delete_all
+    Questionnaire.find(qid).delete
+  end
+
   #####################################################################
   # Get all questionnaires with number of particpants in each statge
   #####################################################################

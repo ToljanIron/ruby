@@ -8,17 +8,22 @@ class QuestionnaireParticipant < ActiveRecord::Base
   BIG_NUMBER = 1000
 
   enum status: [:notstarted, :entered, :in_process, :completed]
+  enum participant_type: [:participant, :tester]
 
   def create_link
     create_token
     if Rails.env == 'test' || Rails.env == 'development'
-      base_url = 'http://dev.com:3000/'
+      base_url = 'http://localhost:3000/'
     else
       Dotenv.load
       base_url = ENV['STEPAHEAD_BASE_URL']
     end
 
     return base_url + "/questionnaire?token=#{token}"
+  end
+
+  def create_token
+    update(token: SecureRandom.hex[0..20]) unless token
   end
 
   def get_link
@@ -32,8 +37,36 @@ class QuestionnaireParticipant < ActiveRecord::Base
     return base_url + "/questionnaire?token=#{token}"
   end
 
-  def create_token
-    update(token: SecureRandom.hex) unless token
+  #########################################################
+  # Used for auto saving while answering a long question
+  #########################################################
+  def autosave(replies)
+    curr_questionnaire_question = find_questionnaire_question(replies)
+
+    replies.each do |r|
+      reply_type = r[:reply_type]
+      qr = QuestionReply.where(
+                  questionnaire_id: questionnaire_id,
+                  questionnaire_question_id: curr_questionnaire_question.id,
+                  questionnaire_participant_id: id,
+                  reffered_questionnaire_participant_id: r[:employee_id]).last
+      if reply_type == 'do'
+        if qr.nil?
+          QuestionReply.create!(
+                   questionnaire_id: questionnaire_id,
+                   questionnaire_question_id: curr_questionnaire_question.id,
+                   questionnaire_participant_id: id,
+                   reffered_questionnaire_participant_id: r[:employee_id],
+                   answer: r[:answer])
+        else
+          qr.update(answer: r[:answer])
+        end
+      elsif reply_type == 'undo'
+        qr.try(:delete)
+      else
+        raise "Unknown reply_type: #{reply_type}"
+      end
+    end
   end
 
   def update_replies(replies)
@@ -126,6 +159,17 @@ class QuestionnaireParticipant < ActiveRecord::Base
         res.push obj
       end
     end
+
+    ## If returning after some replies have already been autosaved then
+    ## need to remove them from the list.
+    autosaved_qpids = QuestionReply
+                        .where(questionnaire_question_id: q_id)
+                        .where(questionnaire_participant_id: id)
+                        .pluck(:reffered_questionnaire_participant_id)
+    res = res.select do |r|
+      !autosaved_qpids.include?(r[:e_id].to_i)
+    end
+
     return res
   end
 
@@ -135,7 +179,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
       selected_qps_ids = QuestionnaireParticipant.where(employee_id: emps_arr, questionnaire_id: questionnaire_id).pluck(:id)
     else
       selected_qps_ids = QuestionnaireQuestion
-                           .find_by(order: qq.depends_on_question, questionnaire_id: qq.questionnaire_id)
+                           .find_by(id: qq.depends_on_question, questionnaire_id: qq.questionnaire_id)
                            .question_replies.where(questionnaire_participant_id: id, answer: true)
                            .pluck(:reffered_questionnaire_participant_id)
     end
@@ -148,6 +192,8 @@ class QuestionnaireParticipant < ActiveRecord::Base
   ##   need to understand whether there was an independent question already or not,
   ##   because if there was then it has populated resultas.
   def populate_automatically(qq)
+    return false if participant_type == 'tester'
+
     independent_question_was_populated = false
     qid = qq.questionnaire_id
 

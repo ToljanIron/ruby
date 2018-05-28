@@ -2,7 +2,12 @@ class Mobile::MobileController < ActionController::Base
   protect_from_forgery with: :exception
   include SessionsHelper
 
-  before_action :authenticate_user, except: [:show_mobile, :all_employees, :next, :keep_alive, :show_quest]
+  before_action :authenticate_user, except: [:show_mobile,
+                                             :all_employees,
+                                             :next,
+                                             :keep_alive,
+                                             :show_quest,
+                                             :autosave]
   before_action :set_locale
 
   PAGES = {
@@ -30,6 +35,7 @@ class Mobile::MobileController < ActionController::Base
       @name = employee.first_name
       render 'mobile'
     else
+      puts "Did not manage to find employee from token: #{@token}"
       render plain: 'Failed to load app, unkown employee.'
     end
   end
@@ -41,6 +47,7 @@ class Mobile::MobileController < ActionController::Base
       @name = employee.first_name
       render 'desk'
     else
+      puts "Did not manage to find employee from token: #{@token}"
       render plain: 'Failed to load app, unkown employee.'
     end
   end
