@@ -35,7 +35,7 @@ module InteractBackofficeActionsHelper
   def self.create_new_questionnaire(cid)
 
     ## Attached a snapshot to the questionnaire
-    snapshot = Snapshot.create_snapshot_by_weeks(cid, Time.now)
+    snapshot = Snapshot.create_snapshot_by_weeks(cid, Time.now.to_s)
     sid = snapshot.id
 
     ## Create questionnaire
@@ -77,18 +77,6 @@ module InteractBackofficeActionsHelper
         max: 15,
         active: false
       )
-    end
-
-    ## Create questionnaire participants
-    emps = Employee.where(company_id: cid, active: true)
-    emps.each do |emp|
-      qp = QuestionnaireParticipant.create!(
-        employee_id: emp.id,
-        questionnaire_id: quest.id,
-        active: false,
-        participant_type: 0
-      )
-      qp.create_token
     end
 
     ## Create test participant
@@ -135,7 +123,24 @@ module InteractBackofficeActionsHelper
   end
 
   def self.send_live_sms(aq, qp)
-    send_sms(aq, qp, qp.employee.phone_number)
+    phone = qp.employee.phone_number
+    unless phone
+      msg = "Not sending to participant: #{qp.id} because phone is nil" if phone.nil?
+      puts msg
+      EventLog.create!(message: msg, event_type_id: 11)
+      return
+    end
+
+    phone = phone.gsub('-','')
+    is_valid = phone.split('').select { |b| b.match(/\d/) }.join.length == 10
+    unless is_valid
+      msg = "ERROR - Invalid phone number: #{phone_number} for participant: #{qp.id}"
+      puts msg
+      EventLog.create!(message: msg, event_type_id: 11)
+      return
+    end
+
+    send_sms(aq, qp, phone)
   end
 
   def self.send_live_email(aq, qp)

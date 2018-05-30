@@ -295,13 +295,15 @@ class Questionnaire < ActiveRecord::Base
     sqlstr =
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-              q.test_user_phone, q.test_user_email, q.state, q.language_id
+              q.test_user_phone, q.test_user_email, q.state, q.language_id,
+              qp.participant_type
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
-       WHERE q.id in ( #{qids.join(',')})
+       WHERE
+         q.id IN ( #{qids.join(',')})
        GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-                q.test_user_phone, q.test_user_email, q.state, language_id
+                q.test_user_phone, q.test_user_email, q.state, language_id, qp.participant_type
        ORDER BY snapshot_id DESC"
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -315,7 +317,7 @@ class Questionnaire < ActiveRecord::Base
         quest['stats'] = []
         ret << quest
       end
-      quest['stats'][r['status']] = r['count']
+      quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
     end
     return ret
   end

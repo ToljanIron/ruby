@@ -89,18 +89,19 @@ class InteractBackofficeController < ApplicationController
   def questionnaire_update
     authorize :application, :passthrough
     ibo_process_request do
-      update_questionnaire_properties
+      aq = update_questionnaire_properties
       quests = Questionnaire.get_all_questionnaires(@cid)
-      [{quests: quests, activeQuest: @aq}, nil]
+      [{quests: quests, activeQuest: aq}, nil]
     end
   end
 
   def update_questionnaire_properties
     quest = params['questionnaire']
+    aq = Questionnaire.find(quest['id'])
+
+    questState = aq.state == 'created' ? 'delivery_method_ready' : aq.state
+
     name = quest['name']
-
-    questState = @aq.state == 'created' ? 'delivery_method_ready' : @aq.state
-
     deliveryMethod = quest['delivery_method']
     smsText = quest['sms_text']
     emailText = quest['email_text']
@@ -108,7 +109,7 @@ class InteractBackofficeController < ApplicationController
 
     language_id = quest['language_id']
 
-    @aq.update!(
+    aq.update!(
       name: name,
       state: questState,
       delivery_method: deliveryMethod,
@@ -131,6 +132,8 @@ class InteractBackofficeController < ApplicationController
     else
       ret.delete if !ret.nil?
     end
+
+    aq
   end
 
   ####################### Test  #######################
@@ -177,6 +180,17 @@ class InteractBackofficeController < ApplicationController
     return testUserUrl
   end
 
+  def questionnaire_run
+    authorize :application, :passthrough
+
+    ibo_process_request do
+      qid = params[:qid]
+      aq = Questionnaire.find(qid)
+      InteractBackofficeActionsHelper.run_questionnaire(aq)
+      [nil, nil]
+    end
+  end
+
   def update_test_participant
     authorize :application, :passthrough
 
@@ -216,6 +230,17 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def questions_reorder
+    authorize :application, :passthrough
+    ibo_process_request do
+      questions = params[:questions]
+      questions.each do |q|
+        qq = QuestionnaireQuestion.find(q['qid'])
+        qq.update!(order: q['order'])
+      end
+      [{}, nil]
+    end
+  end
   def question_update
     authorize :application, :passthrough
     ibo_process_request do
@@ -357,7 +382,7 @@ class InteractBackofficeController < ApplicationController
         .joins("left join offices as o on o.id = e.office_id")
         .joins("left join job_titles as jt on jt.id = e.job_title_id")
         .joins("join questionnaires as quest on quest.snapshot_id = e.snapshot_id")
-        .joins("left join questionnaire_participants as qp on qp.employee_id = e.id and qp.questionnaire_id = quest.id")
+        .joins("join questionnaire_participants as qp on qp.employee_id = e.id and qp.questionnaire_id = quest.id")
         .where("e.company_id = #{@cid}")
         .where("quest.id = ?", qid)
         .add_filter('first_name', @filter_first_name)
@@ -454,28 +479,7 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
-  def qqqqqqqqqqq
-    authorize :application, :passthrough
-
-    errors = ibo_error_handler do
-      if !params['send'].nil?
-        send_questionnaire
-      elsif !params['reset'].nil?
-        reset_questionnaire
-      else
-        raise "Unknown action"
-      end
-    end
-
-    prepare_data(errors)
-    redirect_to(
-      controller: :interact_backoffice,
-      action: :participants,
-      errors: errors
-    )
-  end
-
-  def send_questionnaire
+  def participant_resend
     if @aq.state != 'sent'
       raise "Cant send messages to participants when questionnaire is not active"
     end
@@ -487,7 +491,7 @@ class InteractBackofficeController < ApplicationController
     InteractBackofficeActionsHelper.send_live_questionnaire(@aq, qp)
   end
 
-  def reset_questionnaire
+  def participant_reset
     if @aq.state != 'sent'
       raise "Cant reset participant when questionnaire is not active"
     end
@@ -498,6 +502,21 @@ class InteractBackofficeController < ApplicationController
          ).last.reset_questionnaire
   end
 
+  def participants_get_emps
+    authorize :application, :passthrough
+    sid = Employee
+      .where(company_id: @cid)
+      .select(:snapshot_id)
+      .distinct
+      .pluck(:snapshot_id)
+      .sort
+      .last
+    file_name = InteractBackofficeHelper.download_employees(@cid, sid)
+    send_file(
+      "#{Rails.root}/tmp/#{file_name}",
+      filename: file_name,
+      type: 'application/vnd.ms-excel')
+  end
 
 
   def participants_bulk_actions

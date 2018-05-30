@@ -143,6 +143,81 @@ module InteractBackofficeHelper
     return report_name
   end
 
+  #################################################################
+  # Create and excel file in a format that can be readily uploaded
+  #################################################################
+  def self.download_employees(cid, sid)
+    report_name = 'employees.xlsx'
+    wb = create_excel_file(report_name)
+
+    ## Employees
+    ws = wb.add_worksheet('Employees')
+
+    ws.write('A1', 'external_id')
+    ws.write('B1', 'first_name')
+    ws.write('C1', 'last_name')
+    ws.write('D1', 'email')
+    ws.write('E1', 'role')
+    ws.write('F1', 'rank')
+    ws.write('G1', 'job_title')
+    ws.write('H1', 'gender')
+    ws.write('I1', 'office')
+    ws.write('J1', 'group')
+    ws.write('K1', 'phone')
+
+    emps = Employee
+      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
+               emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
+               g.name AS group, phone_number")
+      .from('employees AS emps')
+      .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
+      .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
+      .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
+      .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
+      .where('emps.company_id = ?', cid)
+      .where('emps.snapshot_id = ?', sid)
+      .order('emps.email')
+
+    ii = 1
+    emps.each do |e|
+      ii += 1
+      ws.write("A#{ii}", e['external_id'])
+      ws.write("B#{ii}", e['first_name'])
+      ws.write("C#{ii}", e['last_name'])
+      ws.write("D#{ii}", e['email'])
+      ws.write("E#{ii}", e['role'])
+      ws.write("F#{ii}", e['rank'])
+      ws.write("G#{ii}", e['job_title'])
+      ws.write("H#{ii}", e['gender'])
+      ws.write("I#{ii}", e['office'])
+      ws.write("J#{ii}", e['group'])
+      ws.write("K#{ii}", e['phone_number'])
+    end
+
+    ## Groups
+    ws = wb.add_worksheet('Groups')
+
+    ws.write('A1','group_name')
+    ws.write('B1','parent_group')
+
+    groups = Group
+      .select('g.name, pg.name AS parent_name')
+      .from('groups AS g')
+      .joins('LEFT JOIN groups AS pg ON pg.id = g.parent_group_id')
+      .where("g.snapshot_id = ?", sid)
+      .where("g.company_id = ?", cid)
+      .order("pg.name DESC")
+
+    ii = 1
+    groups.each do |g|
+      ii += 1
+      ws.write("A#{ii}", g['name'])
+      ws.write("B#{ii}", g['parent_name'])
+    end
+
+    wb.close
+    return report_name
+  end
 ################################# Network reports  ################################################
   #############################################################
   # Create a detailed excel report of who is connected
@@ -470,14 +545,13 @@ module InteractBackofficeHelper
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
-    phone_number = p['phone']
+    phone_number = p['phone_number']
     group_name = p['group']
     office = p['office']
     role = p['role']
     rank = p['rank']
     job_title = p['job_title']
     gender = p['gender']
-    active = p['active'].nil? ? false : p['active']
 
     ## Group
     root_gid = Group.get_root_group(cid)
@@ -503,7 +577,6 @@ module InteractBackofficeHelper
       jtid = JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
     end
 
-
     Employee.find(eid).update!(
       first_name: first_name,
       last_name: last_name,
@@ -517,20 +590,10 @@ module InteractBackofficeHelper
       gender: gender
     )
 
-    ## If is marked active then make sure he has a questionnaire_participant.
-    ## If not, then make sure he doesn't.
-    if active
-      QuestionnaireParticipant.find_or_create_by(
-        employee_id: eid,
-        questionnaire_id: qid
-      ).create_token
-    else
-      qp = QuestionnaireParticipant.where(
-        employee_id: eid,
-        questionnaire_id: qid
-      ).last
-      qp.delete if !qp.nil?
-    end
+    QuestionnaireParticipant.find_or_create_by(
+      employee_id: eid,
+      questionnaire_id: qid
+    ).create_token
   end
 
   def self.create_employee(cid, p, aq)
