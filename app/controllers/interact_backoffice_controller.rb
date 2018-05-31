@@ -480,26 +480,31 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participant_resend
-    if @aq.state != 'sent'
-      raise "Cant send messages to participants when questionnaire is not active"
+    authorize :application, :passthrough
+    ibo_process_request do
+      qpid = params[:qpid]
+      qp = QuestionnaireParticipant.find(qpid)
+      aq = qp.questionnaire
+      if aq.state != 'sent'
+        raise "Cant send messages to participants when questionnaire is not active"
+      end
+      InteractBackofficeActionsHelper.send_live_questionnaire(aq, qp)
+      [{}, nil]
     end
-    eid = params['id']
-    qp = QuestionnaireParticipant.where(
-           questionnaire_id: @aq.id,
-           employee_id: eid
-         ).last
-    InteractBackofficeActionsHelper.send_live_questionnaire(@aq, qp)
   end
 
   def participant_reset
-    if @aq.state != 'sent'
-      raise "Cant reset participant when questionnaire is not active"
+    authorize :application, :passthrough
+    ibo_process_request do
+      qpid = params[:qpid]
+      qp = QuestionnaireParticipant.find(qpid)
+      aq = qp.questionnaire
+      if aq.state != 'sent'
+        raise "Cant reset participant when questionnaire is not active"
+      end
+      qp.reset_questionnaire
+      [{}, nil]
     end
-    eid = params['id']
-    QuestionnaireParticipant.where(
-           questionnaire_id: @aq.id,
-           employee_id: eid
-         ).last.reset_questionnaire
   end
 
   def participants_get_emps
