@@ -607,7 +607,7 @@ class InteractBackofficeController < ApplicationController
         ret, err2 = prepare_data(qid)
         err.concat(err2) if !err2.nil?
       end
-      [ret, errors: err]
+      [ret, err]
     end
   end
 
