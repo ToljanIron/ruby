@@ -107,4 +107,8 @@ Workships::Application.routes.draw do
   # Alerts
   get 'v3/get_alerts'                        ,to: 'alerts#get_alerts'
   post 'v3/acknowledge_alert'                ,to: 'alerts#acknowledge_alert'
+
+  # Interact
+  get 'v3/get_questionnaire_data'            ,to: 'interact#get_question_data'
+  get 'v3/get_map_data'                      ,to: 'interact#get_map'
 end

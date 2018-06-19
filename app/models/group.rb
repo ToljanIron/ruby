@@ -111,11 +111,12 @@ class Group < ActiveRecord::Base
   def pack_to_json
     hash = {}
     hash[:id] = id
+    hash[:gid] = id
     hash[:name] = !CompanyConfigurationTable::is_investigation_mode? ? name : "#{english_name}-#{id}"
     hash[:level] = -1  ##group_level(self)
     hash[:child_groups] = extract_descendants_ids
     hash[:employees_ids] = Employee.where(group_id: hash[:child_groups] + [id]).pluck(:id)
-    hash[:parent] = parent_group_id
+    hash[:parentId] = parent_group_id
     hash[:snapshot_id] = snapshot_id
     return hash
   end

@@ -138,38 +138,6 @@ class InteractBackofficeController < ApplicationController
 
   ####################### Test  #######################
 
-
-  def ttttttttttttttttest
-    authorize :application, :passthrough
-
-    errors = ibo_error_handler do
-      ActiveRecord::Base.transaction do
-        if !params['test-questionnaire'].nil?
-          InteractBackofficeActionsHelper.send_test_questionnaire(@aq)
-        elsif !params['run'].nil?
-          InteractBackofficeActionsHelper.run_questionnaire(@aq)
-        elsif !params['close'].nil?
-          InteractBackofficeActionsHelper.close_questionnaire(@aq)
-        elsif !params['update'].nil?
-          update_test_participant
-        elsif !params['delete'].nil?
-          Questionnaire.drop_questionnaire(@aq.id)
-          cid = @current_user.company_id
-          Company.find(cid).clean_company
-          redirect_to '/'
-          return
-        else
-          raise "Illegal action for test_update"
-        end
-      end
-    end
-    if !errors.nil?
-      puts "Errors: #{errors}"
-    end
-
-    redirect_to '/interact_backoffice/test'
-  end
-
   def create_new_test(aq)
     InteractBackofficeHelper.format_questionnaire_state(aq.state)
     testUserUrl = QuestionnaireParticipant

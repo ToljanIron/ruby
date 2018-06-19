@@ -18,20 +18,8 @@ class GroupsController < ApplicationController
     if res.nil?
       puts 'Retrieving all groups. Replace with authorized groups only'
       groups_ids = Group.by_snapshot(sid).pluck(:id)
-
       raise 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
-
-      company = Company.find(cid)
-      res = []
-      if (company.questionnaire_only?)
-        groups_ids.each do |gid|
-          g = Group.find(gid)
-          res.push g.pack_to_json
-        end
-      else
-        res = CdsGroupsHelper.groups_with_sizes(groups_ids)
-      end
-
+      res = CdsGroupsHelper.groups_with_sizes(groups_ids)
       cache_write(cache_key, res)
     end
     res = { groups: res }
