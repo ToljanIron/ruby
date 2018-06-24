@@ -67,12 +67,15 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       cmin  = generate_company_metrics_for_network_in(cid, nid)
       cmout = generate_company_metrics_for_network_out(cid, nid)
 
-      groups = gid == -1 ? Group.by_snapshot(sid) : [Group.find(gid)]
-      groups.each do |g|
-        puts "Working on group: #{g.name}"
-        lgid = g.id
-        cds_calculate_scores_for_generic_network(cid, sid, nid, lgid, cmin, cmout)
-      end
+      #groups = gid == -1 ? Group.by_snapshot(sid) : [Group.find(gid)]
+      #groups.each do |g|
+        #puts "Working on group: #{g.name}"
+        #lgid = g.id
+        #cds_calculate_scores_for_generic_network(cid, sid, nid, lgid, cmin, cmout)
+      #end
+
+      rgid = Group.get_root_group(cid, sid)
+      cds_calculate_scores_for_generic_network(cid, sid, nid, rgid, cmin, cmout)
     end
   end
 

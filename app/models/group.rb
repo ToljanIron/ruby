@@ -25,6 +25,10 @@ class Group < ActiveRecord::Base
       sid = Snapshot.last_snapshot_of_company(company_id)
       self.snapshot_id = sid.nil? ? -1 : sid
     end
+
+    if color_id.nil?
+      color_id = rand(24 + 1)
+    end
   end
 
   def sibling_groups
