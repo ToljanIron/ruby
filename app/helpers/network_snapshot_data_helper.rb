@@ -385,17 +385,19 @@ module NetworkSnapshotDataHelper
             .select("emps.external_id AS id, first_name, last_name, emps.email,
                      g.name AS gname, g.english_name AS egname, g.id AS groupid, col.rgb AS col,
                      gender, avg(cds.score) AS score, o.name AS office,
-                     emps.office_id")
+                     emps.office_id, jt.name AS jtname")
             .from('employees AS emps')
             .joins('JOIN groups AS g ON g.id = emps.group_id')
             .joins('JOIN colors AS col ON col.id = g.color_id')
             .joins("LEFT JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id AND cds.algorithm_id = #{aid}")
             .joins('JOIN snapshots AS sn ON sn.id = emps.snapshot_id')
             .joins('JOIN offices AS o ON o.id = emps.office_id')
+            .joins('JOIN job_titles AS jt ON jt.id = emps.job_title_id')
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
             .group('emps.external_id, first_name, last_name, g.name, g.id, col,
-                    o.name, gender, emps.office_id, g.english_name, emps.email')
+                    o.name, gender, emps.office_id, g.english_name, emps.email,
+                    jt.name')
 
     nodes = nodes.as_json
     invmode = CompanyConfigurationTable.is_investigation_mode?
@@ -407,6 +409,7 @@ module NetworkSnapshotDataHelper
       #n['name'] = "#{n['id']}_#{n['first_name']} #{n['last_name']}" if invmode
       n['name'] = "#{n['first_name']} #{n['last_name']}" if !invmode
       n['name'] = "#{n['id']}_#{n['email']}" if invmode
+      n['job_title'] = n['jtname']
       n
     end
     return nodes

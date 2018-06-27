@@ -208,11 +208,12 @@ module CalculateMeasureForCustomDataSystemHelper
     sqlstr = "
       SELECT (avg(#{score_type}) * #{scale}) AS score, emps.email, #{emp_name_field} AS emp_name,
              emps.img_url AS img_url, g.external_id AS group_extid, g.#{group_field} AS group_name, o.name AS office_name,
-             mn.name AS metric_name, emps.email
+             mn.name AS metric_name, emps.email, jt.name AS job_title
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN groups AS g ON g.id = emps.group_id
       JOIN offices AS o ON o.id = emps.office_id
+      JOIN job_titles AS jt ON jt.id = emps.job_title_id
       JOIN company_metrics AS cms ON cms.id = cds.company_metric_id
       JOIN metric_names AS mn ON mn.id = cms.metric_id
       JOIN snapshots AS sn ON sn.id = cds.snapshot_id
@@ -220,7 +221,7 @@ module CalculateMeasureForCustomDataSystemHelper
         emps.email IN ('#{emails.join("','")}') AND
         cds.algorithm_id IN (#{aids_str}) AND
         sn.#{snapshot_field} = \'#{interval}\'
-      GROUP BY #{emp_groupby_field}, img_url, group_extid, g.#{group_field}, mn.name, office_name
+      GROUP BY #{emp_groupby_field}, img_url, group_extid, g.#{group_field}, mn.name, office_name, job_title
       ORDER BY score DESC
       LIMIT 20"
 
