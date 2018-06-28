@@ -12,8 +12,9 @@ class Questionnaire < ActiveRecord::Base
   has_many :questionnaire_participant
   has_many :employees, through: :questionnaire_participant
 
-
   belongs_to :language
+
+  validates :root_group_id, presence: true
 
   enum state: [
     :created,
@@ -296,15 +297,16 @@ class Questionnaire < ActiveRecord::Base
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id,
-              qp.participant_type
+              qp.participant_type, q.snapshot_id
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
        WHERE
          q.id IN ( #{qids.join(',')})
        GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-                q.test_user_phone, q.test_user_email, q.state, language_id, qp.participant_type
-       ORDER BY snapshot_id DESC"
+                q.test_user_phone, q.test_user_email, q.state, language_id,
+                qp.participant_type, q.snapshot_id
+       ORDER BY q.created_at DESC"
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     ret = []

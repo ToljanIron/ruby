@@ -58,7 +58,11 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
   def cds_calculate_scores_for_generic_networks(cid, sid, gid = -1)
     CdsMetricScore.where(snapshot_id: sid).delete_all
     puts "cid: #{cid}, sid: #{sid}, gid: #{gid}"
-    networks = NetworkName.where(company_id: cid)
+
+    qid = Questionnaire.where(snapshot_id: sid).try(:last).try(:id)
+    fail "No questinnaire ID found for snapshot: #{sid}, aborting" if qid.nil?
+
+    networks = NetworkName.where(company_id: cid, questionnaire_id: qid)
     fail 'No networks found' if networks.empty?
     networks.each do |n|
       puts "Working on network: #{n.name}"

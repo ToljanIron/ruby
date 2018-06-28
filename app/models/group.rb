@@ -174,13 +174,26 @@ class Group < ActiveRecord::Base
     return parent_group_id.nil?
   end
 
+  #######################################################
+  # Use this function for none Interact companies
+  #######################################################
   def self.get_root_group(cid, sid=nil)
     raise "Company ID cant be nil" if cid.nil?
     sid = Snapshot.last_snapshot_of_company(cid) if (sid.nil? || sid == -1)
-    return Group.by_snapshot(sid)
+    gids = Group.by_snapshot(sid)
              .where(company_id: cid)
              .where('parent_group_id is null')
-             .first.id
+    gids = sid.nil? ? gids : gids.where(snapshot_id: sid)
+    raise "Found more than one root group in company: #{cid}, snapshot: #{sid}" if gids.length > 1
+    return gids.first.id
+  end
+
+  #######################################################
+  # Use this function for Interact companies
+  #######################################################
+  def self.get_root_questionnaire_group(qid)
+    raise "Questionnaire ID cant be nil" if qid.nil?
+    return Questionnaire.find(qid).root_group_id
   end
 
   def self.get_parent_group(cid, sid=nil)

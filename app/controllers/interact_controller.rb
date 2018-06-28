@@ -18,21 +18,24 @@ class InteractController < ApplicationController
     cid = current_user.company_id
 
     qq = nil
+    qid = nil
     if qqid == -1
       qid = Questionnaire.last.id
       qq = QuestionnaireQuestion
              .where(questionnaire_id: qid)
+             .where(active: true)
              .order(:order)
              .last
       qqid = qq.id
     else
       qq = QuestionnaireQuestion.find(qqid)
+      qid = qq.questionnaire_id
     end
 
     quest = qq.questionnaire
     nid = qq.network_id
     sid = quest.snapshot_id
-    gid = gid.nil? ? Group.get_root_group(cid) : gid
+    gid = gid.nil? ? Group.get_root_questionnaire_group(qid) : gid
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 602).last.id
 
     res = CdsMetricScore
@@ -69,6 +72,7 @@ class InteractController < ApplicationController
       qid = Questionnaire.last.id
       qq = QuestionnaireQuestion
              .where(questionnaire_id: qid)
+             .where(active: true)
              .order(:order)
              .last
       qqid = qq.id
@@ -79,9 +83,6 @@ class InteractController < ApplicationController
     quest = qq.questionnaire
     nid = qq.network_id
     sid = quest.snapshot_id
-    puts "&&&&&&&&&&&&&&&&&&&&&&&&"
-    ap gids
-    puts "&&&&&&&&&&&&&&&&&&&&&&&&"
     if (gids.nil? || gids == [] || gids == '')
       gids = Group.by_snapshot(sid).pluck(:id).join(',')
     end

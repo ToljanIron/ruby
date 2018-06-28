@@ -88,15 +88,20 @@ module CdsGroupsHelper
     return ret
   end
 
+  def is_root_group?(group, groups_inx)
+    pgid = group[:parentId]
+    return pgid.nil? || groups_inx[pgid].nil?
+  end
+
   ## 1st pass - Create all linear time properties and create an index
   ## 2nd pass - Use index to get children list
   ## 3rd pass - Use index to calculate group's depth
   ## 4th pass - Use index to calculate group's accumulated size
-  def self.format_names_and_child_groups(groups_hash)
+  def self.format_names_and_child_groups(groups_list)
     is_investigation_mode = CompanyConfigurationTable::is_investigation_mode?
     groups_inx = {}
     root_gid = nil
-    groups_hash.each do |g|
+    groups_list.each do |g|
       group = {}
       gid = g['group_id']
       pgid = g['parent_id']
@@ -109,6 +114,14 @@ module CdsGroupsHelper
       group[:childrenIds] = []
       group[:accumulatedSize] = -1
       groups_inx[gid] = group
+    end
+
+    ## Force root group parent_id to be nil in case it is not (Interact
+    groups_inx.each do |k, g|
+      gid = g[:id]
+      next if !is_root_group?(g, groups_inx)
+      root_gid = gid
+      g[:parentId] = nil
     end
 
     ## find children ids

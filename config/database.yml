@@ -12,11 +12,11 @@ development-spoton:
   <<: *default
   database: workships_development
 
-development:
+development-sndcom:
   <<: *default
   database: workships_ext
 
-development-interact:
+development:
   <<: *default
   database: workships_interact
 
