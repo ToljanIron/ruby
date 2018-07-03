@@ -417,7 +417,7 @@ module InteractBackofficeHelper
        LEFT JOIN offices AS o ON o.id = emps.office_id
        LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
        where
-         snapshot_id = #{sid}"
+         emps.snapshot_id = #{sid}"
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     wb = create_excel_file(report_name)

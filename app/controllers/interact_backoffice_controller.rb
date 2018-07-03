@@ -299,7 +299,8 @@ class InteractBackofficeController < ApplicationController
     authorize :application, :passthrough
     ibo_process_request do
       qid = params['qid']
-     ret, errors = prepare_data(qid)
+      page = params['page']
+     ret, errors = prepare_data(qid, page)
      [ret, errors]
     end
   end
@@ -336,7 +337,7 @@ class InteractBackofficeController < ApplicationController
 
   end
 
-  def prepare_data(qid)
+  def prepare_data(qid, page = 0)
 
     qps =
       Employee
@@ -365,6 +366,8 @@ class InteractBackofficeController < ApplicationController
         .add_filter('jt.name', @filter_job_title)
         .add_filter('gender', (@filter_gender == -1 || @filter_gender.nil?) ? '' : @filter_gender.to_i)
         .order("#{@sort_field_name} #{@sort_dir}")
+        .limit(20)
+        .offset(page)
 
     ret = []
     errors = nil
