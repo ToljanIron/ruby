@@ -190,7 +190,7 @@ class InteractBackofficeController < ApplicationController
 
       questions =
         QuestionnaireQuestion
-          .where(questionnaire_id: qid)
+          .where(questionnaire_id: qid, active: true)
           .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
           .order(:order)
 
