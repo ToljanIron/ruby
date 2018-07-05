@@ -91,15 +91,14 @@ class InteractController < ApplicationController
    #  gidsStr = gids.join("','")
 
     groups = Group
-      .select("groups.id AS gid, name, parent_group_id AS parentId, col.rgb AS color_name")
-      .joins("JOIN colors AS col ON col.id = groups.color_id")
+      .select("groups.id AS gid, name, parent_group_id AS parentId, color_id")
       .where(snapshot_id: sid)
       .where("groups.id in (#{gids})")
 
     nodes = Employee
       .select("employees.id AS id, first_name || ' ' || last_name AS t, employees.group_id, g.name AS gname,
                cms.score AS d, rank_id, gender, ro.name AS role_name, o.name AS office_name,
-               jt.name AS job_title_name")
+               jt.name AS job_title_name, g.color_id")
       .joins("JOIN groups AS g ON g.id = employees.group_id")
       .joins("JOIN cds_metric_scores as cms ON cms.employee_id = employees.id")
       .joins("LEFT JOIN roles AS ro ON ro.id = employees.role_id")

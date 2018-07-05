@@ -25,6 +25,6 @@ Color.create(id: 23, rgb: '5133a5')
 Color.create(id: 24, rgb: '9577cb')
 
 Group.all.each do |g|
-  puts "Working on: #{g}"
+  puts "Working on: #{g.id}"
   g.update!(color_id: (rand(24) + 1) )
 end
