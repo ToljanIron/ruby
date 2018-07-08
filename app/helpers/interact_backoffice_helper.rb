@@ -554,7 +554,7 @@ module InteractBackofficeHelper
     gender = p['gender']
 
     ## Group
-    root_gid = Group.get_root_group(cid)
+    root_gid = Group.get_root_questionnaire_group(qid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
       gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id

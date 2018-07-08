@@ -121,13 +121,13 @@ module CdsGroupsHelper
       gid = g[:id]
       next if !is_root_group?(g, groups_inx)
       root_gid = gid
-      g[:parentId] = nil
+      g[:parentId] = -1
     end
 
     ## find children ids
     groups_inx.each do |k, g|
       pgid = g[:parentId]
-      next if pgid.nil?
+      next if pgid.nil? || pgid == -1
       groups_inx[pgid][:childrenIds] << g[:gid]
     end
 

@@ -152,9 +152,12 @@ module MeasuresHelper
       outtraffic += r['volume']
     end
 
+    closeness = res.length > 0 ? (receiving.to_f / res.length).round(2) : 0
+    synergy = outtraffic + intraffic > 0 ? ((outtraffic.to_f / (outtraffic + intraffic).to_f)).round(2) : 0
+
     return {
-      closeness: (receiving.to_f / res.length).round(2),
-      synergy: ((outtraffic.to_f / (outtraffic + intraffic).to_f)).round(2)
+      closeness: closeness,
+      synergy: synergy
     }
   end
 
@@ -172,9 +175,10 @@ module MeasuresHelper
       score = 0
       res.each { |r| score += r['receiving'] / 100.0 }
 
+      score = res.length > 0 ? (score.to_f / res.length).round(2) : 0
       {
         time_period: interval,
-        score: (score.to_f / res.length).round(2)
+        score: score
       }
     end
 
