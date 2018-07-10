@@ -6,6 +6,8 @@ include SessionsHelper
 include CdsUtilHelper
 
 class InteractController < ApplicationController
+  include InteractHelper
+
   NO_GROUP ||= -1
   NO_PIN   ||= -1
 
@@ -38,20 +40,14 @@ class InteractController < ApplicationController
     gid = gid.nil? ? Group.get_root_questionnaire_group(qid) : gid
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 602).last.id
 
-    res = CdsMetricScore
-            .select("first_name || ' ' || last_name AS name, g.name AS group_name,
-                     cds_metric_scores.score, c.rgb AS color")
-            .from('cds_metric_scores')
-            .joins('JOIN employees AS emps ON emps.id = cds_metric_scores.employee_id')
-            .joins('JOIN groups AS g ON g.id = emps.group_id')
-            .joins('JOIN colors AS c ON c.id = g.color_id')
-            .where(
-              snapshot_id: sid,
-              company_id: cid,
-              company_metric_id: cmid,
-              group_id: gid)
-            .order("score DESC")
+    res_indeg = question_indegree_data(sid, gid, cid, cmid)
 
+    res = {
+      indeg: res_indeg,
+      collaboration: question_collaboration_score(gid, nid),
+      synergy: question_synergy_score(gid, nid),
+      centrality: question_centrality_score(gid, nid)
+    }
     res = Oj.dump(res)
     render json: res
   end

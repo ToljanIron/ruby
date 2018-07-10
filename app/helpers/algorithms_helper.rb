@@ -654,12 +654,12 @@ module AlgorithmsHelper
   ## 3 - return the reult vector
   ##
   ###########################################################################
-  def self.employees_network_non_reciprocity_scores(sid, pid, gid)
+  def self.employees_network_non_reciprocity_scores(sid, pid, gid, nid = nil)
     cid = Snapshot.find(sid).company_id
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
-    nid = NetworkSnapshotData.emails(cid)
+    nid = NetworkSnapshotData.emails(cid) if nid.nil?
 
     sqlstr =
       "select from_employee_id, count(*) from network_snapshot_data as out
@@ -1266,6 +1266,38 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: res }]
   end
 
+
+  ###################################################################################
+  # Calculate degree centrality by getting all indegrees first and calculating the
+  # standard deviation. Centrality is high if STD is high
+  ###################################################################################
+  def self.degree_centrality(gid, nid, sid)
+    cid = Snapshot.find(sid).company_id
+    empids = get_members_in_group(-1, gid, sid).sort
+    return [] if empids.count == 0
+    empsstr = empids.join(',')
+
+    sqlstr =
+      "SELECT to_employee_id, count(*) AS indeg FROM network_snapshot_data
+      WHERE
+        snapshot_id = #{sid} AND
+        company_id = #{cid} AND
+        network_id = #{nid} AND
+        to_employee_id IN (#{empsstr}) AND
+        from_employee_id IN (#{empsstr})
+      GROUP By to_employee_id
+      ORDER BY indeg"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    a_indegs = []
+    res.each do |e|
+      a_indegs << e['indeg']
+    end
+
+    return 0 if a_indegs.length == 0
+    stderr = array_sd(a_indegs)
+    return stderr
+  end
+
   #################################################################################
   ##
   ## Describes the overall level of internal collaboration in the group.
@@ -1278,17 +1310,20 @@ module AlgorithmsHelper
   def self.density_of_network(sid, gid, pid, nid)
     cid = find_company_by_snapshot(sid)
 
-    n = get_all_emps(cid, pid, gid).count
     group_id = (gid == -1 ? pid : gid)
+    n = get_all_emps(cid, pid, gid).count
     return [{ group_id: group_id, measure: 0.0 }] if n <= 3
 
     s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, nid, gid, pid)
-    s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid)
+    s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid) / 2
+
+    # The number of paires in the groups
+    bin = (n.to_f * (n.to_f - 1)) / 2
 
     if(s_max_email_traffic.nil?)
       network_density = 0
     else
-      network_density = (s_sum_traffic_network.to_f / (n * s_max_email_traffic)).round(3)
+      network_density = (s_sum_traffic_network.to_f / (bin * s_max_email_traffic)).round(3)
     end
 
     return [{ group_id: group_id, measure: network_density }]
@@ -1588,12 +1623,10 @@ module AlgorithmsHelper
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
-    # network = NetworkSnapshotData.emails(cid)
-    network = nid
     sqlstr = "SELECT outter_nsd.from_employee_id, outter_nsd.to_employee_id, COUNT(id) AS maximum_traffic
               FROM network_snapshot_data AS outter_nsd
               WHERE outter_nsd.snapshot_id      = #{sid}
-              AND   network_id                  = #{network}
+              AND   network_id                  = #{nid}
               AND   outter_nsd.to_employee_id   IN (#{empsstr})
               AND   outter_nsd.from_employee_id IN (#{empsstr})
               AND   outter_nsd.from_employee_id <> outter_nsd.to_employee_id
@@ -1603,7 +1636,7 @@ module AlgorithmsHelper
                 FROM (SELECT COUNT(id)        AS emailsum
                   FROM network_snapshot_data  AS inner_nsd
               	  WHERE inner_nsd.snapshot_id       = #{sid}
-                  AND   network_id                  = #{network}
+                  AND   network_id                  = #{nid}
                   AND   inner_nsd.to_employee_id    IN (#{empsstr})
                   AND   inner_nsd.from_employee_id  IN (#{empsstr})
                   AND   inner_nsd.from_employee_id <> inner_nsd.to_employee_id
