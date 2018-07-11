@@ -113,21 +113,21 @@ describe Mobile::QuestionnaireHelper do
     end
 
     it 'should create a new quesitonnaire' do
-      Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire')
-      expect(Questionnaire.first.state).to eq('notstarted')
+      Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire', 1)
+      expect(Questionnaire.first.state).to eq('created')
       expect(QuestionnaireQuestion.count).to eq(2)
       expect(QuestionnaireParticipant.count).to eq(2)
     end
 
     it 'should return all quesions from the specific questionnaire' do
-      qq = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire')
+      qq = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire', 1)
       QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: 99, question_id: 99)
       questions = Mobile::QuestionnaireHelper.list_questionnaire_questions(qq.id)
       expect(questions.count).to eq (2)
     end
 
     it 'should create questions.all.count questionnair_questions for questionnaire' do
-      qq = Mobile::QuestionnaireHelper.create_questionnaire(3, 'Test Questionnaire')
+      qq = Mobile::QuestionnaireHelper.create_questionnaire(3, 'Test Questionnaire', 1)
       questions = Mobile::QuestionnaireHelper.list_questionnaire_questions(qq.id)
       expect(questions.count).to eq(2)
     end
@@ -143,7 +143,7 @@ describe Mobile::QuestionnaireHelper do
       @q2 = Question.create!(company_id: 2, title: 'qqq2')
       @q3 = Question.create!(company_id: 2, title: 'qqq3')
       @q4 = Question.create!(company_id: 2, title: 'qqq4')
-      @quest = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire')
+      @quest = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire', 1)
     end
 
     after do
@@ -175,7 +175,7 @@ describe Mobile::QuestionnaireHelper do
       @e2 = Employee.create!(company_id: 2, email: 'bb2@mail.com', first_name: 'Bb2', last_name: 'Qq2', external_id: 'bbb2')
       @e3 = Employee.create!(company_id: 2, email: 'bb3@mail.com', first_name: 'Bb3', last_name: 'Qq3', external_id: 'bbb3')
       @e4 = Employee.create!(company_id: 2, email: 'bb4@mail.com', first_name: 'Bb4', last_name: 'Qq4', external_id: 'bbb4')
-      @quest = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire')
+      @quest = Mobile::QuestionnaireHelper.create_questionnaire(2, 'Test Questionnaire', 1 )
     end
 
     after do
@@ -202,7 +202,7 @@ describe Mobile::QuestionnaireHelper do
   describe 'freeze_questionnaire_replies_in_snapshot' do
     before do
       @c = Company.create!(name: "Acme")
-      @q = Questionnaire.create!(name: "test", company_id: @c.id)
+      @q = Questionnaire.create!(name: "test", company_id: @c.id, root_group_id: 1)
       @qq1 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 11)
       @qq2 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 12)
       @e1 = Employee.create!(company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')
@@ -247,7 +247,7 @@ describe Mobile::QuestionnaireHelper do
   describe 'get_questionnaire_details' do
     before do
       @c = Company.create!(name: "Acme")
-      @q = Questionnaire.create!(name: "test", company_id: @c.id)
+      @q = Questionnaire.create!(name: "test", company_id: @c.id, root_group_id: 1)
       @e1 = Employee.create!(company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')
       @e2 = Employee.create!(company_id: @c.id, email: 'bb2@mail.com', first_name: 'Bb2', last_name: 'Qq2', external_id: 'bbb2')
       @e3 = Employee.create!(company_id: @c.id, email: 'bb3@mail.com', first_name: 'Bb3', last_name: 'Qq3', external_id: 'bbb3')
@@ -272,8 +272,8 @@ describe Mobile::QuestionnaireHelper do
   describe 'update questionnaire name' do
     before do
       @c = Company.create!(name: "Acme")
-      @q = Questionnaire.create!(name: "test with mistake", company_id: @c.id)
-      @q1 = Questionnaire.create!(name: "bla bla", company_id: @c.id)
+      @q = Questionnaire.create!(name: "test with mistake", company_id: @c.id, root_group_id: 1)
+      @q1 = Questionnaire.create!(name: "bla bla", company_id: @c.id, root_group_id: 1)
     end
 
     after do

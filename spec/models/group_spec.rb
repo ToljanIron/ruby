@@ -96,7 +96,7 @@ describe Group, type: :model do
         expect(res[:name]).to eq(@child_group.name)
         expect(res[:employees_ids].sort).to eq(@child_group_employees_ids.sort)
         expect(res[:child_groups]).to eq([])
-        expect(res[:parent]).to eq(@parent_group.id)
+        expect(res[:parentId]).to eq(@parent_group.id)
       end
     end
   end

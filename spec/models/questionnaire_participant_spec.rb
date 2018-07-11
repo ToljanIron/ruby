@@ -126,7 +126,7 @@ describe QuestionnaireParticipant, type: :model do
   describe 'test find_next_question' do
     before do
       @c   = Company.create!(name: 'Acme')
-      @q   = Questionnaire.create!(name: "test", company_id: @c.id)
+      @q   = Questionnaire.create!(name: "test", company_id: @c.id, root_group_id: 1)
       @e1  = Employee.create!(company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')
       @e2  = Employee.create!(company_id: @c.id, email: 'bb2@mail.com', first_name: 'Bb2', last_name: 'Qq2', external_id: 'bbb2')
       @e3  = Employee.create!(company_id: @c.id, email: 'bb3@mail.com', first_name: 'Bb3', last_name: 'Qq3', external_id: 'bbb3')

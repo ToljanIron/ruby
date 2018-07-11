@@ -274,7 +274,7 @@ describe PopulateQuestionnaireHelper, type: :helper do
     before do
       create_list(:employee, 5)
       create_list(:question, 4)
-      @q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
+      @q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1', 1)
     end
 
     it 'should return {} if last questionnaire was completed' do
@@ -313,19 +313,19 @@ describe PopulateQuestionnaireHelper, type: :helper do
     end
 
     it 'should return false if theres just one questionnaire which he didnt answer yet' do
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
+      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1', 1)
       expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_falsey
     end
 
     it 'should return true if there was one questionnaire which he completed' do
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
+      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1', 1)
       QuestionnaireParticipant.find_by(employee_id: emp.id).update(status: :completed)
       expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_truthy
     end
 
     it 'should return true if he didnt complete last questionnaire but did complete one in the past' do
-      q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 2')
+      q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1', 1)
+      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 2', 1)
       QuestionnaireParticipant.find_by(employee_id: emp.id, questionnaire_id: q1.id).update(status: :completed)
       expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_truthy
     end

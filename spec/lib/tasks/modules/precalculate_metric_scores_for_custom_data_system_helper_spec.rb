@@ -131,14 +131,15 @@ describe 'InterAct' do
     DatabaseCleaner.clean_with(:truncation)
     Company.create!(id: 1, name: 'testcom', randomize_image: true, active: true)
     snapshot_factory_create(id: 45, name: '2015-06', snapshot_type: 3, company_id: 2)
+    Questionnaire.create!(id: 1, company_id: 1, name: 'Test quest', root_group_id: 1, snapshot_id: 45)
     Group.create!(id: 3, name: 'Testcom', company_id: 1, parent_group_id: nil, snapshot_id: 45)
     Group.create!(id: 4, name: 'QA',      company_id: 1, parent_group_id: 3, snapshot_id: 45)
     Employee.create!(id: 1, company_id: 1, email: 'pete1@sala.com', external_id: '11', first_name: 'Dave1', last_name: 'sala', group_id: 3)
     Employee.create!(id: 2, company_id: 1, email: 'pete2@sala.com', external_id: '12', first_name: 'Dave2', last_name: 'sala', group_id: 3)
     Employee.create!(id: 3, company_id: 1, email: 'pete3@sala.com', external_id: '13', first_name: 'Dave3', last_name: 'sala', group_id: 4)
     Employee.create!(id: 4, company_id: 1, email: 'pete4@sala.com', external_id: '14', first_name: 'Dave4', last_name: 'sala', group_id: 4)
-    NetworkName.create!(id: 1, name: 'Advice', company_id: 1)
-    NetworkName.create!(id: 2, name: 'Stam',   company_id: 1)
+    NetworkName.create!(id: 1, name: 'Advice', company_id: 1, questionnaire_id: 1)
+    NetworkName.create!(id: 2, name: 'Stam',   company_id: 1, questionnaire_id: 1)
 
     NetworkSnapshotData.create!(snapshot_id: 45, network_id: 1, company_id: 1, from_employee_id: 1, to_employee_id: 3, value: 1)
     NetworkSnapshotData.create!(snapshot_id: 45, network_id: 1, company_id: 1, from_employee_id: 3, to_employee_id: 2, value: 1)
@@ -208,7 +209,7 @@ describe 'InterAct' do
         [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
       )
       cds_calculate_scores_for_generic_networks(1,45)
-      expect( CdsMetricScore.count ).to eq(16)
+      expect( CdsMetricScore.count ).to eq(8)
     end
   end
 end

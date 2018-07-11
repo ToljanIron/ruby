@@ -149,7 +149,7 @@ describe InteractHelper, type: :helper do
 
         fg_emails_from_matrix(all)
         res = question_centrality_score(6, 1)
-        expect(res).to eq(0)
+        expect(res).to be > 0.5
       end
 
       it 'a star network should have hight centrality' do
