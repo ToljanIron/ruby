@@ -28,6 +28,35 @@ class Snapshot < ActiveRecord::Base
     return res
   end
 
+  ############################################################################
+  # Create a new snapshot with a full layer of new employees and groups
+  ############################################################################
+  def self.create_snapshot_for_questionnaire(cid, date)
+    end_date = calculate_snapshot_end_date(cid, date)
+    name = create_snapshot_name_by_week(end_date, cid)
+    if snapshot_exists?(cid, name)
+      # If there's already a snapshot for this week, we create another
+      #   one a distigiuse them by using seconds.
+      name = "name-#{Time.now.to_i}"
+    end
+
+    prev_sid = Snapshot.last_snapshot_of_company(cid)
+
+    snapshot = Snapshot.create!(
+      name: name,
+      snapshot_type: nil,
+      timestamp: end_date,
+      company_id: cid,
+      status: :before_precalculate
+    )
+
+    sid = snapshot.id
+
+    Group.create_snapshot(cid, prev_sid, sid)
+    Employee.create_snapshot(cid, prev_sid, sid)
+    return snapshot
+  end
+
   def self.create_snapshot_by_weeks(cid, date)
     end_date = calculate_snapshot_end_date(cid, date)
     name = create_snapshot_name_by_week(end_date, cid)

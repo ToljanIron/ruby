@@ -223,8 +223,7 @@ class Employee < ActiveRecord::Base
   private
 
   def self.create_snapshot_employees(cid, prev_sid, sid)
-    ActiveRecord::Base.connection.execute(
-      "INSERT INTO employees
+      s = "INSERT INTO employees
          (company_id, email, external_id, first_name, last_name, date_of_birth, employment, gender, group_id,
          home_address, job_title_id, marital_status_id, middle_name, position_scope, qualifications, rank_id,
          role_id, office_id, work_start_date, img_url, img_url_last_updated, color_id, created_at, updated_at,
@@ -241,7 +240,7 @@ class Employee < ActiveRecord::Base
          emps.company_id = #{cid} AND
          #{sql_check_boolean('emps.active', true)} AND
          emps.email <> 'other@email.com'"
-    )
+    ActiveRecord::Base.connection.execute(s)
   end
 
   def self.create_snapshot_managers(cid, prev_sid, sid)
@@ -276,6 +275,9 @@ class Employee < ActiveRecord::Base
     return attr_field && !attr_field.empty?
   end
 
+  ##############################################################
+  # Get the id of an employee from a different snapshot
+  ##############################################################
   def self.id_in_snapshot(eid, sid=nil)
     old_sid = Employee.find(eid).try(:snapshot_id)
     raise "No such employee for ID: #{eid}" if old_sid.nil?

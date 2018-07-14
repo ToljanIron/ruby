@@ -11,10 +11,9 @@ class Questionnaire < ActiveRecord::Base
   has_many :questionnaire_questions
   has_many :questionnaire_participant
   has_many :employees, through: :questionnaire_participant
+  has_many :group
 
   belongs_to :language
-
-  validates :root_group_id, presence: true
 
   enum state: [
     :created,

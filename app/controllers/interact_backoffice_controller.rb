@@ -95,6 +95,16 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def questionnaire_copy
+    authorize :application, :passthrough
+    ibo_process_request do
+      qid = params['qid']
+      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid)
+      quests = Questionnaire.get_all_questionnaires(@cid)
+      [quests, err]
+    end
+  end
+
   def update_questionnaire_properties
     quest = params['questionnaire']
     aq = Questionnaire.find(quest['id'])

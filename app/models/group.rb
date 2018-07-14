@@ -6,6 +6,7 @@ class Group < ActiveRecord::Base
   belongs_to :company
   belongs_to :color
   belongs_to :snapshot
+  belongs_to :questionnaire
 
   validates :name, presence: true, length: { maximum: 150 }
   validates :company_id, presence: true
@@ -29,6 +30,15 @@ class Group < ActiveRecord::Base
     if color_id.nil?
       color_id = rand(24 + 1)
     end
+
+    dup_group = Group.where(external_id: external_id, snapshot_id: snapshot_id)
+    puts ">>>#{dup_group}<<<"
+    ap dup_group
+    raise "Duplicate group with external_id: #{external_id}, snapshot_id: #{snapshot_id}" if !dup_group.empty?
+  end
+
+  after_create do
+    Group.prepare_groups_for_hierarchy_queries(snapshot_id)
   end
 
   def sibling_groups
@@ -188,14 +198,6 @@ class Group < ActiveRecord::Base
     return gids.first.id
   end
 
-  #######################################################
-  # Use this function for Interact companies
-  #######################################################
-  def self.get_root_questionnaire_group(qid)
-    raise "Questionnaire ID cant be nil" if qid.nil?
-    return Questionnaire.find(qid).root_group_id
-  end
-
   def self.get_parent_group(cid, sid=nil)
     raise "Company ID cant be nil" if cid.nil?
     sid = Snapshot.last_snapshot_of_company(cid) if (sid.nil? || sid == -1)
@@ -232,8 +234,10 @@ class Group < ActiveRecord::Base
 
    ActiveRecord::Base.connection.execute(
       "INSERT INTO groups
-         (name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, snapshot_id)
-         SELECT name, company_id, parent_group_id, color_id, created_at, updated_at, external_id, english_name, #{sid}
+         (name, company_id, parent_group_id, color_id, created_at, updated_at,
+          external_id, english_name, snapshot_id, questionnaire_id, nsleft, nsright)
+         SELECT name, company_id, parent_group_id, color_id, created_at, updated_at,
+                external_id, english_name, #{sid}, questionnaire_id, nsleft, nsright
          FROM groups
          WHERE
            snapshot_id = #{prev_sid} AND
@@ -332,6 +336,7 @@ class Group < ActiveRecord::Base
   #       always appear before sons
   ##############################################################
   def self.create_nested_sets_structure(pairs, sid)
+    return if pairs == []   ## Happens when there's just one group
     ## Initial step
     group_pairs = pairs.clone
     rootgid, songid = group_pairs.shift
@@ -375,7 +380,8 @@ class Group < ActiveRecord::Base
       FROM groups
       WHERE
         nsleft > #{root_group.nsleft} AND
-        nsright < #{root_group.nsright}
+        nsright < #{root_group.nsright} AND
+        snapshot_id = #{root_group.snapshot_id}
       ORDER BY id"
     res = ActiveRecord::Base.connection.select_all(sqlstr).as_json
     res = res.map { |r| r['id'] }
@@ -393,7 +399,8 @@ class Group < ActiveRecord::Base
       FROM groups
       WHERE
         nsleft < #{root_group.nsleft} AND
-        nsright > #{root_group.nsright}
+        nsright > #{root_group.nsright} AND
+        snapshot_id = #{root_group.snapshot_id}
       ORDER BY id"
     res = ActiveRecord::Base.connection.select_all(sqlstr).as_json
     res = res.map { |r| r['id'] }

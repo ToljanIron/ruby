@@ -100,8 +100,8 @@ module QuestionnaireHelper
     csv_target.close
   end
 
-  def self.create_questionnaire(cid, name, root_group_id, language_id = nil, sms_text = nil)
-    quest = Questionnaire.create!(company_id: cid, name: name, language_id: language_id, sms_text: sms_text, root_group_id: root_group_id)
+  def self.create_questionnaire(cid, name, language_id = nil, sms_text = nil)
+    quest = Questionnaire.create!(company_id: cid, name: name, language_id: language_id, sms_text: sms_text)
     sid = Snapshot.last_snapshot_of_company(cid)
     emps = Employee.by_snapshot(sid)
     emps.each do |emp|

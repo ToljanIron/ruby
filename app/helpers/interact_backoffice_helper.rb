@@ -554,7 +554,8 @@ module InteractBackofficeHelper
     gender = p['gender']
 
     ## Group
-    root_gid = Group.get_root_questionnaire_group(qid)
+    sid = Questionnaire.find(qid).snapshot_id
+    root_gid = Group.get_root_group(sid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
       gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
@@ -596,6 +597,7 @@ module InteractBackofficeHelper
     ).create_token
   end
 
+
   def self.create_employee(cid, p, aq)
     qid = aq.id
     sid = aq.snapshot_id
@@ -610,6 +612,7 @@ module InteractBackofficeHelper
     job_title = p['job_title']
     gender = p['gender']
 
+    ## Group
     root_gid = Group.get_root_group(cid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
@@ -623,6 +626,14 @@ module InteractBackofficeHelper
       gid = root_gid
     end
 
+    ## Now need to add the group and all its ancestoral hierarchy to the questionnaire
+    if Group.find(gid).questionnaire_id != qid
+      ancestorids = Group.get_ancestors(gid)
+      ancestorids << gid
+      Group.where(id: ancestorids).update_all(questionnaire_id: qid)
+    end
+
+
     ## Office
     oid = office.nil? ? nil : Office.find_or_create_by!(name: office, company_id: cid).id
 
@@ -632,6 +643,7 @@ module InteractBackofficeHelper
     ## Job title
     jtid = job_title.nil? ? nil : JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
 
+    puts ">>>#{email}<<<"
     e = Employee.create!(
       email: email,
       company_id: cid,

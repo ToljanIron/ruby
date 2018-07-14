@@ -33,10 +33,11 @@ def create_emps(name, domain, times, p = nil)
   gid = p[:gid] || 1
   sid = p[:sid] || 1
   oid = p[:oid] || 1
+  active = p[:active] || true
   from_index = p[:from_index] || 1
 
   (from_index..from_index + times - 1).each do |n|
     email = "#{name}#{n}@#{domain}"
-    FactoryGirl.create(:employee, email: email, group_id: gid, snapshot_id: sid, office_id: oid)
+    FactoryGirl.create(:employee, email: email, group_id: gid, snapshot_id: sid, office_id: oid, active: active)
   end
 end

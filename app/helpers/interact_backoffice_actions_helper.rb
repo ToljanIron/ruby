@@ -32,30 +32,60 @@ module InteractBackofficeActionsHelper
   ##   - create participants
   ##   - create test participant
   ############################################################
-  def self.create_new_questionnaire(cid)
+  def self.create_new_questionnaire(cid, qid=nil)
+
+    questcopy = !qid.nil?
+    oq = questcopy ? Questionnaire.find(qid) : nil
 
     ## Attached a snapshot to the questionnaire
-    snapshot = Snapshot.create_snapshot_by_weeks(cid, Time.now.to_s)
+    snapshot = Snapshot.create_snapshot_for_questionnaire(cid, Time.now.to_s)
     sid = snapshot.id
 
     ## Create questionnaire
+    name = questcopy ? "#{oq.name} copy" : "Q-#{cid}-#{sid}-#{Time.now.strftime('%Y%m%d-%M')}"
+    language_id = questcopy ? oq.language_id : 2
+    sms_text = questcopy ? oq.sms_text : SMS_TEXT
+    email_text = questcopy ? oq.email_from : EMAIL_TEXT
+    email_from = questcopy ? oq.email_from : EMAIL_FROM
+    email_subject = questcopy ? oq.email_subject : EMAIL_SUBJECT
+    test_user_name = questcopy ? oq.test_user_name : 'Test user'
+    test_user_email = questcopy ? oq.test_user_email : 'test@unknown'
+    test_user_phone = questcopy ? oq.test_user_phone : '052-1112233'
+    prev_questionnaire_id = questcopy ? oq.id : nil
+
     quest = Questionnaire.create!(
       company_id: cid,
       state: 0,
-      name: "Q-#{cid}-#{Time.now.strftime('%Y%m%d-%M')}",
-      language_id: 2,
-      sms_text: SMS_TEXT,
-      email_text: EMAIL_TEXT,
-      email_from: EMAIL_FROM,
-      email_subject: EMAIL_SUBJECT,
-      test_user_name: 'Test user',
-      test_user_email: 'danny@step-ahead.com',
-      test_user_phone: '052-6141030',
-      snapshot_id: sid
+      name: name,
+      language_id: language_id,
+      sms_text: sms_text,
+      email_text: email_text,
+      email_from: email_from,
+      email_subject: email_subject,
+      test_user_name: test_user_name,
+      test_user_email: test_user_email,
+      test_user_phone: test_user_phone,
+      snapshot_id: sid,
+      prev_questionnaire_id: prev_questionnaire_id
     )
 
-    ## Copy over template qestions
-    questions = Question.where(active: true)
+    ## When copying a questionnaire need to set questionnaire_id field on
+    ## the groups in the new snapshot to the new id
+
+    if questcopy
+      Group
+        .where(questionnaire_id: qid)
+        .where(snapshot_id: sid)
+        .update_all(questionnaire_id: quest.id)
+    end
+
+    ## Copy over template questions
+    questions = []
+    if questcopy
+      questions = QuestionnaireQuestion.where(questionnaire_id: qid)
+    else
+      questions = Question.where(active: true)
+    end
     ii = 0
     questions.each do |q|
       ii += 1
@@ -75,7 +105,7 @@ module InteractBackofficeActionsHelper
         order: ii * 10,
         min: 1,
         max: 15,
-        active: false
+        active: questcopy ? q.active : false
       )
     end
 
@@ -87,6 +117,21 @@ module InteractBackofficeActionsHelper
       participant_type: 1
     )
     qp.create_token
+
+    ## Copy participants if in copy mode
+    if questcopy
+      pars = QuestionnaireParticipant
+               .where(questionnaire_id: qid)
+               .where.not(employee_id: -1)
+      pars.each do |p|
+        qp = QuestionnaireParticipant.create!(
+          employee_id: Employee.id_in_snapshot(p.employee_id, sid),
+          questionnaire_id: quest.id,
+          active: true
+        )
+        qp.create_token
+      end
+    end
 
     return nil
   end
