@@ -4,10 +4,6 @@ include CompanyWithMetricsFactory
 
 describe InteractBackofficeHelper, type: :helper do
   before do
-    puts "&&&&&&&&&&&&&&&&&&&"
-    puts "In before do"
-    ap Group.select(:name, :snapshot_id, :questionnaire_id).order(:id)
-    puts "&&&&&&&&&&&&&&&&&&&"
     Company.find_or_create_by(id: 1, name: "Hevra10")
     Snapshot.find_or_create_by(name: "2016-01", company_id: 1, timestamp: 3.weeks.ago)
     g0 = Group.find_or_create_by(name: "Root", company_id: 1, color_id: 10, external_id: '123' )
@@ -26,12 +22,7 @@ describe InteractBackofficeHelper, type: :helper do
 
   describe 'create_employee' do
     it 'should update the field questionnaire_id in the group and all ancestors' do
-      ap Group.select(:name, :snapshot_id, :questionnaire_id).order(:id)
-      puts "------------------------"
-      InteractBackofficeActionsHelper.create_new_questionnaire(1)
-      ap Group.select(:name, :snapshot_id, :questionnaire_id).order(:id)
-      puts "------------------------"
-      aq = Questionnaire.last
+     InteractBackofficeActionsHelper.create_new_questionnaire(1)
       p = {
         'first_name' => 'f',
         'last_name' => 'l',
@@ -39,24 +30,33 @@ describe InteractBackofficeHelper, type: :helper do
         'phone' => '052-2233445',
         'group' => 'L3-1'
       }
-      InteractBackofficeHelper.create_employee(1, p, aq)
-      ap Group.select(:name, :snapshot_id, :questionnaire_id).order(:id)
-      puts "------------------------"
-      #ap Group.where(name: 'L3-1', snapshot_id: 2)
-      #ap Group.where(name: 'L2-1', snapshot_id: 2)
-      #ap Group.where(name: 'Root', snapshot_id: 2)
+      InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
+      expect(Group.find_by(name: 'L3-1', snapshot_id: 2).questionnaire_id).to eq(1)
+      expect(Group.find_by(name: 'L2-1', snapshot_id: 2).questionnaire_id).to eq(1)
+      expect(Group.find_by(name: 'Root', snapshot_id: 2).questionnaire_id).to eq(1)
     end
   end
 
-  describe 'QQQQQQQQQQQQQQQQQQ' do
-    qid = -1
-    before do
-      InteractBackofficeActionsHelper.create_new_questionnaire(1)
-      qid = Questionnaire.last.id
-      (0..3).each do |i|
-        QuestionnaireParticipant.create!(employee_id: i+1, questionnaire_id: qid, active: true)
-        QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: qid, network_id: i, order: i, active: true, title: "title-#{i}")
-      end
+  describe 'update_employee' do
+    it 'changing an employees group should update questionnaire_id in relevant groups' do
+     InteractBackofficeActionsHelper.create_new_questionnaire(1)
+      p = {
+        'first_name' => 'f',
+        'last_name' => 'l',
+        'email' => 'mail@qqq.com',
+        'phone' => '052-2233445',
+        'group' => 'L3-1'
+      }
+      InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
+      p['group'] = 'L3-3'
+      p['id'] = Employee.last.id
+      InteractBackofficeHelper.update_employee(1, p, Questionnaire.last)
+
+      expect(Group.find_by(name: 'L3-1', snapshot_id: 2).questionnaire_id).to be_nil
+      expect(Group.find_by(name: 'L2-1', snapshot_id: 2).questionnaire_id).to be_nil
+      expect(Group.find_by(name: 'L3-3', snapshot_id: 2).questionnaire_id).to eq(1)
+      expect(Group.find_by(name: 'L2-2', snapshot_id: 2).questionnaire_id).to eq(1)
+      expect(Group.find_by(name: 'Root', snapshot_id: 2).questionnaire_id).to eq(1)
     end
 
   end

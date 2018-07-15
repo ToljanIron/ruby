@@ -539,9 +539,18 @@ module InteractBackofficeHelper
     return ret
   end
 
-  def self.update_employee(cid, p, qid)
+  def self.update_questionnaire_id_in_groups_heirarchy(gid, qid)
+    ancestorids = Group.get_ancestors(gid)
+    ancestorids << gid
+    Group.where(id: ancestorids).update_all(questionnaire_id: qid)
+  end
+
+  def self.update_employee(cid, p, aq)
+    qid = aq.id
+    sid = aq.snapshot_id
     eid = p['id']
     eid = eid.nil? ? p['eid'] : eid
+    emp = Employee.find(eid)
     first_name = p['first_name']
     last_name = p['last_name']
     email = p['email']
@@ -554,14 +563,31 @@ module InteractBackofficeHelper
     gender = p['gender']
 
     ## Group
-    sid = Questionnaire.find(qid).snapshot_id
-    root_gid = Group.get_root_group(sid)
+    ## If no group was given the the default group is the root group. If a group name was
+    ## given then look for, and if it doesn't exist create it.
+    root_gid = Group.get_root_group(cid)
     gid = nil
+
     if !group_name.nil? && !group_name.empty?
-      gid = Group.find_or_create_by!(name: group_name, company_id: cid, parent_group_id: root_gid).id
+
+      ## Clear questionnaire_id if group has changed
+      old_group = emp.group
+      update_questionnaire_id_in_groups_heirarchy(old_group.id, nil) if old_group.name != group_name
+
+      group = Group.find_by!(name: group_name, company_id: cid, snapshot_id: sid)
+      group = Group.create!(
+        name: group_name,
+        company_id: cid,
+        parent_group_id: root_group,
+        snapshot_id: sid,
+        exteranl_id: group_name) if group.nil?
+      gid = group.id
     else
       gid = root_gid
     end
+
+    ## Now need to add the group and all its ancestoral hierarchy to the questionnaire
+    update_questionnaire_id_in_groups_heirarchy(gid, qid) if Group.find(gid).questionnaire_id != qid
 
     ## Office
     if !office.nil? && !office.empty?
@@ -578,7 +604,7 @@ module InteractBackofficeHelper
       jtid = JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
     end
 
-    Employee.find(eid).update!(
+    emp.update!(
       first_name: first_name,
       last_name: last_name,
       email: email,
@@ -613,26 +639,25 @@ module InteractBackofficeHelper
     gender = p['gender']
 
     ## Group
+    ## If no group was given the the default group is the root group. If a group name was
+    ## given then look for, and if it doesn't exist create it.
     root_gid = Group.get_root_group(cid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
-      gid = Group.find_or_create_by!(
+      group = Group.find_by!(name: group_name, company_id: cid, snapshot_id: sid)
+      group = Group.create!(
         name: group_name,
         company_id: cid,
-        parent_group_id: root_gid,
-        snapshot_id: sid
-      ).id
+        parent_group_id: root_group,
+        snapshot_id: sid,
+        exteranl_id: group_name) if group.nil?
+      gid = group.id
     else
       gid = root_gid
     end
 
     ## Now need to add the group and all its ancestoral hierarchy to the questionnaire
-    if Group.find(gid).questionnaire_id != qid
-      ancestorids = Group.get_ancestors(gid)
-      ancestorids << gid
-      Group.where(id: ancestorids).update_all(questionnaire_id: qid)
-    end
-
+    update_questionnaire_id_in_groups_heirarchy(gid, qid) if Group.find(gid).questionnaire_id != qid
 
     ## Office
     oid = office.nil? ? nil : Office.find_or_create_by!(name: office, company_id: cid).id
@@ -643,7 +668,6 @@ module InteractBackofficeHelper
     ## Job title
     jtid = job_title.nil? ? nil : JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
 
-    puts ">>>#{email}<<<"
     e = Employee.create!(
       email: email,
       company_id: cid,
