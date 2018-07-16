@@ -273,10 +273,18 @@ class Questionnaire < ActiveRecord::Base
   end
 
   def self.drop_questionnaire(qid)
-    QuestionnaireParticipant.where(questionnaire_id: qid).delete_all
-    QuestionnaireQuestion.where(questionnaire_id: qid).delete_all
-    QuestionReply.where(questionnaire_id: qid).delete_all
-    Questionnaire.find(qid).delete
+    quest = Questionnaire.find(qid)
+    sid = quest.snapshot_id
+    ActiveRecord::Base.transaction do
+      Snapshot.find(sid).delete
+      Employee.where(snapshot_id: sid).delete_all
+      Group.where(snapshot_id: sid).delete_all
+      NetworkName.where(questionnaire_id: qid).delete_all
+      QuestionnaireParticipant.where(questionnaire_id: qid).delete_all
+      QuestionnaireQuestion.where(questionnaire_id: qid).delete_all
+      QuestionReply.where(questionnaire_id: qid).delete_all
+      Questionnaire.find(qid).delete
+    end
   end
 
   #####################################################################

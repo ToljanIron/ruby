@@ -226,31 +226,35 @@ class Group < ActiveRecord::Base
     return ret
   end
 
-  def self.create_snapshot(cid, prev_sid, sid)
-   return if Group.where(snapshot_id: sid).count > 0
-   prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
+  def self.create_snapshot(cid, prev_sid, sid, force_create=false)
+    return if Group.where(snapshot_id: sid).count > 0 unless force_create
+    prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
 
-   ActiveRecord::Base.connection.execute(
-      "INSERT INTO groups
-         (name, company_id, parent_group_id, color_id, created_at, updated_at,
-          external_id, english_name, snapshot_id, questionnaire_id, nsleft, nsright)
-         SELECT name, company_id, parent_group_id, color_id, created_at, updated_at,
-                external_id, english_name, #{sid}, questionnaire_id, nsleft, nsright
-         FROM groups
-         WHERE
-           snapshot_id = #{prev_sid} AND
-           company_id = #{cid} AND
-           #{sql_check_boolean('active', true)}"
-   )
+    ActiveRecord::Base.transaction do
+      ActiveRecord::Base.connection.execute(
+        "INSERT INTO groups
+           (name, company_id, parent_group_id, color_id, created_at, updated_at,
+            external_id, english_name, snapshot_id, questionnaire_id, nsleft, nsright)
+           SELECT name, company_id, parent_group_id, color_id, created_at, updated_at,
+                  external_id, english_name, #{sid}, questionnaire_id, nsleft, nsright
+           FROM groups
+           WHERE
+             snapshot_id = #{prev_sid} AND
+             company_id = #{cid} AND
+             #{sql_check_boolean('active', true)}"
+      )
 
-   ## Fix parent group IDs
-   Group.by_snapshot(sid).each do |currg|
-     parent_in_prev_sid = currg.parent_group_id
-     next if parent_in_prev_sid.nil?
-     external_id = Group.find(parent_in_prev_sid).external_id
-     parent_in_sid = Group.by_snapshot(sid).where(external_id: external_id).last
-     currg.update(parent_group_id: parent_in_sid.id)
-   end
+      ## Fix parent group IDs
+      Group.by_snapshot(sid).each do |currg|
+        parent_in_prev_sid = currg.parent_group_id
+        next if parent_in_prev_sid.nil?
+        external_id = Group.find(parent_in_prev_sid).external_id
+        parent_in_sid = Group.by_snapshot(sid).where(external_id: external_id).last
+        currg.update(parent_group_id: parent_in_sid.id)
+      end
+
+      Group.prepare_groups_for_hierarchy_queries(sid)
+    end
   end
 
   ## Since the group id changes with the snapshot id, sometimes we're going to

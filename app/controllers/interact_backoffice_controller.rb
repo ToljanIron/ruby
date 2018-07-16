@@ -119,6 +119,10 @@ class InteractBackofficeController < ApplicationController
 
     language_id = quest['language_id']
 
+    if Questionnaire.where(name: name).count > 0
+      raise "Questionnaire with name: '#{name}' already exists"
+    end
+
     aq.update!(
       name: name,
       state: questState,
@@ -186,6 +190,7 @@ class InteractBackofficeController < ApplicationController
         test_user_phone: testUserPhone
       )
 
+      InteractBackofficeActionsHelper.send_test_questionnaire(aq)
       testUserUrl = create_new_test(aq)
       [{questionnaire: aq, test_user_url: testUserUrl}, nil]
     end
@@ -200,9 +205,9 @@ class InteractBackofficeController < ApplicationController
 
       questions =
         QuestionnaireQuestion
-          .where(questionnaire_id: qid, active: true)
+          .where(questionnaire_id: qid)
           .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
-          .order(:order)
+          .order(is_funnel_question: :desc, active: :desc, order: :asc)
 
       [{questions: questions}, nil]
     end
@@ -245,6 +250,8 @@ class InteractBackofficeController < ApplicationController
       if active && !participants_tab_enabled(aq)
         aq.update!(state: :questions_ready)
       end
+      aq = aq.as_json
+      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
 
       [{questionnaire: aq}, nil]
     end
@@ -454,6 +461,9 @@ class InteractBackofficeController < ApplicationController
       Employee.find(qp.employee_id).delete
       qp.try(:question_replies).try(:delete)
       qp.try(:delete)
+      if !test_tab_enabled(qp.questionnaire)
+        aq.update!(state: :notstarted)
+      end
 
       participants, errors = prepare_data(qp.questionnaire_id)
       [{participants: participants}, errors]
@@ -604,7 +614,6 @@ class InteractBackofficeController < ApplicationController
   ## Load employees from excel
   def upload_participants
     authorize :application, :passthrough
-    puts "UPLOAING PART'S ........................"
 
     ibo_process_request do
       emps_excel = params[:fileToUpload]

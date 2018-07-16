@@ -540,13 +540,15 @@ module InteractBackofficeHelper
   end
 
   def self.update_questionnaire_id_in_groups_heirarchy(gid, qid)
+    puts "update_questionnaire_id_in_groups_heirarchy(), gid: #{gid}"
     ancestorids = Group.get_ancestors(gid)
     ancestorids << gid
     Group.where(id: ancestorids).update_all(questionnaire_id: qid)
   end
 
-  def self.update_employee(cid, p, aq)
-    qid = aq.id
+  def self.update_employee(cid, p, qid)
+    aq = Questionnaire.find(qid)
+
     sid = aq.snapshot_id
     eid = p['id']
     eid = eid.nil? ? p['eid'] : eid
@@ -555,7 +557,7 @@ module InteractBackofficeHelper
     last_name = p['last_name']
     email = p['email']
     phone_number = p['phone_number']
-    group_name = p['group']
+    group_name = p['group_name']
     office = p['office']
     role = p['role']
     rank = p['rank']
@@ -565,7 +567,7 @@ module InteractBackofficeHelper
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
-    root_gid = Group.get_root_group(cid)
+    root_gid = Group.get_root_group(cid, sid)
     gid = nil
 
     if !group_name.nil? && !group_name.empty?

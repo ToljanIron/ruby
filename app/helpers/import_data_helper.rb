@@ -89,6 +89,9 @@ module ImportDataHelper
         eids << id if co.class == EmployeeLineProcessingContext
       end
     end
+
+    Group.prepare_groups_for_hierarchy_queries(sid)
+
     errors = context_list_errors(context_list)
     return [eids, errors]
   end

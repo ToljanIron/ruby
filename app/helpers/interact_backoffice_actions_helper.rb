@@ -32,7 +32,7 @@ module InteractBackofficeActionsHelper
   ##   - create participants
   ##   - create test participant
   ############################################################
-  def self.create_new_questionnaire(cid, qid=nil)
+  def self.create_new_questionnaire(cid, qid=nil, rerun=false)
 
     questcopy = !qid.nil?
     oq = questcopy ? Questionnaire.find(qid) : nil
@@ -51,7 +51,7 @@ module InteractBackofficeActionsHelper
     test_user_name = questcopy ? oq.test_user_name : 'Test user'
     test_user_email = questcopy ? oq.test_user_email : 'test@unknown'
     test_user_phone = questcopy ? oq.test_user_phone : '052-1112233'
-    prev_questionnaire_id = questcopy ? oq.id : nil
+    prev_questionnaire_id = rerun ? oq.id : nil
 
     quest = Questionnaire.create!(
       company_id: cid,
@@ -84,7 +84,7 @@ module InteractBackofficeActionsHelper
     if questcopy
       questions = QuestionnaireQuestion.where(questionnaire_id: qid)
     else
-      questions = Question.where(active: true)
+      questions = Question.all
     end
     ii = 0
     questions.each do |q|
@@ -102,10 +102,11 @@ module InteractBackofficeActionsHelper
         network_id: network.id,
         title: q.title,
         body: q.body,
-        order: ii * 10,
+        order: ii,
         min: 1,
         max: 15,
-        active: questcopy ? q.active : false
+        active: questcopy ? q.active : false,
+        is_funnel_question: q.is_funnel_question
       )
     end
 
@@ -162,6 +163,11 @@ module InteractBackofficeActionsHelper
   end
 
   def self.send_live_questionnaire(aq, qp)
+    if !Rails.env.production? && !Rails.env.onpremise?
+      puts "Not REALLY sending questionnaire because this is not production"
+      return
+    end
+    return
     send_live_sms(aq, qp) if aq.delivery_method == 'sms'
     send_live_email(aq, qp) if aq.delivery_method == 'email'
     raise 'Unrecoginzed delivery method' if(aq.delivery_method == 'sms' && aq.delivery_method == 'email')
