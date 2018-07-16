@@ -98,8 +98,11 @@ class InteractBackofficeController < ApplicationController
   def questionnaire_copy
     authorize :application, :passthrough
     ibo_process_request do
+
       qid = params['qid']
-      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid)
+      rerun = params['rerun']
+
+      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid, rerun)
       quests = Questionnaire.get_all_questionnaires(@cid)
       [quests, err]
     end
@@ -247,9 +250,7 @@ class InteractBackofficeController < ApplicationController
       )
 
       aq = qq.questionnaire
-      if active && !participants_tab_enabled(aq)
-        aq.update!(state: :questions_ready)
-      end
+      aq.update!(state: :questions_ready) if !participants_tab_enabled(aq)
       aq = aq.as_json
       aq['state'] = Questionnaire.state_name_to_number(aq['state'])
 

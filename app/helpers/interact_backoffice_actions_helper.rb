@@ -1,6 +1,7 @@
 require 'twilio-ruby'
 
 module InteractBackofficeActionsHelper
+  include InteractBackofficeHelper
 
   TIMEOUT = 60 * 60 * 24 * 7
 
@@ -86,6 +87,9 @@ module InteractBackofficeActionsHelper
     else
       questions = Question.all
     end
+
+
+    puts "Creating questions"
     ii = 0
     questions.each do |q|
       ii += 1
@@ -121,16 +125,29 @@ module InteractBackofficeActionsHelper
 
     ## Copy participants if in copy mode
     if questcopy
+      eids = []
       pars = QuestionnaireParticipant
                .where(questionnaire_id: qid)
                .where.not(employee_id: -1)
+      puts "Creating questionnaire participants"
       pars.each do |p|
+        eid = Employee.id_in_snapshot(p.employee_id, sid)
+        eids << eid
         qp = QuestionnaireParticipant.create!(
-          employee_id: Employee.id_in_snapshot(p.employee_id, sid),
+          employee_id: eid,
           questionnaire_id: quest.id,
           active: true
         )
         qp.create_token
+      end
+
+      puts "adding relevant groups to questionnaire"
+      gids = Employee
+               .where(id: eids)
+               .select(:group_id)
+               .distinct.pluck(:group_id)
+      gids.each do |gid|
+        InteractBackofficeHelper.update_questionnaire_id_in_groups_heirarchy(gid, qid)
       end
     end
 
