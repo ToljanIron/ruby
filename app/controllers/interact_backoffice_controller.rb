@@ -172,7 +172,24 @@ class InteractBackofficeController < ApplicationController
       qid = params[:qid]
       aq = Questionnaire.find(qid)
       InteractBackofficeActionsHelper.run_questionnaire(aq)
-      [nil, nil]
+      res_aq = Questionnaire.find(qid).as_json
+      res_aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+
+      [{questionnaire: res_aq}, nil]
+    end
+  end
+
+  def questionnaire_close
+    authorize :application, :passthrough
+
+    ibo_process_request do
+      qid = params[:qid]
+      aq = Questionnaire.find(qid)
+      InteractBackofficeActionsHelper.close_questionnaire(aq)
+      res_aq = Questionnaire.find(qid).as_json
+      res_aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+
+      [{questionnaire: res_aq}, nil]
     end
   end
 
@@ -192,9 +209,12 @@ class InteractBackofficeController < ApplicationController
         test_user_email: testUserEmail,
         test_user_phone: testUserPhone
       )
+      aq.update!(state: :ready) if !test_tab_enabled(aq)
 
       InteractBackofficeActionsHelper.send_test_questionnaire(aq)
       testUserUrl = create_new_test(aq)
+      aq = aq.as_json
+      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
       [{questionnaire: aq, test_user_url: testUserUrl}, nil]
     end
   end
@@ -459,15 +479,17 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       qpid = params[:qpid]
       qp = QuestionnaireParticipant.find(qpid)
+      aq = qp.questionnaire
       Employee.find(qp.employee_id).delete
       qp.try(:question_replies).try(:delete)
       qp.try(:delete)
-      if !test_tab_enabled(qp.questionnaire)
-        aq.update!(state: :notstarted)
-      end
 
+      aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
+      aq = aq.as_json
+      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
       participants, errors = prepare_data(qp.questionnaire_id)
-      [{participants: participants}, errors]
+
+      [{participants: participants, questionnaire: aq}, errors]
     end
   end
 
@@ -623,7 +645,6 @@ class InteractBackofficeController < ApplicationController
       errors1 = ['No excel file uploaded']
       if !emps_excel.nil?
         sid = aq.snapshot_id
-        puts "sid: #{sid}"
         eids, errors2 = load_excel_sheet(@cid, params[:fileToUpload], sid, true)
         InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
 
@@ -635,12 +656,15 @@ class InteractBackofficeController < ApplicationController
         end
       end
 
-      ret, errors3 = prepare_data(qid)
+      aq = aq.as_json
+      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+
+      participants, errors3 = prepare_data(qid)
       errors = []
       errors << errors1 unless errors1
       errors << errors2 unless errors2
       errors << errors3 unless errors3
-      [ret, errors: errors ]
+      [{participants: participants, questionnaire: aq}, errors: errors ]
     end
   end
 

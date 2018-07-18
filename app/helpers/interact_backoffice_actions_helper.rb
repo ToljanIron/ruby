@@ -39,7 +39,7 @@ module InteractBackofficeActionsHelper
     oq = questcopy ? Questionnaire.find(qid) : nil
 
     ## Attached a snapshot to the questionnaire
-    snapshot = Snapshot.create_snapshot_for_questionnaire(cid, Time.now.to_s)
+    snapshot = Snapshot.create_snapshot_for_questionnaire(cid, Time.now.to_s, qid)
     sid = snapshot.id
 
     ## Create questionnaire
@@ -88,15 +88,16 @@ module InteractBackofficeActionsHelper
       questions = Question.all
     end
 
-
     puts "Creating questions"
     ii = 0
+    new_qid = quest.id
     questions.each do |q|
       ii += 1
 
       network = NetworkName.find_or_create_by!(
         name: q.title,
-        company_id: cid
+        company_id: cid,
+        questionnaire_id: new_qid
       )
 
       QuestionnaireQuestion.create!(
@@ -139,15 +140,6 @@ module InteractBackofficeActionsHelper
           active: true
         )
         qp.create_token
-      end
-
-      puts "adding relevant groups to questionnaire"
-      gids = Employee
-               .where(id: eids)
-               .select(:group_id)
-               .distinct.pluck(:group_id)
-      gids.each do |gid|
-        InteractBackofficeHelper.update_questionnaire_id_in_groups_heirarchy(gid, qid)
       end
     end
 

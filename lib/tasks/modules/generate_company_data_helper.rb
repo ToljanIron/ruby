@@ -1,8 +1,6 @@
 module GenerateCompanyDataHelper
   require 'date'
-  require './lib/tasks/modules/pre_calculate_pins_helper.rb'
   require './lib/tasks/modules/create_snapshot_helper.rb'
-  include PreCalculatePinsHelper
   include CreateSnapshotHelper
 
   MONTHLY = 1

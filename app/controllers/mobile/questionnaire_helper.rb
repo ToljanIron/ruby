@@ -207,9 +207,7 @@ module Mobile::QuestionnaireHelper
     num_replies = replies.length
     puts "Found #{num_replies} replies"
 
-
-
-    sid = Snapshot.create_snapshot_by_weeks(cid, date).id
+    sid = questionnaire.snapshot_id
     EventLog.log_event(event_type_name: EVENT_TYPE, message: "with name: #{questionnaire.name} copied to snapshot: #{sid}")
 
     puts "Clean snapshot: #{sid}"

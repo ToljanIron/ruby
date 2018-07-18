@@ -196,6 +196,15 @@ class Group < ActiveRecord::Base
     return gids.first.id
   end
 
+  def self.get_root_questionnaire_group(qid)
+    rootgid = Group
+                .where(questionnaire_id: qid)
+                .where(parent_group_id: nil)
+                .last.try(:id)
+    raise "Did not find root GID for questionnaire ID: #{qid}" if rootgid.nil?
+    return rootgid
+  end
+
   def self.get_parent_group(cid, sid=nil)
     raise "Company ID cant be nil" if cid.nil?
     sid = Snapshot.last_snapshot_of_company(cid) if (sid.nil? || sid == -1)
@@ -231,7 +240,7 @@ class Group < ActiveRecord::Base
     prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
 
     ActiveRecord::Base.transaction do
-      ActiveRecord::Base.connection.execute(
+      sqlstr =
         "INSERT INTO groups
            (name, company_id, parent_group_id, color_id, created_at, updated_at,
             external_id, english_name, snapshot_id, questionnaire_id, nsleft, nsright)
@@ -242,7 +251,7 @@ class Group < ActiveRecord::Base
              snapshot_id = #{prev_sid} AND
              company_id = #{cid} AND
              #{sql_check_boolean('active', true)}"
-      )
+      ActiveRecord::Base.connection.execute(sqlstr)
 
       ## Fix parent group IDs
       Group.by_snapshot(sid).each do |currg|

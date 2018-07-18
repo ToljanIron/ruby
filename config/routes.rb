@@ -36,6 +36,7 @@ Workships::Application.routes.draw do
   post '/interact_backoffice/questionnaire_delete',    to: 'interact_backoffice#questionnaire_delete'
   get '/interact_backoffice/questionnaire_create',     to: 'interact_backoffice#questionnaire_create'
   post '/interact_backoffice/quesitonnaire_run',       to: 'interact_backoffice#questionnaire_run'
+  post '/interact_backoffice/quesitonnaire_close',     to: 'interact_backoffice#questionnaire_close'
   post '/interact_backoffice/quesitonnaire_copy',      to: 'interact_backoffice#questionnaire_copy'
   post '/interact_backoffice/update_test_participant', to: 'interact_backoffice#update_test_participant'
   get '/interact_backoffice/get_questions',            to: 'interact_backoffice#get_questions'

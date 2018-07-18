@@ -1,7 +1,7 @@
 include AlgorithmsHelper
 
 module InteractAlgorithmsHelper
-  def calculate_network_indegree(cid, sid, nid, gid)
+  def self.calculate_network_indegree(cid, sid, nid, gid)
     emps = AlgorithmsHelper.get_members_in_group(-1, gid, cid)
     return [] if emps.empty?
 
@@ -24,7 +24,7 @@ module InteractAlgorithmsHelper
     indeg
   end
 
-  def calculate_network_outdegree(cid, sid, nid, gid)
+  def self.calculate_network_outdegree(cid, sid, nid, gid)
     emps = AlgorithmsHelper.get_members_in_group(-1, gid, cid)
     return [] if emps.empty?
 

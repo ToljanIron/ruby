@@ -211,7 +211,6 @@ class Questionnaire < ActiveRecord::Base
     puts 'In precalculate'
     EventLog.create!(message: "Precalculate for compay: #{cid}, snapshot: #{sid}", event_type_id: 1)
     cds_calculate_scores_for_generic_networks(cid, sid)
-    #PrecalculateMetricScoresForCustomDataSystemHelper.cds_calculate_scores_for_generic_networks(cid, sid)
 
     puts 'Done with precalculate, clearing cache'
     EventLog.create!(message: 'Clear cache', event_type_id: 1)
@@ -284,6 +283,8 @@ class Questionnaire < ActiveRecord::Base
       QuestionnaireQuestion.where(questionnaire_id: qid).delete_all
       QuestionReply.where(questionnaire_id: qid).delete_all
       Questionnaire.find(qid).delete
+      CdsMetricScore.where(snapshot_id: 141).delete_all
+      NetworkSnapshotData.where(snapshot_id: 141).delete_all
     end
   end
 

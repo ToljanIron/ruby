@@ -701,11 +701,23 @@ module InteractBackofficeHelper
   def self.add_all_employees_as_participants(eids, aq)
     cid = aq.company_id
     emps = Employee.where(id: eids, active: true, company_id: cid)
+    gids = []
     emps.each do |emp|
+      gids << emp.group_id
       QuestionnaireParticipant.find_or_create_by(
         employee_id: emp.id,
         questionnaire_id: aq.id
       ).create_token
+    end
+
+    ## Now need to make sure groups are wired into the questionnaire
+    qid = aq.id
+    gids = gids.uniq
+    gids = Group.where(questionnaire_id: nil)
+                .where(id: gids)
+                .pluck(:id)
+    gids.each do |gid|
+      update_questionnaire_id_in_groups_heirarchy(gid, qid)
     end
   end
 
@@ -823,7 +835,9 @@ module InteractBackofficeHelper
   def test_tab_enabled(aq)
     return aq.state != 'created' &&
            aq.state != 'delivery_method_ready' &&
-           aq.state != 'questions_ready'
+           aq.state != 'questions_ready' &&
+           aq.state != 'notstarted' &&
+           aq.state != 'ready'
   end
 
   def reports_tab_enabled(aq)

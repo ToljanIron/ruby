@@ -31,7 +31,7 @@ class Snapshot < ActiveRecord::Base
   ############################################################################
   # Create a new snapshot with a full layer of new employees and groups
   ############################################################################
-  def self.create_snapshot_for_questionnaire(cid, date)
+  def self.create_snapshot_for_questionnaire(cid, date, qid=nil)
     end_date = calculate_snapshot_end_date(cid, date)
     name = create_snapshot_name_by_week(end_date, cid)
     if snapshot_exists?(cid, name)
@@ -41,6 +41,7 @@ class Snapshot < ActiveRecord::Base
     end
 
     prev_sid = Snapshot.last_snapshot_of_company(cid)
+    prev_sid = Questionnaire.find(qid).snapshot_id if !qid.nil?
 
     snapshot = Snapshot.create!(
       name: name,

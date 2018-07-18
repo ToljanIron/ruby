@@ -84,7 +84,6 @@ module LineProcessingContextClasses
       puts msg
       puts e.message
       puts e.backtrace
-
     end
 
     def connect

@@ -62,7 +62,10 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     qid = Questionnaire.where(snapshot_id: sid).try(:last).try(:id)
     fail "No questinnaire ID found for snapshot: #{sid}, aborting" if qid.nil?
 
-    networks = NetworkName.where(company_id: cid, questionnaire_id: qid)
+    networks = NetworkName
+                 .joins("JOIN questionnaire_questions as qq on qq.network_id = network_names.id")
+                 .where(company_id: cid, questionnaire_id: qid)
+                 .where("qq.active = true")
     fail 'No networks found' if networks.empty?
     networks.each do |n|
       puts "Working on network: #{n.name}"
@@ -107,7 +110,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
 
   def cds_calculate_scores_for_generic_network(cid, sid, nid, gid, cmin, cmout)
     ## Calculate the indegrees
-    res = InteractAlgorithmsHelper::calculate_network_indegree(cid, sid, nid, gid)
+    res = InteractAlgorithmsHelper.calculate_network_indegree(cid, sid, nid, gid)
     res.each do |r|
       eid   = r['employee_id'].to_i
       score = r['score'].to_i
@@ -115,7 +118,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     end
 
     ## Calculate the outdegrees
-    res = InteractAlgorithmsHelper::calculate_network_outdegree(cid, sid, nid, gid)
+    res = InteractAlgorithmsHelper.calculate_network_outdegree(cid, sid, nid, gid)
     res.each do |r|
       eid   = r['employee_id'].to_i
       score = r['score'].to_i
