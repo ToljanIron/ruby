@@ -4,6 +4,7 @@ require 'oj_mimic_json'
 class InteractBackofficeController < ApplicationController
   include InteractBackofficeHelper
   include ImportDataHelper
+  include SimulatorHelper
 
   before_action :before_interact_backoffice
 
@@ -121,10 +122,6 @@ class InteractBackofficeController < ApplicationController
     emailSubject = quest['email_subject']
 
     language_id = quest['language_id']
-
-    if Questionnaire.where(name: name).count > 0
-      raise "Questionnaire with name: '#{name}' already exists"
-    end
 
     aq.update!(
       name: name,
@@ -668,6 +665,15 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def simulate_results
+    authorize :application, :passthrough
+    ibo_process_request do
+      qid = params['qid']
+      sid = Questionnaire.find(qid).try(:snapshot_id)
+      SimulatorHelper.simulate_questionnaire_replies(sid)
+      ['ok', errors: nil ]
+    end
+  end
   ################## Some utilities ###################################
 
   def ibo_error_handler

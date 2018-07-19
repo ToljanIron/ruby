@@ -30,13 +30,18 @@ class ApplicationController < ActionController::Base
   def show_mobile
     authorize :application, :passthrough
 
+    puts "@@@@@@@@@@@@@@@@@@ 1"
+
     @token = params['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
+
+    ap qp
 
     if qp
       # Added message when questionnaire is closed - Michael K. - 12.9.17
       questionnaire = Questionnaire.find(qp.questionnaire_id)
       if (questionnaire.state === 'completed')
+        response.headers['X-Frame-Options'] = 'ALLOWALL'
         render plain: 'Questionnaire is closed.'
 	      return
       end
@@ -45,8 +50,10 @@ class ApplicationController < ActionController::Base
       @name = qp.questionnaire.test_user_name if qp.participant_type == 'tester'
 
       if (params['desktop'] == 'true' || !mobile?) && params['mobile'] != 'true'
+        puts "@@@@@@@@@@@@@@@@@@ 2"
         render 'desk', layout: 'mobile_application'
       else
+        puts "@@@@@@@@@@@@@@@@@@ 3"
         response.headers['X-Frame-Options'] = 'ALLOWALL'
         render 'mobile', layout: 'mobile_application'
       end

@@ -60,10 +60,12 @@ Workships::Application.routes.draw do
   get '/interact_backoffice/reports_bidirectional_network', to: 'interact_backoffice#reports_bidirectional_network'
   get '/interact_backoffice/reports_summary',          to: 'interact_backoffice#reports_summary'
 
-  post '/interact_backoffice/actions_img_upload',     to: 'interact_backoffice#img_upload'
-  post '/interact_backoffice/actions_img_bulk_upload',to: 'interact_backoffice#actions_img_bulk_upload'
+  post '/interact_backoffice/actions_img_upload',      to: 'interact_backoffice#img_upload'
+  post '/interact_backoffice/actions_img_bulk_upload', to: 'interact_backoffice#actions_img_bulk_upload'
   get  '/interact_backoffice/actions_download_sample' ,to: 'interact_backoffice#download_sample'
   post '/interact_backoffice/actions_upload_participants', to: 'interact_backoffice#upload_participants'
+
+  post '/interact_backoffice/simulate_replies',        to: 'interact_backoffice#simulate_results'
 
   ############################ v3 ############################
 

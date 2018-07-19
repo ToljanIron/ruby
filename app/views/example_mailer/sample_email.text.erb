@@ -1,15 +1,1 @@
-Hi <%= @msg.questionnaire_participant.employee.first_name %>
-Dear All,
-As part of the development of ICL's management teams, the GEC has recently approved a plan to promote and encourage diversity in the
-organization. The objective which was defined in the program is changing the perception and the organizational culture regarding gender aspects.
-The first step in this program will include the data collection followed by recommendations that will be submitted to the GEC for approval.
-During this step we will examine some work processes in the organization, deliver questionnaires to a selected team of managers and conduct
-personal interviews with some of the senior leaders.
-I would like to ask for your participation in this first step of the evaluation. Below you will find a link to an online questionnaire
-containing four questions, please take five minutes of your time to complete this questionnaire as soon as you can.
-The questionnaire should be opened from your smartphone device and not from a desktop or laptop computer.
-To begin the questionnaire copy and paste the following link in your mobile browser:
-<%= @msg.message %>
-I appreciate your cooperation in order to succeed in this meaningful project!
-Thank you,
-Malka Nir
+<%= raw(@email_body) %>

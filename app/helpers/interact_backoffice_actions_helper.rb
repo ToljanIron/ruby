@@ -159,16 +159,22 @@ module InteractBackofficeActionsHelper
   end
 
   def self.send_test_email(aq, qp)
-    send_email(
-      aq,
-      qp,
-      aq.test_user_email,
-      aq.test_user_name
-    )
+    emails = aq.test_user_email.split(";").map {|p| p.strip}
+    emails.each do |email|
+      send_email(
+        aq,
+        qp,
+        email,
+        email
+      )
+    end
   end
 
   def self.send_test_sms(aq, qp)
-    send_sms(aq, qp, aq.test_user_phone)
+    phones = aq.test_user_phone.split(";").map {|p| p.strip}
+    phones.each do |phone|
+      send_sms(aq, qp, phone)
+    end
   end
 
   def self.send_live_questionnaire(aq, qp)
