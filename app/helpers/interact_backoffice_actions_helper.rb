@@ -51,7 +51,7 @@ module InteractBackofficeActionsHelper
     email_subject = questcopy ? oq.email_subject : EMAIL_SUBJECT
     test_user_name = questcopy ? oq.test_user_name : 'Test user'
     test_user_email = questcopy ? oq.test_user_email : 'test@unknown'
-    test_user_phone = questcopy ? oq.test_user_phone : '052-1112233'
+    test_user_phone = questcopy ? oq.test_user_phone : '012-3456789'
     prev_questionnaire_id = rerun ? oq.id : nil
 
     quest = Questionnaire.create!(

@@ -35,10 +35,6 @@ class Group < ActiveRecord::Base
     raise "Duplicate group with external_id: #{external_id}, snapshot_id: #{snapshot_id}" if dup_groups > 1
   end
 
-  after_create do
-    Group.prepare_groups_for_hierarchy_queries(snapshot_id)
-  end
-
   def sibling_groups
     Group.where(parent_group_id: parent_group_id, snapshot_id: snapshot_id).where.not(id: id)
   end
@@ -191,9 +187,9 @@ class Group < ActiveRecord::Base
     gids = Group.by_snapshot(sid)
              .where(company_id: cid)
              .where('parent_group_id is null')
-    gids = sid.nil? ? gids : gids.where(snapshot_id: sid)
+             .pluck(:id)
     raise "Found more than one root group in company: #{cid}, snapshot: #{sid}" if gids.length > 1
-    return gids.first.id
+    return gids.first
   end
 
   def self.get_root_questionnaire_group(qid)

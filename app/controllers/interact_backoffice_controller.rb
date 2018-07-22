@@ -559,7 +559,11 @@ class InteractBackofficeController < ApplicationController
 
   def reports_network
     authorize :application, :passthrough
-    report_name = InteractBackofficeHelper.network_report(@cid)
+    qid = params['qid']
+    return nil if qid.nil?
+    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    return nil if sid.nil?
+    report_name = InteractBackofficeHelper.network_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
       filename: report_name,
@@ -568,7 +572,11 @@ class InteractBackofficeController < ApplicationController
 
   def reports_bidirectional_network
     authorize :application, :passthrough
-    report_name = InteractBackofficeHelper.bidirectional_network_report(@cid)
+    qid = params['qid']
+    return nil if qid.nil?
+    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    return nil if sid.nil?
+    report_name = InteractBackofficeHelper.bidirectional_network_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
       filename: report_name,
@@ -577,7 +585,11 @@ class InteractBackofficeController < ApplicationController
 
   def reports_measures
     authorize :application, :passthrough
-    report_name = InteractBackofficeHelper.measures_report(@cid)
+    qid = params['qid']
+    return nil if qid.nil?
+    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    return nil if sid.nil?
+    report_name = InteractBackofficeHelper.measures_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
       filename: report_name,

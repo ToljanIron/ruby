@@ -272,17 +272,17 @@ class Questionnaire < ActiveRecord::Base
   end
 
   def self.drop_questionnaire(qid)
-    quest = Questionnaire.find(qid)
-    sid = quest.snapshot_id
+    quest = Questionnaire.find_by(id: qid)
+    sid = quest.try(:snapshot_id)
     ActiveRecord::Base.transaction do
-      Snapshot.find(sid).delete
+      Snapshot.find_by(id: sid).try(:delete)
+      Questionnaire.find_by(id: qid).try(:delete)
       Employee.where(snapshot_id: sid).delete_all
       Group.where(snapshot_id: sid).delete_all
       NetworkName.where(questionnaire_id: qid).delete_all
       QuestionnaireParticipant.where(questionnaire_id: qid).delete_all
       QuestionnaireQuestion.where(questionnaire_id: qid).delete_all
       QuestionReply.where(questionnaire_id: qid).delete_all
-      Questionnaire.find(qid).delete
       CdsMetricScore.where(snapshot_id: 141).delete_all
       NetworkSnapshotData.where(snapshot_id: 141).delete_all
     end
@@ -301,6 +301,7 @@ class Questionnaire < ActiveRecord::Base
   end
 
   def self.get_questionnaires(qids)
+    return [] if qids.empty?
     sqlstr =
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,

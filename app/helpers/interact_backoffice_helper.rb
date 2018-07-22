@@ -224,7 +224,7 @@ module InteractBackofficeHelper
   # to whom in each network. The report includes all employee
   # attributes.
   #############################################################
-  def self.network_report(cid, sid = nil)
+  def self.network_report(cid, sid)
     report_name = 'network_report.xlsx'
     res, h_emps, h_networks = network_report_queries(cid, sid)
 
@@ -263,7 +263,7 @@ module InteractBackofficeHelper
   # Create a report as above, but only of relations which are
   # bidirectional.
   #############################################################
-  def self.bidirectional_network_report(cid, sid = nil)
+  def self.bidirectional_network_report(cid, sid)
     report_name = 'bidirectional_network_report.xlsx'
     res, h_emps, h_networks, rels = network_report_queries(cid, sid)
 
@@ -325,8 +325,7 @@ module InteractBackofficeHelper
     return ws
   end
 
-  def self.network_report_queries(cid, sid = nil)
-    sid ||= Snapshot.last_snapshot_of_company(cid)
+  def self.network_report_queries(cid, sid)
 
     sqlstr =
       "SELECT emps.id, email, first_name, last_name, ro.name AS role, rank_id, gender,
@@ -338,7 +337,7 @@ module InteractBackofficeHelper
        LEFT JOIN roles AS ro ON ro.id = emps.role_id
        LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
        WHERE
-         emps.company_id = #{cid}"
+         emps.snapshot_id = #{sid}"
     emps = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     h_emps = {}
@@ -397,9 +396,8 @@ module InteractBackofficeHelper
     return ws
   end
 ######################################################################################
-  def self.measures_report(cid)
+  def self.measures_report(cid, sid)
     report_name = 'measures_report.xlsx'
-    sid = Snapshot.last_snapshot_of_company(cid)
 
     sqlstr =
       "SELECT

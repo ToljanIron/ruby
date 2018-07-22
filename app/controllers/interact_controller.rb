@@ -83,7 +83,7 @@ class InteractController < ApplicationController
       gids = Group.by_snapshot(sid).pluck(:id).join(',')
     end
 
-    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 602).last.id
+    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
    #  gidsStr = gids.join("','")
 
     groups = Group

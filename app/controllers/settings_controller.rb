@@ -55,7 +55,8 @@ class SettingsController < ApplicationController
     authorize :setting, :update?
     ret = {
       incomingEmailToTime: CompanyConfigurationTable.incoming_email_to_time,
-      outgoingEmailToTime: CompanyConfigurationTable.outgoing_email_to_time
+      outgoingEmailToTime: CompanyConfigurationTable.outgoing_email_to_time,
+      product_type: Company.find(current_user.company_id).product_type
     }
     render json: ret, statatus: 200
   end
