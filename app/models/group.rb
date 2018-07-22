@@ -31,6 +31,10 @@ class Group < ActiveRecord::Base
       color_id = rand(24 + 1)
     end
 
+    if external_id.nil?
+      external_id = name
+    end
+
     dup_groups = Group.where(external_id: external_id, snapshot_id: snapshot_id).count
     raise "Duplicate group with external_id: #{external_id}, snapshot_id: #{snapshot_id}" if dup_groups > 1
   end

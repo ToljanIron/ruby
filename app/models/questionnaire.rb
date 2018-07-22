@@ -73,7 +73,7 @@ class Questionnaire < ActiveRecord::Base
     EventLog.create!(message: "Done resending questionnaire for id: #{id} and emp id #{emp_id}", event_type_id: 1)
   end
 
-  # Resend questionnaire to employees who haven't completed it yet. Employees with 
+  # Resend questionnaire to employees who haven't completed it yet. Employees with
   # finished state of 3 won't receive this email.
   def resend_questionnaire_to_incomplete
     EventLog.create!(message: "Resending questionnaire for id: #{id}", event_type_id: 1)
@@ -83,7 +83,7 @@ class Questionnaire < ActiveRecord::Base
   end
 
   # Send email to questionnaire participants. This is the actual function which sends the 
-  # email, using the Rails mailer. In order to send the emails, you need to uncomment 
+  # email, using the Rails mailer. In order to send the emails, you need to uncomment
   # line in loop
   def send_questionnaire_email(q_participants)
 

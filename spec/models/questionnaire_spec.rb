@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Questionnaire, type: :model do
   before do
     @comp = Company.create(name: 'test-company')
-    @questionnaire = Questionnaire.create!(company_id: @comp.id, state: :notstarted, name:'test-name', pending_send:'', root_group_id: 1)
+    @questionnaire = Questionnaire.create!(company_id: @comp.id, state: :notstarted, name:'test-name', pending_send:'')
     @e1 = Employee.create!(email: 'e1@mail.com', company_id: @comp.id, first_name: 'E', last_name: 'e', color_id: 1, external_id: 21)
     @e2 = Employee.create!(email: 'e2@mail.com', company_id: @comp.id, first_name: 'E', last_name: 'e', color_id: 1, external_id: 22)
     @e3 = Employee.create!(email: 'e3@mail.com', company_id: @comp.id + 1, first_name: 'E', last_name: 'e', color_id: 1, external_id: 23)
@@ -31,18 +31,6 @@ describe Questionnaire, type: :model do
       @questionnaire.prepare_for_send
       expect(QuestionReply.count).to eq 1
       expect(@questionnaire.state).to eq('notstarted')
-    end
-  end
-
-  describe 'resend_questionnaire' do
-    before do
-      EmailMessage.create!(questionnaire_participant_id: @question_recipient1.id, pending: false, message: 'Stam')
-      EmailMessage.create!(questionnaire_participant_id: @question_recipient2.id, pending: false, message: 'Stam')
-      EmailMessage.create!(questionnaire_participant_id: @question_recipient3.id, pending: false, message: 'Stam')
-    end
-    it 'should send only to employees who did not complete their questionnaire' do
-      @questionnaire.resend_questionnaire_to_incomplete
-      expect(EventLog.count).to eq(2)
     end
   end
 

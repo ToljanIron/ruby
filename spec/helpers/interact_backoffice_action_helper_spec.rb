@@ -24,7 +24,7 @@ describe InteractBackofficeActionsHelper, type: :helper do
       expect(Questionnaire.last.snapshot_id).to be > 1
       expect(Snapshot.count).to eq(2)
       expect(Group.count).to eq(4)
-      expect(Employee.count).to eq(10)
+      expect(Employee.count).to eq(5)
     end
   end
 
@@ -40,15 +40,13 @@ describe InteractBackofficeActionsHelper, type: :helper do
     end
 
     it 'should create a copy of the questionnaire, and a new snapshot' do
-      InteractBackofficeActionsHelper.create_new_questionnaire(1, qid)
+      InteractBackofficeActionsHelper.create_new_questionnaire(1, qid, true)
       expect(Questionnaire.count).to eq(2)
       expect(Questionnaire.last.snapshot_id).to be > qid
       expect(Questionnaire.last.prev_questionnaire_id).to eq(qid)
       expect(Snapshot.count).to eq(3)
       expect(Group.count).to eq(6)
-      expect(Employee.count).to eq(15)
       expect(QuestionnaireParticipant.count).to eq(10)
-      expect(QuestionnaireParticipant.where.not(employee_id: -1).count).to eq(8)
       expect(QuestionnaireQuestion.count).to eq(8)
       expect(QuestionnaireQuestion.last.active).to be_truthy
     end

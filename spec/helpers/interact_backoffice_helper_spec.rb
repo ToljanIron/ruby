@@ -45,12 +45,12 @@ describe InteractBackofficeHelper, type: :helper do
         'last_name' => 'l',
         'email' => 'mail@qqq.com',
         'phone' => '052-2233445',
-        'group' => 'L3-1'
+        'group_name' => 'L3-1'
       }
       InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
-      p['group'] = 'L3-3'
+      p['group_name'] = 'L3-3'
       p['id'] = Employee.last.id
-      InteractBackofficeHelper.update_employee(1, p, Questionnaire.last)
+      InteractBackofficeHelper.update_employee(1, p, Questionnaire.last.id)
 
       expect(Group.find_by(name: 'L3-1', snapshot_id: 2).questionnaire_id).to be_nil
       expect(Group.find_by(name: 'L2-1', snapshot_id: 2).questionnaire_id).to be_nil

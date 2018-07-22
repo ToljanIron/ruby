@@ -112,6 +112,8 @@ describe Group, type: :model do
 
   describe 'create_snapshot in groups' do
     before do
+      Snapshot.create!(id: 100, company_id: 1, timestamp: 1.week.ago)
+      Snapshot.create!(id: 101, company_id: 1, timestamp: Time.now)
       FactoryGirl.create_list(:group, 2)
       Group.first.update(parent_group_id: 100)
       Group.last.update(parent_group_id: 1)
@@ -154,7 +156,12 @@ describe Group, type: :model do
   describe 'find_groups_in_snapshot' do
 
     before do
+      Snapshot.create!(id: 4, company_id: 1, timestamp: 1.week.ago)
       FactoryGirl.create_list(:group, 4, snapshot_id: 3)
+      rootgid = Group.where(name: 'group_1').last.id
+      Group.where
+           .not(name: 'group_1')
+           .update_all(parent_group_id: rootgid)
       Group.create_snapshot(1, 3, 4)
       @gids = Group.where(snapshot_id: 3).pluck(:id)
     end
