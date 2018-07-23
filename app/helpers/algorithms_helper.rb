@@ -2494,7 +2494,7 @@ module AlgorithmsHelper
   # +array+:: array to add and  minimize
   # +key+:: key by which to minimize values
   # +value+:: value to sum
-  # 
+  #
   # Example: calling sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') 
   # where array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]

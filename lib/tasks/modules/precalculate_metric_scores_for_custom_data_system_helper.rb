@@ -65,7 +65,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     networks = NetworkName
                  .joins("JOIN questionnaire_questions as qq on qq.network_id = network_names.id")
                  .where(company_id: cid, questionnaire_id: qid)
-                 .where("qq.active = true")
+                 .where("qq.active = true and qq.questionnaire_id = ?", qid)
     fail 'No networks found' if networks.empty?
     networks.each do |n|
       puts "Working on network: #{n.name}"
@@ -74,15 +74,8 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
       cmin  = generate_company_metrics_for_network_in(cid, nid)
       cmout = generate_company_metrics_for_network_out(cid, nid)
 
-      #groups = gid == -1 ? Group.by_snapshot(sid) : [Group.find(gid)]
-      #groups.each do |g|
-        #puts "Working on group: #{g.name}"
-        #lgid = g.id
-        #cds_calculate_scores_for_generic_network(cid, sid, nid, lgid, cmin, cmout)
-      #end
-
-      rgid = Group.get_root_group(cid, sid)
-      cds_calculate_scores_for_generic_network(cid, sid, nid, rgid, cmin, cmout)
+      rgid = Group.get_root_questionnaire_group(qid)
+      calculate_scores_for_a_generic_network(cid, sid, nid, rgid, cmin, cmout)
     end
   end
 
@@ -108,7 +101,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     return cm.id
   end
 
-  def cds_calculate_scores_for_generic_network(cid, sid, nid, gid, cmin, cmout)
+  def calculate_scores_for_a_generic_network(cid, sid, nid, gid, cmin, cmout)
     ## Calculate the indegrees
     res = InteractAlgorithmsHelper.calculate_network_indegree(cid, sid, nid, gid)
     res.each do |r|
@@ -118,12 +111,12 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
     end
 
     ## Calculate the outdegrees
-    res = InteractAlgorithmsHelper.calculate_network_outdegree(cid, sid, nid, gid)
-    res.each do |r|
-      eid   = r['employee_id'].to_i
-      score = r['score'].to_i
-      save_generic_socre(cid, sid, nid, gid, eid, cmout, INTERACT_ALGORITHM_ID_OUT, score)
-    end
+    #res = InteractAlgorithmsHelper.calculate_network_outdegree(cid, sid, nid, gid)
+    #res.each do |r|
+      #eid   = r['employee_id'].to_i
+      #score = r['score'].to_i
+      #save_generic_socre(cid, sid, nid, gid, eid, cmout, INTERACT_ALGORITHM_ID_OUT, score)
+    #end
   end
 
   def save_generic_socre(cid, sid, nid, gid, eid, cmid, aid, score)

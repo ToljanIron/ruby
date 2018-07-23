@@ -132,14 +132,14 @@ describe 'InterAct' do
     Company.create!(id: 1, name: 'testcom', randomize_image: true, active: true)
     snapshot_factory_create(id: 45, name: '2015-06', snapshot_type: 3, company_id: 2)
     Questionnaire.create!(id: 1, company_id: 1, name: 'Test quest', snapshot_id: 45)
-    QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: 1, question_id: 11, network_id: 1)
-    QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: 1, question_id: 12, network_id: 2)
-    Group.create!(id: 3, name: 'Testcom', company_id: 1, parent_group_id: nil, snapshot_id: 45)
-    Group.create!(id: 4, name: 'QA',      company_id: 1, parent_group_id: 3, snapshot_id: 45)
-    Employee.create!(id: 1, company_id: 1, email: 'pete1@sala.com', external_id: '11', first_name: 'Dave1', last_name: 'sala', group_id: 3)
-    Employee.create!(id: 2, company_id: 1, email: 'pete2@sala.com', external_id: '12', first_name: 'Dave2', last_name: 'sala', group_id: 3)
-    Employee.create!(id: 3, company_id: 1, email: 'pete3@sala.com', external_id: '13', first_name: 'Dave3', last_name: 'sala', group_id: 4)
-    Employee.create!(id: 4, company_id: 1, email: 'pete4@sala.com', external_id: '14', first_name: 'Dave4', last_name: 'sala', group_id: 4)
+    QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: 1, question_id: 11, network_id: 1, active: true)
+    QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: 1, question_id: 12, network_id: 2, active: true)
+    Group.create!(id: 3, name: 'Testcom', company_id: 1, parent_group_id: nil, snapshot_id: 45, questionnaire_id: 1)
+    Group.create!(id: 4, name: 'QA',      company_id: 1, parent_group_id: 3, snapshot_id: 45, questionnaire_id: 1)
+    Employee.create!(id: 1, company_id: 1, snapshot_id: 45, email: 'pete1@sala.com', external_id: '11', first_name: 'Dave1', last_name: 'sala', group_id: 3)
+    Employee.create!(id: 2, company_id: 1, snapshot_id: 45,  email: 'pete2@sala.com', external_id: '12', first_name: 'Dave2', last_name: 'sala', group_id: 3)
+    Employee.create!(id: 3, company_id: 1, snapshot_id: 45,  email: 'pete3@sala.com', external_id: '13', first_name: 'Dave3', last_name: 'sala', group_id: 4)
+    Employee.create!(id: 4, company_id: 1, snapshot_id: 45,  email: 'pete4@sala.com', external_id: '14', first_name: 'Dave4', last_name: 'sala', group_id: 4)
     NetworkName.create!(id: 1, name: 'Advice', company_id: 1, questionnaire_id: 1)
     NetworkName.create!(id: 2, name: 'Stam',   company_id: 1, questionnaire_id: 1)
 
@@ -154,6 +154,25 @@ describe 'InterAct' do
     NetworkSnapshotData.create!(snapshot_id: 45, network_id: 2, company_id: 1, from_employee_id: 1, to_employee_id: 3, value: 1)
   end
 
+  describe 'calculate_network_indegree' do
+    it 'should create one entry per employee' do
+      cds_calculate_scores_for_generic_networks(1, 45)
+      expect(CdsMetricScore.where(employee_id: 1).count).to eq(2)
+      expect( CdsMetricScore.where(company_metric_id: 1).count ).to eq(4)
+    end
+
+    it 'should work' do
+      allow(InteractAlgorithmsHelper).to receive(:calculate_network_indegree).and_return(
+        [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '2', 'score' => '3'}]
+      )
+      allow(InteractAlgorithmsHelper).to receive(:calculate_network_outdegree).and_return(
+        [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
+      )
+      cds_calculate_scores_for_generic_networks(1,45)
+      expect( CdsMetricScore.count ).to eq(8)
+    end
+  end
+
   describe 'save_generic_socre' do
     it 'should save score to database' do
       save_generic_socre(1, 45, 1, 3, 1, 88, 601, 5)
@@ -163,7 +182,7 @@ describe 'InterAct' do
     end
   end
 
-  describe 'cds_calculate_scores_for_generic_network' do
+  describe 'calculate_scores_for_a_generic_network' do
     it 'should go over all results and save to db' do
       allow(InteractAlgorithmsHelper).to receive(:calculate_network_indegree).and_return(
         [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '2', 'score' => '3'}]
@@ -171,7 +190,7 @@ describe 'InterAct' do
       allow(InteractAlgorithmsHelper).to receive(:calculate_network_outdegree).and_return(
         [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
       )
-      cds_calculate_scores_for_generic_network(1, 45, 1, 3, 100, 101)
+      calculate_scores_for_a_generic_network(1, 45, 1, 3, 100, 101)
       expect( CdsMetricScore.count ).to eq(4)
     end
   end
@@ -202,16 +221,4 @@ describe 'InterAct' do
     end
   end
 
-  describe 'cds_calculate_scores_for_generic_networks' do
-    it 'should work' do
-      allow(InteractAlgorithmsHelper).to receive(:calculate_network_indegree).and_return(
-        [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '2', 'score' => '3'}]
-      )
-      allow(InteractAlgorithmsHelper).to receive(:calculate_network_outdegree).and_return(
-        [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
-      )
-      cds_calculate_scores_for_generic_networks(1,45)
-      expect( CdsMetricScore.count ).to eq(8)
-    end
-  end
 end
