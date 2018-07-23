@@ -1269,7 +1269,8 @@ module AlgorithmsHelper
 
   ###################################################################################
   # Calculate degree centrality by getting all indegrees first and calculating the
-  # standard deviation. Centrality is high if STD is high
+  # standard deviation and comparing it with the mean.
+  # Centrality is high if close to 1 and low if close to 0.
   ###################################################################################
   def self.degree_centrality(gid, nid, sid)
     cid = Snapshot.find(sid).company_id
@@ -1294,7 +1295,8 @@ module AlgorithmsHelper
     end
 
     return 0 if a_indegs.length == 0
-    stderr = array_sd(a_indegs)
+    stderr = array_sd(a_indegs) /array_mean(a_indegs)
+
     return stderr
   end
 
@@ -1325,6 +1327,8 @@ module AlgorithmsHelper
     else
       network_density = (s_sum_traffic_network.to_f / (bin * s_max_email_traffic)).round(3)
     end
+
+    puts "network_density: #{network_density}"
 
     return [{ group_id: group_id, measure: network_density }]
   end
@@ -2495,7 +2499,7 @@ module AlgorithmsHelper
   # +key+:: key by which to minimize values
   # +value+:: value to sum
   #
-  # Example: calling sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num') 
+  # Example: calling sum_and_minimize_array_of_hashes_by_key(array, 'id', 'num')
   # where array is = [{id: 1, num: 2},{id: 2, num: 10},{id: 1, num: 3},{id: 2, num: 8}]
   # will return: [{id: 1, num: 5},{id: 2, num: 18}]
   #
