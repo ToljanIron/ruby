@@ -38,7 +38,7 @@ class InteractController < ApplicationController
     nid = qq.network_id
     sid = quest.snapshot_id
     gid = gid.nil? ? Group.get_root_questionnaire_group(qid) : gid
-    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 602).last.id
+    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 
     res_indeg = question_indegree_data(sid, gid, cid, cmid)
 
