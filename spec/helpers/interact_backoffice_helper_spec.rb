@@ -39,16 +39,16 @@ describe InteractBackofficeHelper, type: :helper do
 
   describe 'update_employee' do
     it 'changing an employees group should update questionnaire_id in relevant groups' do
-     InteractBackofficeActionsHelper.create_new_questionnaire(1)
+      InteractBackofficeActionsHelper.create_new_questionnaire(1)
       p = {
         'first_name' => 'f',
         'last_name' => 'l',
         'email' => 'mail@qqq.com',
         'phone' => '052-2233445',
-        'group_name' => 'L3-1'
+        'group' => 'L3-1'
       }
       InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
-      p['group_name'] = 'L3-3'
+      p['group'] = 'L3-3'
       p['id'] = Employee.last.id
       InteractBackofficeHelper.update_employee(1, p, Questionnaire.last.id)
 

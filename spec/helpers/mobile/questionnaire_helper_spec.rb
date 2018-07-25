@@ -202,7 +202,8 @@ describe Mobile::QuestionnaireHelper do
   describe 'freeze_questionnaire_replies_in_snapshot' do
     before do
       @c = Company.create!(name: "Acme")
-      @q = Questionnaire.create!(name: "test", company_id: @c.id)
+      @s = Snapshot.create!(name: 'a', company_id: @c.id, timestamp: Time.now)
+      @q = Questionnaire.create!(name: "test", company_id: @c.id, snapshot_id: @s.id)
       @qq1 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 11)
       @qq2 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 12)
       @e1 = Employee.create!(company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')

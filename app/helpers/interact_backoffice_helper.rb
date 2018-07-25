@@ -666,7 +666,9 @@ module InteractBackofficeHelper
     end
 
     ## Now need to add the group and all its ancestoral hierarchy to the questionnaire
-    update_questionnaire_id_in_groups_heirarchy(gid, qid) if Group.find(gid).questionnaire_id != qid
+    if Group.find(gid).questionnaire_id != qid
+      update_questionnaire_id_in_groups_heirarchy(gid, qid)
+    end
 
     ## Office
     oid = office.nil? ? nil : Office.find_or_create_by!(name: office, company_id: cid).id

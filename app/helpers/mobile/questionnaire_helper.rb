@@ -197,14 +197,8 @@ module QuestionnaireHelper
 
     replies = QuestionReply.where(questionnaire_id: quest_id)
       begin
-        prev_sid = questionnaire.last_snapshot_id
-        puts "prev_sid is: #{prev_sid}"
-        sid = Snapshot.create_snapshot_by_weeks(cid, date).id
+        sid = questionnaire.snapshot_id
         puts "current sid: #{sid}"
-        puts "Creating groups"
-        Group.create_snapshot(cid, prev_sid, sid)
-        puts "Creating employees"
-        Employee.create_snapshot(cid, prev_sid, sid)
 
         EventLog.log_event(event_type_name: EVENT_TYPE, message: "with name: #{questionnaire.name} copied to snapshot: #{sid}")
 
