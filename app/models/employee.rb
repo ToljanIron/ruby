@@ -243,7 +243,6 @@ class Employee < ActiveRecord::Base
            #{sql_check_boolean('emps.active', true)} AND
            emps.email <> 'other@email.com'"
         ActiveRecord::Base.connection.execute(s)
-        puts "Copy of employees completed successfully"
       rescue RuntimeError => ex
         puts "Exception: #{ex.message}, while trying to create employees"
       end

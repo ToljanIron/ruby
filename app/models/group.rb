@@ -322,6 +322,11 @@ class Group < ActiveRecord::Base
     cid = Snapshot.find(sid).company_id
     rootgid = Group.get_root_group(cid, sid)
     group_pairs = Group.get_all_parent_son_pairs(rootgid)
+    if group_pairs == []
+      Group.find(rootgid).update!(
+        nsleft: 0, nsright: 1
+      )
+    end
     Group.create_nested_sets_structure(group_pairs, sid)
   end
 
@@ -351,13 +356,11 @@ class Group < ActiveRecord::Base
     ## Initial step
     group_pairs = pairs.clone
     rootgid, songid = group_pairs.shift
-    puts "Working on parent: #{rootgid}, son: #{songid}"
     Group.find(rootgid).update!(nsleft: 0, nsright: 3)
     Group.find(songid).update!(nsleft: 1, nsright: 2)
 
     ## Repeat for all pairs that were left
     group_pairs.each do |pgid, sgid|
-      puts "Working on parent: #{pgid}, son: #{sgid}"
       mark = Group.find(pgid).nsright
       sonleft = mark
       sonright = mark + 1
@@ -386,6 +389,11 @@ class Group < ActiveRecord::Base
   ######################################################################
   def self.get_descendants(gid)
     root_group = Group.find(gid)
+    if root_group.nsleft.nil?
+      Group.prepare_groups_for_hierarchy_queries(root_group.snapshot_id)
+      root_group = Group.find(gid)
+    end
+
     sqlstr = "
       SELECT id
       FROM groups
@@ -405,6 +413,11 @@ class Group < ActiveRecord::Base
   ######################################################################
   def self.get_ancestors(gid)
     root_group = Group.find(gid)
+    if root_group.nsleft.nil?
+      Group.prepare_groups_for_hierarchy_queries(root_group.snapshot_id)
+      root_group = Group.find(gid)
+    end
+
     sqlstr = "
       SELECT id
       FROM groups

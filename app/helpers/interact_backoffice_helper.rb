@@ -538,7 +538,6 @@ module InteractBackofficeHelper
   end
 
   def self.update_questionnaire_id_in_groups_heirarchy(gid, qid)
-    puts "update_questionnaire_id_in_groups_heirarchy(), gid: #{gid}"
     ancestorids = Group.get_ancestors(gid)
     ancestorids << gid
     Group.where(id: ancestorids).update_all(questionnaire_id: qid)
@@ -555,7 +554,7 @@ module InteractBackofficeHelper
     last_name = p['last_name']
     email = p['email']
     phone_number = p['phone_number']
-    group_name = p['group_name']
+    group_name = p['group']
     office = p['office']
     role = p['role']
     rank = p['rank']
@@ -574,13 +573,13 @@ module InteractBackofficeHelper
       old_group = emp.group
       update_questionnaire_id_in_groups_heirarchy(old_group.id, nil) if old_group.name != group_name
 
-      group = Group.find_by!(name: group_name, company_id: cid, snapshot_id: sid)
+      group = Group.find_by(name: group_name, company_id: cid, snapshot_id: sid)
       group = Group.create!(
         name: group_name,
         company_id: cid,
-        parent_group_id: root_group,
+        parent_group_id: root_gid,
         snapshot_id: sid,
-        exteranl_id: group_name) if group.nil?
+        external_id: group_name) if group.nil?
       gid = group.id
     else
       gid = root_gid
@@ -623,6 +622,16 @@ module InteractBackofficeHelper
     ).create_token
   end
 
+  def self.delete_employee(qpid)
+    qp = QuestionnaireParticipant.find(qpid)
+    aq = qp.questionnaire
+    QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
+    qp.try(:delete)
+    aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
+    aq = aq.as_json
+    aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+    return aq
+  end
 
   def self.create_employee(cid, p, aq)
     qid = aq.id
@@ -644,13 +653,13 @@ module InteractBackofficeHelper
     root_gid = Group.get_root_group(cid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
-      group = Group.find_by!(name: group_name, company_id: cid, snapshot_id: sid)
+      group = Group.find_by(name: group_name, company_id: cid, snapshot_id: sid)
       group = Group.create!(
         name: group_name,
         company_id: cid,
-        parent_group_id: root_group,
+        parent_group_id: root_gid,
         snapshot_id: sid,
-        exteranl_id: group_name) if group.nil?
+        external_id: group_name) if group.nil?
       gid = group.id
     else
       gid = root_gid
@@ -866,4 +875,34 @@ module InteractBackofficeHelper
     end
     return ret
   end
+
+  def self.create_new_question(cid, qid, question, order)
+    title = question['title']
+    body = question['body']
+    min = question['min']
+    max = question['max']
+    active = question['active']
+
+    network = NetworkName.where(company_id: cid, name: title).last
+    if network.nil?
+      network = NetworkName.create!(
+        company_id: cid,
+        name: title,
+        questionnaire_id: qid
+      )
+    end
+
+    QuestionnaireQuestion.create!(
+      company_id: cid,
+      questionnaire_id: qid,
+      title: title,
+      body: body,
+      network_id: network.id,
+      min: min,
+      max: max,
+      order: order,
+      active: active
+    )
+  end
+
 end

@@ -44,6 +44,7 @@ class Snapshot < ActiveRecord::Base
     prev_sid = Questionnaire.find(qid).snapshot_id if !qid.nil?
 
     snapshot = Snapshot.create!(
+      id: (Snapshot.last.id + 1),
       name: name,
       snapshot_type: nil,
       timestamp: end_date,
@@ -53,8 +54,10 @@ class Snapshot < ActiveRecord::Base
 
     sid = snapshot.id
 
-    Group.create_snapshot(cid, prev_sid, sid)
-    Employee.create_snapshot(cid, prev_sid, sid)
+    if (Group.by_snapshot(prev_sid).count > 0)
+      Group.create_snapshot(cid, prev_sid, sid)
+      Employee.create_snapshot(cid, prev_sid, sid)
+    end
     return snapshot
   end
 

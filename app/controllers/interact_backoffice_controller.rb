@@ -297,33 +297,8 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       params.require(:question).permit!
       question = params[:question]
-
-      title = question['title']
-      body = question['body']
-      min = question['min']
-      max = question['max']
-      active = question['active']
       order = params['order']
-
-      network = NetworkName.where(company_id: @cid, name: title).last
-      if network.nil?
-        network = NetworkName.create!(
-          company_id: @cid,
-          name: title
-        )
-      end
-
-      QuestionnaireQuestion.create!(
-        company_id: @cid,
-        questionnaire_id: @aq.id,
-        title: title,
-        body: body,
-        network_id: network.id,
-        min: min,
-        max: max,
-        order: order,
-        active: active
-      )
+      InteractBackofficeHelper.create_new_question(@cid, @aq, question, order)
       ['ok', nil]
     end
   end
@@ -475,17 +450,8 @@ class InteractBackofficeController < ApplicationController
     authorize :application, :passthrough
     ibo_process_request do
       qpid = params[:qpid]
-      qp = QuestionnaireParticipant.find(qpid)
-      aq = qp.questionnaire
-      Employee.find(qp.employee_id).delete
-      qp.try(:question_replies).try(:delete)
-      qp.try(:delete)
-
-      aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
-      aq = aq.as_json
-      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
-      participants, errors = prepare_data(qp.questionnaire_id)
-
+      aq = InteractBackofficeHelper.delete_participant(qpid)
+      participants, errors = prepare_data(aq.id)
       [{participants: participants, questionnaire: aq}, errors]
     end
   end

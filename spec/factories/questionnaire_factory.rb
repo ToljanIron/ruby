@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :questionnaire do
-    sequence(:name) { |n| "questionnaire_#{n}" }
+    sequence(:name) { |n| "Q_#{n}" }
     company_id 1
-    sent_date Time.now
+    sequence(:snapshot_id) { |n| n }
   end
 end

@@ -88,7 +88,6 @@ module InteractBackofficeActionsHelper
       questions = Question.all
     end
 
-    puts "Creating questions"
     ii = 0
     new_qid = quest.id
     questions.each do |q|
