@@ -169,7 +169,7 @@ describe 'InterAct' do
         [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
       )
       cds_calculate_scores_for_generic_networks(1,45)
-      expect( CdsMetricScore.count ).to eq(8)
+      expect( CdsMetricScore.count ).to eq(4)
     end
   end
 
@@ -191,7 +191,7 @@ describe 'InterAct' do
         [{'employee_id' => '1', 'score': '2'}, {'employee_id' => '5', 'score' => '6'}]
       )
       calculate_scores_for_a_generic_network(1, 45, 1, 3, 100, 101)
-      expect( CdsMetricScore.count ).to eq(4)
+      expect( CdsMetricScore.count ).to eq(2)
     end
   end
 

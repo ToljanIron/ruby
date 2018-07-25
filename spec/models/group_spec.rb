@@ -115,41 +115,35 @@ describe Group, type: :model do
       Snapshot.create!(id: 100, company_id: 1, timestamp: 1.week.ago)
       Snapshot.create!(id: 101, company_id: 1, timestamp: Time.now)
       FactoryGirl.create_list(:group, 2)
-      Group.first.update(parent_group_id: 100)
       Group.last.update(parent_group_id: 1)
+      Group.update_all(snapshot_id: 100)
     end
 
-    it 'create without specifying a snapshot should create group with snapshot_id 1' do
-      expect(Group.first.name).to eq('group_1')
-      expect(Group.first.snapshot_id).to eq(1)
-    end
-
-    it 'should create a new snapshot 100 from snapshot 1' do
-      Group.create_snapshot(1, -1, 100)
-      expect(Group.count).to eq(2)
-      expect(Group.last.snapshot_id).to eq(1)
+    it 'should create a new snapshot 101 from snapshot 100' do
+      Group.create_snapshot(1, 100, 101)
+      expect(Group.count).to eq(4)
+      expect(Group.last.snapshot_id).to eq(101)
     end
 
     it 'should do nothing if groups already exists in this snapshot' do
-      Group.create_snapshot(1, -1, 100)
-      Group.create_snapshot(1, -1, 100)
-      expect(Group.count).to eq(2)
-      expect(Group.first.snapshot_id).to eq(1)
+      Group.create_snapshot(1, 100, 101)
+      expect(Group.count).to eq(4)
+      Group.create_snapshot(1, 100, 101)
+      expect(Group.count).to eq(4)
+      expect(Group.last.snapshot_id).to eq(101)
     end
 
     it 'should create a new snapshot 101 from snapshot 100 with the change in parent_group_id' do
-      Group.create_snapshot(1, -1, 100)
-      Group.where(snapshot_id: 100).update_all(parent_group_id: 11)
       Group.create_snapshot(1, 100, 101)
-      expect(Group.count).to eq(2)
-      expect(Group.last.snapshot_id).to eq(1)
-      expect(Group.last.parent_group_id).to eq(1)
+      expect(Group.count).to eq(4)
+      expect(Group.last.snapshot_id).to eq(101)
+      expect(Group.last.parent_group_id).to eq(3)
     end
 
     it 'should not copy over inactive groups to new snapshot' do
       Group.last.update(active: false)
-      Group.create_snapshot(1, -1, 100)
-      expect(Group.count).to eq(2)
+      Group.create_snapshot(1, 100, 101)
+      expect(Group.count).to eq(3)
     end
   end
 
