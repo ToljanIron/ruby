@@ -310,7 +310,8 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       qid = params['qid']
       page = params['page']
-     ret, errors = prepare_data(qid, page)
+      searchText = params['searchText']
+     ret, errors = prepare_data(qid, page, searchText)
      [ret, errors]
     end
   end
@@ -347,7 +348,20 @@ class InteractBackofficeController < ApplicationController
 
   end
 
-  def prepare_data(qid, page = 0)
+  def prepare_data(qid, page = 0, searchText = nil)
+
+    searchCond = nil
+    if !searchText.nil?
+      searchText.sanitize_is_string_with_space
+      searchCond = "first_name like '%#{searchText}%' "
+      searchCond += "OR last_name like '%#{searchText}%' "
+      searchCond += "OR email like '%#{searchText}%' "
+      searchCond += "OR phone_number like '%#{searchText}%' "
+      searchCond += "OR g.name like '%#{searchText}%' "
+      searchCond += "OR o.name like '%#{searchText}%' "
+      searchCond += "OR ro.name like '%#{searchText}%' "
+      searchCond += "OR jt.name like '%#{searchText}%'"
+    end
 
     qps =
       Employee
@@ -364,17 +378,7 @@ class InteractBackofficeController < ApplicationController
         .joins("join questionnaire_participants as qp on qp.employee_id = e.id and qp.questionnaire_id = quest.id")
         .where("e.company_id = #{@cid}")
         .where("quest.id = ?", qid)
-        .add_filter('first_name', @filter_first_name)
-        .add_filter('last_name', @filter_last_name)
-        .add_filter('email', @filter_email)
-        .add_filter('status', (@filter_status == -1 || @filter_status.nil?) ? -1 : @filter_status.to_i)
-        .add_filter('phone_number', @filter_phone)
-        .add_filter('g.name', @filter_group)
-        .add_filter('o.name', @filter_office)
-        .add_filter('ro.name', @filter_role)
-        .add_filter('rank_id', (@filter_rank == '' || @filter_rank.nil?) ? -1 : @filter_rank.to_i)
-        .add_filter('jt.name', @filter_job_title)
-        .add_filter('gender', (@filter_gender == -1 || @filter_gender.nil?) ? '' : @filter_gender.to_i)
+        .where(searchCond.nil? ? '1 = 1' : searchCond)
         .order("#{@sort_field_name} #{@sort_dir}")
         .limit(20)
         .offset(page)
@@ -418,7 +422,7 @@ class InteractBackofficeController < ApplicationController
       params.require(:participant).permit!
       par = params[:participant]
       qid = par[:questionnaire_id]
-      InteractBackofficeHelper.update_employee(@cid, par, qid)
+      .update_employee(@cid, par, qid)
       participants, errors = prepare_data(qid)
       aq = Questionnaire.find(qid)
       if !test_tab_enabled(aq)
