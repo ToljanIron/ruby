@@ -39,7 +39,7 @@ namespace :db do
           cid = company.id
 
           ## Do by emails
-          emails = Employee.select(:email).where('company_id = ?', cid).distinct.pluck(:email)
+          emails = Employee.select(:email).where("company_id = ? and email = 'ayelet.zeldin@economy.gov.il'", cid).distinct.pluck(:email)
 
           emails.each do |email|
             puts "Working on employee: #{email}"
@@ -52,7 +52,7 @@ namespace :db do
           end
 
           ## Do by phone numbers
-          phones = Employee.select(:phone_number).where('company_id = ?', cid).distinct.pluck(:phone_number)
+          phones = Employee.select(:phone_number).where("company_id = ? and email = 'ayelet.zeldin@economy.gov.il'", cid).distinct.pluck(:phone_number)
 
           phones.each do |phone|
             puts "Working on employee with phone number: : #{phone}"
@@ -60,8 +60,10 @@ namespace :db do
             puts "    found: #{emp_records.length} emp_records"
             url = create_s3_object_url(cid, phone, signer, bucket, s3_bucket_name)
             puts "    URL: #{url}"
-            emp_records.update_all(img_url: url)
-            emp_records.update_all(img_url_last_updated: Time.now)
+            if !url.nil?
+              emp_records.update_all(img_url: url)
+              emp_records.update_all(img_url_last_updated: Time.now)
+            end
           end
 
         end unless companies.empty?
