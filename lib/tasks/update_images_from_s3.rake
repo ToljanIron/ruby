@@ -39,7 +39,7 @@ namespace :db do
           cid = company.id
 
           ## Do by emails
-          emails = Employee.select(:email).where("company_id = ? and email = 'ayelet.zeldin@economy.gov.il'", cid).distinct.pluck(:email)
+          emails = Employee.select(:email).where("company_id = ?", cid).distinct.pluck(:email)
 
           emails.each do |email|
             puts "Working on employee: #{email}"
@@ -52,7 +52,7 @@ namespace :db do
           end
 
           ## Do by phone numbers
-          phones = Employee.select(:phone_number).where("company_id = ? and email = 'ayelet.zeldin@economy.gov.il'", cid).distinct.pluck(:phone_number)
+          phones = Employee.select(:phone_number).where("company_id = ?", cid).distinct.pluck(:phone_number)
 
           phones.each do |phone|
             puts "Working on employee with phone number: : #{phone}"
