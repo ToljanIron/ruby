@@ -260,14 +260,6 @@ module AlgorithmsHelper
     return res
   end
 
-  def self.do_log(list, hashtable, _strate_infimum)
-    new_list = []
-    list.each do |li|
-      new_list.push("candidate": li, "email_ratio": (hashtable[li.to_s].to_f != 0.to_f ? hashtable[li.to_s].to_f.round(3) : 0))
-    end
-    new_list
-  end
-
   def self.json_to_hash_table(arr)
     json_to_return = {}
     arr.each do |object|
