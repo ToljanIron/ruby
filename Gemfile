@@ -23,8 +23,6 @@ gem 'sprockets-rails', '2.3.3'
 gem 'descriptive-statistics'
 gem 'writeexcel'
 gem 'fastimage'
-gem 'delayed_job_active_record'
-gem 'newrelic_rpm'
 gem 'oj'
 gem 'oj_mimic_json'
 gem 'backup', '3.4.0'
@@ -48,6 +46,8 @@ gem 'rack-cors'
 gem 'jwt'
 gem 'thor', '0.19.1'
 gem 'nmatrix'
+gem 'delayed_job_active_record'
+gem "daemons"
 
 group :development, :test do
   gem 'rspec-rails'
@@ -76,5 +76,4 @@ end
 group :production do
   gem 'rails_12factor', '0.0.2'
   gem 'heroku-deflater'
-  gem 'scout_apm'
 end

@@ -1,9 +1,7 @@
 namespace :db do
   require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
-  require './app/helpers/jobs_helper.rb'
   require './app/helpers/cds_util_helper.rb'
   include PrecalculateMetricScoresForCustomDataSystemHelper
-  include JobsHelper
   include CdsUtilHelper
 
   desc 'precalculate_metric_scores_for_custom_data_system'
@@ -15,7 +13,6 @@ namespace :db do
     status = nil
     EventLog.log_event(job_id: t_id, message: 'precalculate_metric_scores_for_custom_data_system_helper started')
     CdsUtilHelper.cache_delete_all
-    start_job(t_id) if t_id != 0
     cid = args[:cid] || -1
     gid = args[:gid] || -1
     pid = args[:pid] || -1
@@ -71,12 +68,10 @@ namespace :db do
             end
           end
 
-          finish_job(t_id) if t_id != 0
           EventLog.log_event(job_id: t_id, message: 'precalculate_metric_scores_for_custom_data_system_helper ended')
         rescue => e
           puts "EXCPTION in precalculate_metric_scores_for_custom_data_system: #{e.message[0..1000]}"
           puts e.backtrace
-          finish_job_with_error(t_id) if t_id != 0
           status = error
           raise ActiveRecord::Rollback
         end

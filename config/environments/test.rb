@@ -37,4 +37,5 @@ Workships::Application.configure do
   if ENV['MAILER_ENABLED']
     config.action_mailer.perform_deliveries = (ENV['MAILER_ENABLED'] == 'true')
   end
+
 end

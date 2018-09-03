@@ -1,6 +1,4 @@
-require './app/helpers/jobs_helper.rb'
 require './app/helpers/cds_util_helper.rb'
-include JobsHelper
 include CdsUtilHelper
 
 Dotenv.load if Rails.env.development? || Rails.env.onpremise?

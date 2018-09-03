@@ -21,6 +21,12 @@ class CompanyConfigurationTable < ActiveRecord::Base
 
   belongs_to :company, foreign_key: 'comp_id'
 
+  def self.getKey(key, company_id=nil)
+    val = CompanyConfigurationTable.where(key: key, comp_id: company_id).last.try(:value) if !company_id.nil?
+    return val if val
+    return CompanyConfigurationTable.where(key: key, comp_id: -1).last.try(:value)
+  end
+
   def self.get_company_locale(cid=-1)
     return DEFAULT_LOCALE if cid == -1
     entry = CompanyConfigurationTable.where(comp_id: cid, key: LOCALE).first

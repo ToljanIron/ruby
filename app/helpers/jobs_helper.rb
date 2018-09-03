@@ -1,77 +1,89 @@
+require './app/helpers/util'
+
 module JobsHelper
-  LIMIT = 20
+  include Util
 
-  def start_job(id)
-    job = Job.find(id)
-    EventLog.log_event(event_type_name: 'JOB_STARTED', job_id: job.id,  message: job.name)
-    job.start_job
-    job
+  JOB_INTERVALS_DAILY  = 'daily'
+  JOB_INTERVALS_WEEKLY = 'weekly'
+  JOB_INTERVALS_HOURLY = 'hourly'
+
+  COLLECTOR_QUEUE = 'collector_queue'
+
+  def self.get_jobs_list
+    return [
+      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE}
+    ]
   end
 
-  def finish_job(id)
-    job = Job.find(id)
-    EventLog.log_event(event_type_name: 'JOB_DONE', job_id: job.id,  message: job.name)
-    job.end_job
-    job
+  def self.schedule_delayed_jobs
+    Util.info('Schedule delayed jobs start')
+    jobsarr = JobsHelper.get_jobs_list
+    jobsarr.each do |job|
+      if job[:interval] == JOB_INTERVALS_HOURLY
+        schedule_hourly_job(job[:job], job[:queue])
+      elsif job[:interval] == JOB_INTERVALS_DAILY
+        schedule_daily_job(job[:job], job[:queue], job[:interval_offset])
+      elsif job[:interval] == JOB_INTERVALS_WEEKLY
+        schedule_weekly_job(job[:job], job[:queue], job[:interval_offset])
+      else
+        raise "Illegal job interval type: #{job[:interval]}"
+      end
+    end
+    Util.info('Schedule delayed jobs done')
   end
 
-  def finish_job_with_error(id)
-    job = Job.find(id)
-    EventLog.log_event(event_type_name: 'JOB_FAIL', job_id: job.id, message: job.name)
-    job.terminate_job_with_error_status(JobsQueue::FINISHED_WITH_ERROR)
-    job
-  end
-
-  def schedule_new_jobs
-    Job.get_jobs_to_be_run(LIMIT).each do |j|
-      schedule_job(j)
+  def self.schedule_hourly_job(job, queue)
+    (0..23).each do |h|
+      nh = h + 1
+      jobs = Delayed::Job.where("handler like '%#{job.to_s}%'").where(run_at: h.hours.from_now .. nh.hours.from_now)
+      next if jobs.count > 0
+      Delayed::Job.enqueue(job.new, queue: queue, run_at: h.hours.from_now)
     end
   end
 
-  def schedule_new_system_jobs
-    Job.get_jobs_to_be_run(LIMIT, DateTime.now.in_time_zone, Job::SYSTEM_JOB).each do |j|
-      EventLog.log_event(event_type_name: 'SCHEDULE_JOB', job_id: j.id, message: j.name)
-      schedule_job(j)
+  ####################################################################
+  # Check if there's such a job in the next 7 days, if not will
+  # schedule it.
+  # offset is 0-6 starting Sunday
+  ####################################################################
+  def self.schedule_weekly_job(job, queue='defaultqueue', dayofweek=0)
+    wday = Date.today.wday
+    if wday <= dayofweek
+      next_job_run_at = Date.today - wday + dayofweek
+    else
+      next_job_run_at = Date.today + 7 - wday + dayofweek
     end
+
+    jobs = Delayed::Job
+           .where("handler like '%#{job.to_s}%'")
+           .where(run_at: next_job_run_at)
+    return if jobs.count > 0
+    Delayed::Job.enqueue(job.new, queue: queue, run_at: next_job_run_at)
   end
 
-  def archive_jobs
-    jobs = Job.get_jobs_queues_with_status(JobsQueue::ENDED, LIMIT, false)
-    archive_old_jobs_queues(jobs)
-    jobs = Job.get_jobs_queues_with_status(JobsQueue::FINISHED_WITH_ERROR, LIMIT, false)
-    archive_old_jobs_queues(jobs)
-    jobs = Job.get_jobs_queues_with_status(JobsQueue::ENDED, LIMIT, false, Job::SYSTEM_JOB)
-    archive_old_jobs_queues(jobs)
-    jobs = Job.get_jobs_queues_with_status(JobsQueue::FINISHED_WITH_ERROR, LIMIT, false, Job::SYSTEM_JOB)
-    archive_old_jobs_queues(jobs)
-  end
+  ####################################################################
+  # Check if there's such a job in the next 7 days, if not will
+  # schedule it.
+  # offset is 0-23 starting Sunday
+  ####################################################################
+  def self.schedule_daily_job(job, queue='defaultqueue', hourofday=0)
+    beginning_of_day = Time.now.at_beginning_of_day
+    end_of_day       = Time.now.at_end_of_day
 
-  def archive_jobs_that_should_have_ended(now = DateTime.now)
-    Job.get_jobs_queues_that_should_have_ended(LIMIT, now).each do |q|
-      archive_queues_if_did_not_end_in_time(q.job, q)
+    jobs = Delayed::Job
+           .where("handler like '%#{job.to_s}%'")
+           .where(run_at: beginning_of_day..end_of_day)
+    return if jobs.count > 0
+
+    if Time.now.hour >= hourofday
+      next_job_run_at = beginning_of_day + hourofday.hours + 1.day
+    else
+      next_job_run_at = beginning_of_day + hourofday.hours
     end
-  end
-
-  def archive_queues_if_did_not_end_in_time(job, job_queue)
-    ActiveRecord::Base.transaction do
-      job_queue.status = JobsQueue::KILLED_ERROR_DID_NOT_RUN if job_queue.status == JobsQueue::PENDING
-      job_queue.status = JobsQueue::KILLED_ERROR_DID_NOT_FINISH_IN_TIME if job_queue.status == JobsQueue::RUNNING
-      job_queue.save!
-      job.archive_jobs(Job::ARCHIVE_OLD)
-    end
-  end
-
-  def archive_old_jobs_queues(jobs)
-    jobs.each do |j|
-      EventLog.log_event(event_type_name: 'JOB_ARCHIVED', job_id: j.id, message: j.name)
-      j.archive_jobs(Job::ARCHIVE_OLD)
-    end
-  end
-
-  def schedule_job(job)
-    return false unless job.should_run?
-    job_status = job.job_status
-    return false if job_status == JobsQueue::PENDING || job_status == JobsQueue::RUNNING
-    job.create_job
+    Delayed::Job.enqueue(
+      job.new,
+      queue: queue,
+      run_at: next_job_run_at)
   end
 end
+
