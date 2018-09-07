@@ -18,7 +18,10 @@ development-sndcom:
 
 development:
   <<: *default
-  database: workships_interact
+  database: workships_app
+  username: workships
+  password: YulIdZ7K52b6J
+  port: 5433
 
 protractor:
   <<: *default
