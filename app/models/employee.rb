@@ -49,7 +49,7 @@ class Employee < ActiveRecord::Base
     sid ||= Snapshot.last_snapshot_of_company(cid)
     Employee.where(company_id: cid, active: true, snapshot_id: sid).where.not(email: 'other@mail.com')
   }
-  scope :size, ->() { Employee.count }
+
   scope :by_snapshot, ->(sid) {
     raise 'snapshot_id cant be nil' if sid.nil?
     Employee.where(snapshot_id: sid, active: true).where.not(email: 'other@mail.com')
