@@ -1,0 +1,15 @@
+
+log/development.log
+log/production.log
+log/protractor.log
+log/test.log
+
+spec
+
+Guardfile
+
+karma.conf.js
+
+stat-karma.conf.js
+
+tmp

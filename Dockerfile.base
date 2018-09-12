@@ -1,0 +1,22 @@
+# This dockerfile is based on the instructions in https://github.com/phusion/passenger-docker
+
+FROM phusion/passenger-ruby24:0.9.35
+
+# Set correct environment variables.
+ENV HOME /root
+
+# Use baseimage-docker's init process.
+CMD ["/sbin/my_init"]
+
+# Enable ngnix and passenger
+RUN rm -f /etc/service/nginx/down
+
+RUN mkdir /home/app/sa
+RUN chown app:app /home/app/sa
+
+USER app
+WORKDIR /home/app/sa
+
+COPY --chown=app:app Gemfile Gemfile
+COPY --chown=app:app Gemfile.lock Gemfile.lock
+RUN rvm-exec 2.4.4 bundle install --without development test production

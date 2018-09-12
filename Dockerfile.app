@@ -1,27 +1,40 @@
-# Base image
-FROM ruby:2.4.4
+FROM app-base
 
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs vim
+USER app
+WORKDIR /home/app/sa
 
-ENV RAILS_ROOT /var/www/app_name
-RUN mkdir -p $RAILS_ROOT
+COPY --chown=app:app bin bin
+COPY --chown=app:app config.ru config.ru
+COPY --chown=app:app lib lib
+COPY --chown=app:app Procfile Procfile
+COPY --chown=app:app Rakefile Rakefile
+COPY --chown=app:app scripts scripts
+COPY --chown=app:app tmp tmp
+COPY --chown=app:app VERSION VERSION
+COPY --chown=app:app app app
+COPY --chown=app:app config config
+COPY --chown=app:app db db
+COPY --chown=app:app log log
+COPY --chown=app:app public public
+COPY --chown=app:app vendor vendor
 
-WORKDIR $RAILS_ROOT
-
-# Setting env up
-ENV RAILS_ENV='production'
-ENV RAKE_ENV='production'
-
-# Install gems
-COPY Gemfile Gemfile
-COPY Gemfile.lock Gemfile.lock
-RUN bundle install --jobs 20 --retry 5 --without development test
-
-# Adding project files
-COPY . .
+# Precompile assets
 RUN bundle exec rake assets:precompile
 
-EXPOSE 3000
+USER root
+RUN rm /etc/nginx/sites-enabled/default
+ADD templates/step-ahead.com.conf /etc/nginx/sites-enabled/step-ahead.com.conf
 
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+# This file tells ngnix which env vars to retain. The rest will be deleted.
+ADD templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 
+# Handle SSL
+ADD templates/sa-onpremise.crt /etc/ssl/certs/sa-onpremise.crt
+ADD templates/sa-onpremise.key /etc/ssl/private/sa-onpremise.key
+ADD templates/ssl-params.conf /etc/nginx/snippets/ssl-params.conf
+
+# Select ruby
+RUN bash -lc 'rvm --default use ruby-2.4.4'
+
+# Clean up APT when done.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

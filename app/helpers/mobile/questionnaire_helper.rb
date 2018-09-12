@@ -2,7 +2,7 @@ module Mobile
 module QuestionnaireHelper
   require 'csv'
 
-  EVENT_TYPE = 'QUESTIONNAIRE'
+  EVENT_TYPE ||= 'QUESTIONNAIRE'
 
   def add_pending_questionnaire(questionnaire_participants, sender_type, type = nil)
     if type.nil?
