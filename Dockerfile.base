@@ -11,8 +11,13 @@ CMD ["/sbin/my_init"]
 # Enable ngnix and passenger
 RUN rm -f /etc/service/nginx/down
 
+# Create server directory
 RUN mkdir /home/app/sa
 RUN chown app:app /home/app/sa
+
+# Create assets directory
+RUN mkdir /home/app/html
+RUN chown app:app /home/app/html
 
 USER app
 WORKDIR /home/app/sa

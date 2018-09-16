@@ -12,4 +12,8 @@ karma.conf.js
 
 stat-karma.conf.js
 
-tmp
+tmp/cache
+tmp/data
+tmp/pids
+tmp/sessions
+tmp/sockets

@@ -21,17 +21,21 @@ COPY --chown=app:app vendor vendor
 # Precompile assets
 RUN bundle exec rake assets:precompile
 
+# Get client side assest
+COPY --chown=app:app dist /home/app/html
+
 USER root
 RUN rm /etc/nginx/sites-enabled/default
-ADD templates/step-ahead.com.conf /etc/nginx/sites-enabled/step-ahead.com.conf
+COPY templates/step-ahead.com.conf /etc/nginx/sites-enabled/step-ahead.com.conf
 
 # This file tells ngnix which env vars to retain. The rest will be deleted.
-ADD templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
+COPY templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 
 # Handle SSL
-ADD templates/sa-onpremise.crt /etc/ssl/certs/sa-onpremise.crt
-ADD templates/sa-onpremise.key /etc/ssl/private/sa-onpremise.key
-ADD templates/ssl-params.conf /etc/nginx/snippets/ssl-params.conf
+COPY templates/step-ahead.com.crt /etc/ssl/certs/step-ahead.com.crt
+COPY templates/step-ahead.com.key /etc/ssl/private/step-ahead.com.key
+
+COPY templates/ssl-params.conf /etc/nginx/snippets/ssl-params.conf
 
 # Select ruby
 RUN bash -lc 'rvm --default use ruby-2.4.4'
