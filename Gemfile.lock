@@ -618,6 +618,9 @@ GEM
     parallel (1.11.2)
     parser (2.4.0.0)
       ast (~> 2.2)
+    passenger (5.3.4)
+      rack
+      rake (>= 0.8.1)
     pg (0.21.0)
     phantomjs (2.1.1.0)
     powerpack (0.1.1)
@@ -722,7 +725,7 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    scss-lint (0.38.0)
+    scss_lint (0.38.0)
       rainbow (~> 2.0)
       sass (~> 3.4.1)
     seed_dump (3.2.4)
@@ -824,6 +827,7 @@ DEPENDENCIES
   nmatrix
   oj
   oj_mimic_json
+  passenger (= 5.3.4)
   pg
   pundit
   rack-cors
@@ -835,7 +839,7 @@ DEPENDENCIES
   ruby-prof
   sass (= 3.4.1)
   sass-rails
-  scss-lint (~> 0.38.0)
+  scss_lint (~> 0.38.0)
   seed_dump
   simplecov
   spork

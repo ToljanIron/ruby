@@ -1,4 +1,4 @@
-Company.create!(
+Company.find_or_create_by(
   id: 1,
   name: 'Acme',
   product_type: 'full',

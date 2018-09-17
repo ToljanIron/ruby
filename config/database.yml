@@ -12,13 +12,16 @@ development-sndcom:
   <<: *default
   database: workships_ext
 
-development:
+development-qqq:
   <<: *default
-  database: workships_app
+  host: localhost
+  database: workships_ext
   username: workships
-  port: 5433
+  password: workships
+  port: 5432
 
-onpremise:
+#onpremise:
+development:
   <<: *default
   database: workships_app
 

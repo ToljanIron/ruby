@@ -177,7 +177,8 @@ module CdsUtilHelper
   end
   ############################## SQL helper functions ################################3
   def is_sql_server_connection?
-    return ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+    return false
+    #return ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
   end
 
   def sql_concat(a,b)
