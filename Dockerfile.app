@@ -35,10 +35,17 @@ COPY templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 COPY templates/step-ahead.com.crt /etc/ssl/certs/step-ahead.com.crt
 COPY templates/step-ahead.com.key /etc/ssl/private/step-ahead.com.key
 
-COPY templates/ssl-params.conf /etc/nginx/snippets/ssl-params.conf
+COPY templates/ssl-params.conf.template /etc/nginx/snippets/ssl-params.conf.template
+RUN cp /etc/nginx/snippets/ssl-params.conf.template /etc/nginx/snippets/ssl-params.conf
+
+COPY templates/www-data-permissions /etc/sudoers.d/www-data-permissions
 
 # Select ruby
 RUN bash -lc 'rvm --default use ruby-2.4.4'
+
+# Sudo
+RUN apt-get update
+RUN apt-get -y -qq install sudo
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

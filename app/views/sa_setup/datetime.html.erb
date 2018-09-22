@@ -1,0 +1,32 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    Please enter date and time relevant for your location.<br>
+    These are acceptable date formats:<br>
+    <br>
+    &nbsp;&nbsp;YYYY-MM-DD<br>
+    &nbsp;&nbsp;YYYY/MM/DD<br>
+    &nbsp;&nbsp;YYYY.MM.DD<br>
+    <br>
+    This is the acceptable time format:<br>
+    <br>
+    &nbsp;&nbsp;HH:MM<br>
+  </div>
+  <br><br>
+
+  <form id="sasform" action="/sa_setup/datetime" method="post">
+
+      <label class="sas-input-label">Date:
+        <input class="sas-input-text" type="text" name="date">
+      </label>
+
+      <br><br>
+
+      <label class="sas-input-label">Time:
+        <input class="sas-input-text" type="text" name="time">
+      </label>
+
+      <br><br><br><br>
+      <button class="sas-submit-btn">Save</button>
+
+  </form>
+</div>

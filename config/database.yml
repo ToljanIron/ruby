@@ -57,15 +57,8 @@ development-sqlserver:
 
 # for on premise installtion
 production:
-  adapter: postgresql
-  encoding: unicode
-  pool: 5
-  host: sa_db
-  port: 5432
-  username: 'workships'
-  password: 'workships'
-  timeout: 5000
-  database: workships
+  <<: *default
+  database: workships_app
 
 production-sqlserver:
   mode: dblib

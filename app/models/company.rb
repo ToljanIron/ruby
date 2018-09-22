@@ -25,6 +25,19 @@ class Company < ActiveRecord::Base
 
   enum product_type: [:full, :questionnaire_only]
 
+  enum setup_state: [
+    :init,
+    :server_name,
+    :datetime,
+    :certs,
+    :restart_after_certs,
+    :system_verification,
+    :log_files_location,
+    :log_files_location_verification,
+    :gpg_passphrase,
+    :it_done
+  ]
+
   def self.required_chars_options
     return ['AB', 'ab', '123', '#$%^&']
   end

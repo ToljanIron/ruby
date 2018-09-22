@@ -105,6 +105,31 @@ class Object
     return ret
   end
 
+  def is_url?
+    return false if self.nil?
+    return self.match(/^[a-zA-Z0-9\-\.]*$/)
+  end
+
+  def is_date?
+    return false if self.nil?
+    begin
+      Date.parse(self)
+    rescue
+      return false
+    end
+    return true
+  end
+
+  def is_time?
+    return false if self.nil?
+    begin
+      Time.parse(self)
+    rescue
+      return false
+    end
+    return true
+  end
+
   def is_alphanumeric?
     return false if self.nil?
     return self.match(/[!@\#$%\^&\*)(\+=}{\\\?\s]+/).nil?
@@ -123,6 +148,24 @@ class Object
   def specific_safe_sanitize
     return self if yield
     return nil
+  end
+
+  def sanitize_url
+    return specific_safe_sanitize do
+      is_url?
+    end
+  end
+
+  def sanitize_date
+    return specific_safe_sanitize do
+      is_date?
+    end
+  end
+
+  def sanitize_time
+    return specific_safe_sanitize do
+      is_time?
+    end
   end
 
   def safe_sanitize_integer
