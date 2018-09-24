@@ -1,0 +1,21 @@
+#!/usr/bin/zsh -l
+
+export PROJECT_HOME=/home/dev/Development/workships
+export ASSETS_PATH=$PROJECT_HOME/public/assets
+
+if [ "$1" = "--clear-assets" ] || [ "$1" = "-c" ]; then
+  cd $ASSETS_PATH
+  ls | awk '$0 ~ /.*-[0-9a-z]{30,}\..*/ {print}' | xargs rm
+  rm -rf v2
+  rm -f .sprockets-manifest-*.json
+  exit 0
+fi
+
+cd $PROJECT_HOME
+
+if [ "$1" = "--build-assets" ] || [ "$1" = "-b" ]; then
+  RAILS_ENV=onpremise bundle exec rake assets:precompile
+fi
+
+# docker build -t app-base -f Dockerfile.base .
+docker build -t app-img -f Dockerfile.app .

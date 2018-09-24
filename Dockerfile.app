@@ -18,9 +18,6 @@ COPY --chown=app:app log log
 COPY --chown=app:app public public
 COPY --chown=app:app vendor vendor
 
-# Precompile assets
-RUN bundle exec rake assets:precompile
-
 # Get client side assest
 COPY --chown=app:app dist /home/app/html
 
