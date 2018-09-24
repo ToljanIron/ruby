@@ -56,3 +56,18 @@ echo "Update ssl-params.conf"
 cp $SSL_PARAMS_FILE.template $SSL_PARAMS_FILE
 sed -i -e "s+SSL_CERT_FILE+$OUT_CERT_PATH+" $SSL_PARAMS_FILE
 sed -i -e "s+SSL_KEY_FILE+$OUT_KEY_PATH+" $SSL_PARAMS_FILE
+
+## Update site
+cd etc/nginx/sites-enabled
+rm step-ahead.com.conf
+ln -s /etc/nginx/sites-available/sa-nginx.conf.ssltemplate $DOMAIN.conf
+sed -i -e s/LOCAL_DOMAIN/$DOMAIN/ sa-nginx.conf.ssltemplate
+
+## Update system SSL setting
+sed -i -e "s/config.force_ssl = false/config.force_ssl = true/" /home/app/sa/config/environments/onpremise.rb
+
+## restart nginx
+service nginx stop
+service nginx start
+
+

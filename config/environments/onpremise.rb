@@ -67,7 +67,7 @@ Workships::Application.configure do
 
   # Precompile additional assets.
   # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
-  config.assets.precompile += %w( v1.js v2.js v1.css v2.css signin_logic.js signin_style.css mobile.css mobile.js)
+  config.assets.precompile += %w( v1.js v2.js v1.css v2.css signin_logic.js signin_style.css mobile.css mobile.js sa_setup.css sa_setup.js)
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

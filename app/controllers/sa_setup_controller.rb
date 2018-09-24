@@ -73,10 +73,11 @@ class SaSetupController < ActionController::Base
     end
 
     # Move file to final location (take this value from ENV)
-    new_path = "#{ENV['SSL_CERT_FILE_PATH']}/#{file_name}"
-    `mv #{path} #{new_path}`
-    `chmod 600 #{new_path}`
-
+    if Rails.env.production? || Rails.env.onpremise?
+      `nohup scripts/ssl_setup.sh >> /home/app/sa/log/onpremise.log 2>&1 &`
+    else
+      `nohup scripts/ssl_setup.sh >> /home/app/sa/log/development.log 2>&1 &`
+    end
 
     redirect_to controller: 'sa_setup', action: 'base'
   end

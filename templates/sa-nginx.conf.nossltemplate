@@ -1,0 +1,10 @@
+
+server {
+    listen 80;
+    root /home/app/sa/public;
+
+    passenger_enabled on;
+    passenger_user app;
+    passenger_ruby /usr/bin/ruby2.4;
+    passenger_app_env onpremise;
+}

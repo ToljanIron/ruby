@@ -25,15 +25,18 @@ RUN bundle exec rake assets:precompile
 COPY --chown=app:app dist /home/app/html
 
 USER root
+COPY templates/sa-nginx.conf.nossltemplate /etc/nginx/sites-available/sa-nginx.conf.nossltemplate
+COPY templates/sa-nginx.conf.ssltemplate /etc/nginx/sites-available/sa-nginx.conf.ssltemplate
 RUN rm /etc/nginx/sites-enabled/default
-COPY templates/step-ahead.com.conf /etc/nginx/sites-enabled/step-ahead.com.conf
+RUN ln -s /etc/nginx/sites-available/sa-nginx.conf.nossltemplate /etc/nginx/sites-enabled/step-ahead.com.conf
 
-# This file tells ngnix which env vars to retain. The rest will be deleted.
+# This file tells ngnix which env vars to retain. The rest are deleted.
 COPY templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 
 # Handle SSL
 COPY templates/step-ahead.com.crt /etc/ssl/certs/step-ahead.com.crt
 COPY templates/step-ahead.com.key /etc/ssl/private/step-ahead.com.key
+RUN sed -i -e "s/config.force_ssl = true/config.force_ssl = false/" /home/app/sa/config/environments/onpremise.rb
 
 COPY templates/ssl-params.conf.template /etc/nginx/snippets/ssl-params.conf.template
 RUN cp /etc/nginx/snippets/ssl-params.conf.template /etc/nginx/snippets/ssl-params.conf
