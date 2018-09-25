@@ -22,7 +22,7 @@ class SaSetupController < ActionController::Base
       value: server_name,
       comp_id: -1
     )
-    Company.update(setup_state: :server_name)
+    Company.last.update(setup_state: :server_name)
     redirect_to controller: 'sa_setup', action: 'base'
   end
 
@@ -46,7 +46,7 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    Company.update(setup_state: :datetime)
+    Company.last.update(setup_state: :datetime)
     redirect_to controller: 'sa_setup', action: 'base'
   end
 
@@ -110,7 +110,94 @@ class SaSetupController < ActionController::Base
       `nohup sudo /home/app/sa/scripts/ssl_setup.sh onpremise >> /home/app/sa/log/development.log 2>&1 &`
     end
 
+    Company.last.update(setup_state: :certs)
     redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def log_files_location
+    redirect_if_needed
+    puts "in log_files_location"
+  end
+
+  def log_files_location_set
+    puts "in log_files_location_set"
+    params.permit(:sftpHost, :sftpUser, :sftpPassword)
+
+    host = params[:sftpHost].sanitize_url
+    if host.nil?
+      redirect_to_error("Bad value for host name: #{params[:sftpHost]}")
+      return
+    end
+
+    user = params[:sftpUser].sanitize_is_alphanumeric
+    if user.nil?
+      redirect_to_error("Bad value for username: #{params[:sftpUser]}")
+      return
+    end
+
+    pass = params[:sftpPassword].sanitize_is_alphanumeric
+    if pass.nil?
+      redirect_to_error("Bad value for password: #{params[:sftpPassword]}")
+      return
+    end
+
+    CompanyConfigurationTable.find_or_create_by(
+      key: 'COLLECTOR_TRNAS_TYPE',
+      value: 'SFTP',
+      comp_id: -1
+    )
+    CompanyConfigurationTable.find_or_create_by(
+      key: 'COLLECTOR_TRNAS_HOST',
+      value: host,
+      comp_id: -1
+    )
+    CompanyConfigurationTable.find_or_create_by(
+      key: 'COLLECTOR_TRNAS_USER',
+      value: user,
+      comp_id: -1
+    )
+    CompanyConfigurationTable.find_or_create_by(
+      key: 'COLLECTOR_TRNAS_PASSWORD',
+      value: pass,
+      comp_id: -1
+    )
+
+    Company.last.update(setup_state: :log_files_location)
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def log_files_location_verification
+    puts "in log_files_location_verification"
+    Company.last.update(setup_state: :gpg_passphrase)
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def gpg_passphrase
+    redirect_if_needed
+    puts "in gpg_passphrase"
+  end
+
+  def gpg_passphrase_set
+    puts "in gpg_passphrase"
+    params.permit(:gpgPassphrase)
+
+    gpgpass = params[:gpgPassphrase].sanitize_is_alphanumeric
+    if gpgpass.nil?
+      redirect_to_error("Bad GPG passphrase: #{params[:gpgPassphrase]}")
+      return
+    end
+
+    CompanyConfigurationTable.find_or_create_by(
+      key: 'COLLECTOR_DECRYPTION_PASSPHRASE',
+      value: CdsUtilHelper.encrypt(gpgpass),
+      comp_id: -1
+    )
+    Company.last.update(setup_state: :it_done)
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def it_done
+    puts "in gpg_passphrase"
   end
 
   def form_error
@@ -136,20 +223,18 @@ class SaSetupController < ActionController::Base
     when 'datetime'
       redirect_to controller: 'sa_setup', action: 'certs' unless curr_action == 'certs'
     when 'certs'
-      redirect_to controller: 'sa_setup', action: 'restart_after_certs' unless curr_action == 'restart_after_certs'
-    when 'restart_after_certs'
-      redirect_to controller: 'sa_setup', action: 'system_verification' unless curr_action == 'system_verification'
-    when 'system_verification'
       redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location'
-      redirect_to controller: 'sa_setup', action: 'log_files_location_verification' unless curr_action == 'log_files_location_verification'
+      #redirect_to controller: 'sa_setup', action: 'log_files_location_verification' unless curr_action == 'log_files_location_verification'
+      redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
     when 'log_files_location_verification'
       redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
     when 'gpg_passphrase'
-      redirect_to root_path
+      redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
+    when 'it_done'
+      redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
     else
       raise "Illegal setup_state: #{setup_state}"
     end
-
   end
 end

@@ -1,0 +1,29 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    This system  access to Exchange Message Tracking log files. It collects the files from a predfined SFTP server. <br>
+    Please fill the definitions in this page to enable the system to successfully access the files.
+    User and password fields are expected to include alphanumeric characters only.
+  </div>
+  <br><br>
+
+  <form id="sasform" action="/sa_setup/log_files_location" method="post">
+
+    <label class="sas-input-label">SFTP Host Address:<br><br>
+      <input class="sas-input-text" type="text" name="sftpHost">
+    </label>
+    <br><br>
+
+    <label class="sas-input-label">SFTP User:<br><br>
+      <input class="sas-input-text" type="text" name="sftpUser">
+    </label>
+    <br><br>
+
+    <label class="sas-input-label">SFTP Password:<br><br>
+      <input class="sas-input-text" type="password" name="sftpPassword">
+    </label>
+
+    <br><br><br><br>
+    <button class="sas-submit-btn">Save</button>
+
+  </form>
+</div>
