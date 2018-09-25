@@ -59,6 +59,11 @@ class SaSetupController < ActionController::Base
     puts "in certs_set"
     params.permit(:certFile, :keyFile)
 
+
+    ########################################################################################
+    # Work on the CRT file
+    ########################################################################################
+
     # Save file to /tmp
     cert_file = params[:certFile][:file]
     file_name = cert_file.original_filename
@@ -72,11 +77,37 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    # Move file to final location (take this value from ENV)
+    ########################################################################################
+    # Work on the KEY file
+    ########################################################################################
+
+    # Save file to /tmp
+    key_file = params[:keyFile][:file]
+    file_name = key_file.original_filename
+    path = File.join("/tmp", file_name)
+    File.open(path, "wb") { |f| f.write(key_file.read) }
+
+    # Verify file
+    is_valid = `openssl rsa -in #{path} -check 2> /dev/null; echo $?;`.to_i === 0
+    if !is_valid
+      redirect_to_error("Key file is invalid: #{file_name}")
+      return
+    end
+
+    ########################################################################################
+    # This script will do the following:
+    #   1. Move the crt file to its promer location
+    #   2. Change ownership to root
+    #   3. Set permissions on it
+    #   4. Repeat 1,2,3 on the key file
+    #   5. Set the correct certificate name and location in ssl-params.conf
+    #   6. Update sites-enabled to a SSL site
+    #   7. Set config.force_ssl to "true" in the environemt file
+    ########################################################################################
     if Rails.env.production? || Rails.env.onpremise?
-      `nohup scripts/ssl_setup.sh >> /home/app/sa/log/onpremise.log 2>&1 &`
+      `nohup sudo /home/app/sa/scripts/ssl_setup.sh onpremise >> /home/app/sa/log/onpremise.log 2>&1 &`
     else
-      `nohup scripts/ssl_setup.sh >> /home/app/sa/log/development.log 2>&1 &`
+      `nohup sudo /home/app/sa/scripts/ssl_setup.sh onpremise >> /home/app/sa/log/development.log 2>&1 &`
     end
 
     redirect_to controller: 'sa_setup', action: 'base'

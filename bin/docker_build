@@ -14,8 +14,20 @@ fi
 cd $PROJECT_HOME
 
 if [ "$1" = "--build-assets" ] || [ "$1" = "-b" ]; then
+  echo "Compiling rails assets"
+  echo "=============================="
   RAILS_ENV=onpremise bundle exec rake assets:precompile
 fi
 
-# docker build -t app-base -f Dockerfile.base .
+#docker build -t app-base -f Dockerfile.base .
+echo "Stopping containers"
+echo "=============================="
+sa-run stop
+
+echo "Building docker"
+echo "=============================="
 docker build -t app-img -f Dockerfile.app .
+
+echo "Starting containers"
+echo "=============================="
+sa-run
