@@ -193,6 +193,13 @@ class SaSetupController < ActionController::Base
       comp_id: -1
     )
     Company.last.update(setup_state: :it_done)
+
+    if Rails.env.production? || Rails.env.onpremise?
+      `nohup sudo /home/app/sa/scripts/cron_setup.sh >> /home/app/sa/log/onpremise.log 2>&1 &`
+    else
+      `nohup sudo /home/app/sa/scripts/icron_setup.sh >> /home/app/sa/log/development.log 2>&1 &`
+    end
+
     redirect_to controller: 'sa_setup', action: 'base'
   end
 
