@@ -17,11 +17,10 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    CompanyConfigurationTable.find_or_create_by(
+    CompanyConfigurationTable.find_by(
       key: 'APP_SERVER_NAME',
-      value: server_name,
       comp_id: -1
-    )
+    ).update(value: server_name)
     Company.last.update(setup_state: :server_name)
     redirect_to controller: 'sa_setup', action: 'base'
   end
@@ -141,26 +140,22 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    CompanyConfigurationTable.find_or_create_by(
+    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_TYPE',
-      value: 'SFTP',
       comp_id: -1
-    )
-    CompanyConfigurationTable.find_or_create_by(
+    ).update(value: 'SFTP')
+    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_HOST',
-      value: host,
       comp_id: -1
-    )
-    CompanyConfigurationTable.find_or_create_by(
+    ).update(value: host)
+    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_USER',
-      value: user,
       comp_id: -1
-    )
-    CompanyConfigurationTable.find_or_create_by(
+    ).update(value: user)
+    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_PASSWORD',
-      value: pass,
       comp_id: -1
-    )
+    ).update(value: CdsUtilHelper.encrypt(pass))
 
     Company.last.update(setup_state: :log_files_location)
     redirect_to controller: 'sa_setup', action: 'base'
@@ -187,11 +182,10 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    CompanyConfigurationTable.find_or_create_by(
+    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_DECRYPTION_PASSPHRASE',
-      value: CdsUtilHelper.encrypt(gpgpass),
       comp_id: -1
-    )
+    ).update( value: CdsUtilHelper.encrypt(gpgpass) )
     Company.last.update(setup_state: :it_done)
 
     if Rails.env.production? || Rails.env.onpremise?
