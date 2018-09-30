@@ -22,7 +22,7 @@ fi
 #docker build -t app-base -f Dockerfile.base .
 echo "Stopping containers"
 echo "=============================="
-sa-run stop
+sarun stop
 
 echo "Building docker"
 echo "=============================="
@@ -30,4 +30,4 @@ docker build -t app-img -f Dockerfile.app .
 
 echo "Starting containers"
 echo "=============================="
-sa-run
+sarun

@@ -120,7 +120,7 @@ class SaSetupController < ActionController::Base
 
   def log_files_location_set
     puts "in log_files_location_set"
-    params.permit(:sftpHost, :sftpUser, :sftpPassword)
+    params.permit(:sftpHost, :sftpUser, :sftpPassword, :sftpLogsDir)
 
     host = params[:sftpHost].sanitize_url
     if host.nil?
@@ -140,6 +140,12 @@ class SaSetupController < ActionController::Base
       return
     end
 
+    logs_dir = params[:sftpLogsDir].sanitize_is_alphanumeric
+    if pass.nil?
+      redirect_to_error("Bad value for log files directory: #{params[:sftpLogsDir]}")
+      return
+    end
+
     CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_TYPE',
       comp_id: -1
@@ -156,6 +162,10 @@ class SaSetupController < ActionController::Base
       key: 'COLLECTOR_TRNAS_PASSWORD',
       comp_id: -1
     ).update(value: CdsUtilHelper.encrypt(pass))
+    CompanyConfigurationTable.find_by(
+      key: 'COLLECTOR_TRNAS_SRC_DIR',
+      comp_id: -1
+    ).update(value: logs_dir)
 
     Company.last.update(setup_state: :log_files_location)
     redirect_to controller: 'sa_setup', action: 'base'
