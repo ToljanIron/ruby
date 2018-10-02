@@ -44,6 +44,11 @@ Workships::Application.routes.draw do
   get  '/sa_setup/gpg_passphrase',          to: 'sa_setup#gpg_passphrase'
   post '/sa_setup/gpg_passphrase',          to: 'sa_setup#gpg_passphrase_set'
   get  '/sa_setup/it_done',                 to: 'sa_setup#it_done'
+  get  '/sa_setup/system_definitions',      to: 'sa_setup#upload_company'
+  post '/sa_setup/employees_excel',         to: 'sa_setup#employees_excel'
+  get  '/sa_setup/standby_or_push',         to: 'sa_setup#standby_or_push'
+  get  '/sa_setup/goto_system',             to: 'sa_setup#goto_system'
+  get  '/sa_setup/collect_now',             to: 'sa_setup#collect_now'
 
   ############## Interact ##########################################
   get  '/interact_backoffice',                          to: 'interact_backoffice#questionnaire'

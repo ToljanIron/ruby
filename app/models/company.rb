@@ -35,7 +35,12 @@ class Company < ActiveRecord::Base
     :log_files_location,
     :log_files_location_verification,
     :gpg_passphrase,
-    :it_done
+    :it_done,
+    :upload_company,
+    :standby_or_push,
+    :push,
+    :push_done,
+    :ready
   ]
 
   def self.required_chars_options

@@ -1,3 +1,5 @@
+include ImportDataHelper
+
 class SaSetupController < ActionController::Base
 
   def base
@@ -208,7 +210,47 @@ class SaSetupController < ActionController::Base
   end
 
   def it_done
-    puts "in gpg_passphrase"
+    puts "in it_done"
+  end
+
+  def upload_company
+    puts "in upload_company"
+    if Employee.count > 0
+      Company.last.update(setup_state: :standby_or_push)
+      redirect_to controller: 'sa_setup', action: 'base'
+    end
+    Company.last.update(setup_state: :upload_company)
+  end
+
+  def employees_excel
+    puts "Uploading employees_excel"
+    params.permit(:empsExcel)
+    emps_file = params[:empsExcel][:file]
+
+    _, errors = load_excel_sheet(1, emps_file, 1, true)
+    if !errors.nil? && errors.count > 0
+      redirect_to_error("Upload errors: #{errors}")
+      return
+    end
+
+    Company.last.update(setup_state: :standby_or_push)
+
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def standby_or_push
+    puts "in standby_or_push"
+  end
+
+  def goto_system
+    puts "in goto_system"
+    Company.last.update(setup_state: :ready)
+    render plain: "Done"
+  end
+
+  def collect_now
+    puts "in collect_now"
+    Company.last.update(setup_state: :push)
   end
 
   def form_error
@@ -244,6 +286,15 @@ class SaSetupController < ActionController::Base
       redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
     when 'it_done'
       redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
+    when 'upload_company'
+      redirect_to controller: 'sa_setup', action: 'upload_company' unless curr_action == 'upload_company'
+
+    when 'standby_or_push'
+      redirect_to controller: 'sa_setup', action: 'standby_or_push' unless curr_action == 'standby_or_push'
+    when 'goto_system'
+      redirect_to controller: 'sa_setup', action: 'goto_system' unless curr_action == 'goto_system'
+    when 'collect_now'
+      redirect_to controller: 'sa_setup', action: 'collect_now' unless curr_action == 'collect_now'
     else
       raise "Illegal setup_state: #{setup_state}"
     end
