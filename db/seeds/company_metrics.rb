@@ -1,0 +1,6 @@
+require './lib/tasks/modules/create_comapny_metrics_for_new_algorithms_seed_to_cds_helper.rb'
+include CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper
+
+COMPANY_ID = 1
+
+CreateComapnyMetricsForNewAlgorithmsSeedToCdsHelper.create_comapny(COMPANY_ID)

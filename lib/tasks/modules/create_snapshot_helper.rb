@@ -17,6 +17,11 @@ module CreateSnapshotHelper
   def create_company_snapshot_by_weeks(cid, date, create_measures_snapshots = true)
     end_date = calculate_end_date_of_snapshot(date, cid)
     prev_sid = Snapshot.last_snapshot_of_company(cid)
+
+    start_date = end_date - get_period_of_weeks(cid).to_i.week
+    total_raw_data_entries = RawDataEntry.where(company_id: cid, date: start_date..end_date).count
+    return nil if total_raw_data_entries == 0
+
     name = create_snapshot_by_week_name(end_date, cid)
     if !exist_snapshot?(cid, name)
       snapshot = Snapshot.create(name: name, snapshot_type: nil, timestamp: end_date, company_id: cid)
