@@ -1,3 +1,6 @@
+require 'oj'
+require 'oj_mimic_json'
+
 include ImportDataHelper
 
 class SaSetupController < ActionController::Base
@@ -234,7 +237,6 @@ class SaSetupController < ActionController::Base
     end
 
     Company.last.update(setup_state: :standby_or_push)
-
     redirect_to controller: 'sa_setup', action: 'base'
   end
 
@@ -251,6 +253,24 @@ class SaSetupController < ActionController::Base
   def collect_now
     puts "in collect_now"
     Company.last.update(setup_state: :push)
+    PushProc.create(company_id: Company.last.id)
+    Delayed::Job.enqueue(
+      HistoricalDataJob.new,
+      queue: 'collector_queue',
+      run_at: 5.hours.ago
+    )
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
+  def push
+    puts "in push"
+  end
+
+  def get_push_state
+    puts "In get_push_state"
+    pp = Company.last.push_proc
+    render json: Oj.dump( pp ), status: 200
+
   end
 
   def form_error
@@ -288,13 +308,14 @@ class SaSetupController < ActionController::Base
       redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
     when 'upload_company'
       redirect_to controller: 'sa_setup', action: 'upload_company' unless curr_action == 'upload_company'
-
     when 'standby_or_push'
       redirect_to controller: 'sa_setup', action: 'standby_or_push' unless curr_action == 'standby_or_push'
     when 'goto_system'
       redirect_to controller: 'sa_setup', action: 'goto_system' unless curr_action == 'goto_system'
     when 'collect_now'
       redirect_to controller: 'sa_setup', action: 'collect_now' unless curr_action == 'collect_now'
+    when 'push'
+      redirect_to controller: 'sa_setup', action: 'push' unless curr_action == 'push'
     else
       raise "Illegal setup_state: #{setup_state}"
     end

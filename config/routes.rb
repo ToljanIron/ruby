@@ -49,6 +49,8 @@ Workships::Application.routes.draw do
   get  '/sa_setup/standby_or_push',         to: 'sa_setup#standby_or_push'
   get  '/sa_setup/goto_system',             to: 'sa_setup#goto_system'
   get  '/sa_setup/collect_now',             to: 'sa_setup#collect_now'
+  get  '/sa_setup/push',                    to: 'sa_setup#push'
+  get  '/sa_setup/get_push_state',          to: 'sa_setup#get_push_state'
 
   ############## Interact ##########################################
   get  '/interact_backoffice',                          to: 'interact_backoffice#questionnaire'

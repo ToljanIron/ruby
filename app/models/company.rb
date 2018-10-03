@@ -11,6 +11,7 @@ class Company < ActiveRecord::Base
   has_many :questionnaire
   has_many :snapshots
   has_many :alerts
+  has_one :push_proc
 
   has_many :netowrk_snapshot_data
 

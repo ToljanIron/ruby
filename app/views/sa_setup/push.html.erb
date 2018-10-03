@@ -1,0 +1,52 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    The system is processing now the Message Tracking log files it found. This will take some time, depending<br>
+    on the number of files.<br>
+    Processing the log files requires 4 steps:<br>
+    - Pull the files into the system<br>
+    - Parse their content<br>
+    - Create snapshots which are networks related to every week<br>
+    - Analyse and organize the data in each snapshot<br>
+    <br>
+    Progress of these steps is reflected in the dashboard below.<br>
+    Once done, the <u>Proceed to System</u> button at the bottom will become enabled.
+  </div>
+  <br><br>
+
+  <label class="sas-label">Number of files:</label>
+  <div id="sasNumOfLogfiles" class="sas-data">17</div>
+  <br>
+
+  <label class="sas-label">Number of files processed:</label>
+  <div id="sasNumOfLogfilesProcessed" class="sas-data"></div>
+  <br>
+
+  <label class="sas-label">Number of snapshots:</label>
+  <div id="sasNumOfSnapshots" class="sas-data"></div>
+  <br>
+
+  <label class="sas-label">Number of snapshots created:</label>
+  <div id="sasNumOfSnapshotsCreated" class="sas-data"></div>
+  <br>
+
+  <label class="sas-label">Number of snapshots processed:</label>
+  <div id="sasNumOfSnapshotsProcessed" class="sas-data"></div>
+  <br>
+
+  <br><br><br><br>
+
+  <form id="sasform" action="/sa_setup/push_done" method="get">
+    <button class="sas-submit-btn">Proceed To System</button>
+  </form>
+</div>
+
+<script>
+window.onload = sas.updatePushState
+/**
+(function() {
+  console.log("qqqqqqqqqqqqqqq");
+
+  sas.updatePushState();
+})();
+*/
+</script>
