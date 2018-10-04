@@ -59,8 +59,8 @@ module AnalyzeHistoricalDataHelper
       puts "Working on snapshot: #{sid}. #{ii} out of #{snapshots_arr.size}"
       puts "#################################################################"
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid, -1, -1, -1, sid, true)
-      #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(cid, sid, true)
-      #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(cid, sid, true)
+      PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(cid, sid, true)
+      PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(cid, sid, true)
       PushProc.last.update(num_snapshots_processed: ii)
     end
 

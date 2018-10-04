@@ -357,7 +357,6 @@ module MeasuresHelper
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN groups AS g ON g.id = emps.group_id
-      JOIN offices AS off ON off.id = emps.office_id
       JOIN algorithms AS algo ON algo.id = cds.algorithm_id
       JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
       JOIN metric_names AS mn ON mn.id = cm.metric_id
@@ -374,7 +373,6 @@ module MeasuresHelper
       JOIN snapshots AS s ON cds.snapshot_id = s.id
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN groups AS g ON g.id = cds.group_id
-      JOIN offices AS off ON off.id = emps.office_id
       JOIN algorithms AS algo ON algo.id = cds.algorithm_id
       JOIN company_metrics AS cm ON cm.algorithm_id = cds.algorithm_id
       JOIN metric_names AS mn ON mn.id = cm.metric_id

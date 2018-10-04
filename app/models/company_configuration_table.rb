@@ -16,8 +16,8 @@ class CompanyConfigurationTable < ActiveRecord::Base
 
   MAX_LOGIN_ATTMEPTS = 5
   LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS = 300
-
   HIDE_EMPLOYEES     = 'hide_employee_names'
+  MIN_EMPS_IN_GROUP_FOR_ALGORITHMS = 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS'
 
   belongs_to :company, foreign_key: 'comp_id'
 
@@ -124,5 +124,16 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return ret if entry.nil?
     return ret if entry.first.nil?
     return entry.first.value
+  end
+
+
+  ## Some algorithms will ignore groups having less employees
+  def self.min_emps_in_group_for_algorithms
+    ret = 10
+    entry = CompanyConfigurationTable
+              .where(comp_id: -1, key: MIN_EMPS_IN_GROUP_FOR_ALGORITHMS)
+    return ret if entry.nil?
+    return ret if entry.first.nil?
+    return entry.first.value.to_i
   end
 end

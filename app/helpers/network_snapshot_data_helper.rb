@@ -391,8 +391,8 @@ module NetworkSnapshotDataHelper
             .joins('JOIN colors AS col ON col.id = g.color_id')
             .joins("LEFT JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id AND cds.algorithm_id = #{aid}")
             .joins('JOIN snapshots AS sn ON sn.id = emps.snapshot_id')
-            .joins('JOIN offices AS o ON o.id = emps.office_id')
-            .joins('JOIN job_titles AS jt ON jt.id = emps.job_title_id')
+            .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
+            .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
             .group('emps.external_id, first_name, last_name, g.name, g.id, col,
