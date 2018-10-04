@@ -12,8 +12,10 @@ namespace :db do
     msg = "Starting historical data processing for company: #{cid}"
     puts msg
     EventLog.log_event(message: msg)
+
     AnalyzeHistoricalDataHelper.run(cid)
-    msg "Done with historical data processing job"
+
+    msg = "Done with historical data processing job"
     puts msg
     EventLog.log_event(message: msg)
   end

@@ -43,9 +43,9 @@ module AnalyzeHistoricalDataHelper
       snapshot = CreateSnapshotHelper::create_company_snapshot_by_weeks(cid, date.to_s, true)
       next if snapshot.nil?
       snapshots_arr.push(snapshot)
-      puts "########################## 1"
+      puts "#################################################################"
       puts "Create snapshot of week of the: #{date}, sid: #{snapshot.id}"
-      puts "########################## 1"
+      puts "#################################################################"
       PushProc.last.update(num_snapshots_created: PushProc.last.num_snapshots_created + 1)
     end
 
@@ -55,9 +55,9 @@ module AnalyzeHistoricalDataHelper
     snapshots_arr.each do |snapshot|
       sid = snapshot.id
       ii += 1
-      puts "########################## 2"
+      puts "#################################################################"
       puts "Working on snapshot: #{sid}. #{ii} out of #{snapshots_arr.size}"
-      puts "########################## 2"
+      puts "#################################################################"
       PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid, -1, -1, -1, sid, true)
       #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(cid, sid, true)
       #PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(cid, sid, true)
