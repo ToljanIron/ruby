@@ -25,6 +25,10 @@ protractor:
 
 test:
   <<: *default
+  datebase: localhost
+  port: 5432
+  username: workships
+  password: workships
   database: workships_test
 
 test-old:

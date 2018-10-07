@@ -205,6 +205,18 @@ class Group < ActiveRecord::Base
     return rootgid
   end
 
+  #####################################################
+  # In interact there can be more than one root group,
+  #   one per each questionnaire
+  #####################################################
+  def self.get_root_groups(cid, sid)
+    gids = Group.by_snapshot(sid)
+             .where(company_id: cid, snapshot_id: sid)
+             .where('parent_group_id is null')
+             .pluck(:id)
+    return gids
+  end
+
   def self.get_parent_group(cid, sid=nil)
     raise "Company ID cant be nil" if cid.nil?
     sid = Snapshot.last_snapshot_of_company(cid) if (sid.nil? || sid == -1)
@@ -320,14 +332,22 @@ class Group < ActiveRecord::Base
   ######################################################################
   def self.prepare_groups_for_hierarchy_queries(sid)
     cid = Snapshot.find(sid).company_id
-    rootgid = Group.get_root_group(cid, sid)
-    group_pairs = Group.get_all_parent_son_pairs(rootgid)
-    if group_pairs == []
-      Group.find(rootgid).update!(
-        nsleft: 0, nsright: 1
-      )
+    #rootgid = Group.get_root_group(cid, sid)
+
+
+    rootgids = Group.get_root_groups(cid, sid)
+
+    start_from = 0
+    rootgids.each do |rootgid|
+      group_pairs = Group.get_all_parent_son_pairs(rootgid)
+      if group_pairs == []
+        Group.find(rootgid).update!(
+          nsleft: 0, nsright: 1
+        )
+      end
+      right_most = Group.create_nested_sets_structure(group_pairs, sid, start_from)
+      start_from = right_most + 1
     end
-    Group.create_nested_sets_structure(group_pairs, sid)
   end
 
   def self.get_all_parent_son_pairs(pgid)
@@ -351,14 +371,15 @@ class Group < ActiveRecord::Base
   # 2 - The groups list is sorted in the sense that parents
   #       always appear before sons
   ##############################################################
-  def self.create_nested_sets_structure(pairs, sid)
+  def self.create_nested_sets_structure(pairs, sid, start_from)
     return if pairs == []   ## Happens when there's just one group
     ## Initial step
     group_pairs = pairs.clone
     rootgid, songid = group_pairs.shift
-    Group.find(rootgid).update!(nsleft: 0, nsright: 3)
-    Group.find(songid).update!(nsleft: 1, nsright: 2)
+    Group.find(rootgid).update!(nsleft: start_from, nsright: start_from + 3)
+    Group.find(songid).update!(nsleft: start_from + 1, nsright: start_from + 2)
 
+    sonright = start_from + 2
     ## Repeat for all pairs that were left
     group_pairs.each do |pgid, sgid|
       mark = Group.find(pgid).nsright
@@ -381,6 +402,8 @@ class Group < ActiveRecord::Base
           WHERE id = #{sgid}"
       ActiveRecord::Base.connection.exec_query(sqlstr)
     end
+
+    return sonright + 1
   end
 
   #######################################################################

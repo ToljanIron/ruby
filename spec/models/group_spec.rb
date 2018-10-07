@@ -39,6 +39,38 @@ describe Group, type: :model do
   it { is_expected.to respond_to(:company_id) }
   it { is_expected.to respond_to(:parent_group_id) }
 
+  describe 'prepare_groups_for_hierarchy_queries' do
+    sid = nil
+    before do
+      DatabaseCleaner.clean_with(:truncation)
+      FactoryGirl.reload
+
+      Company.create(id: 1, name: "Hevra10").id
+      sid = Snapshot.create(name: "2016-01", company_id: 1, timestamp: 3.weeks.ago).id
+      root1 = Group.create(name: "Root1", company_id: 1, external_id: '1' )
+      root2 = Group.create(name: "Root2", company_id: 1, external_id: '2' )
+      Group.create(name: "son1",  company_id: 1, external_id: '11', parent_group_id: root1.id )
+      Group.create(name: "son2",  company_id: 1, external_id: '21', parent_group_id: root2.id )
+      Group.create(name: "son3",  company_id: 1, external_id: '22', parent_group_id: root2.id )
+    end
+
+    it 'should be able to assign ns values when there are multiple roots' do
+      Group.prepare_groups_for_hierarchy_queries(sid)
+
+      g1 = Group.find_by_external_id('1')
+      g11 = Group.find_by_external_id('11')
+      g2 = Group.find_by_external_id('2')
+      g21 = Group.find_by_external_id('21')
+      g22 = Group.find_by_external_id('22')
+
+      expect( g1.nsleft ).to be < g11.nsleft
+      expect( g21.nsright ).to be < g22.nsleft
+      expect( g22.nsright ).to be < g2.nsright
+      expect( g1.nsright ).to be < g2.nsleft
+    end
+
+  end
+
   describe ', with invalid data should be invalid' do
     it { is_expected.not_to be_valid }
   end
