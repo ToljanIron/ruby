@@ -342,8 +342,9 @@ class Group < ActiveRecord::Base
       group_pairs = Group.get_all_parent_son_pairs(rootgid)
       if group_pairs == []
         Group.find(rootgid).update!(
-          nsleft: 0, nsright: 1
+          nsleft: start_from, nsright: start_from + 1
         )
+        start_from += 1
       end
       right_most = Group.create_nested_sets_structure(group_pairs, sid, start_from)
       start_from = right_most + 1
@@ -372,7 +373,7 @@ class Group < ActiveRecord::Base
   #       always appear before sons
   ##############################################################
   def self.create_nested_sets_structure(pairs, sid, start_from)
-    return if pairs == []   ## Happens when there's just one group
+    return start_from if pairs == []   ## Happens when there's just one group
     ## Initial step
     group_pairs = pairs.clone
     rootgid, songid = group_pairs.shift

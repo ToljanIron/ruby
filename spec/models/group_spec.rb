@@ -69,6 +69,14 @@ describe Group, type: :model do
       expect( g1.nsright ).to be < g2.nsleft
     end
 
+    it 'should not fail when there are lone groups' do
+      Group.create(name: "root3",  company_id: 1, external_id: '3')
+      Group.prepare_groups_for_hierarchy_queries(sid)
+
+      nsnumbers = Group.pluck(:nsleft, :nsright).flatten.uniq
+      expect( nsnumbers.length ).to eq(12)
+
+    end
   end
 
   describe ', with invalid data should be invalid' do
