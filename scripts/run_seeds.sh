@@ -2,8 +2,16 @@
 
 echo "Type admin user password"
 read password
-
 export ADMIN_USER_PASSWORD=$password
+
+echo "Type company_name"
+read company_name
+export COMPANY_NAME=$company_name
+
+echo "Type company_domain"
+read company_domain
+export COMPANY_DOMAIN=$company_domain
+
 
 echo "Create company"
 rake db:seed:company

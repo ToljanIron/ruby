@@ -230,8 +230,13 @@ class SaSetupController < ActionController::Base
     params.permit(:empsExcel)
     emps_file = params[:empsExcel][:file]
 
-    _, errors = load_excel_sheet(1, emps_file, 1, true)
-    if !errors.nil? && errors.count > 0
+    begin
+      load_excel_sheet(1, emps_file, 1, true)
+    rescue RuntimeError => ex
+      msg = "Exception while loading employees: #{ex.message}"
+      puts msg
+      EventLog.create(message: msg)
+      puts ex.backtrace
       redirect_to_error("Upload errors: #{errors}")
       return
     end
