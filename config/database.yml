@@ -31,11 +31,10 @@ protractor:
 
 test:
   <<: *default
-  host: localhost
-  database: workships_ext
+  datebase: localhost
+  port: 5432
   username: workships
   password: workships
-  port: 5432
   database: workships_test
 
 test-sqlserver:

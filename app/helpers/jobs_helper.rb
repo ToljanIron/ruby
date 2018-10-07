@@ -1,7 +1,4 @@
-require './app/helpers/util'
-
 module JobsHelper
-  include Util
 
   JOB_INTERVALS_DAILY  = 'daily'
   JOB_INTERVALS_WEEKLY = 'weekly'
@@ -16,7 +13,7 @@ module JobsHelper
   end
 
   def self.schedule_delayed_jobs
-    Util.info('Schedule delayed jobs start')
+    puts('Schedule delayed jobs start')
     jobsarr = JobsHelper.get_jobs_list
     jobsarr.each do |job|
       if job[:interval] == JOB_INTERVALS_HOURLY
@@ -29,7 +26,7 @@ module JobsHelper
         raise "Illegal job interval type: #{job[:interval]}"
       end
     end
-    Util.info('Schedule delayed jobs done')
+    puts('Schedule delayed jobs done')
   end
 
   def self.schedule_hourly_job(job, queue)

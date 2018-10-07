@@ -58,5 +58,28 @@ describe InteractBackofficeActionsHelper, type: :helper do
       InteractBackofficeActionsHelper.create_new_questionnaire(1, qid)
       expect(Group.last.questionnaire_id).to eq(Questionnaire.last.id)
     end
+
+    describe 'with an existing questionnaire' do
+      before do
+        InteractBackofficeActionsHelper.create_new_questionnaire(1)
+        qid = Questionnaire.last.id
+        sid = Questionnaire.last.snapshot_id
+        nid = NetworkName.last.id
+        gid1 = Group.create!(name: "Root2", company_id: 1, color_id: 10, external_id: '1232', snapshot_id: sid, questionnaire_id: qid ).id
+        gid2 = Group.create!(name: "R&D2", company_id: 1, parent_group_id: gid1, color_id: 10, external_id: '1242', snapshot_id: sid, questionnaire_id: qid).id
+        FactoryGirl.create(:employee, id: 10, group_id: gid2, snapshot_id: sid)
+        FactoryGirl.create(:employee, id: 11, group_id: gid2, snapshot_id: sid)
+        QuestionnaireParticipant.create!(employee_id: 10, questionnaire_id: qid, active: true)
+        QuestionnaireParticipant.create!(employee_id: 11, questionnaire_id: qid, active: true)
+        QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: qid, network_id: nid, order: 0, active: true, title: "title1")
+        QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: qid, network_id: nid, order: 0, active: true, title: "title2")
+      end
+
+      it 'should be able to duplicate questionnaire' do
+        InteractBackofficeActionsHelper.create_new_questionnaire(1, qid, true)
+        expect(Questionnaire.count).to eq(3)
+      end
+
+    end
   end
 end
