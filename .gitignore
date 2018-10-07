@@ -59,3 +59,8 @@ archives
 .DS_Store
 app/assets/v2/fonts/*
 **/*.swp
+
+dist
+templates
+tests
+
