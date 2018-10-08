@@ -8,8 +8,7 @@ class SessionsController < ApplicationController
     if current_user
       check_user_role(current_user)
     else
-      render json: {res: 'Not Authenticated'}, status: 401 if v3_login?
-      render 'signin', layout: 'signin_layout' if !v3_login?
+      render json: {res: 'Not Authenticated'}, status: 401
     end
   end
 
@@ -75,8 +74,7 @@ class SessionsController < ApplicationController
     begin
     puts "@@@@@@@@@@@@@@@@@@@@@ 10"
       EventLog.log_event(event_type_name: 'LOGIN', message: "User: #{user.id} logged in")
-      render json: payload(user), status: 200 if v3_login?
-      render json: { token: user.remember_token }, status: 200 if !v3_login?
+      render json: payload(user), status: 200
       return
     rescue => e
       puts e.message

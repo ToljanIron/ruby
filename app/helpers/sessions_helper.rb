@@ -74,8 +74,7 @@ def log_in(user)
 end
 
 def current_user
-  return current_user_v2 if !v3_login?
-  return current_user_v3 if v3_login?
+  return current_user_v3
 end
 
 def current_user_v2
@@ -130,8 +129,4 @@ def log_out
   forget(current_user)
   session.delete(:user_id)
   @current_user = nil
-end
-
-def v3_login?
-  return ENV['USE_V3_LOGIN'] == 'true'
 end

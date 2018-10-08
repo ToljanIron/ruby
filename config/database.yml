@@ -14,6 +14,13 @@ development-sndcom:
 
 development:
   <<: *default
+  database: workships_development
+  username: workships
+  password: workships
+  port: 5432
+
+onpremise:
+  <<: *default
   database: workships_app
   username: workships
   password: YulIdZ7K52b6J
