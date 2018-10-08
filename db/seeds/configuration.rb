@@ -11,7 +11,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_LEVEL', comp_id:
 
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/dev/Development/collector')
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/home/dev/Development/collector/files_portal')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/sa/collector')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/var/collector')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/var/collector/files_portal')
 
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_DIR', comp_id: -1).update(value: 'logs_dir')

@@ -48,3 +48,6 @@ rake db:seed:marital_statuses
 
 echo "Create network names"
 rake db:seed:network_names
+
+echo "Create company metrics"
+rake db:create_company_metrics_seed_to_cds\[1\]
