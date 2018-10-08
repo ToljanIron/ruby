@@ -49,5 +49,5 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_PARSER_TYPE', comp_i
 ## App params
 CompanyConfigurationTable.find_or_create_by(key: 'INFO_LOG_LEVEL', comp_id: -1).update(value: 'info')
 CompanyConfigurationTable.find_or_create_by(key: 'APP_SERVER_NAME', comp_id: -1).update(value: 'stepahead')
-CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '10')
+CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '3')
 

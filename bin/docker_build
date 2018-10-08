@@ -20,14 +20,15 @@ if [ "$1" = "--build-assets" ] || [ "$1" = "-b" ]; then
 fi
 
 #docker build -t app-base -f Dockerfile.base .
-echo "Stopping containers"
-echo "=============================="
-sarun stop
+#echo "Stopping containers"
+#echo "=============================="
+#sarun stop
 
 echo "Building docker"
 echo "=============================="
-docker build -t app-img -f Dockerfile.app .
+#docker build -t app-img -f Dockerfile.app .
+./scripts/docker_app.sh
 
-echo "Starting containers"
-echo "=============================="
-sarun
+#echo "Starting containers"
+#echo "=============================="
+#sarun
