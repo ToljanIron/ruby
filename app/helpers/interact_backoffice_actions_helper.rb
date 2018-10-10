@@ -181,7 +181,6 @@ module InteractBackofficeActionsHelper
       puts "Not REALLY sending questionnaire because this is not production"
       return
     end
-    return
     send_live_sms(aq, qp) if aq.delivery_method == 'sms'
     send_live_email(aq, qp) if aq.delivery_method == 'email'
     raise 'Unrecoginzed delivery method' if(aq.delivery_method == 'sms' && aq.delivery_method == 'email')
