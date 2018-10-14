@@ -15,11 +15,10 @@ sas.updatePushState = function() {
       document.getElementById('sasNumOfSnapshotsCreated').innerHTML = data.num_snapshots_created;
       document.getElementById('sasNumOfSnapshotsProcessed').innerHTML = data.num_snapshots_processed;
 
-      console.log( data )
+      console.log( data );
       if (data.state !== 'done') {
         setTimeout( sas.updatePushState, 10000 );
       }
     }
   );
 };
-
