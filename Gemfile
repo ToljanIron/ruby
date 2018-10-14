@@ -44,7 +44,8 @@ gem 'nmatrix'
 gem 'delayed_job_active_record'
 gem "daemons"
 gem 'tzinfo-data'
-  gem 'aws-sdk', '~> 3.0.0.rc1'
+gem 'aws-sdk', '~> 3.0.0.rc1'
+gem 'net-sftp'
 
 group :development, :test do
   gem 'rspec-rails', '~> 3.8'

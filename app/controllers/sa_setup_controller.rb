@@ -2,120 +2,12 @@ require 'oj'
 require 'oj_mimic_json'
 
 include ImportDataHelper
+include SFTPHelper
 
 class SaSetupController < ActionController::Base
 
   def base
     redirect_if_needed
-  end
-
-  def server_name_form
-    redirect_if_needed
-    puts "In SaSetupController - server_name"
-  end
-
-  def server_name_set
-    params.permit(:serverName)
-    server_name = params[:serverName].sanitize_url
-    if server_name.nil?
-      redirect_to_error("Bad server name: #{params[:serverName]}")
-      return
-    end
-
-    CompanyConfigurationTable.find_by(
-      key: 'APP_SERVER_NAME',
-      comp_id: -1
-    ).update(value: server_name)
-    Company.last.update(setup_state: :server_name)
-    redirect_to controller: 'sa_setup', action: 'base'
-  end
-
-  def datetime
-    redirect_if_needed
-  end
-
-  def datetime_set
-    puts "in datetime_set"
-    params.permit(:date, :time)
-
-    date = params[:date].sanitize_date
-    if date.nil?
-      redirect_to_error("Bad date value: #{params[:date]}")
-      return
-    end
-
-    time = params[:time].sanitize_time
-    if time.nil?
-      redirect_to_error("Bad time value: #{params[:time]}")
-      return
-    end
-
-    Company.last.update(setup_state: :datetime)
-    redirect_to controller: 'sa_setup', action: 'base'
-  end
-
-  def certs
-    redirect_if_needed
-    puts "In certs"
-  end
-
-  def certs_set
-    puts "in certs_set"
-    params.permit(:certFile, :keyFile)
-
-
-    ########################################################################################
-    # Work on the CRT file
-    ########################################################################################
-
-    # Save file to /tmp
-    cert_file = params[:certFile][:file]
-    file_name = cert_file.original_filename
-    path = File.join("/tmp", file_name)
-    File.open(path, "wb") { |f| f.write(cert_file.read) }
-
-    # Verify file
-    is_valid = `openssl x509 -in #{path} -text -noout > /dev/null 2>&1; echo $?;`.to_i === 0
-    if !is_valid
-      redirect_to_error("Cert file is invalid: #{file_name}")
-      return
-    end
-
-    ########################################################################################
-    # Work on the KEY file
-    ########################################################################################
-
-    # Save file to /tmp
-    key_file = params[:keyFile][:file]
-    file_name = key_file.original_filename
-    path = File.join("/tmp", file_name)
-    File.open(path, "wb") { |f| f.write(key_file.read) }
-
-    # Verify file
-    is_valid = `openssl rsa -in #{path} -check 2> /dev/null; echo $?;`.to_i === 0
-    if !is_valid
-      redirect_to_error("Key file is invalid: #{file_name}")
-      return
-    end
-
-    ########################################################################################
-    # This script will do the following:
-    #   1. Move the crt file to its promer location
-    #   2. Change ownership to root
-    #   3. Set permissions on it
-    #   4. Repeat 1,2,3 on the key file
-    #   5. Set the correct certificate name and location in ssl-params.conf
-    #   6. Update sites-enabled to a SSL site
-    #   7. Set config.force_ssl to "true" in the environemt file
-    ########################################################################################
-    if Rails.env.production? || Rails.env.onpremise?
-      `nohup sudo /home/app/sa/scripts/ssl_setup.sh onpremise >> /home/app/sa/log/onpremise.log 2>&1 &`
-    else
-      `nohup sudo /home/app/sa/scripts/ssl_setup.sh onpremise >> /home/app/sa/log/development.log 2>&1 &`
-    end
-
-    Company.last.update(setup_state: :certs)
-    redirect_to controller: 'sa_setup', action: 'base'
   end
 
   def log_files_location
@@ -171,6 +63,17 @@ class SaSetupController < ActionController::Base
       key: 'COLLECTOR_TRNAS_SRC_DIR',
       comp_id: -1
     ).update(value: logs_dir)
+
+    begin
+      SFTPHelper.sftp_copy(host, user, pass, '*.log', logs_dir, '/tmp')
+    rescue RuntimeException => ex
+      msg = "SFTP server error: #{ex.message}"
+      puts msg
+      EventLog.create(message: msg)
+      puts ex.backtrace
+      redirect_to_error(msg)
+      return
+    end
 
     Company.last.update(setup_state: :log_files_location)
     redirect_to controller: 'sa_setup', action: 'base'
@@ -297,7 +200,6 @@ class SaSetupController < ActionController::Base
     when 'init'
       redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location'
-      #redirect_to controller: 'sa_setup', action: 'log_files_location_verification' unless curr_action == 'log_files_location_verification'
       redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
     when 'log_files_location_verification'
       redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'

@@ -659,7 +659,6 @@ GEM
       xpath (~> 3.1)
     childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
-    choice (0.2.0)
     chunky_png (1.3.10)
     clockwork (2.0.3)
       tzinfo
@@ -703,9 +702,6 @@ GEM
     docile (1.3.1)
     dotenv (2.5.0)
     ejs (1.1.1)
-    erd (0.4.0)
-      nokogiri
-      rails-erd (>= 0.4.5)
     erubi (1.7.1)
     execjs (2.7.0)
     factory_girl (4.2.0)
@@ -798,6 +794,9 @@ GEM
     multi_json (1.13.1)
     multipart-post (2.0.0)
     nenv (0.3.0)
+    net-sftp (2.1.2)
+      net-ssh (>= 2.6.5)
+    net-ssh (5.0.2)
     nio4r (2.3.1)
     nmatrix (0.2.4)
       packable (~> 1.3, >= 1.3.5)
@@ -848,11 +847,6 @@ GEM
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-erd (1.5.2)
-      activerecord (>= 3.2)
-      activesupport (>= 3.2)
-      choice (~> 0.2.0)
-      ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.0.4)
       loofah (~> 2.2, >= 2.2.2)
     rails_12factor (0.0.2)
@@ -909,7 +903,6 @@ GEM
       rainbow (>= 2.2.2, < 4.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
-    ruby-graphviz (1.2.3)
     ruby-ole (1.2.12.1)
     ruby-prof (0.17.0)
     ruby-progressbar (1.10.0)
@@ -1003,7 +996,6 @@ DEPENDENCIES
   descriptive-statistics
   dotenv
   ejs
-  erd
   factory_girl_rails (= 4.2.0)
   faker
   fastimage
@@ -1021,6 +1013,7 @@ DEPENDENCIES
   literate_randomizer (~> 0.4.0)
   mail
   meta_request
+  net-sftp
   nmatrix
   oj
   oj_mimic_json

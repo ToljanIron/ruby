@@ -28,11 +28,6 @@ class Company < ActiveRecord::Base
 
   enum setup_state: [
     :init,
-    :server_name,
-    :datetime,
-    :certs,
-    :restart_after_certs,
-    :system_verification,
     :log_files_location,
     :log_files_location_verification,
     :gpg_passphrase,

@@ -35,5 +35,10 @@ COPY templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 
 COPY templates/app-user-permissions /etc/sudoers.d/app-user-permissions
 
+# Handle SSH to host
+COPY templates/id_rsa_app.pub /home/app/.ssh/id_rsa.pub
+COPY templates/id_rsa_app /home/app/.ssh/id_rsa
+COPY templates/known_hosts_app /home/app/.ssh/known_hosts
+
 # Select ruby
 RUN bash -lc 'rvm --default use ruby-2.4.4'

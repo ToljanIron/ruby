@@ -65,5 +65,9 @@ app/assets/v2/fonts/*
 templates/*.key
 templates/*.crt
 templates/*.pem
+templates/*.pub
+templates/id_rsa_app
+templates/known_hosts_app
+
 
 /tests
