@@ -9,12 +9,12 @@
   <form id="sasform" action="/sa_setup/log_files_location" method="post">
 
     <label class="sas-input-label">SFTP Host Address:<br><br>
-      <input class="sas-input-text" type="text" name="sftpHost">
+      <input class="sas-input-text" type="text" name="sftpHost" value='<%= @host %>'>
     </label>
     <br><br>
 
     <label class="sas-input-label">SFTP User:<br><br>
-      <input class="sas-input-text" type="text" name="sftpUser">
+      <input class="sas-input-text" type="text" name="sftpUser" value='<%= @user %>' >
     </label>
     <br><br>
 
@@ -24,7 +24,7 @@
     <br><br>
 
     <label class="sas-input-label">SFTP Logs Directory:<br><br>
-      <input class="sas-input-text" type="text" name="sftpLogsDir">
+      <input class="sas-input-text" type="text" name="sftpLogsDir" value='<%= @dir %>' >
     </label>
 
     <br><br><br><br>

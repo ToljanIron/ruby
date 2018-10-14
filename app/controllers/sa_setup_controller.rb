@@ -2,7 +2,7 @@ require 'oj'
 require 'oj_mimic_json'
 
 include ImportDataHelper
-include SFTPHelper
+include SftpHelper
 
 class SaSetupController < ActionController::Base
 
@@ -12,6 +12,9 @@ class SaSetupController < ActionController::Base
 
   def log_files_location
     redirect_if_needed
+    @host = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_HOST', comp_id: -1).value
+    @user = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_USER', comp_id: -1).value
+    @dir  = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_SRC_DIR', comp_id: -1).value
     puts "in log_files_location"
   end
 
@@ -65,9 +68,10 @@ class SaSetupController < ActionController::Base
     ).update(value: logs_dir)
 
     begin
-      SFTPHelper.sftp_copy(host, user, pass, '*.log', logs_dir, '/tmp')
-    rescue RuntimeException => ex
-      msg = "SFTP server error: #{ex.message}"
+      SftpHelper.sftp_copy(host, user, pass, '*.log', logs_dir, '/tmp')
+    rescue => ex
+      error = translate_sftp_error(ex.message)
+      msg = "SFTP server error: #{error}"
       puts msg
       EventLog.create(message: msg)
       puts ex.backtrace
@@ -104,7 +108,7 @@ class SaSetupController < ActionController::Base
       key: 'COLLECTOR_DECRYPTION_PASSPHRASE',
       comp_id: -1
     ).update( value: CdsUtilHelper.encrypt(gpgpass) )
-    Company.last.update(setup_state: :it_done)
+    Company.last.update(setup_state: :upload_company)
 
     if Rails.env.production? || Rails.env.onpremise?
       `nohup sudo /home/app/sa/scripts/cron_setup.sh >> /home/app/sa/log/onpremise.log 2>&1 &`
@@ -113,10 +117,6 @@ class SaSetupController < ActionController::Base
     end
 
     redirect_to controller: 'sa_setup', action: 'base'
-  end
-
-  def it_done
-    puts "in it_done"
   end
 
   def upload_company
@@ -155,7 +155,7 @@ class SaSetupController < ActionController::Base
   def goto_system
     puts "in goto_system"
     Company.last.update(setup_state: :ready)
-    render plain: "Done"
+    redirect_to "https://stepahead.step-ahead.com"
   end
 
   def collect_now
@@ -205,8 +205,6 @@ class SaSetupController < ActionController::Base
       redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
     when 'gpg_passphrase'
       redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
-    when 'it_done'
-      redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
     when 'upload_company'
       redirect_to controller: 'sa_setup', action: 'upload_company' unless curr_action == 'upload_company'
     when 'standby_or_push'
@@ -221,4 +219,13 @@ class SaSetupController < ActionController::Base
       raise "Illegal setup_state: #{setup_state}"
     end
   end
+
+  def translate_sftp_error(msg)
+    return "Unknown error" if msg.nil?
+    return "Unknown host" if msg.include?('Name or service not known')
+    return "Authentication failed" if msg.include?('Authentication failed')
+    return "No such file or directory" if msg.include?('no such file')
+    return "Unknown error: #{msg}"
+  end
+
 end

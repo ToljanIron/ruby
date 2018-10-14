@@ -1,8 +1,7 @@
 require 'net/sftp'
 require 'net/ftp'
-require './app/helpers/util.rb'
 
-module FTPHelper
+module SftpHelper
   def self.get_log_files(protocol, host, user, password, files_mask, src_dir, dest_dir)
     ftp_copy( host, user, password, files_mask, src_dir, dest_dir) if protocol == 'FTP'
     sftp_copy(host, user, password, files_mask, src_dir, dest_dir) if protocol == 'SFTP'
@@ -29,7 +28,7 @@ module FTPHelper
 
   def self.sftp_copy(host, user, password, files_mask, src_dir, dest_dir)
     puts "Doing SFTP transfer"
-    Net::SFTP.start(host, user, password: password) do |sftp|
+    Net::SFTP.start(host, user, password: password, non_interactive: true) do |sftp|
 
       masks_arr = masks_string_to_array(files_mask)
       masks_arr.each do |mask|

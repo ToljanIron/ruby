@@ -13,25 +13,37 @@
   </div>
   <br><br>
 
-  <label class="sas-label">Number of files:</label>
-  <div id="sasNumOfLogfiles" class="sas-data">17</div>
-  <br>
+  <div class="sas-push-section-cont">
+    <div class="sas-push-section-top">
+      <div class="sas-push-section-label">Files to process:</div>
+      <div id="sas-files-num" class="sas-push-section-num"></div>
+    </div>
+    <br>
+    <div id="sas-files-bar" class="sas-push-section-bar" class="sas-push-bar"></div>
+  </div>
 
-  <label class="sas-label">Number of files processed:</label>
-  <div id="sasNumOfLogfilesProcessed" class="sas-data"></div>
-  <br>
+  <br><br>
 
-  <label class="sas-label">Number of snapshots:</label>
-  <div id="sasNumOfSnapshots" class="sas-data"></div>
-  <br>
 
-  <label class="sas-label">Number of snapshots created:</label>
-  <div id="sasNumOfSnapshotsCreated" class="sas-data"></div>
-  <br>
+  <div class="sas-push-section-cont">
+    <div class="sas-push-section-top">
+      <div class="sas-push-section-label">Snapshots created:</div>
+      <div id="sas-snp-created-num" class="sas-push-section-num"></div>
+    </div>
+    <br>
+    <div id="sas-snp-created-bar" class="sas-push-section-bar" class="sas-push-bar"></div>
+  </div>
 
-  <label class="sas-label">Number of snapshots processed:</label>
-  <div id="sasNumOfSnapshotsProcessed" class="sas-data"></div>
-  <br>
+  <br><br>
+
+  <div class="sas-push-section-cont">
+    <div class="sas-push-section-top">
+      <div class="sas-push-section-label">Snapshots processed:</div>
+      <div id="sas-snp-proced-num" class="sas-push-section-num"></div>
+    </div>
+    <br>
+    <div id="sas-snp-proced-bar" class="sas-push-section-bar" class="sas-push-bar"></div>
+  </div>
 
   <br><br><br><br>
 
@@ -41,12 +53,5 @@
 </div>
 
 <script>
-window.onload = sas.updatePushState
-/**
-(function() {
-  console.log("qqqqqqqqqqqqqqq");
-
-  sas.updatePushState();
-})();
-*/
+  window.onload = sas.updatePushState
 </script>

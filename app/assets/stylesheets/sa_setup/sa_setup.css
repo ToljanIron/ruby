@@ -48,3 +48,20 @@
   color: white;
   font-size: 18px;
 }
+
+.sas-push-section-label {
+  display: inline-block;
+}
+.sas-push-section-num {
+  display: inline-block;
+}
+.sas-push-section-bar {
+  height: 2rem;
+  width: 20rem;
+  background-color: #1f5d75;
+  color: #00a99d;
+  border: 0.1rem solid #00a99d;
+  box-sizing: border-box;
+  text-align: center;
+  padding-top: 0.4rem
+}
