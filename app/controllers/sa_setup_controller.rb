@@ -295,12 +295,6 @@ class SaSetupController < ActionController::Base
 
     case setup_state
     when 'init'
-      redirect_to controller: 'sa_setup', action: 'server_name_form' unless curr_action == 'server_name_form'
-    when 'server_name'
-      redirect_to controller: 'sa_setup', action: 'datetime' unless curr_action == 'datetime'
-    when 'datetime'
-      redirect_to controller: 'sa_setup', action: 'certs' unless curr_action == 'certs'
-    when 'certs'
       redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location'
       #redirect_to controller: 'sa_setup', action: 'log_files_location_verification' unless curr_action == 'log_files_location_verification'

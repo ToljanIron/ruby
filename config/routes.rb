@@ -32,12 +32,6 @@ Workships::Application.routes.draw do
   ######################## onprem setup ############################
   get  '/sa_setup',                         to: 'sa_setup#base'
   get  '/sa_setup/form_error',              to: 'sa_setup#form_error'
-  get  '/sa_setup/server_name_form',        to: 'sa_setup#server_name_form'
-  post '/sa_setup/server_name_set',         to: 'sa_setup#server_name_set'
-  get  '/sa_setup/datetime',                to: 'sa_setup#datetime'
-  post '/sa_setup/datetime',                to: 'sa_setup#datetime_set'
-  get  '/sa_setup/certs',                   to: 'sa_setup#certs'
-  post '/sa_setup/certs',                   to: 'sa_setup#certs_set'
   get  '/sa_setup/log_files_location',      to: 'sa_setup#log_files_location'
   post '/sa_setup/log_files_location',      to: 'sa_setup#log_files_location_set'
   get  '/sa_setup/log_files_location_verification', to: 'sa_setup#log_files_location_verification'

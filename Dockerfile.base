@@ -19,9 +19,6 @@ RUN chown app:app /home/app/sa
 RUN mkdir /home/app/html
 RUN chown app:app /home/app/html
 
-VOLUME ["/etc"]
-VOLUME ["/home/app/sa/config"]
-
 USER app
 WORKDIR /home/app/sa
 
