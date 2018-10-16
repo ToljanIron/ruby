@@ -52,7 +52,6 @@ gem "daemons"
 group :development, :test do
   gem 'rspec-rails'
   gem 'guard-rspec'
-  gem 'erd'
   gem 'spork'
   gem 'byebug'
   gem 'guard-spork'
