@@ -18,7 +18,7 @@ sas.updatePushState = function() {
       var border_width = Math.min( 16, 20 * (1 - files_fraction) );
       var files_bar = document.getElementById('sas-files-bar');
       files_bar.innerHTML = files_percent + '%';
-      var right_border = 'border-right: ' + border_width + 'rem solid #00a99d';
+      var right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
       files_bar.setAttribute('style', right_border);
 
       // Snapshots created
@@ -28,7 +28,7 @@ sas.updatePushState = function() {
       border_width = Math.min( 16, 20 * (1 - snpcre_fraction) );
       var snpcre_bar = document.getElementById('sas-snp-created-bar');
       snpcre_bar.innerHTML = snpcre_percent + '%';
-      right_border = 'border-right: ' + border_width + 'rem solid #00a99d';
+      right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
       snpcre_bar.setAttribute('style', right_border);
 
       // Snapshots processed
@@ -38,7 +38,7 @@ sas.updatePushState = function() {
       border_width = Math.min( 16, 20 * (1 - snpprc_fraction) );
       var snpprc_bar = document.getElementById('sas-snp-proced-bar');
       snpprc_bar.innerHTML = snpprc_percent + '%';
-      right_border = 'border-right: ' + border_width + 'rem solid #00a99d';
+      right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
       snpprc_bar.setAttribute('style', right_border);
 
       if (data.state !== 'done') {
