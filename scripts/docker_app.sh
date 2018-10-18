@@ -14,4 +14,8 @@ if [ -d $DIST_PATH ];then
 fi
 
 echo "Build app-img"
-docker build -t app-img -f Dockerfile.app .
+tagname="app-img"
+version=`cat /home/dev/Development/workships/VERSION`
+tagname="${tagname}:${version}"
+
+docker build -t $tagname -f Dockerfile.app .
