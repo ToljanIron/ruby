@@ -665,13 +665,12 @@ module InteractBackofficeHelper
     ).create_token
   end
 
-  def self.delete_employee(qpid)
+  def self.delete_participant(qpid)
     qp = QuestionnaireParticipant.find(qpid)
     aq = qp.questionnaire
     QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
     qp.try(:delete)
     aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
-    aq = aq.as_json
     aq['state'] = Questionnaire.state_name_to_number(aq['state'])
     return aq
   end
@@ -884,7 +883,7 @@ module InteractBackofficeHelper
            aq.state != 'delivery_method_ready'
   end
 
-  def test_tab_enabled(aq)
+  def self.test_tab_enabled(aq)
     return aq.state != 'created' &&
            aq.state != 'delivery_method_ready' &&
            aq.state != 'questions_ready' &&

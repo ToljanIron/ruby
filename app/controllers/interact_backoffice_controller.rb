@@ -206,7 +206,7 @@ class InteractBackofficeController < ApplicationController
         test_user_email: testUserEmail,
         test_user_phone: testUserPhone
       )
-      aq.update!(state: :ready) if !test_tab_enabled(aq)
+      aq.update!(state: :ready) if !InteractBackofficeHelper.test_tab_enabled(aq)
 
       InteractBackofficeActionsHelper.send_test_questionnaire(aq)
       testUserUrl = create_new_test(aq)
@@ -425,7 +425,7 @@ class InteractBackofficeController < ApplicationController
       .update_employee(@cid, par, qid)
       participants, errors = prepare_data(qid)
       aq = Questionnaire.find(qid)
-      if !test_tab_enabled(aq)
+      if !InteractBackofficeHelper.test_tab_enabled(aq)
         aq.update!(state: :notstarted)
       end
 
@@ -442,7 +442,7 @@ class InteractBackofficeController < ApplicationController
       aq = Questionnaire.find(qid)
       InteractBackofficeHelper.create_employee(@cid, par, aq)
       participants, errors = prepare_data(qid)
-      if !test_tab_enabled(aq)
+      if !InteractBackofficeHelper.test_tab_enabled(aq)
         aq.update!(state: :notstarted)
       end
 
@@ -455,7 +455,7 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       qpid = params[:qpid]
       aq = InteractBackofficeHelper.delete_participant(qpid)
-      participants, errors = prepare_data(aq.id)
+      participants, errors = prepare_data(aq[:id])
       [{participants: participants, questionnaire: aq}, errors]
     end
   end
@@ -638,7 +638,7 @@ class InteractBackofficeController < ApplicationController
         InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
 
         ## Update the questinnaire's state if needed
-        if !test_tab_enabled(aq)
+        if !InteractBackofficeHelper.test_tab_enabled(aq)
           if QuestionnaireParticipant.where(questionnaire_id: aq.id).count > 1
             aq.update!(state: :notstarted)
           end
