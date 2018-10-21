@@ -613,6 +613,16 @@ class InteractBackofficeController < ApplicationController
       type: 'application/vnd.ms-excel')
   end
 
+  def download_participants_status
+    authorize :application, :passthrough
+    qid = params[:qid]
+    file_name = InteractBackofficeHelper.download_participants_status(qid)
+    send_file(
+      "#{Rails.root}/tmp/#{file_name}",
+      filename: file_name,
+      type: 'application/vnd.ms-excel')
+  end
+
   ## Load employees from excel
   def upload_participants
     authorize :application, :passthrough

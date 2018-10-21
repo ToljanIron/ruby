@@ -218,6 +218,48 @@ module InteractBackofficeHelper
     wb.close
     return report_name
   end
+
+  ########################################################################
+  # Create a report of statuses of all participants in the questionnaire
+  ########################################################################
+  def self.download_participants_status(qid)
+    report_name = 'participants_status.xlsx'
+    wb = create_excel_file(report_name)
+
+    ws = wb.add_worksheet('Status')
+
+    ws.write('A1', 'ID')
+    ws.write('B1', 'First Name')
+    ws.write('C1', 'Last Name')
+    ws.write('D1', 'Email')
+    ws.write('E1', 'Phone')
+    ws.write('F1', 'Status')
+    ws.write('G1', 'Link to questionnaire')
+
+    emps = QuestionnaireParticipant
+      .select('external_id, first_name, last_name, email, phone_number,
+               par.status, par.id as qpid')
+      .from('questionnaire_participants as par')
+      .joins('LEFT JOIN employees AS emps ON emps.id = par.employee_id')
+      .where('par.questionnaire_id = ?', qid)
+      .order('emps.last_name')
+
+    ii = 1
+    emps.each do |e|
+      ii += 1
+      ws.write("A#{ii}", e['external_id'])
+      ws.write("B#{ii}", e['first_name'])
+      ws.write("C#{ii}", e['last_name'])
+      ws.write("D#{ii}", e['email'])
+      ws.write("E#{ii}", e['phone_number'])
+      ws.write("F#{ii}", QuestionnaireParticipant.translate_status(e['status']))
+      qp = QuestionnaireParticipant.find(e['qpid'])
+      ws.write("G#{ii}", qp.create_link)
+    end
+
+    wb.close
+    return report_name
+  end
 ################################# Network reports  ################################################
   #############################################################
   # Create a detailed excel report of who is connected
