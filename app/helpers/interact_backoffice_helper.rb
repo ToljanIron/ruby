@@ -242,6 +242,7 @@ module InteractBackofficeHelper
       .from('questionnaire_participants as par')
       .joins('LEFT JOIN employees AS emps ON emps.id = par.employee_id')
       .where('par.questionnaire_id = ?', qid)
+      .where('emps.id > 0')
       .order('emps.last_name')
 
     ii = 1
