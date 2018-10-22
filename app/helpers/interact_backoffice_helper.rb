@@ -607,7 +607,7 @@ module InteractBackofficeHelper
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
-    root_gid = Group.get_root_group(cid, sid)
+    root_gid = Group.get_root_questionnaire_group(qid)
     gid = nil
 
     if !group_name.nil? && !group_name.empty?
@@ -692,7 +692,7 @@ module InteractBackofficeHelper
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
-    root_gid = Group.get_root_group(cid)
+    root_gid = Group.get_root_questionnaire_group(qid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
       group = Group.find_by(name: group_name, company_id: cid, snapshot_id: sid)
