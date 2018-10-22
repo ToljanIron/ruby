@@ -422,7 +422,7 @@ class InteractBackofficeController < ApplicationController
       params.require(:participant).permit!
       par = params[:participant]
       qid = par[:questionnaire_id]
-      .update_employee(@cid, par, qid)
+      InteractBackofficeHelper.update_employee(@cid, par, qid)
       participants, errors = prepare_data(qid)
       aq = Questionnaire.find(qid)
       if !InteractBackofficeHelper.test_tab_enabled(aq)
