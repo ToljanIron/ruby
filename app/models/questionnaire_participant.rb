@@ -234,6 +234,14 @@ class QuestionnaireParticipant < ActiveRecord::Base
     QuestionReply.where(questionnaire_id: questionnaire_id, questionnaire_participant_id: id).delete_all
   end
 
+  def self.translate_status(stat)
+    return 'Not Started' if stat == 'notstarted' || stat == 0
+    return 'Entered'     if stat == 'entered'    || stat == 1
+    return 'In Progress' if stat == 'in_process' || stat == 2
+    return 'Completed'   if stat == 'completed'  || stat == 3
+    return 'NA'
+  end
+
   private
 
   def get_relevant_emps(dependent_question)
@@ -243,4 +251,5 @@ class QuestionnaireParticipant < ActiveRecord::Base
   def find_questionnaire_question(_replies)
     return QuestionnaireQuestion.find(current_questiannair_question_id)
   end
+
 end

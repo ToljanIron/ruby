@@ -201,7 +201,6 @@ class Group < ActiveRecord::Base
                 .where(questionnaire_id: qid)
                 .where(parent_group_id: nil)
                 .last.try(:id)
-    raise "Did not find root GID for questionnaire ID: #{qid}" if rootgid.nil?
     return rootgid
   end
 
@@ -372,7 +371,7 @@ class Group < ActiveRecord::Base
   # 2 - The groups list is sorted in the sense that parents
   #       always appear before sons
   ##############################################################
-  def self.create_nested_sets_structure(pairs, sid, start_from)
+  def self.create_nested_sets_structure(pairs, sid, start_from=0)
     return start_from if pairs == []   ## Happens when there's just one group
     ## Initial step
     group_pairs = pairs.clone

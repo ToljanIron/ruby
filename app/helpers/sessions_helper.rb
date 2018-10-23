@@ -118,7 +118,3 @@ def log_out
   session.delete(:user_id)
   @current_user = nil
 end
-
-def v3_login?
-  return ENV['USE_V3_LOGIN'] == 'true'
-end

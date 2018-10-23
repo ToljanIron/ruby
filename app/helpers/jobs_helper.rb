@@ -5,10 +5,12 @@ module JobsHelper
   JOB_INTERVALS_HOURLY = 'hourly'
 
   COLLECTOR_QUEUE = 'collector_queue'
+  APP_QUEUE       = 'app_queue'
 
   def self.get_jobs_list
     return [
-      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE}
+      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE},
+      {job: AlertsJob,    interval: JOB_INTERVALS_DAILY,  interval_offset: 0, queue: APP_QUEUE},
     ]
   end
 

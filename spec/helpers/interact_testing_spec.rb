@@ -141,13 +141,13 @@ describe 'Questionnaire processes' do
       end
 
       it 'particpant and his answers should be removed from tables' do
-        InteractBackofficeHelper.delete_employee(qpid)
+        InteractBackofficeHelper.delete_participant(qpid)
         expect( QuestionnaireParticipant.where('employee_id <> -1').count ).to eq(0)
         expect( QuestionReply.count ).to eq(0)
       end
 
       it 'State of questionnaire should be consistant' do
-        InteractBackofficeHelper.delete_employee(qpid)
+        InteractBackofficeHelper.delete_participant(qpid)
         aq = Questionnaire.last
         expect( aq.state ).to eq('notstarted')
       end

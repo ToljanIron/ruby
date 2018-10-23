@@ -218,6 +218,49 @@ module InteractBackofficeHelper
     wb.close
     return report_name
   end
+
+  ########################################################################
+  # Create a report of statuses of all participants in the questionnaire
+  ########################################################################
+  def self.download_participants_status(qid)
+    report_name = 'participants_status.xlsx'
+    wb = create_excel_file(report_name)
+
+    ws = wb.add_worksheet('Status')
+
+    ws.write('A1', 'ID')
+    ws.write('B1', 'First Name')
+    ws.write('C1', 'Last Name')
+    ws.write('D1', 'Email')
+    ws.write('E1', 'Phone')
+    ws.write('F1', 'Status')
+    ws.write('G1', 'Link to questionnaire')
+
+    emps = QuestionnaireParticipant
+      .select('external_id, first_name, last_name, email, phone_number,
+               par.status, par.id as qpid')
+      .from('questionnaire_participants as par')
+      .joins('LEFT JOIN employees AS emps ON emps.id = par.employee_id')
+      .where('par.questionnaire_id = ?', qid)
+      .where('emps.id > 0')
+      .order('emps.last_name')
+
+    ii = 1
+    emps.each do |e|
+      ii += 1
+      ws.write("A#{ii}", e['external_id'])
+      ws.write("B#{ii}", e['first_name'])
+      ws.write("C#{ii}", e['last_name'])
+      ws.write("D#{ii}", e['email'])
+      ws.write("E#{ii}", e['phone_number'])
+      ws.write("F#{ii}", QuestionnaireParticipant.translate_status(e['status']))
+      qp = QuestionnaireParticipant.find(e['qpid'])
+      ws.write("G#{ii}", qp.create_link)
+    end
+
+    wb.close
+    return report_name
+  end
 ################################# Network reports  ################################################
   #############################################################
   # Create a detailed excel report of who is connected
@@ -564,7 +607,7 @@ module InteractBackofficeHelper
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
-    root_gid = Group.get_root_group(cid, sid)
+    root_gid = Group.get_root_questionnaire_group(qid)
     gid = nil
 
     if !group_name.nil? && !group_name.empty?
@@ -622,13 +665,12 @@ module InteractBackofficeHelper
     ).create_token
   end
 
-  def self.delete_employee(qpid)
+  def self.delete_participant(qpid)
     qp = QuestionnaireParticipant.find(qpid)
     aq = qp.questionnaire
     QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
     qp.try(:delete)
     aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
-    aq = aq.as_json
     aq['state'] = Questionnaire.state_name_to_number(aq['state'])
     return aq
   end
@@ -650,7 +692,7 @@ module InteractBackofficeHelper
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
-    root_gid = Group.get_root_group(cid)
+    root_gid = Group.get_root_questionnaire_group(qid)
     gid = nil
     if !group_name.nil? && !group_name.empty?
       group = Group.find_by(name: group_name, company_id: cid, snapshot_id: sid)
@@ -841,7 +883,7 @@ module InteractBackofficeHelper
            aq.state != 'delivery_method_ready'
   end
 
-  def test_tab_enabled(aq)
+  def self.test_tab_enabled(aq)
     return aq.state != 'created' &&
            aq.state != 'delivery_method_ready' &&
            aq.state != 'questions_ready' &&
