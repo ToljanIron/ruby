@@ -40,13 +40,7 @@ spec/helpers/*.csv
 
 /tmp/spec/*
 
-!/public/assets/A*
-!/public/assets/B*
-!/public/assets/e*
-!/public/assets/h*
-!/public/assets/L*
-!/public/assets/m*
-!/public/assets/T*
+/public/assets/*
 /public/employees/*.jpg
 
 questionnaire_reports
@@ -68,6 +62,5 @@ templates/*.pem
 templates/*.pub
 templates/id_rsa_app
 templates/known_hosts_app
-
 
 /tests

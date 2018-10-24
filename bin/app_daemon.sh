@@ -11,11 +11,10 @@
 #   - Precalculate
 #
 ###################################################################
-
 export APP_HOME=/home/app/sa
 export RUN_ENV=$1
 
-echo "SA app daemon wake up"
+echo "SA app daemon wake up" >> /root/app/sa/log/onpremise.log
 cd $APP_HOME
 
 ## Run schedualer

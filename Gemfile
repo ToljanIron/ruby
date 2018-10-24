@@ -7,14 +7,13 @@ gem 'dalli'
 gem 'pundit'
 gem 'bcrypt'
 gem 'therubyracer'
-gem 'coffee-rails', '~> 4.2'
+#gem 'coffee-rails', '~> 4.2'
 gem 'sass-rails', '~> 5.0'
 gem 'compass-rails', '3.0.2'
 gem 'uglifier'
 gem 'pg', '~> 0.18'
 gem 'ejs'
 gem 'yui-compressor'
-gem 'awesome_print'
 gem 'sprockets'
 gem 'sprockets-rails','>= 3.0.0'
 gem 'descriptive-statistics'
@@ -44,10 +43,10 @@ gem 'nmatrix'
 gem 'delayed_job_active_record'
 gem "daemons"
 gem 'tzinfo-data'
-gem 'aws-sdk', '~> 3.0.0.rc1'
 gem 'net-sftp'
 
 group :development, :test do
+  gem 'awesome_print'
   gem 'rspec-rails', '~> 3.8'
   gem 'guard-rspec'
   gem 'spork'
@@ -73,7 +72,11 @@ group :test do
 end
 
 group :production do
+  gem 'aws-sdk', '~> 3.0.0.rc1'
+  gem 'heroku-deflater'
+end
+
+group :production, :onpremise do
   gem 'passenger', '5.3.4'
   gem 'rails_12factor', '0.0.2'
-  gem 'heroku-deflater'
 end

@@ -4,6 +4,7 @@ USER app
 WORKDIR /home/app/sa
 
 COPY --chown=app:app bin bin
+RUN chmod -R 700 bin
 COPY --chown=app:app config.ru config.ru
 COPY --chown=app:app lib lib
 COPY --chown=app:app Procfile Procfile
@@ -36,9 +37,13 @@ COPY templates/env-vars.conf /etc/nginx/main.d/env-vars.conf
 COPY templates/app-user-permissions /etc/sudoers.d/app-user-permissions
 
 # Handle SSH to host
-# COPY templates/id_rsa_app.pub /home/app/.ssh/id_rsa.pub
-# COPY templates/id_rsa_app /home/app/.ssh/id_rsa
-# COPY templates/known_hosts_app /home/app/.ssh/known_hosts
+COPY templates/authorized_keys_app /root/.ssh/authorized_keys
+COPY templates/ssh_config /etc/ssh/ssh_config
+COPY templates/sshd_config /etc/ssh/sshd_config
 
 # Select ruby
 RUN bash -lc 'rvm --default use ruby-2.4.4'
+
+# Run this script before container startup
+RUN mkdir -p /etc/my_init.d
+COPY scripts/docker_entrypoint.sh /etc/my_init.d
