@@ -112,6 +112,10 @@ class InteractController < ApplicationController
       .where(from_employee_id: eids)
       .where(to_employee_id: eids)
 
+      puts "((((((((((((((((((((((((((((((((((((((((((((((((("
+      puts links.to_sql
+      puts "((((((((((((((((((((((((((((((((((((((((((((((((("
+
 
     res = {
       groups: groups,
