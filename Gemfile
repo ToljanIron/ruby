@@ -44,9 +44,9 @@ gem 'delayed_job_active_record'
 gem "daemons"
 gem 'tzinfo-data'
 gem 'net-sftp'
+gem 'awesome_print'
 
 group :development, :test do
-  gem 'awesome_print'
   gem 'rspec-rails', '~> 3.8'
   gem 'guard-rspec'
   gem 'spork'
