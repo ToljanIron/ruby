@@ -14,7 +14,7 @@
 export APP_HOME=/home/app/sa
 export RUN_ENV=$1
 
-echo "SA app daemon wake up" >> /root/app/sa/log/onpremise.log
+echo "SA app daemon wake up" >> /home/app/sa/log/onpremise.log
 cd $APP_HOME
 
 ## Run schedualer

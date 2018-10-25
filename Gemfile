@@ -45,6 +45,7 @@ gem "daemons"
 gem 'tzinfo-data'
 gem 'net-sftp'
 gem 'awesome_print'
+gem 'colorize'
 
 group :development, :test do
   gem 'rspec-rails', '~> 3.8'
@@ -56,7 +57,6 @@ group :development, :test do
   gem 'guard-shell'
   gem 'simplecov', require: false, group: :test
   gem 'guard-rubocop'
-  gem 'colorize'
   gem 'scss_lint'
   gem 'transpec'
   gem 'database_cleaner'

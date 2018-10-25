@@ -1,53 +1,35 @@
 #!/bin/bash
 
 echo "Type admin user password"
-read password
-export ADMIN_USER_PASSWORD=$password
+#read password
+#export ADMIN_USER_PASSWORD=$password
+export ADMIN_USER_PASSWORD=12345
 
 echo "Type company_name"
-read company_name
-export COMPANY_NAME=$company_name
+#read company_name
+#export COMPANY_NAME=$company_name
+export COMPANY_NAME=Questcomp
 
 echo "Type company_domain"
-read company_domain
-export COMPANY_DOMAIN=$company_domain
+#read company_domain
+#export COMPANY_DOMAIN=$company_domain
+export COMPANY_DOMAIN=acme.com
 
+echo "Drop DB"
+RAILS_ENV=onpremise rake db:drop
 
-echo "Create company"
-rake db:seed:company
+echo "Create DB"
+RAILS_ENV=onpremise rake db:create
 
-echo "Create admin user"
-rake db:seed:admin_user
+echo "Run migrations"
+RAILS_ENV=onpremise rake db:migrate
 
-echo "Create algorithm types"
-rake db:seed:algorithm_types
+echo "Run seeds"
+echo "======================="
+RAILS_ENV=onpremise rake db:seed:company db:seed:admin_user db:seed:algorithm_types db:seed:algorithms db:seed:colors db:seed:event_types db:seed:languages db:seed:ranks db:seed:configuration db:seed:age_group_and_seniority db:seed:marital_statuses db:seed:network_names
 
-echo "Create algorithms"
-rake db:seed:algorithms
-
-echo "Create colors"
-rake db:seed:colors
-
-echo "Create event_types"
-rake db:seed:event_types
-
-echo "Create languages"
-rake db:seed:languages
-
-echo "Create ranks"
-rake db:seed:ranks
-
-echo "Create company configurations"
-rake db:seed:configuration
-
-echo "Create age groups"
-rake db:seed:age_group_and_seniority
-
-echo "Create marital_statuses"
-rake db:seed:marital_statuses
-
-echo "Create network names"
-rake db:seed:network_names
-
+echo
 echo "Create company metrics"
-rake db:create_company_metrics_seed_to_cds\[1\]
+RAILS_ENV=onpremise rake db:create_company_metrics_seed_to_cds\[1\]
+
+echo "Done"
