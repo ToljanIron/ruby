@@ -41,7 +41,6 @@ class InteractController < ApplicationController
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 
     res_indeg = question_indegree_data(sid, gid, cid, cmid)
-
     res = {
       indeg: res_indeg,
       collaboration: question_collaboration_score(gid, nid),

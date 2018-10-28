@@ -1276,6 +1276,7 @@ module AlgorithmsHelper
         snapshot_id = #{sid} AND
         company_id = #{cid} AND
         network_id = #{nid} AND
+        value = 1 AND
         to_employee_id IN (#{empsstr}) AND
         from_employee_id IN (#{empsstr})
       GROUP By to_employee_id
@@ -1623,6 +1624,7 @@ module AlgorithmsHelper
               FROM network_snapshot_data AS outter_nsd
               WHERE outter_nsd.snapshot_id      = #{sid}
               AND   network_id                  = #{nid}
+              AND   outter_nsd.value            = 1
               AND   outter_nsd.to_employee_id   IN (#{empsstr})
               AND   outter_nsd.from_employee_id IN (#{empsstr})
               AND   outter_nsd.from_employee_id <> outter_nsd.to_employee_id
@@ -1633,6 +1635,7 @@ module AlgorithmsHelper
                   FROM network_snapshot_data  AS inner_nsd
               	  WHERE inner_nsd.snapshot_id       = #{sid}
                   AND   network_id                  = #{nid}
+                  AND   inner_nsd.value             = 1
                   AND   inner_nsd.to_employee_id    IN (#{empsstr})
                   AND   inner_nsd.from_employee_id  IN (#{empsstr})
                   AND   inner_nsd.from_employee_id <> inner_nsd.to_employee_id
