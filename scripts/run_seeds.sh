@@ -13,7 +13,7 @@ export COMPANY_NAME=Questcomp
 echo "Type company_domain"
 #read company_domain
 #export COMPANY_DOMAIN=$company_domain
-export COMPANY_DOMAIN=acme.com
+export COMPANY_DOMAIN=questcomp.com
 
 echo "Drop DB"
 RAILS_ENV=onpremise rake db:drop
