@@ -12,6 +12,7 @@ class SaSetupController < ActionController::Base
 
   def log_files_location
     redirect_if_needed
+    Company.last.update(setup_state: :log_files_location)
     @host = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_HOST', comp_id: -1).value
     @user = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_USER', comp_id: -1).value
     @dir  = CompanyConfigurationTable.find_by(key: 'COLLECTOR_TRNAS_SRC_DIR', comp_id: -1).value
@@ -20,6 +21,7 @@ class SaSetupController < ActionController::Base
 
   def log_files_location_set
     puts "in log_files_location_set"
+    Company.last.update(setup_state: :log_files_location_verification)
     params.permit(:sftpHost, :sftpUser, :sftpPassword, :sftpLogsDir)
 
     host = params[:sftpHost].sanitize_url
@@ -79,15 +81,15 @@ class SaSetupController < ActionController::Base
       return
     end
 
-    Company.last.update(setup_state: :log_files_location)
-    redirect_to controller: 'sa_setup', action: 'base'
-  end
-
-  def log_files_location_verification
-    puts "in log_files_location_verification"
     Company.last.update(setup_state: :gpg_passphrase)
     redirect_to controller: 'sa_setup', action: 'base'
   end
+
+  #def log_files_location_verification
+    #puts "in log_files_location_verification"
+    #Company.last.update(setup_state: :gpg_passphrase)
+    #redirect_to controller: 'sa_setup', action: 'base'
+  #end
 
   def gpg_passphrase
     redirect_if_needed
@@ -108,14 +110,8 @@ class SaSetupController < ActionController::Base
       key: 'COLLECTOR_DECRYPTION_PASSPHRASE',
       comp_id: -1
     ).update( value: CdsUtilHelper.encrypt(gpgpass) )
+
     Company.last.update(setup_state: :upload_company)
-
-    if Rails.env.production? || Rails.env.onpremise?
-      `nohup sudo /home/app/sa/scripts/cron_setup.sh >> /home/app/sa/log/onpremise.log 2>&1 &`
-    else
-      `nohup sudo /home/app/sa/scripts/icron_setup.sh >> /home/app/sa/log/development.log 2>&1 &`
-    end
-
     redirect_to controller: 'sa_setup', action: 'base'
   end
 
@@ -124,8 +120,8 @@ class SaSetupController < ActionController::Base
     if Employee.count > 0
       Company.last.update(setup_state: :standby_or_push)
       redirect_to controller: 'sa_setup', action: 'base'
+      return
     end
-    Company.last.update(setup_state: :upload_company)
   end
 
   def employees_excel
@@ -178,7 +174,6 @@ class SaSetupController < ActionController::Base
     puts "In get_push_state"
     pp = Company.last.push_proc
     render json: Oj.dump( pp ), status: 200
-
   end
 
   def form_error
@@ -200,11 +195,11 @@ class SaSetupController < ActionController::Base
     when 'init'
       redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location'
-      redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
+      redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location_verification'
-      redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
+      redirect_to controller: 'sa_setup', action: 'log_files_location_verification' unless curr_action == 'log_files_location_verification'
     when 'gpg_passphrase'
-      redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
+      redirect_to controller: 'sa_setup', action: 'gpg_passphrase' unless curr_action == 'gpg_passphrase'
     when 'upload_company'
       redirect_to controller: 'sa_setup', action: 'upload_company' unless curr_action == 'upload_company'
     when 'standby_or_push'
@@ -215,6 +210,8 @@ class SaSetupController < ActionController::Base
       redirect_to controller: 'sa_setup', action: 'collect_now' unless curr_action == 'collect_now'
     when 'push'
       redirect_to controller: 'sa_setup', action: 'push' unless curr_action == 'push'
+    when 'it_done'
+      redirect_to controller: 'sa_setup', action: 'it_done' unless curr_action == 'it_done'
     else
       raise "Illegal setup_state: #{setup_state}"
     end

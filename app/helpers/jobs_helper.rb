@@ -28,6 +28,9 @@ module JobsHelper
         raise "Illegal job interval type: #{job[:interval]}"
       end
     end
+
+    create_historical_data_job
+
     puts('Schedule delayed jobs done')
   end
 
@@ -66,23 +69,31 @@ module JobsHelper
   # offset is 0-23 starting Sunday
   ####################################################################
   def self.schedule_daily_job(job, queue='defaultqueue', hourofday=0)
-    beginning_of_day = Time.now.at_beginning_of_day
-    end_of_day       = Time.now.at_end_of_day
+    beginning_of_day = 1.day.from_now.at_beginning_of_day
+    end_of_day       = 1.day.from_now.at_end_of_day
 
     jobs = Delayed::Job
            .where("handler like '%#{job.to_s}%'")
            .where(run_at: beginning_of_day..end_of_day)
     return if jobs.count > 0
 
-    if Time.now.hour >= hourofday
-      next_job_run_at = beginning_of_day + hourofday.hours + 1.day
-    else
-      next_job_run_at = beginning_of_day + hourofday.hours
-    end
+    next_job_run_at = beginning_of_day + hourofday.hours
     Delayed::Job.enqueue(
       job.new,
       queue: queue,
       run_at: next_job_run_at)
+  end
+
+  #####################################################################
+  # Create a job for the initial push operation
+  #####################################################################
+  def create_historical_data_job
+    return if Company.find(1).setup_state != 'push'
+    return if PushProc.last.state != 'collector_done'
+    Delayed::Job.enqueue(
+      HistoricalDataJob.new,
+      queue: APP_QUEUE,
+      run_at: Time.now)
   end
 end
 

@@ -2,7 +2,7 @@ class HistoricalDataJob
   def perform
     puts 'Historical data job started'
     EventLog.log_event(message: 'historical_data job started')
-    AnalyzeHistoricalDataHelper.run()
+    AnalyzeHistoricalDataHelper.run(1)
     EventLog.log_event(message: 'historical job completed')
   end
 

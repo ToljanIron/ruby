@@ -36,9 +36,7 @@ module SftpHelper
         sftp.dir.glob(src_dir, mask) do |entry|
           path = src_dir == '.' ? entry.name : "./#{src_dir}/#{entry.name}"
           sftp.download!(path, "#{dest_dir}/#{entry.name}")
-          sftp.remove(path)
         end
-
       end
     end
   end

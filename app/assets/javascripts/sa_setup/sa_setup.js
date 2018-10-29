@@ -23,7 +23,12 @@ sas.updatePushState = function() {
 
       // Snapshots created
       document.getElementById('sas-snp-created-num').innerHTML = data.num_snapshots;
-      var snpcre_fraction = data.num_snapshots > 0 ? data.num_snapshots_created / data.num_snapshots : 0;
+      var snpcre_fraction = 0;
+      if (data.num_snapshots_processed === 0) {
+        snpcre_fraction = data.num_snapshots > 0 ? data.num_snapshots_created / data.num_snapshots : 0;
+      } else {
+        snpcre_fraction = 1;
+      }
       var snpcre_percent = Math.round(100 * snpcre_fraction);
       border_width = Math.min( 16, 20 * (1 - snpcre_fraction) );
       var snpcre_bar = document.getElementById('sas-snp-created-bar');
@@ -33,7 +38,7 @@ sas.updatePushState = function() {
 
       // Snapshots processed
       document.getElementById('sas-snp-proced-num').innerHTML = data.num_snapshots_processed;
-      var snpprc_fraction = data.num_snapshots > 0 ? data.num_snapshots_processed / data.num_snapshots : 0;
+      var snpprc_fraction = data.num_snapshots > 0 ? data.num_snapshots_processed / data.num_snapshots_created : 0;
       var snpprc_percent = Math.round(100 * snpprc_fraction);
       border_width = Math.min( 16, 20 * (1 - snpprc_fraction) );
       var snpprc_bar = document.getElementById('sas-snp-proced-bar');

@@ -46,12 +46,12 @@ gem 'tzinfo-data'
 gem 'net-sftp'
 gem 'awesome_print'
 gem 'colorize'
+gem 'byebug'
 
 group :development, :test do
   gem 'rspec-rails', '~> 3.8'
   gem 'guard-rspec'
   gem 'spork'
-  gem 'byebug'
   gem 'guard-spork'
   gem 'jasmine-rails'
   gem 'guard-shell'
