@@ -41,7 +41,6 @@ class InteractController < ApplicationController
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 
     res_indeg = question_indegree_data(sid, gid, cid, cmid)
-
     res = {
       indeg: res_indeg,
       collaboration: question_collaboration_score(gid, nid),
@@ -79,12 +78,20 @@ class InteractController < ApplicationController
     quest = qq.questionnaire
     nid = qq.network_id
     sid = quest.snapshot_id
+    puts "************************************ 1"
+    puts gids
     if (gids.nil? || gids == [] || gids == '')
-      gids = Group.by_snapshot(sid).pluck(:id).join(',')
+      gids = Group
+               .by_snapshot(sid)
+               .where(questionnaire_id: quest.id)
+               .pluck(:id).join(',')
     end
 
+    puts "************************************ 2"
+    puts gids
+    puts "************************************ 2"
+
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
-   #  gidsStr = gids.join("','")
 
     groups = Group
       .select("groups.id AS gid, name, parent_group_id AS parentId, color_id")
@@ -111,7 +118,6 @@ class InteractController < ApplicationController
       .where("value > 0")
       .where(from_employee_id: eids)
       .where(to_employee_id: eids)
-
 
     res = {
       groups: groups,

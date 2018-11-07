@@ -334,7 +334,8 @@ module InteractBackofficeHelper
         puts "Did not find employee with id: #{r['tid']}"
         next
       end
-      network = h_networks[r['nid']]
+      network = h_networks[r['nid'].to_s]
+
       ws = network_report_write_row(ws, network, femp, temp, row)
       row += 1
     end
