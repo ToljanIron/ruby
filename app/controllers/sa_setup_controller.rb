@@ -77,6 +77,7 @@ class SaSetupController < ActionController::Base
       puts msg
       EventLog.create(message: msg)
       puts ex.backtrace
+      Company.last.update(setup_state: :log_files_location)
       redirect_to_error(msg)
       return
     end
@@ -84,12 +85,6 @@ class SaSetupController < ActionController::Base
     Company.last.update(setup_state: :gpg_passphrase)
     redirect_to controller: 'sa_setup', action: 'base'
   end
-
-  #def log_files_location_verification
-    #puts "in log_files_location_verification"
-    #Company.last.update(setup_state: :gpg_passphrase)
-    #redirect_to controller: 'sa_setup', action: 'base'
-  #end
 
   def gpg_passphrase
     redirect_if_needed
@@ -224,5 +219,4 @@ class SaSetupController < ActionController::Base
     return "No such file or directory" if msg.include?('no such file')
     return "Unknown error: #{msg}"
   end
-
 end
