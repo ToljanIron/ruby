@@ -30,3 +30,6 @@ rvm --default use ruby-2.4.4
 # The container will run docker_entrypoint.sh before it starts running
 mkdir -p /etc/my_init.d
 cp scripts/docker_entrypoint.sh /etc/my_init.d
+
+# Put the logrotate configuration file in place
+cp templates/sa.logrotate /etc/logrotate.d/sa.logrotate

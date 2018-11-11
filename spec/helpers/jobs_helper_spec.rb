@@ -16,6 +16,12 @@ describe JobsHelper, type: :helper do
     expect(Delayed::Job.count).to eq(24)
   end
 
+  it 'should not create duplicate hourly jobs' do
+    JobsHelper.schedule_hourly_job(TestJob, 'testqueue')
+    JobsHelper.schedule_hourly_job(TestJob, 'testqueue')
+    expect(Delayed::Job.count).to eq(24)
+  end
+
   it 'should not create tests for occupied timeslots' do
     Delayed::Job.enqueue(TestJob.new, queue: 'testqueue', run_at: 1.hours.from_now)
     Delayed::Job.enqueue(TestJob.new, queue: 'testqueue', run_at: 11.hours.from_now)
