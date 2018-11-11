@@ -36,8 +36,11 @@ module JobsHelper
 
   def self.schedule_hourly_job(job, queue)
     (0..23).each do |h|
-      nh = h + 1
-      jobs = Delayed::Job.where("handler like '%#{job.to_s}%'").where(run_at: h.hours.from_now .. nh.hours.from_now)
+      hourstart = h.hours.from_now.beginning_of_hour
+      hourend   = h.hours.from_now.end_of_hour
+      jobs = Delayed::Job
+               .where("handler like '%#{job.to_s}%'")
+               .where(run_at: hourstart .. hourend)
       next if jobs.count > 0
       Delayed::Job.enqueue(job.new, queue: queue, run_at: h.hours.from_now)
     end
@@ -64,7 +67,7 @@ module JobsHelper
   end
 
   ####################################################################
-  # Check if there's such a job in the next 7 days, if not will
+  # Check if there's such a job tomorrow, if not will
   # schedule it.
   # offset is 0-23 starting Sunday
   ####################################################################
