@@ -187,7 +187,7 @@ module NetworkSnapshotDataHelper
     direct_links = get_direct_employee_links_for_map(eid, snapshot_field, interval, sid, max_emps)
 
     empids = direct_links.map do |e|
-      [e['id1'], e['id2']]
+      [e[:id1], e[:id2]]
     end
     empids = empids.flatten.uniq
 
@@ -195,9 +195,12 @@ module NetworkSnapshotDataHelper
     empids_without_eid = empids.reject { |e| e == eid }
     indirect_links = get_indirect_employee_links_for_map(empids_without_eid, snapshot_field, interval, sid)
 
+    groups = get_groups_from_emps( nodes.map { |e| e['group_id'] }.uniq )
+
     ret = {
       nodes: nodes,
       links: direct_links + indirect_links,
+      groups: groups,
       result_type: 'emps',
       selected_eid: eid
     }
@@ -218,27 +221,30 @@ module NetworkSnapshotDataHelper
                  .where("sn.%s = '%s'", snapshot_field, interval)
                  .where("femps.external_id ='%s'", extid)
                  .group('source, target')
-                 .order('weight desc')
+                 .order('w desc')
                  .limit(limit)
 
     to_links = NetworkSnapshotData
                .select("femps.external_id AS source, temps.external_id AS target,
-                     count(*) AS weight, 'direct' AS link_type")
+                     count(*) AS w, 'direct' AS link_type")
                .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
                .joins('JOIN employees AS femps ON femps.id = from_employee_id')
                .joins('JOIN employees AS temps ON temps.id = to_employee_id')
                .where("sn.%s = '%s'", snapshot_field, interval)
                .where("temps.external_id ='%s'", extid)
                .group('source, target')
-               .order('weight desc')
+               .order('w desc')
                .limit(limit)
 
     res = from_links + to_links
 
     res = res.map do |r|
-      r['id1'] = Employee.external_id_to_id_in_snapshot(r['source'], sid).to_i
-      r['id2'] = Employee.external_id_to_id_in_snapshot(r['target'], sid).to_i
-      r
+      {
+        id1: Employee.external_id_to_id_in_snapshot(r['source'], sid).to_i,
+        id2: Employee.external_id_to_id_in_snapshot(r['target'], sid).to_i,
+        w: r['w'],
+        id: nil
+      }
     end
     return res
   end
@@ -249,7 +255,7 @@ module NetworkSnapshotDataHelper
     extids = Employee.where(id: eids).pluck(:external_id)
     other_links = NetworkSnapshotData
                   .select("femps.external_id AS source, temps.external_id AS target,
-                     count(*) AS weight, 'indirect' AS link_type")
+                     count(*) AS w, 'indirect' AS link_type")
                   .joins('JOIN snapshots AS sn ON sn.id = network_snapshot_data.snapshot_id')
                   .joins('JOIN employees AS femps ON femps.id = from_employee_id')
                   .joins('JOIN employees AS temps ON temps.id = to_employee_id')
@@ -259,9 +265,12 @@ module NetworkSnapshotDataHelper
                   .group('source, target')
 
     other_links = other_links.map do |r|
-      r['source'] = Employee.external_id_to_id_in_snapshot(r['source'], sid)
-      r['target'] = Employee.external_id_to_id_in_snapshot(r['target'], sid)
-      r
+      {
+      id1: Employee.external_id_to_id_in_snapshot(r['source'], sid),
+      id2: Employee.external_id_to_id_in_snapshot(r['target'], sid),
+      w: r['w'],
+      id: nil
+      }
     end
     return other_links
   end
@@ -290,7 +299,7 @@ module NetworkSnapshotDataHelper
     end
 
     groups = get_groups_from_emps( nodes.map { |e| e['group_id'] }.uniq )
-    
+
     ret = {
       nodes: nodes,
       links: links,
