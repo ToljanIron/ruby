@@ -52,12 +52,22 @@ module Mobile::QuestionnaireQuestionsHelper
     response[:max] = questionnaire_question.max || response[:replies].count
     response[:token] = qp.token
     response[:current_emp_id] = qp.employee_id
-    response[:question_title] = questionnaire_question.title
-    response[:question] = questionnaire_question.body
     response[:q_id] = questionnaire_question.id
     response[:total_questions] = qp.questionnaire.size
     response[:current_question_position] = qp.questionnaire.question_position(questionnaire_question.id)
     response[:is_dependent] = is_dependent?(questionnaire_question.id)
+
+    ## This section handels languages. Each participant may see his questions
+    ##   in one of 3 langulages
+    lid = qp.language_id
+
+    response[:question_title] = questionnaire_question.title  if lid == 1
+    response[:question_title] = questionnaire_question.title2 if lid == 2
+    response[:question_title] = questionnaire_question.title3 if lid == 3
+
+    response[:question] = questionnaire_question.body  if lid == 1
+    response[:question] = questionnaire_question.body2 if lid == 2
+    response[:question] = questionnaire_question.body3 if lid == 3
     return response
   end
 end
