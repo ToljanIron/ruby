@@ -178,7 +178,7 @@ module InteractBackofficeActionsHelper
 
   def self.send_live_questionnaire(aq, qp)
     if !Rails.env.production? && !Rails.env.onpremise?
-      puts "Not REALLY sending questionnaire because this is not production"
+      puts "Not REALLY sending questionnaire to: #{qp.employee.email} because this is not production"
       return
     end
     send_live_sms(aq, qp) if aq.delivery_method == 'sms'
@@ -266,6 +266,7 @@ module InteractBackofficeActionsHelper
             .where(questionnaire_id: aq.id)
             .where.not(employee_id: -1)
             .where.not(status: 3)
+            .where(active: true)
     qps.each do |qp|
       begin
         send_live_questionnaire(aq, qp)

@@ -313,7 +313,7 @@ class Questionnaire < ActiveRecord::Base
          q.id IN ( #{qids.join(',')})
        GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
-                q.test_user_phone, q.test_user_email, q.state, language_id,
+                q.test_user_phone, q.test_user_email, q.state, q.language_id,
                 qp.participant_type, q.snapshot_id
        ORDER BY q.created_at DESC"
 
