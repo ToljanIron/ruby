@@ -21,7 +21,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_USER', comp_id
 password = CdsUtilHelper.encrypt('password')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_PASSWORD', comp_id: -1).update(value: password)
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_SRC_DIR', comp_id: -1).update(value: '.')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_FILE_MASK', comp_id: -1).update(value: '*.log')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_FILE_MASK', comp_id: -1).update(value: '*.log;*.gpg;*.zip;*.LOG')
 
 ## Log files unzip
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_UNZIP_TYPE', comp_id: -1).update(value: 'unzip')
