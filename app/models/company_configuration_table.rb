@@ -104,7 +104,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
               .where(comp_id: -1, key: MAX_EMPS_IN_MAP)
     return ret if entry.nil?
     return ret if entry.first.nil?
-    return entry.first.value
+    return entry.first.value.to_i
   end
 
   def self.max_login_attempts
