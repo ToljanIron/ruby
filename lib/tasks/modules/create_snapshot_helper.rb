@@ -42,13 +42,13 @@ module CreateSnapshotHelper
     puts "Going to create a snapshot for sid: #{sid}, end_date: #{end_date}"
     create_emails_for_weekly_snapshots(cid, snapshot.id, end_date)
 
-    puts "Duplicating emails"
-    duplicate_network_snapshot_data_for_weekly_snapshots(cid, sid)
+    # puts "Duplicating emails"
+    # duplicate_network_snapshot_data_for_weekly_snapshots(cid, sid)
 
     puts "In calc_meaningfull_emails"
     # EmailSnapshotDataHelper.calc_meaningfull_emails(sid)
 
-    if CompanyConfigurationTable.find_by(comp_id: cid, key: 'process_meetings').try(:value) == 'true'
+    if CompanyConfigurationTable.process_meetings?(cid)
       puts "Creating meetings snapshot"
       start_date = end_date - get_period_of_weeks(cid).to_i.week
       MeetingsHelper.create_meetings_for_snapshot(sid, start_date, end_date)

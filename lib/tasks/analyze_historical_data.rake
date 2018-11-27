@@ -14,15 +14,14 @@ namespace :db do
     puts msg
     EventLog.log_event(message: msg)
 
-    if !clean
-      AnalyzeHistoricalDataHelper.run(cid)
-    else
+    if clean
       puts "Clearing"
       PushProc.last.update(state: 3)
       NetworkSnapshotData.delete_all
       CdsMetricScore.delete_all
       RawDataEntry.all.update(processed: false)
     end
+    AnalyzeHistoricalDataHelper.run(cid)
 
     msg = "Done with historical data processing job"
     puts msg

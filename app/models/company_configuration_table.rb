@@ -18,6 +18,7 @@ class CompanyConfigurationTable < ActiveRecord::Base
   LOCK_TIME_AFTER_MAX_LOGIN_ATTEMPTS = 300
   HIDE_EMPLOYEES     = 'hide_employee_names'
   MIN_EMPS_IN_GROUP_FOR_ALGORITHMS = 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS'
+  PROCESS_MEETINGS = 'process_meetings'
 
   belongs_to :company, foreign_key: 'comp_id'
 
@@ -135,5 +136,13 @@ class CompanyConfigurationTable < ActiveRecord::Base
     return ret if entry.nil?
     return ret if entry.first.nil?
     return entry.first.value.to_i
+  end
+
+  def self.process_meetings?(cid)
+    pm = CompanyConfigurationTable.find_by(comp_id: cid, key: PROCESS_MEETINGS)
+    if pm.nil?
+      pm = CompanyConfigurationTable.find_by(comp_id: -1, key: PROCESS_MEETINGS)
+    end
+    return pm.try(:value) == 'true'
   end
 end

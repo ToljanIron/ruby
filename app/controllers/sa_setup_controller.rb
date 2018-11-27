@@ -165,6 +165,20 @@ class SaSetupController < ActionController::Base
     puts "in push"
   end
 
+  def collect_again
+    puts "in retry push"
+    Company.last.update(setup_state: :push)
+    PushProc.delete_all
+    Logfile.delete_all
+    PushProc.create(company_id: Company.last.id)
+    Delayed::Job.enqueue(
+      HistoricalDataJob.new,
+      queue: 'collector_queue',
+      run_at: 5.hours.ago
+    )
+    redirect_to controller: 'sa_setup', action: 'base'
+  end
+
   def get_push_state
     puts "In get_push_state"
     pp = Company.last.push_proc

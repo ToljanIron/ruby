@@ -12,21 +12,40 @@ module MeetingsHelper
     meetings_values = []
     meetings_attendees = {}
     relevant_meetings.each do |raw_meeting|
-      raw_meeting.add_external_id unless raw_meeting[:external_meeting_id]
       meetings_values << "(#{raw_meeting.convert_to_param_array(cid, sid).try(:join, ',')})"
-      meetings_attendees[raw_meeting[:external_meeting_id]] = raw_meeting[:attendees].tr('{}', '').split(',')
+      puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+      ap meetings_values
+
+      meeting_identifier = RawMeetingsData.meeting_identifier(
+        raw_meeting[:subject], raw_meeting[:organizer]
+      )
+    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    puts raw_meeting[:attendees]
+    puts raw_meeting[:attendees].class
+    ap raw_meeting
+    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+      meetings_attendees[meeting_identifier] =
+        raw_meeting[:attendees]
+          .tr('\"', '')
+          .tr('[]','')
+          .tr('{}', '')
+          .split(',')
     end
     return if meetings_values.empty?
-    ActiveRecord::Base.connection.execute("INSERT INTO meetings (#{MEETING_ATTRIBUTES.join(',')})
-                                           VALUES #{meetings_values.join(',')}")
+    ActiveRecord::Base.connection.execute(
+      "INSERT INTO meetings_snapshot_data (#{MEETING_ATTRIBUTES.join(',')})
+       VALUES #{meetings_values.join(',')}")
+
+    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    ap meetings_attendees
     create_attendees(meetings_attendees, sid)
   end
 
   def self.create_attendees(meetings_attendees, sid)
     return if meetings_attendees.empty?
     attendees_values = []
-    meetings_attendees.each do |external_meeting_id, attendees|
-      meeting = Meeting.find_by(meeting_uniq_id: external_meeting_id)
+    meetings_attendees.each do |uniq_id, attendees|
+      meeting = MeetingsSnapshotData.find_by(meeting_uniq_id: uniq_id)
       cid = meeting.company_id
       attendees_converted = convert_attendees_to_attendee_entries(attendees, cid, meeting.id, sid)
       attendees_values << attendees_converted

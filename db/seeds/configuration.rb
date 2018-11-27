@@ -51,4 +51,5 @@ CompanyConfigurationTable.find_or_create_by(key: 'INFO_LOG_LEVEL', comp_id: -1).
 CompanyConfigurationTable.find_or_create_by(key: 'APP_SERVER_NAME', comp_id: -1).update(value: 'stepahead')
 CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '3')
 CompanyConfigurationTable.find_or_create_by(key: 'NTP_SERVER', comp_id: -1).update(value: 'time.windows.com')
+CompanyConfigurationTable.find_or_create_by(key: 'process_meetings', comp_id: -1).update(value: 'true')
 
