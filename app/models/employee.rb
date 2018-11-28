@@ -194,8 +194,8 @@ class Employee < ActiveRecord::Base
       e.update(processed_attrs) if e
       e = Employee.create!(processed_attrs) unless e
     rescue => e
-      logger.error e.message
-      logger.error e.backtrace.join("\n")
+      puts e.message
+      puts e.backtrace.join("\n")
       raise 'Employee.build_from_hash: Error - faild to build Employee'
     end
     return {

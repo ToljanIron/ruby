@@ -127,7 +127,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
   def dependent_quesiton_completed?(qq)
     min = filter_only_relevant_qp(qq).count
     answers = qq.question_replies.where(questionnaire_participant_id: id).count
-    return answers >= min
+    return answers >= 1
   end
 
   def all_replies_for_questionnaire_question(q_id)
