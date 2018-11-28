@@ -208,8 +208,6 @@ module InteractBackofficeActionsHelper
   end
 
   def self.send_live_email(aq, qp)
-    puts "qp.employee.email: #{qp.employee.email}"
-    puts "qp.employee.first_name: #{qp.employee.first_name}"
     send_email(
       aq,
       qp,
@@ -219,6 +217,7 @@ module InteractBackofficeActionsHelper
   end
 
   def self.send_email(aq, qp, email_address, user_name)
+    puts "Sending to: #{email_address}"
     em = ExampleMailer.sample_email(
       email_address,
       aq.email_subject,
@@ -267,7 +266,11 @@ module InteractBackofficeActionsHelper
             .where.not(employee_id: -1)
             .where.not(status: 3)
             .where(active: true)
+    ii = 0
+    num_messages = qps.count
     qps.each do |qp|
+      ii += 1
+      puts "Sending email number #{ii} out of #{num_messages}"
       begin
         send_live_questionnaire(aq, qp)
       rescue => ex
