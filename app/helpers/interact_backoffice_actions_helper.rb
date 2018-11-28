@@ -218,13 +218,22 @@ module InteractBackofficeActionsHelper
 
   def self.send_email(aq, qp, email_address, user_name)
     puts "Sending to: #{email_address}"
+
+    subject = aq.email_subject  if qp.language_id == 1
+    subject = aq.email_subject2 if qp.language_id == 2
+    subject = aq.email_subject3 if qp.language_id == 3
+
+    email_text = aq.email_text.clone  if qp.language_id == 1
+    email_text = aq.email_text2.clone if qp.language_id == 2
+    email_text = aq.email_text3.clone if qp.language_id == 3
+
     em = ExampleMailer.sample_email(
       email_address,
-      aq.email_subject,
+      subject,
       aq.email_from,
       user_name,
       qp.create_link,
-      aq.email_text.clone
+      email_text
     )
     em.deliver
   end
