@@ -19,14 +19,14 @@ describe GroupsController, type: :controller do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe ', groups' do
     def create_employees
       @employees_counters = { group_1: 0, group_2: 0, group_3: 0, group_4: 0, group_5: 0, group_6: 0 }
       (1..100).each do
-        e = FactoryGirl.create(:employee, company_id: @company_id)
+        e = FactoryBot.create(:employee, company_id: @company_id)
         r = rand(1..6)
         e.group_id = r
         @employees_counters["group_#{r}".to_sym] += 1

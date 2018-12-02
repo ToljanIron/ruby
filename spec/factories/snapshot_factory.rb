@@ -1,10 +1,10 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :snapshot do
-    company_id 1
-    name 'Monthly 2015-01-01'
-    snapshot_type 1
-    timestamp Time.now
-    status 2
+    company_id { 1 }
+    name { 'Monthly 2015-01-01' }
+    snapshot_type { 1 }
+    timestamp { Time.now }
+    status { 2 }
   end
 end
 

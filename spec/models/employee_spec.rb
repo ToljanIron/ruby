@@ -2,12 +2,12 @@ require 'spec_helper'
 
 describe Employee, type: :model do
   before do
-    @employee = FactoryGirl.build(:employee)
+    @employee = FactoryBot.build(:employee)
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   subject { @employee }
@@ -16,8 +16,8 @@ describe Employee, type: :model do
 
   it 'direct_managers_by_company should list all employees who are also direct managers' do
     c = Company.create(name: 'company lala')
-    e1 = FactoryGirl.create(:employee, company_id: c.id)
-    e2 = FactoryGirl.create(:employee, company_id: c.id)
+    e1 = FactoryBot.create(:employee, company_id: c.id)
+    e2 = FactoryBot.create(:employee, company_id: c.id)
     EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 0)
     res = Employee.direct_managers_by_company(c.id)
     expect(res.count).to eq(1)
@@ -27,8 +27,8 @@ describe Employee, type: :model do
 
   it 'professional_managers_by_company should list all employees who are also professional managers' do
     c = Company.create(name: 'company lala')
-    e1 = FactoryGirl.create(:employee, company_id: c.id)
-    e2 = FactoryGirl.create(:employee, company_id: c.id)
+    e1 = FactoryBot.create(:employee, company_id: c.id)
+    e2 = FactoryBot.create(:employee, company_id: c.id)
     EmployeeManagementRelation.create(manager_id: e1.id, employee_id: e2.id, relation_type: 1)
     res = Employee.pro_managers_by_company(c.id)
     expect(res.count).to eq(1)
@@ -38,8 +38,8 @@ describe Employee, type: :model do
     c = Company.create(name: 'company lala')
     j1 = JobTitle.create(name: 'Janitor', company_id: c.id, color_id: 1)
     j2 = JobTitle.create(name: 'Bum', company_id: c.id, color_id: 2)
-    FactoryGirl.create(:employee, company_id: c.id, job_title_id: j1.id)
-    FactoryGirl.create(:employee, company_id: c.id, job_title_id: j2.id)
+    FactoryBot.create(:employee, company_id: c.id, job_title_id: j1.id)
+    FactoryBot.create(:employee, company_id: c.id, job_title_id: j2.id)
     res = Employee.job_title_by_company(c.id)
     expect(res.count).to eq(2)
     res.should include('Janitor')
@@ -97,11 +97,11 @@ describe Employee, type: :model do
     o = nil
     e = nil
     before do
-      g = FactoryGirl.create(:group)
-      o = FactoryGirl.create(:office)
-      age_group = FactoryGirl.create(:age_group, name: '25-34')
-      seniority = FactoryGirl.create(:seniority, name: '2Y')
-      e = FactoryGirl.create(
+      g = FactoryBot.create(:group)
+      o = FactoryBot.create(:office)
+      age_group = FactoryBot.create(:age_group, name: '25-34')
+      seniority = FactoryBot.create(:seniority, name: '2Y')
+      e = FactoryBot.create(
         :employee,
         email: 'a@mail.com',
         first_name: 'A',
@@ -144,7 +144,7 @@ describe Employee, type: :model do
     counter = 0
     (1..n).each do |i|
       id = rand(1..5)
-      FactoryGirl.create(:employee,
+      FactoryBot.create(:employee,
                          first_name: "name_#{i}",
                          last_name: "name_#{i}",
                          email: "name_#{i}@company.com",
@@ -156,7 +156,7 @@ describe Employee, type: :model do
 
   it ', Creating employee with pin related attributes works' do
     emp_count = Employee.all.length
-    FactoryGirl.create(
+    FactoryBot.create(
       :employee,
       email: 'a@mail.com',
       first_name: 'A',
@@ -174,8 +174,8 @@ describe Employee, type: :model do
 
   describe ', verify that given an employees we can find the pins it belongs to' do
     before do
-      FactoryGirl.create(:employee)
-      FactoryGirl.create_list(:pin, 2)
+      FactoryBot.create(:employee)
+      FactoryBot.create_list(:pin, 2)
       EmployeesPin.create(pin_id: 1, employee_id: 1)
       EmployeesPin.create(pin_id: 2, employee_id: 1)
 
@@ -219,9 +219,9 @@ describe Employee, type: :model do
 
   describe 'create_snapshot in employee' do
     before do
-      FactoryGirl.create(:employee, role_id: 10)
-      FactoryGirl.create(:group, external_id: 'group-1',snapshot_id: 100)
-      FactoryGirl.create(:group, external_id: 'group-1',snapshot_id: 101)
+      FactoryBot.create(:employee, role_id: 10)
+      FactoryBot.create(:group, external_id: 'group-1',snapshot_id: 100)
+      FactoryBot.create(:group, external_id: 'group-1',snapshot_id: 101)
     end
 
     it 'create without specifying a snapshot should create employee with snapshot_id -1' do
@@ -253,7 +253,7 @@ describe Employee, type: :model do
     end
 
     it 'should not copy over inactive employees to new snapshot' do
-      FactoryGirl.create(:employee, role_id: 10)
+      FactoryBot.create(:employee, role_id: 10)
       Employee.last.update(active: false)
       Employee.create_snapshot(1, 1, 100)
       expect(Employee.count).to eq(3)
@@ -273,10 +273,10 @@ describe Employee, type: :model do
     describe 'id_in_snapshot' do
       emp = nil
       before do
-        FactoryGirl.create(:employee)
-        FactoryGirl.create(:employee)
-        FactoryGirl.create(:employee)
-        emp = FactoryGirl.create(:employee)
+        FactoryBot.create(:employee)
+        FactoryBot.create(:employee)
+        FactoryBot.create(:employee)
+        emp = FactoryBot.create(:employee)
         Snapshot.create!(id: 100, company_id: 1, timestamp: Time.now + 1.week)
         Snapshot.create!(id: 101, company_id: 1, timestamp: Time.now + 2.weeks)
         Employee.create_snapshot(1, 1, 100)

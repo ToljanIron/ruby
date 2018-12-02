@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 IN = 'to_employee_id'
 OUT  = 'from_employee_id'
@@ -19,15 +19,15 @@ describe AlgorithmsHelper, type: :helper do
 
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   before(:each) do
     @cid = 1
     gid = 3
 
-    @s = FactoryGirl.create(:snapshot, name: 's3', company_id: @cid)
-    FactoryGirl.create(:group, id: gid, company_id: @cid, snapshot_id: @s.id)
+    @s = FactoryBot.create(:snapshot, name: 's3', company_id: @cid)
+    FactoryBot.create(:group, id: gid, company_id: @cid, snapshot_id: @s.id)
 
     em1 = 'p11@email.com'
     em2 = 'p22@email.com'
@@ -36,14 +36,14 @@ describe AlgorithmsHelper, type: :helper do
     em5 = 'p55@email.com'
     em6 = 'p66@email.com'
 
-    @e1 = FactoryGirl.create(:employee, email: em1, group_id: gid)
-    @e2 = FactoryGirl.create(:employee, email: em2, group_id: gid)
-    @e3 = FactoryGirl.create(:employee, email: em3, group_id: gid)
-    @e4 = FactoryGirl.create(:employee, email: em4, group_id: gid)
-    @e5 = FactoryGirl.create(:employee, email: em5, group_id: gid)
-    @e6 = FactoryGirl.create(:employee, email: em6, group_id: gid)
+    @e1 = FactoryBot.create(:employee, email: em1, group_id: gid)
+    @e2 = FactoryBot.create(:employee, email: em2, group_id: gid)
+    @e3 = FactoryBot.create(:employee, email: em3, group_id: gid)
+    @e4 = FactoryBot.create(:employee, email: em4, group_id: gid)
+    @e5 = FactoryBot.create(:employee, email: em5, group_id: gid)
+    @e6 = FactoryBot.create(:employee, email: em6, group_id: gid)
 
-    @n1 = FactoryGirl.create(:network_name, name: 'Communication Flow', company_id: @cid)
+    @n1 = FactoryBot.create(:network_name, name: 'Communication Flow', company_id: @cid)
   end
 
   describe 'TO field' do

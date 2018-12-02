@@ -4,8 +4,8 @@ require './lib/tasks/modules/create_analyze_historical_data_helper.rb'
 
 describe AnalyzeHistoricalDataHelper, type:  :helper do
   before do
-    FactoryGirl.create(:company)
-    FactoryGirl.create(:snapshot, timestamp: 4.months.ago)
+    FactoryBot.create(:company)
+    FactoryBot.create(:snapshot, timestamp: 4.months.ago)
     NetworkName.create!(company_id: 1, name: 'Communication Flow')
     PushProc.create!(company_id: 1)
 
@@ -19,27 +19,27 @@ describe AnalyzeHistoricalDataHelper, type:  :helper do
     CompanyMetric.find_or_create_by!(metric_id: blitzed_id, network_id: -1, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
 
     ## Create groups and employees
-    FactoryGirl.create(:group)
-    FactoryGirl.create(:group)
+    FactoryBot.create(:group)
+    FactoryBot.create(:group)
     Group.find(1).update(hierarchy_size: 3, nsleft: 1, nsright: 4)
     Group.find(2).update(parent_group_id: 1, hierarchy_size: 2, nsleft: 2, nsright: 3)
 
-    FactoryGirl.create(:employee, email: 'emp1@acme.com',group_id: 1)
-    FactoryGirl.create(:employee, email: 'emp2@acme.com',group_id: 2)
-    FactoryGirl.create(:employee, email: 'emp3@acme.com',group_id: 2)
+    FactoryBot.create(:employee, email: 'emp1@acme.com',group_id: 1)
+    FactoryBot.create(:employee, email: 'emp2@acme.com',group_id: 2)
+    FactoryBot.create(:employee, email: 'emp3@acme.com',group_id: 2)
 
     ## Create raw entries
     dates = [Time.now, 1.month.ago, 2.month.ago]
     dates.each do |date|
-      FactoryGirl.create(:raw_data_entry, from: 'emp1@acme.com', to: ['emp2@acme.com'], date: date)
-      FactoryGirl.create(:raw_data_entry, from: 'emp1@acme.com', to: ['emp3@acme.com'], date: date)
-      FactoryGirl.create(:raw_data_entry, from: 'emp2@acme.com', to: ['emp1@acme.com'], date: date)
+      FactoryBot.create(:raw_data_entry, from: 'emp1@acme.com', to: ['emp2@acme.com'], date: date)
+      FactoryBot.create(:raw_data_entry, from: 'emp1@acme.com', to: ['emp3@acme.com'], date: date)
+      FactoryBot.create(:raw_data_entry, from: 'emp2@acme.com', to: ['emp1@acme.com'], date: date)
     end
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   it 'should work' do

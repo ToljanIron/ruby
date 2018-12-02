@@ -12,20 +12,20 @@ describe 'Questionnaire processes' do
     cid = Company.create!(name: "Hevra10").id
     sid = Snapshot.create!(name: "2016-01", company_id: 1, timestamp: 5.weeks.ago).id
     Algorithm.create!(id: 601, name: 'interact_indegree', algorithm_type_id: 8)
-    FactoryGirl.create(:question, is_funnel_question: true)
-    FactoryGirl.create(:question)
-    FactoryGirl.create(:question)
-    rootgid = FactoryGirl.create(:group, name: 'Comp').id
+    FactoryBot.create(:question, is_funnel_question: true)
+    FactoryBot.create(:question)
+    FactoryBot.create(:question)
+    rootgid = FactoryBot.create(:group, name: 'Comp').id
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'Existing groups and employees' do
     it 'should be copied over' do
-      l21gid = FactoryGirl.create(:group, name: 'L2-1', parent_group_id: rootgid).id
+      l21gid = FactoryBot.create(:group, name: 'L2-1', parent_group_id: rootgid).id
       create_emps('moshe', 'hevra10.com', 2, {gid: l21gid})
       InteractBackofficeActionsHelper.create_new_questionnaire(cid)
       lastsid = Snapshot.last

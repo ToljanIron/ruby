@@ -68,7 +68,8 @@ group :test do
   gem 'ruby-prof'
   gem 'capybara'
   gem 'libnotify'
-  gem 'factory_girl_rails', '4.2.0'
+  gem 'factory_bot', '~> 4.11', '>= 4.11.1'
+  gem 'rubocop-rspec'
 end
 
 group :production do

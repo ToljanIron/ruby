@@ -218,7 +218,7 @@ describe EmailPropertiesTranslator do
 
   describe ', convert_emails_to_employee_ids' do
     before do
-      FactoryGirl.create_list(:employee, 3)
+      FactoryBot.create_list(:employee, 3)
       @cmp_id = 0
     end
   end

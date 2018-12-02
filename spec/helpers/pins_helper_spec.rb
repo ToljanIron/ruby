@@ -3,11 +3,11 @@ require 'spec_helper'
 describe PinsHelper, type: :helper do
   describe ', handle pin operations as recieved from the client' do
     before do
-      FactoryGirl.create(:employee, email: 'emp1@email.com')
-      FactoryGirl.create(:employee, email: 'emp2@email.com')
-      FactoryGirl.create(:employee, email: 'emp3@email.com')
-      FactoryGirl.create(:employee, email: 'emp4@email.com')
-      FactoryGirl.create(:employee, email: 'emp5@email.com')
+      FactoryBot.create(:employee, email: 'emp1@email.com')
+      FactoryBot.create(:employee, email: 'emp2@email.com')
+      FactoryBot.create(:employee, email: 'emp3@email.com')
+      FactoryBot.create(:employee, email: 'emp4@email.com')
+      FactoryBot.create(:employee, email: 'emp5@email.com')
       @cond1 = { param: 'rank_id', oper: 'notin', vals: [2] }
       @cond2 = { param: 'gender', vals: [3, 1] }
       @group1 = 5

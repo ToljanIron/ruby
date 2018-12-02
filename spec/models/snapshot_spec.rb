@@ -37,7 +37,7 @@ describe Snapshot, :type => :model do
 
   describe 'last_snapshot_of_company' do
     before do
-      @cid = FactoryGirl.create(:company).id
+      @cid = FactoryBot.create(:company).id
     end
 
     it 'should return nil if no company id given' do
@@ -50,9 +50,9 @@ describe Snapshot, :type => :model do
     end
 
     it 'should return last snapshot if multiple snapshots exist' do
-      FactoryGirl.create(:snapshot, timestamp: Time.now)
-      FactoryGirl.create(:snapshot, timestamp: 1.week.from_now)
-      last_snapshot = FactoryGirl.create(:snapshot, timestamp: 2.weeks.from_now)
+      FactoryBot.create(:snapshot, timestamp: Time.now)
+      FactoryBot.create(:snapshot, timestamp: 1.week.from_now)
+      last_snapshot = FactoryBot.create(:snapshot, timestamp: 2.weeks.from_now)
       sid = Snapshot.last_snapshot_of_company(@cid)
       expect(sid).to eq(last_snapshot.id)
     end

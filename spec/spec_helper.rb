@@ -49,7 +49,7 @@ Spork.prefork do
 
   Spork.each_run do
     # This code will be run each time you run your specs.
-    #Dir['./spec/factories/*_factory.rb'].each { |ff| require ff }
+    Dir['./spec/factories/*_factory.rb'].each { |ff| require ff }
   end
 end
 

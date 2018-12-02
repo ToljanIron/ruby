@@ -26,28 +26,28 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
   describe 'Optimize cds_get_measure_data' do
     before do
       Company.create(id: 1, name: 'Acme')
-      FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil)
-      FactoryGirl.create(:snapshot, id: 2, snapshot_type: nil)
+      FactoryBot.create(:snapshot, id: 1, snapshot_type: nil)
+      FactoryBot.create(:snapshot, id: 2, snapshot_type: nil)
       AlgorithmType.create(id: 1, name: 'measure')
-      FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
-      FactoryGirl.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)
-      FactoryGirl.create(:algorithm, id: 28, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
-      FactoryGirl.create(:algorithm, id: 29, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
+      FactoryBot.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
+      FactoryBot.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)
+      FactoryBot.create(:algorithm, id: 28, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
+      FactoryBot.create(:algorithm, id: 29, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
       CompanyWithMetricsFactory.create_network_names
-      FactoryGirl.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
-      FactoryGirl.create(:metric_name, id: 2, name: 'Funny', company_id: 1)
+      FactoryBot.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
+      FactoryBot.create(:metric_name, id: 2, name: 'Funny', company_id: 1)
 
-      FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 28, algorithm_type_id: 1)
-      FactoryGirl.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 29, algorithm_type_id: 1)
+      FactoryBot.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 28, algorithm_type_id: 1)
+      FactoryBot.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 29, algorithm_type_id: 1)
 
-      @g1 = FactoryGirl.create(:group, name: 'group_1', company_id: 1).id
-      @g2 = FactoryGirl.create(:group, name: 'group_1', company_id: 1, parent_group_id: @g1).id
+      @g1 = FactoryBot.create(:group, name: 'group_1', company_id: 1).id
+      @g2 = FactoryBot.create(:group, name: 'group_1', company_id: 1, parent_group_id: @g1).id
 
-      @emp1 = FactoryGirl.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1).id
-      @emp2 = FactoryGirl.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1).id
-      @emp3 = FactoryGirl.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1).id
-      @emp4 = FactoryGirl.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1).id
-      @emp5 = FactoryGirl.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1).id
+      @emp1 = FactoryBot.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1).id
+      @emp2 = FactoryBot.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1).id
+      @emp3 = FactoryBot.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1).id
+      @emp4 = FactoryBot.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1).id
+      @emp5 = FactoryBot.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1).id
 
       ## At long last we can fill cds_metric_scores
       ## Groups data
@@ -99,7 +99,7 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
 
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     it 'should adher to a specific data strucutre' do
@@ -120,7 +120,7 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
 
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     describe 'calculate_group_top_scores' do
@@ -155,7 +155,7 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
   describe 'get_email_stats_from_helper' do
     before do
       generate_data_for_acme
-      FactoryGirl.create(:algorithm, id: 707, name: 'email traffic', algorithm_type_id: 1, algorithm_flow_id: 1)
+      FactoryBot.create(:algorithm, id: 707, name: 'email traffic', algorithm_type_id: 1, algorithm_flow_id: 1)
       CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 1, employee_id: @emp1, group_id: @g1, company_metric_id: 7, company_id: 1)
       CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 2, employee_id: @emp2, group_id: @g1, company_metric_id: 7, company_id: 1)
       CdsMetricScore.create!(algorithm_id: 707, snapshot_id: 1, score: 3, employee_id: @emp3, group_id: @g1, company_metric_id: 7, company_id: 1)
@@ -170,7 +170,7 @@ describe CalculateMeasureForCustomDataSystemHelper, type: :helper do
 
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     xit 'should return result with timeSpent and a diff' do
@@ -196,7 +196,7 @@ end
 describe 'cds_aggregation_query' do
   before :all do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
     generate_data_for_acme
     Group.prepare_groups_for_hierarchy_queries(1)
     Group.prepare_groups_for_hierarchy_queries(2)
@@ -204,7 +204,7 @@ describe 'cds_aggregation_query' do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   it 'should work' do
@@ -271,39 +271,39 @@ end
 
 def generate_data_for_acme
   Company.create(id: 1, name: 'Acme')
-  FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
-  FactoryGirl.create(:snapshot, id: 2, snapshot_type: nil, timestamp: '2017-10-08')
+  FactoryBot.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
+  FactoryBot.create(:snapshot, id: 2, snapshot_type: nil, timestamp: '2017-10-08')
   AlgorithmType.create(id: 1, name: 'measure')
-  FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
-  FactoryGirl.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)
-  FactoryGirl.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
-  FactoryGirl.create(:algorithm, id: 702, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
+  FactoryBot.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
+  FactoryBot.create(:metric, name: 'Funny', metric_type: 'measure', index: 4)
+  FactoryBot.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
+  FactoryBot.create(:algorithm, id: 702, name: 'funny', algorithm_type_id: 1, algorithm_flow_id: 1)
   CompanyWithMetricsFactory.create_network_names
-  FactoryGirl.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
-  FactoryGirl.create(:metric_name, id: 2, name: 'Funny', company_id: 1)
+  FactoryBot.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
+  FactoryBot.create(:metric_name, id: 2, name: 'Funny', company_id: 1)
 
-  FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
-  FactoryGirl.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 702, algorithm_type_id: 1)
+  FactoryBot.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
+  FactoryBot.create(:company_metric, id: 8, metric_id: 2, network_id: 3, company_id: 1, algorithm_id: 702, algorithm_type_id: 1)
 
-  @g1 = FactoryGirl.create(:group, name: 'group_1', snapshot_id: 1, external_id: 'group_1', company_id: 1).id
-  @g2 = FactoryGirl.create(:group, name: 'group_2', snapshot_id: 1, external_id: 'group_2', company_id: 1, parent_group_id: @g1).id
-  @g3 = FactoryGirl.create(:group, name: 'group_1', snapshot_id: 2, external_id: 'group_1', company_id: 1).id
-  @g4 = FactoryGirl.create(:group, name: 'group_2', snapshot_id: 2, external_id: 'group_2', company_id: 1, parent_group_id: @g3).id
+  @g1 = FactoryBot.create(:group, name: 'group_1', snapshot_id: 1, external_id: 'group_1', company_id: 1).id
+  @g2 = FactoryBot.create(:group, name: 'group_2', snapshot_id: 1, external_id: 'group_2', company_id: 1, parent_group_id: @g1).id
+  @g3 = FactoryBot.create(:group, name: 'group_1', snapshot_id: 2, external_id: 'group_1', company_id: 1).id
+  @g4 = FactoryBot.create(:group, name: 'group_2', snapshot_id: 2, external_id: 'group_2', company_id: 1, parent_group_id: @g3).id
 
   @of1 = Office.create!(company_id: 1, name: 'Mishmeret').id
   @of2 = Office.create!(company_id: 1, name: 'Drorim').id
 
-  @emp1 = FactoryGirl.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
-  @emp2 = FactoryGirl.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
-  @emp3 = FactoryGirl.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
-  @emp4 = FactoryGirl.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
-  @emp5 = FactoryGirl.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp1 = FactoryBot.create(:employee, email: 'email1@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp2 = FactoryBot.create(:employee, email: 'email2@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp3 = FactoryBot.create(:employee, email: 'email3@mail.com', group_id: @g1, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp4 = FactoryBot.create(:employee, email: 'email4@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
+  @emp5 = FactoryBot.create(:employee, email: 'email5@mail.com', group_id: @g2, company_id: 1, office_id: @of1, snapshot_id: 1).id
 
-  @emp6 = FactoryGirl.create(:employee, email: 'email6@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
-  @emp7 = FactoryGirl.create(:employee, email: 'email7@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
-  @emp8 = FactoryGirl.create(:employee, email: 'email8@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
-  @emp9 = FactoryGirl.create(:employee, email: 'email9@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
-  @emp0 = FactoryGirl.create(:employee, email: 'email0@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp6 = FactoryBot.create(:employee, email: 'email6@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp7 = FactoryBot.create(:employee, email: 'email7@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp8 = FactoryBot.create(:employee, email: 'email8@mail.com', group_id: @g3, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp9 = FactoryBot.create(:employee, email: 'email9@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
+  @emp0 = FactoryBot.create(:employee, email: 'email0@mail.com', group_id: @g4, company_id: 1, office_id: @of1, snapshot_id: 2).id
 
   ## At long last we can fill cds_metric_scores
   ## Groups data
@@ -332,18 +332,18 @@ end
 
 def generate_hierarchy_with_gauge_algo
   Company.create(id: 1, name: 'Acme')
-  FactoryGirl.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
+  FactoryBot.create(:snapshot, id: 1, snapshot_type: nil, timestamp: '2017-10-01')
   AlgorithmType.create(id: 5, name: 'measure')
-  FactoryGirl.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
-  FactoryGirl.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
+  FactoryBot.create(:metric, name: 'Happy', metric_type: 'measure', index: 1)
+  FactoryBot.create(:algorithm, id: 701, name: 'happy', algorithm_type_id: 1, algorithm_flow_id: 1)
   CompanyWithMetricsFactory.create_network_names
-  FactoryGirl.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
-  FactoryGirl.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
+  FactoryBot.create(:metric_name, id: 1, name: 'Happy', company_id: 1)
+  FactoryBot.create(:company_metric, id: 7, metric_id: 1, network_id: 3, company_id: 1, algorithm_id: 701, algorithm_type_id: 1)
 
-  @g0 = FactoryGirl.create(:group, name: 'g0', external_id: 'g0').id
-  @g1 = FactoryGirl.create(:group, name: 'g1', external_id: 'g1', parent_group_id: @g0).id
-  @g2 = FactoryGirl.create(:group, name: 'g2', external_id: 'g2', parent_group_id: @g0).id
-  @g3 = FactoryGirl.create(:group, name: 'g3', external_id: 'g3', parent_group_id: @g2).id
-  @g4 = FactoryGirl.create(:group, name: 'g4', external_id: 'g4', parent_group_id: @g2).id
+  @g0 = FactoryBot.create(:group, name: 'g0', external_id: 'g0').id
+  @g1 = FactoryBot.create(:group, name: 'g1', external_id: 'g1', parent_group_id: @g0).id
+  @g2 = FactoryBot.create(:group, name: 'g2', external_id: 'g2', parent_group_id: @g0).id
+  @g3 = FactoryBot.create(:group, name: 'g3', external_id: 'g3', parent_group_id: @g2).id
+  @g4 = FactoryBot.create(:group, name: 'g4', external_id: 'g4', parent_group_id: @g2).id
 
 end

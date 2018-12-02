@@ -12,9 +12,9 @@ describe 'db:update_images_from_s3' do
 
   describe 'running the task with non expired images ' do
     before do
-      @empl1 = FactoryGirl.create(:employee, email: 'gil.rosen@spectory.com', img_url_last_updated: 2.hours.ago)
-      @empl2 = FactoryGirl.create(:employee, email: 'someone.rosen@spectory.com', img_url_last_updated: 3.hours.ago)
-      @empl3 = FactoryGirl.create(:employee, email: 'johndoe@spectory.com', img_url_last_updated: 4.hours.ago)
+      @empl1 = FactoryBot.create(:employee, email: 'gil.rosen@spectory.com', img_url_last_updated: 2.hours.ago)
+      @empl2 = FactoryBot.create(:employee, email: 'someone.rosen@spectory.com', img_url_last_updated: 3.hours.ago)
+      @empl3 = FactoryBot.create(:employee, email: 'johndoe@spectory.com', img_url_last_updated: 4.hours.ago)
       @last_updated1 = @empl1.img_url_last_updated
       @last_updated2 = @empl2.img_url_last_updated
       @last_updated3 = @empl3.img_url_last_updated
@@ -31,9 +31,9 @@ describe 'db:update_images_from_s3' do
   describe 'running the task with  expired images ' do
     @empl4 = {}
     before do
-      @empl4 = FactoryGirl.create(:employee, email: 'gil.rosen2@spectory.com', img_url_last_updated: 28.hours.ago)
-      @empl5 = FactoryGirl.create(:employee, email: 'someone.rosen@spectory.com', img_url_last_updated: 35.hours.ago)
-      @empl6 = FactoryGirl.create(:employee, email: 'johndoe@spectory.com', img_url_last_updated: 42.hours.ago)
+      @empl4 = FactoryBot.create(:employee, email: 'gil.rosen2@spectory.com', img_url_last_updated: 28.hours.ago)
+      @empl5 = FactoryBot.create(:employee, email: 'someone.rosen@spectory.com', img_url_last_updated: 35.hours.ago)
+      @empl6 = FactoryBot.create(:employee, email: 'johndoe@spectory.com', img_url_last_updated: 42.hours.ago)
       @last_updated4 = @empl4.img_url_last_updated
       @last_updated5 = @empl5.img_url_last_updated
       @last_updated6 = @empl6.img_url_last_updated

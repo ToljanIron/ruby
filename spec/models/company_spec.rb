@@ -16,7 +16,7 @@ describe Company, type: :model do
     it 'should return last snapshot by timestamp' do
       @company[:name] = '1'
       @company.save
-      [0, 100, 200].each { |s| FactoryGirl.create(:snapshot, timestamp: Time.now + s) }
+      [0, 100, 200].each { |s| FactoryBot.create(:snapshot, timestamp: Time.now + s) }
       expect(@company.last_snapshot.id).to eq(3)
     end
   end
@@ -30,7 +30,7 @@ describe Company, type: :model do
 
   it ', list_offices should return list of offices names' do
     c = Company.find_or_create_by(name: 'aaa')
-    FactoryGirl.create_list(:office, 10)
+    FactoryBot.create_list(:office, 10)
     res = c.list_offices
     expect(res.count).to eq(10)
   end
@@ -38,7 +38,7 @@ describe Company, type: :model do
   describe 'emails' do
     before do
       @company = Company.create(id: 1, name: 'test_class')
-      FactoryGirl.create_list(:employee, 3, company_id: @company.id)
+      FactoryBot.create_list(:employee, 3, company_id: @company.id)
 
       EmployeeAliasEmail.create(email_alias: 'ali1@g.com', employee_id: 3)
       EmployeeAliasEmail.create(email_alias: 'ali22@g.com', employee_id: 3)

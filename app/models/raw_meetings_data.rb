@@ -12,8 +12,11 @@ class RawMeetingsData < ActiveRecord::Base
   end
 
   def convert_to_param_array(cid, sid)
+    meeting_uniq_id = Digest::SHA1.hexdigest(
+      "#{self[:external_meeting_id]}--#{self[:start_time]}")
+
     return [
-      RawMeetingsData.meeting_identifier(self[:subject], self[:organizer]),
+      meeting_uniq_id,
       cid,
       sid,
       meeting_room_id,

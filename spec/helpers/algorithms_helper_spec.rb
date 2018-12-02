@@ -1,17 +1,17 @@
 require 'spec_helper'
 require './spec/spec_factory'
 require './spec/factories/company_with_metrics_factory.rb'
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 include CompanyWithMetricsFactory
 
 describe AlgorithmsHelper, type: :helper do
-  let(:emp1) { FactoryGirl.create(:employee, email: 'e1@e.com', company_id: 1) }
-  let(:emp2) { FactoryGirl.create(:employee, email: 'e2@e.com', company_id: 1) }
+  let(:emp1) { FactoryBot.create(:employee, email: 'e1@e.com', company_id: 1) }
+  let(:emp2) { FactoryBot.create(:employee, email: 'e2@e.com', company_id: 1) }
 
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'test avg no. of attendees' do

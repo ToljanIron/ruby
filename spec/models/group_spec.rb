@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Group, type: :model do
   def create_groups
     Company.create!(id: 0, name: 'comp')
-    @parent_group = FactoryGirl.create(:group, name: 'parent', company_id: 0, snapshot_id: 1)
-    @child_group =  FactoryGirl.create(:group, name: 'child', company_id: 0, parent_group_id: @parent_group.id, snapshot_id: 1)
+    @parent_group = FactoryBot.create(:group, name: 'parent', company_id: 0, snapshot_id: 1)
+    @child_group =  FactoryBot.create(:group, name: 'child', company_id: 0, parent_group_id: @parent_group.id, snapshot_id: 1)
     @child_group_employees_ids = []
     @parent_group_employees_ids = []
     @total_employess = rand(100) + 2
@@ -12,7 +12,7 @@ describe Group, type: :model do
 
   def create_employees
     (1..@total_employess).each do
-      e = FactoryGirl.create(:employee, snapshot_id: 1)
+      e = FactoryBot.create(:employee, snapshot_id: 1)
       if rand(100) > 50
         e.group = @parent_group
         @parent_group_employees_ids.push e.id
@@ -32,7 +32,7 @@ describe Group, type: :model do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   it { is_expected.to respond_to(:name) }
@@ -43,7 +43,7 @@ describe Group, type: :model do
     sid = nil
     before do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
 
       Company.create(id: 1, name: "Hevra10").id
       sid = Snapshot.create(name: "2016-01", company_id: 1, timestamp: 3.weeks.ago).id
@@ -99,7 +99,7 @@ describe Group, type: :model do
     end
 
     after do
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     it ', parent group contain all employees' do
@@ -143,7 +143,7 @@ describe Group, type: :model do
 
   describe 'sibling_groups' do
     it 'should return groups under same parent' do
-      FactoryGirl.create_list(:group, 4)
+      FactoryBot.create_list(:group, 4)
       Group.first(2).each { |g| g.update(parent_group_id: 100) }
       Group.last(2).each { |g| g.update(parent_group_id: 1) }
       expect(Group.first.sibling_groups).to eq([Group.second])
@@ -154,7 +154,7 @@ describe Group, type: :model do
     before do
       Snapshot.create!(id: 100, company_id: 1, timestamp: 1.week.ago)
       Snapshot.create!(id: 101, company_id: 1, timestamp: Time.now)
-      FactoryGirl.create_list(:group, 2)
+      FactoryBot.create_list(:group, 2)
       Group.last.update(parent_group_id: 1)
       Group.update_all(snapshot_id: 100)
     end
@@ -191,7 +191,7 @@ describe Group, type: :model do
 
     before do
       Snapshot.create!(id: 4, company_id: 1, timestamp: 1.week.ago)
-      FactoryGirl.create_list(:group, 4, snapshot_id: 3)
+      FactoryBot.create_list(:group, 4, snapshot_id: 3)
       rootgid = Group.where(name: 'group_1').last.id
       Group.where
            .not(name: 'group_1')
@@ -230,14 +230,14 @@ describe Group, type: :model do
   describe 'get_all_subgroups' do
     before do
       Company.create!(id: 0, name: 'comp')
-      FactoryGirl.create(:group, id: 1, name: 'g1', company_id: 1, parent_group_id:  nil)
-      FactoryGirl.create(:group, id: 2, name: 'g2', company_id: 1, parent_group_id:  1)
-      FactoryGirl.create(:group, id: 3, name: 'g3', company_id: 1, parent_group_id:  1)
-      FactoryGirl.create(:group, id: 4, name: 'g4', company_id: 1, parent_group_id:  2)
-      FactoryGirl.create(:group, id: 5, name: 'g5', company_id: 1, parent_group_id:  3)
-      FactoryGirl.create(:group, id: 6, name: 'g6', company_id: 1, parent_group_id:  3)
-      FactoryGirl.create(:group, id: 7, name: 'g7', company_id: 1, parent_group_id:  6)
-      FactoryGirl.create(:group, id: 8, name: 'g8', company_id: 1, parent_group_id:  6)
+      FactoryBot.create(:group, id: 1, name: 'g1', company_id: 1, parent_group_id:  nil)
+      FactoryBot.create(:group, id: 2, name: 'g2', company_id: 1, parent_group_id:  1)
+      FactoryBot.create(:group, id: 3, name: 'g3', company_id: 1, parent_group_id:  1)
+      FactoryBot.create(:group, id: 4, name: 'g4', company_id: 1, parent_group_id:  2)
+      FactoryBot.create(:group, id: 5, name: 'g5', company_id: 1, parent_group_id:  3)
+      FactoryBot.create(:group, id: 6, name: 'g6', company_id: 1, parent_group_id:  3)
+      FactoryBot.create(:group, id: 7, name: 'g7', company_id: 1, parent_group_id:  6)
+      FactoryBot.create(:group, id: 8, name: 'g8', company_id: 1, parent_group_id:  6)
     end
 
     it 'should get all subgroups' do
@@ -265,14 +265,14 @@ describe 'nested sets handling' do
   pairs = [[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[6,8]]
 
   before :all do
-    FactoryGirl.create(:group, id: 1, name: 'g1', parent_group_id:  nil)
-    FactoryGirl.create(:group, id: 2, name: 'g2', parent_group_id:  1)
-    FactoryGirl.create(:group, id: 3, name: 'g3', parent_group_id:  1)
-    FactoryGirl.create(:group, id: 4, name: 'g4', parent_group_id:  2)
-    FactoryGirl.create(:group, id: 5, name: 'g5', parent_group_id:  3)
-    FactoryGirl.create(:group, id: 6, name: 'g6', parent_group_id:  3)
-    FactoryGirl.create(:group, id: 7, name: 'g7', parent_group_id:  6)
-    FactoryGirl.create(:group, id: 8, name: 'g8', parent_group_id:  6)
+    FactoryBot.create(:group, id: 1, name: 'g1', parent_group_id:  nil)
+    FactoryBot.create(:group, id: 2, name: 'g2', parent_group_id:  1)
+    FactoryBot.create(:group, id: 3, name: 'g3', parent_group_id:  1)
+    FactoryBot.create(:group, id: 4, name: 'g4', parent_group_id:  2)
+    FactoryBot.create(:group, id: 5, name: 'g5', parent_group_id:  3)
+    FactoryBot.create(:group, id: 6, name: 'g6', parent_group_id:  3)
+    FactoryBot.create(:group, id: 7, name: 'g7', parent_group_id:  6)
+    FactoryBot.create(:group, id: 8, name: 'g8', parent_group_id:  6)
 
     Group.create_nested_sets_structure(pairs, 1)
   end

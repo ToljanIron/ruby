@@ -1,9 +1,9 @@
 include SessionsHelper
 
-FactoryGirl.define do
+FactoryBot.define do
    factory :company do
-     id 1
-     name 'Acme'
+     id { 1 }
+     name { 'Acme' }
    end
 end
 
@@ -34,7 +34,7 @@ end
 def create_cemployees
   (1..15).each do |i|
     id = i%3 + 2
-    FactoryGirl.create(:employee,email: "q#{i}@mail.com", company_id: id)
+    FactoryBot.create(:employee,email: "q#{i}@mail.com", company_id: id)
   end
 end
 
@@ -46,8 +46,8 @@ def create_cgroups
 end
 
 def create_csnapshots
-  FactoryGirl.create(:snapshot, company_id: 2, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
-  FactoryGirl.create(:snapshot, company_id: 3, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
-  FactoryGirl.create(:snapshot, company_id: 3, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
-  FactoryGirl.create(:snapshot, company_id: 4, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
+  FactoryBot.create(:snapshot, company_id: 2, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
+  FactoryBot.create(:snapshot, company_id: 3, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
+  FactoryBot.create(:snapshot, company_id: 3, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
+  FactoryBot.create(:snapshot, company_id: 4, status: Snapshot::STATUS_ACTIVE, snapshot_type: nil)
 end

@@ -1,11 +1,11 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :network_snapshot_data do
-    from_employee_id 1
-    to_employee_id 2
-    snapshot_id 1
-    network_id 1
-    company_id 1
-    value Random.rand(2)
+    from_employee_id { 1 }
+    to_employee_id { 2 }
+    snapshot_id { 1 }
+    network_id { 1 }
+    company_id { 1 }
+    value { Random.rand(2) }
   end
 end
 
@@ -27,7 +27,7 @@ def fg_multi_create_network_snapshot_data(empsnum, sid, cid, nid, traffic_densit
   (1..empsnum).each do |i|
     (1..empsnum).each do |j|
       value = ((i + j) % (5 - traffic_density) == 0) ? 1 : 0
-      FactoryGirl.create(:network_snapshot_data,
+      FactoryBot.create(:network_snapshot_data,
         from_employee_id: i,
         to_employee_id: j,
         value: value,
@@ -57,7 +57,7 @@ def fg_emails_from_matrix(all, p = nil)
     row.each_with_index do |n, j|
       if (i != j)
         n.times do
-          FactoryGirl.create(
+          FactoryBot.create(
             :network_snapshot_data,
             from_employee_id: i + 1,
             to_employee_id: j + 1,

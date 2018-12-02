@@ -20,6 +20,8 @@ namespace :db do
       NetworkSnapshotData.delete_all
       CdsMetricScore.delete_all
       RawDataEntry.all.update(processed: false)
+      RawMeetingsData.all.update(processed: false)
+      MeetingAttendee.delete_all
     end
     AnalyzeHistoricalDataHelper.run(cid)
 

@@ -1,11 +1,50 @@
 require 'spec_helper'
+require './spec/spec_factory'
+
+include FactoryBot
+include FactoryBot::Syntax::Methods
 
 describe MeetingsHelper, type: :helper do
-  include FactoryGirl::Syntax::Methods
 
   before do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
+  end
+
+  describe 'create_meetings_and_attendees' do
+    before do
+      Company.create!(id:1, name: 'Acme')
+      Snapshot.create!(id: 1, company_id: 1, timestamp: '2018-11-02 12:12:12'.to_time)
+      FactoryBot.create(:employee, email: 'e1@m.com')
+      FactoryBot.create(:employee, email: 'e2@m.com')
+      FactoryBot.create(:employee, email: 'e3@m.com')
+      meetings = [
+        {
+          subject: 'meeting 1',
+          attendees: "[\"e1@m.com\", \"e2@m.com\"]",
+          company_id: 1,
+          start_time: '2018-11-02 12:12:12'.to_time,
+          organizer: 'e3@m.com'
+        }
+      ]
+      RawMeetingsData.create!(meetings[0])
+    end
+
+    it 'should work' do
+      ap RawMeetingsData.all
+
+      MeetingsHelper.create_meetings(
+        sid,
+        '2018-11-01'.to_time,
+        '2018-11-03'.to_time)
+
+      puts "=================================="
+      ap MeetingsSnapshotData.all
+      puts "=================================="
+      ap MeetingAttendee.all
+      puts "=================================="
+
+    end
   end
 
   describe 'create_meetings_for_snapshot' do
@@ -40,7 +79,7 @@ describe MeetingsHelper, type: :helper do
       Company.create(name: 'new comp', id: 1)
       Domain.create(company_id: 1, domain: 'company.com')
       @snapshot = create(:snapshot)
-      FactoryGirl.create(:meeting, meeting_uniq_id: 'abcd', snapshot_id: @snapshot.id)
+      FactoryBot.create(:meeting, meeting_uniq_id: 'abcd', snapshot_id: @snapshot.id)
     end
 
     it 'should create meeting attendees for emps' do
