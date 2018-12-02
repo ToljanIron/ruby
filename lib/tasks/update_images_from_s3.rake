@@ -36,6 +36,9 @@ namespace :db do
         companies.each do |company|
           cid = company.id
 
+          Employee.where("company_id = ?", cid)
+                  .update_all(img_url: nil)
+
           ## Do by emails
           emails = Employee.select(:email).where("company_id = ?", cid).distinct.pluck(:email)
 
@@ -63,6 +66,10 @@ namespace :db do
               emp_records.update_all(img_url_last_updated: Time.now)
             end
           end
+
+          Employee.where("company_id = ?", cid)
+                  .where(img_url: nil)
+                  .update_all(img_url: 'https://s3-eu-west-1.amazonaws.com/stepahead-public/missing_user.jpg')
 
         end unless companies.empty?
       rescue => e
