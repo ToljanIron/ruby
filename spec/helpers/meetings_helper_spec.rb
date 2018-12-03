@@ -33,8 +33,8 @@ describe MeetingsHelper, type: :helper do
     it 'should work' do
       ap RawMeetingsData.all
 
-      MeetingsHelper.create_meetings(
-        sid,
+      MeetingsHelper.create_meetings_for_snapshot(
+        1,
         '2018-11-01'.to_time,
         '2018-11-03'.to_time)
 

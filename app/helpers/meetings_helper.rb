@@ -42,7 +42,6 @@ module MeetingsHelper
   end
 
   def self.create_attendees(meetings_attendees, sid)
-    byebug
     return if meetings_attendees.empty?
     attendees_values = []
     meetings_attendees.each do |uniq_id, attendees|
