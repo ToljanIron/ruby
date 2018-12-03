@@ -8,34 +8,30 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    File.open("./lycored-employee-language.csv", "r").each_line do |line|
-      fs = line.split(',')
-      lang = fs[1].strip
-      emp = Employee.find_by(email: fs[0].downcase, company_id: 23)
+    CSV.foreach("./lycored-managers.csv") do |l|
 
+      efn = l[0].try(:strip)
+      eln = l[1].try(:strip)
+      man = l[2].nil? ? nil : l[2].split(',')
+      mfn = man[1].try(:strip) if !man.nil?
+      mln = man[0].try(:strip) if !man.nil?
+
+      #puts "first name: #{efn}, last name: #{eln}, manager first name: #{mfn}, manager last name: #{mln}"
+
+      emp = Employee.find_by(first_name: efn, last_name: eln)
       if emp.nil?
-        puts "employee: >>>#{fs[0]}<<<, with lang: #{lang} not found"
+        puts "EMPLOYEE NOT FOUND - #{l}"
         next
       end
 
-      language_id = nil
-      language_id = 1 if lang.include? 'ENG'
-      language_id = 2 if lang.include? 'RUS'
-      language_id = 3 if lang.include? 'HEB'
-
-      qp = QuestionnaireParticipant.find_by(employee_id: emp.id)
-
-      if qp.nil?
-        puts "did not find questionnaire_participant for employee: #{fs[0]}"
+      man = Employee.find_by(first_name: mfn, last_name: mln)
+      if man.nil?
+        puts "MANAGER NOT FOUND - #{l}"
         next
       end
 
-      qp.update!(language_id: language_id)
-
-      puts "update questionnaire_participants set language_id = #{language_id} where employee_id = #{emp.id};"
-
+      EmployeeManagementRelation.create!(manager_id: man.id, employee_id: emp.id, relation_type: 0)
     end
-
   end
 end
 

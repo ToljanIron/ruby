@@ -23,7 +23,6 @@ class Employee < ActiveRecord::Base
 
   has_many    :questionnaire_participants
 
-  has_and_belongs_to_many :managers,     class_name: 'EmployeeManagementRelation', join_table: 'employee_management_relations', foreign_key: :employee_id, association_foreign_key: :manager_id
   has_and_belongs_to_many :team_members, class_name: 'EmployeeManagementRelation', join_table: 'employee_management_relations', foreign_key: :manager_id,  association_foreign_key: :employee_id
 
   before_save      do
@@ -56,6 +55,14 @@ class Employee < ActiveRecord::Base
   }
 
   enum gender: [:male, :female]
+
+  def managers
+    manids = EmployeeManagementRelation
+               .select(:manager_id)
+               .where(employee_id: id)
+               .pluck(:manager_id)
+    return Employee.where(id: manids)
+  end
 
   def self.job_title_by_company(cid)
     ret = []
