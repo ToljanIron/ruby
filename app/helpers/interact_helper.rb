@@ -6,6 +6,11 @@ module InteractHelper
     res = cache_read(cache_key)
     return res if res
 
+    group = Group.find(gid)
+    return [] if group.nil?
+    nsleft = group.nsleft
+    nsright = group.nsright
+
     res = CdsMetricScore
             .select("first_name || ' ' || last_name AS name, g.name AS group_name,
                      cds_metric_scores.score, c.rgb AS color")
@@ -16,8 +21,8 @@ module InteractHelper
             .where(
               snapshot_id: sid,
               company_id: cid,
-              company_metric_id: cmid,
-              group_id: gid)
+              company_metric_id: cmid)
+            .where("g.nsleft >= ? AND g.nsright <= ? AND g.snapshot_id = ?", nsleft, nsright, sid)
             .order("score DESC")
 
     cache_write(cache_key, res)
