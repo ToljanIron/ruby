@@ -18,6 +18,7 @@ module InteractBackofficeHelper
 
     res = []
     ActiveRecord::Base.transaction do
+
       sqlstr =
         "CREATE TABLE statconvs (id INTEGER,stat VARCHAR(20));"
       ActiveRecord::Base.connection.execute(sqlstr)
@@ -31,10 +32,13 @@ module InteractBackofficeHelper
       ActiveRecord::Base.connection.execute(sqlstr)
 
       sqlstr =
-        "SELECT emps.id AS id, first_name || ' ' || last_name AS name, email, phone_number, c.stat AS status
+        "SELECT emps.id AS id, emps.first_name || ' ' || emps.last_name AS name, emps.email AS emp_email,
+                emps.phone_number, c.stat AS status, mans.first_name || ' ' || mans.last_name AS manager_name, mans.email AS manager_email
          FROM questionnaire_participants AS qp
          JOIN employees AS emps ON emps.id = qp.employee_id
          JOIN statconvs AS c ON c.id = qp.status
+         LEFT JOIN employee_management_relations as emr ON emr.employee_id = emps.id
+         LEFT JOIN employees AS mans ON mans.id = emr.manager_id
          WHERE
            questionnaire_id = #{qid};"
       res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -53,6 +57,8 @@ module InteractBackofficeHelper
     ws.write('C1', 'Phone')
     ws.write('D1', 'Status')
     ws.write('E1', 'Link')
+    ws.write('F1', 'Manager Name')
+    ws.write('G1', 'Manager Email')
 
     ii = 2
     res.each do |r|
@@ -64,6 +70,9 @@ module InteractBackofficeHelper
       ws.write("C#{ii}", r['phone_number'])
       ws.write("D#{ii}", r['status'])
       ws.write("E#{ii}", link)
+      ws.write("F#{ii}", r['manager_name'])
+      ws.write("G#{ii}", r['manager_email'])
+
       ii += 1
     end
 
@@ -219,48 +228,6 @@ module InteractBackofficeHelper
     return report_name
   end
 
-  ########################################################################
-  # Create a report of statuses of all participants in the questionnaire
-  ########################################################################
-  def self.download_participants_status(qid)
-    report_name = 'participants_status.xlsx'
-    wb = create_excel_file(report_name)
-
-    ws = wb.add_worksheet('Status')
-
-    ws.write('A1', 'ID')
-    ws.write('B1', 'First Name')
-    ws.write('C1', 'Last Name')
-    ws.write('D1', 'Email')
-    ws.write('E1', 'Phone')
-    ws.write('F1', 'Status')
-    ws.write('G1', 'Link to questionnaire')
-
-    emps = QuestionnaireParticipant
-      .select('external_id, first_name, last_name, email, phone_number,
-               par.status, par.id as qpid')
-      .from('questionnaire_participants as par')
-      .joins('LEFT JOIN employees AS emps ON emps.id = par.employee_id')
-      .where('par.questionnaire_id = ?', qid)
-      .where('emps.id > 0')
-      .order('emps.last_name')
-
-    ii = 1
-    emps.each do |e|
-      ii += 1
-      ws.write("A#{ii}", e['external_id'])
-      ws.write("B#{ii}", e['first_name'])
-      ws.write("C#{ii}", e['last_name'])
-      ws.write("D#{ii}", e['email'])
-      ws.write("E#{ii}", e['phone_number'])
-      ws.write("F#{ii}", QuestionnaireParticipant.translate_status(e['status']))
-      qp = QuestionnaireParticipant.find(e['qpid'])
-      ws.write("G#{ii}", qp.create_link)
-    end
-
-    wb.close
-    return report_name
-  end
 ################################# Network reports  ################################################
   #############################################################
   # Create a detailed excel report of who is connected
@@ -949,5 +916,4 @@ module InteractBackofficeHelper
       active: active
     )
   end
-
 end

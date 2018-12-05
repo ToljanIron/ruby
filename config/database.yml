@@ -8,21 +8,12 @@ default: &default
   password: <%= ENV['POSTGRES_PASSWORD'] || 'postgres' %>
   timeout: 5000
 
-development-dev:
+development:
   <<: *default
-  database: workships_development
+  database: workships_app
   username: workships
   password: workships
   port: 5432
-
-development:
-  <<: *default
-  #host: localhost
-  #database: workships_ext
-  #username: workships
-  #password: workships
-  #port: 5432
-  database: workships_app
 
 onpremise:
   <<: *default

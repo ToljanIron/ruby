@@ -616,7 +616,7 @@ class InteractBackofficeController < ApplicationController
   def download_participants_status
     authorize :application, :passthrough
     qid = params[:qid]
-    file_name = InteractBackofficeHelper.download_participants_status(qid)
+    file_name = InteractBackofficeHelper.create_status_excel(qid)
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
       filename: file_name,
