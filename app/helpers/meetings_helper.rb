@@ -1,5 +1,5 @@
 module MeetingsHelper
-  MEETING_ATTRIBUTES = %w(meeting_uniq_id company_id snapshot_id meeting_room_id start_time duration_in_minutes subject).freeze
+  MEETING_ATTRIBUTES = %w(meeting_uniq_id company_id snapshot_id meeting_room_id start_time duration_in_minutes subject organizer_id).freeze
   ATTENDEES_ATTRIBUTES = %w(meeting_id employee_id).freeze
 
   def self.create_meetings_for_snapshot(sid, start_date, end_date)
@@ -11,19 +11,23 @@ module MeetingsHelper
   def self.create_meetings_and_attendees(relevant_meetings, cid, sid)
     meetings_values = []
     meetings_attendees = {}
+      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 1"
     relevant_meetings.each do |raw_meeting|
+      meeting_value = raw_meeting.convert_to_param_array(cid, sid)
+      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 2"
+      next if meeting_value.nil?
+
       meetings_values << "(#{raw_meeting.convert_to_param_array(cid, sid).try(:join, ',')})"
-      puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
-      ap meetings_values
+      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 2.5"
+      #ap meetings_values
 
       meeting_identifier = RawMeetingsData.meeting_identifier(
         raw_meeting[:subject], raw_meeting[:organizer]
       )
-    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
-    puts raw_meeting[:attendees]
-    puts raw_meeting[:attendees].class
-    ap raw_meeting
-    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 3"
+    #puts raw_meeting[:attendees]
+    #ap raw_meeting
+    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 4"
       meetings_attendees[meeting_identifier] =
         raw_meeting[:attendees]
           .tr('\"', '')
@@ -32,12 +36,14 @@ module MeetingsHelper
           .split(',')
     end
     return if meetings_values.empty?
-    ActiveRecord::Base.connection.execute(
-      "INSERT INTO meetings_snapshot_data (#{MEETING_ATTRIBUTES.join(',')})
-       VALUES #{meetings_values.join(',')}")
+    sql = "INSERT INTO meetings_snapshot_data (#{MEETING_ATTRIBUTES.join(',')})
+       VALUES #{meetings_values.join(',')}"
+    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 5"
+    #puts sql
+    ActiveRecord::Base.connection.execute( sql )
 
-    puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
-    ap meetings_attendees
+    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 5.1"
+    #ap meetings_attendees
     create_attendees(meetings_attendees, sid)
   end
 

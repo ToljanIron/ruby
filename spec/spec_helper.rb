@@ -14,7 +14,9 @@ require 'spork'
 Spork.prefork do
 
   ENV['RAILS_ENV'] ||= 'test'
+
   require File.expand_path('../../config/environment', __FILE__)
+
   require 'rspec/rails'
   Workships::Application.load_tasks
 
@@ -74,10 +76,4 @@ def http_post_with_jwt_token(action, p = {})
   request.headers.merge!({'Authorization': "Bearer #{ENV['JWT_TOKEN_FOR_TESTING']}"})
   ret = post(action, params: p)
   return ret
-end
-
-def pp(q)
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-  ap q
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
 end

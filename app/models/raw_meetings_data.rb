@@ -16,6 +16,9 @@ class RawMeetingsData < ActiveRecord::Base
                           self[:subject], self[:organizer]
     )
 
+    emp = Employee.find_by(snapshot_id: sid, email: self[:organizer])
+    return nil if emp.nil?
+
     return [
       meeting_uniq_id,
       cid,
@@ -23,7 +26,8 @@ class RawMeetingsData < ActiveRecord::Base
       meeting_room_id,
       self[:start_time],
       duration_in_minutes,
-      self[:subject]
+      self[:subject],
+      emp.id
     ].map { |param| param ? "'#{param}'" : 'null' }
   end
 

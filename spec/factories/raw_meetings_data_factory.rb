@@ -7,5 +7,6 @@ FactoryBot.define do
     duration_in_minutes { '1:30' }
     attendees { '{email1@company.com,email2@company.com,email3@company.com}' }
     start_time { 2.days.ago }
+    organizer { 'email4@company.com' }
   end
 end

@@ -2,20 +2,10 @@ source 'https://rubygems.org'
 
 ruby '2.4.4'
 gem 'rails', '5.2.1'
-gem 'clockwork'
-gem 'dalli'
+#gem 'clockwork'
 gem 'pundit'
 gem 'bcrypt'
-gem 'therubyracer'
-#gem 'coffee-rails', '~> 4.2'
-gem 'sass-rails', '~> 5.0'
-gem 'compass-rails', '3.0.2'
-gem 'uglifier'
 gem 'pg', '~> 0.18'
-gem 'ejs'
-gem 'yui-compressor'
-gem 'sprockets'
-gem 'sprockets-rails','>= 3.0.0'
 gem 'descriptive-statistics'
 gem 'writeexcel'
 gem 'fastimage'
@@ -25,28 +15,41 @@ gem 'backup', '3.4.0'
 gem 'activerecord'
 #gem 'tiny_tds'
 #gem 'activerecord-sqlserver-adapter', '>= 4.2.0'
-gem 'mail'
-gem 'font-awesome-rails'
-gem 'twilio-ruby'
 gem 'dotenv'
 gem 'meta_request'
-gem "jqcloud-rails"
 gem 'literate_randomizer', '~> 0.4.0'
-gem 'roo'
-gem 'roo-xls', '~>1.1.0'
-gem 'write_xlsx'
+gem 'delayed_job_active_record'
 gem 'hirb'
 gem 'rack-cors'
 gem 'jwt'
 gem 'thor', '0.19.1'
 gem 'nmatrix'
-gem 'delayed_job_active_record'
-gem "daemons"
 gem 'tzinfo-data'
-gem 'net-sftp'
 gem 'awesome_print'
-gem 'colorize'
 gem 'byebug'
+
+
+group :production, :onpremise, :development do
+  gem 'mail'
+  gem 'write_xlsx'
+  gem 'net-sftp'
+  gem 'roo'
+  gem 'roo-xls', '~>1.1.0'
+  gem 'dalli'
+  gem 'therubyracer'
+  gem 'sass-rails', '~> 5.0'
+  gem 'compass-rails', '3.0.2'
+  gem 'uglifier'
+  gem 'ejs'
+  gem 'yui-compressor'
+  gem 'sprockets'
+  gem 'sprockets-rails','>= 3.0.0'
+  gem 'font-awesome-rails'
+  gem 'twilio-ruby'
+  gem "jqcloud-rails"
+  gem "daemons"
+  gem 'colorize'
+end
 
 group :development, :test do
   gem 'rspec-rails', '~> 3.8'
@@ -64,12 +67,12 @@ group :development, :test do
 end
 
 group :test do
-  gem 'faker'
-  gem 'ruby-prof'
-  gem 'capybara'
-  gem 'libnotify'
+  #gem 'faker'
+  #gem 'ruby-prof'
+  #gem 'capybara'
+  #gem 'libnotify'
   gem 'factory_bot', '~> 4.11', '>= 4.11.1'
-  gem 'rubocop-rspec'
+  #gem 'rubocop-rspec'
 end
 
 group :production do
