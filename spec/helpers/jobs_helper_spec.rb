@@ -5,6 +5,7 @@ describe JobsHelper, type: :helper do
   ## jobs automatically.
   before do
     Delayed::Worker.delay_jobs = true
+    Company.create!(id: 1, name: 'Comp', setup_state: :ready)
   end
 
   after do
@@ -12,6 +13,12 @@ describe JobsHelper, type: :helper do
   end
 
   it 'should create hourly jobs' do
+    JobsHelper.schedule_hourly_job(TestJob, 'testqueue')
+    expect(Delayed::Job.count).to eq(24)
+  end
+
+  it 'should not create duplicate hourly jobs' do
+    JobsHelper.schedule_hourly_job(TestJob, 'testqueue')
     JobsHelper.schedule_hourly_job(TestJob, 'testqueue')
     expect(Delayed::Job.count).to eq(24)
   end
@@ -76,11 +83,13 @@ describe JobsHelper, type: :helper do
     it 'should schedule a new job if there is no job today' do
       JobsHelper.schedule_daily_job(TestJob, 'testqueue', 15)
       expect(Delayed::Job.count).to eq(1)
-      expect(Delayed::Job.last.run_at).to eq( Time.now.at_beginning_of_day + 15.hours )
+      expect(Delayed::Job.last.run_at).to eq( 1.day.from_now.at_beginning_of_day + 15.hours )
     end
 
     it 'should not schedule a new job if there is a job today' do
-      Delayed::Job.enqueue(TestJob.new, queue: 'testqueue', run_at: 3.hours.from_now)
+      Delayed::Job.enqueue(TestJob.new,
+                           queue: 'testqueue',
+                           run_at: 1.day.from_now)
       JobsHelper.schedule_daily_job(TestJob, 'testqueue', 15)
       expect(Delayed::Job.count).to eq(1)
     end

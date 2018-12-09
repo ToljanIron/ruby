@@ -1,6 +1,6 @@
 require 'spec_helper'
 require './spec/spec_factory'
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 describe PopulateQuestionnaireHelper, type: :helper do
   after do

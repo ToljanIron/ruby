@@ -19,17 +19,17 @@ describe 'ExcelHelper' do
     Group.create!(id: 6, name: "R&D", company_id: 1, snapshot_id: 1, external_id: 'ext6', nsleft: 0, nsright: 3)
     Group.create!(id: 8, name: "IT",  company_id: 1, snapshot_id: 1, external_id: 'ext8', nsleft: 1, nsright: 2)
     create_emps('moshe', 'acme.com', 5, {gid: 6})
-    FactoryGirl.create(:cds_metric_score, employee_id: 1, z_score: 1.1, score: 1.1, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 2, z_score: 1.2, score: 1.2, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 3, z_score: 1.3, score: 1.3, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
-    FactoryGirl.create(:cds_metric_score, employee_id: 1, z_score: 2.1, score: 2.1, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
-    FactoryGirl.create(:cds_metric_score, employee_id: 2, z_score: 2.2, score: 2.2, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
-    FactoryGirl.create(:cds_metric_score, employee_id: 3, z_score: 2.3, score: 2.3, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryBot.create(:cds_metric_score, employee_id: 1, z_score: 1.1, score: 1.1, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryBot.create(:cds_metric_score, employee_id: 2, z_score: 1.2, score: 1.2, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryBot.create(:cds_metric_score, employee_id: 3, z_score: 1.3, score: 1.3, algorithm_id: 700, group_id: 6, snapshot_id: 1, company_metric_id: 1)
+    FactoryBot.create(:cds_metric_score, employee_id: 1, z_score: 2.1, score: 2.1, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryBot.create(:cds_metric_score, employee_id: 2, z_score: 2.2, score: 2.2, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
+    FactoryBot.create(:cds_metric_score, employee_id: 3, z_score: 2.3, score: 2.3, algorithm_id: 702, group_id: 6, snapshot_id: 1, company_metric_id: 2)
   end
 
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   it 'the report should not throw an error' do

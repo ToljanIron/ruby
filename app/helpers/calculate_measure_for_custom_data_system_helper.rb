@@ -212,8 +212,8 @@ module CalculateMeasureForCustomDataSystemHelper
       FROM cds_metric_scores AS cds
       JOIN employees AS emps ON emps.id = cds.employee_id
       JOIN groups AS g ON g.id = emps.group_id
-      JOIN offices AS o ON o.id = emps.office_id
-      JOIN job_titles AS jt ON jt.id = emps.job_title_id
+      LEFT JOIN offices AS o ON o.id = emps.office_id
+      LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
       JOIN company_metrics AS cms ON cms.id = cds.company_metric_id
       JOIN metric_names AS mn ON mn.id = cms.metric_id
       JOIN snapshots AS sn ON sn.id = cds.snapshot_id

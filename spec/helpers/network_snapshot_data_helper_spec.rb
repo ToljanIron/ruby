@@ -10,7 +10,7 @@ describe NetworkSnapshotDataHelper, type: :helper do
     before do
       NetworkName.create!(company_id: 1, name: 'Communication Flow')
       NetworkSnapshotData.create_email_adapter(company_id: 1)
-      emp_1, emp_2 = FactoryGirl.create_list(:employee, 2)
+      emp_1, emp_2 = FactoryBot.create_list(:employee, 2)
 
       @network_nodes_1 = {company_id:1, employee_from_id: emp_1.id, employee_to_id: emp_2.id, snapshot_id: 1}
       (1..18).each do |i|
@@ -49,7 +49,7 @@ describe NetworkSnapshotDataHelper, type: :helper do
 
   describe 'calculate_significant_field_for_all_the_email_snapshot_data()' do
     before do
-      @s = FactoryGirl.create(:snapshot, timestamp: 6.weeks.ago)
+      @s = FactoryBot.create(:snapshot, timestamp: 6.weeks.ago)
     end
 
     after do
@@ -66,7 +66,7 @@ describe NetworkSnapshotDataHelper, type: :helper do
 
     context 'With 4 snpashots' do
       before do
-        (2..5).each { |i| FactoryGirl.create(:snapshot, timestamp: (6-i).weeks.ago) }
+        (2..5).each { |i| FactoryBot.create(:snapshot, timestamp: (6-i).weeks.ago) }
         @s = Snapshot.last
       end
 

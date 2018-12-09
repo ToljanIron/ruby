@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 IN = 'to_employee_id'
 OUT  = 'from_employee_id'
@@ -21,14 +21,14 @@ describe AlgorithmsHelper, type: :helper do
 
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   before(:each) do
 
     @cid = 9
-    @s = FactoryGirl.create(:snapshot, name: 'meetings test snapshot', company_id: @cid)
-    @g = FactoryGirl.create(:group, name: 'Test group', company_id: @cid)
+    @s = FactoryBot.create(:snapshot, name: 'meetings test snapshot', company_id: @cid)
+    @g = FactoryBot.create(:group, name: 'Test group', company_id: @cid)
 
     em1 = 'p11@email.com'
     em2 = 'p22@email.com'
@@ -37,12 +37,12 @@ describe AlgorithmsHelper, type: :helper do
     em5 = 'p55@email.com'
     em6 = 'p66@email.com'
 
-    @e1 = FactoryGirl.create(:employee, id: 1001, email: em1, company_id: @cid, group_id: @g.id)
-    @e2 = FactoryGirl.create(:employee, id: 1002, email: em2, company_id: @cid, group_id: @g.id)
-    @e3 = FactoryGirl.create(:employee, id: 1003, email: em3, company_id: @cid, group_id: @g.id)
-    @e4 = FactoryGirl.create(:employee, id: 1004, email: em4, company_id: @cid, group_id: @g.id)
-    @e5 = FactoryGirl.create(:employee, id: 1005, email: em5, company_id: @cid, group_id: @g.id)
-    @e6 = FactoryGirl.create(:employee, id: 1006, email: em6, company_id: @cid, group_id: @g.id)
+    @e1 = FactoryBot.create(:employee, id: 1001, email: em1, company_id: @cid, group_id: @g.id)
+    @e2 = FactoryBot.create(:employee, id: 1002, email: em2, company_id: @cid, group_id: @g.id)
+    @e3 = FactoryBot.create(:employee, id: 1003, email: em3, company_id: @cid, group_id: @g.id)
+    @e4 = FactoryBot.create(:employee, id: 1004, email: em4, company_id: @cid, group_id: @g.id)
+    @e5 = FactoryBot.create(:employee, id: 1005, email: em5, company_id: @cid, group_id: @g.id)
+    @e6 = FactoryBot.create(:employee, id: 1006, email: em6, company_id: @cid, group_id: @g.id)
   end
 
   describe 'Algorithm name: in the loop | meeting invitations in degree | type: measure' do

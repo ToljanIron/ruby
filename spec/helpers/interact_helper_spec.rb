@@ -13,7 +13,7 @@ describe InteractHelper, type: :helper do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'Interact stats' do

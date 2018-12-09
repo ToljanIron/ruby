@@ -40,4 +40,7 @@ Workships::Application.configure do
 
   config.logger = Logger.new(STDOUT)
   config.log_level = :info
+
+  # Manifest file for compiling the assets
+  config.assets.precompile = ["manifest.js"]
 end

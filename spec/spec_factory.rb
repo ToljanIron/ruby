@@ -34,27 +34,27 @@ def fg_create(model, *args)
   raise "To many arguments passed to fgcreate: #{numargs}" if numargs > 11
   case numargs
   when 0
-    res = FactoryGirl.create(model)
+    res = FactoryBot.create(model)
   when 1
-    res = FactoryGirl.create(model, args[0])
+    res = FactoryBot.create(model, args[0])
   when 2
-    res = FactoryGirl.create(model, args[0], args[1])
+    res = FactoryBot.create(model, args[0], args[1])
   when 3
-    res = FactoryGirl.create(model, args[0], args[1], args[2])
+    res = FactoryBot.create(model, args[0], args[1], args[2])
   when 4
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3])
   when 5
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4])
   when 6
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4], args[5])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4], args[5])
   when 7
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6])
   when 8
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
   when 9
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
   when 10
-    res = FactoryGirl.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])
+    res = FactoryBot.create(model, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])
   end
   return res
 end

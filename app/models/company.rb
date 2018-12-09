@@ -11,6 +11,7 @@ class Company < ActiveRecord::Base
   has_many :questionnaire
   has_many :snapshots
   has_many :alerts
+  has_one :push_proc
 
   has_many :netowrk_snapshot_data
 
@@ -24,6 +25,25 @@ class Company < ActiveRecord::Base
   }
 
   enum product_type: [:full, :questionnaire_only]
+
+  enum setup_state: [
+    :init,
+    :log_files_location,
+    :log_files_location_verification,
+    :gpg_passphrase,
+    :it_done,
+    :upload_company,
+    :standby_or_push,
+    :push,
+    :push_done,
+    :ready
+  ]
+
+  def reset_to_standby_or_push
+    update(setup_state: 6)
+    PushProc.last.delete
+    PushProc.create!(company_id: id)
+  end
 
   def self.required_chars_options
     return ['AB', 'ab', '123', '#$%^&']

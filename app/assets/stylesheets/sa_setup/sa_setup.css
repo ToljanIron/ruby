@@ -1,0 +1,67 @@
+.sas-layout-logo {
+  margin-left: 2rem;
+}
+
+.sas-layout-container {
+  width: 100%;
+  height: 100%;
+  padding-top: 1rem;
+  padding-left: 2rem;
+  background-color: #F2F2F2;
+}
+
+.sas-inner-cont {
+}
+
+.sas-guiding-text {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sas-input-text {
+  height: 2rem;
+  padding-left: 1rem;
+  border: none;
+}
+
+.sas-submit-btn {
+  width: 6rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  background-color: #FBB03B;
+  text-align: center;
+  border-style: none;
+  border-radius: 2rem;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sas-form-error-bar {
+  height: 2rem;
+  width: 100%;
+  margin-left: -2rem;
+  padding-top: 0.5rem;
+  padding-left: 2rem;
+  background-color: #d33260;
+  color: white;
+  font-size: 18px;
+}
+
+.sas-push-section-label {
+  display: inline-block;
+}
+.sas-push-section-num {
+  display: inline-block;
+}
+.sas-push-section-bar {
+  height: 2rem;
+  width: 20rem;
+  background-color: #1f5d75;
+  color: #9fbb9f;
+  border: 0.1rem solid #9fbb9f;
+  box-sizing: border-box;
+  text-align: center;
+  padding-top: 0.4rem
+}

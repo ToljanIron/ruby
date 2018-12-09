@@ -1,0 +1,38 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    The system is processing now the Message Tracking log files it found. This will take some time, depending<br>
+    on the number of files.<br>
+    Processing the log files requires 4 steps:<br>
+    - Pull the files into the system<br>
+    - Parse their content<br>
+    - Create snapshots which are networks related to every week<br>
+    - Analyse and organize the data in each snapshot<br>
+    <br>
+    Progress of these steps is reflected in the dashboard below.<br>
+    Once done, the <u>Proceed to System</u> button at the bottom will become enabled.
+  </div>
+  <br><br>
+
+  <div class="sas-push-section-cont">
+    <div class="sas-push-section-top">
+      <div class="sas-push-section-label">Progress:</div>
+      <!-- div id="sas-progress-num" class="sas-push-section-num"></div -->
+    </div>
+    <br>
+    <div id="sas-progress-bar" class="sas-push-section-bar"></div>
+  </div>
+
+  <br><br><br><br>
+
+  <form id="sasform" action="/sa_setup/push_done" method="get">
+    <button class="sas-submit-btn">Proceed To System</button>
+  </form>
+
+  <form id="sasform2" action="/sa_setup/retry_push" method="get">
+    <button class="sas-submit-btn">Retry Push</button>
+  </form>
+</div>
+
+<script>
+  window.onload = sas.updatePushState
+</script>

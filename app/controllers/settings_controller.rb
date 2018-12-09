@@ -1,5 +1,3 @@
-include ExternalDataHelper
-
 class SettingsController < ApplicationController
   def create_or_update_external_data
     authorize :setting, :admin?

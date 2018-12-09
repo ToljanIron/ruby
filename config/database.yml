@@ -20,6 +20,7 @@ onpremise:
   <<: *default
   database: workships_app
   username: workships
+  password: ??
   port: 5433
 
 protractor:
@@ -33,10 +34,6 @@ test:
   username: workships
   password: workships
   database: workships_test
-
-test-old:
-  <<: *default
-  database: workships_test_old
 
 test-sqlserver:
   mode: dblib
@@ -62,15 +59,8 @@ development-sqlserver:
 
 # for on premise installtion
 production:
-  adapter: postgresql
-  encoding: unicode
-  pool: 5
-  host: sa_db
-  port: 5432
-  username: 'workships'
-  password: 'workships'
-  timeout: 5000
-  database: workships
+  <<: *default
+  database: workships_app
 
 production-sqlserver:
   mode: dblib
@@ -82,7 +72,3 @@ production-sqlserver:
   username: workships
   password: workships
   timeout: 20000000
-
-onpremise:
-  <<: *default
-  database: workships_development

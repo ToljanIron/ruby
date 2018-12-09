@@ -7,9 +7,9 @@ describe AlertsController, type: :controller do
 
   before do
     log_in_with_dummy_user
-    FactoryGirl.create(:metric_name, id: 13, name: 'Test13')
-    FactoryGirl.create(:company_metric, id: 13, metric_id: 13)
-    FactoryGirl.create(:snapshot, id: 1, timestamp: DateTime.new(2018, 1, 1), company_id: 1)
+    FactoryBot.create(:metric_name, id: 13, name: 'Test13')
+    FactoryBot.create(:company_metric, id: 13, metric_id: 13)
+    FactoryBot.create(:snapshot, id: 1, timestamp: DateTime.new(2018, 1, 1), company_id: 1)
 
     Alert.create!(id: 111, company_id: 1, snapshot_id: 1, group_id: 2, alert_type: 1, company_metric_id: 13, state: 0)
   end

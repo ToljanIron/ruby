@@ -513,7 +513,7 @@ module AlgorithmsHelper
   #
   ###########################################################################
   def calculate_connectors(sid, pid, gid)
-    return nil if Group.num_of_emps(gid) < 10
+    return nil if Group.num_of_emps(gid) < CompanyConfigurationTable.min_emps_in_group_for_algorithms
 
     cid = Snapshot.find(sid).company_id
     nid = NetworkSnapshotData.emails(cid)

@@ -3,7 +3,7 @@ require 'pp'
 require 'spec_helper'
 require './spec/spec_factory'
 require './spec/factories/company_with_metrics_factory.rb'
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 include CompanyWithMetricsFactory
 
@@ -17,7 +17,7 @@ describe AlgorithmsHelper, type: :helper do
 
   after(:each) do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'most isolated' do
@@ -176,18 +176,18 @@ describe AlgorithmsHelper, type: :helper do
       before do
         Company.find_or_create_by(id: 1, name: "Hevra10")
         Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
-        FactoryGirl.create(:group, id: 11, name: 'g1')
-        FactoryGirl.create(:group, id: 12, name: 'g2')
-        FactoryGirl.create(:group, id: 13, name: 'g3')
-        FactoryGirl.create(:group, id: 14, name: 'g4')
-        FactoryGirl.create(:employee, id: 1, group_id: 11)
-        FactoryGirl.create(:employee, id: 2, group_id: 11)
-        FactoryGirl.create(:employee, id: 3, group_id: 12)
-        FactoryGirl.create(:employee, id: 4, group_id: 12)
-        FactoryGirl.create(:employee, id: 5, group_id: 12)
-        FactoryGirl.create(:employee, id: 6, group_id: 14)
-        FactoryGirl.create(:employee, id: 7, group_id: 14)
-        FactoryGirl.create(:employee, id: 8, group_id: 14)
+        FactoryBot.create(:group, id: 11, name: 'g1')
+        FactoryBot.create(:group, id: 12, name: 'g2')
+        FactoryBot.create(:group, id: 13, name: 'g3')
+        FactoryBot.create(:group, id: 14, name: 'g4')
+        FactoryBot.create(:employee, id: 1, group_id: 11)
+        FactoryBot.create(:employee, id: 2, group_id: 11)
+        FactoryBot.create(:employee, id: 3, group_id: 12)
+        FactoryBot.create(:employee, id: 4, group_id: 12)
+        FactoryBot.create(:employee, id: 5, group_id: 12)
+        FactoryBot.create(:employee, id: 6, group_id: 14)
+        FactoryBot.create(:employee, id: 7, group_id: 14)
+        FactoryBot.create(:employee, id: 8, group_id: 14)
         gids = Group.pluck(:id)
         emp2inx = {}
         group2inx = {}
@@ -209,12 +209,12 @@ describe AlgorithmsHelper, type: :helper do
       before do
         Company.find_or_create_by(id: 1, name: "Hevra10")
         Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
-        FactoryGirl.create(:group, id: 11, name: 'g1')
-        FactoryGirl.create(:employee, id: 1, group_id: 11)
-        FactoryGirl.create(:employee, id: 2, group_id: 11)
-        FactoryGirl.create(:employee, id: 3, group_id: 11)
-        FactoryGirl.create(:employee, id: 4, group_id: 11)
-        FactoryGirl.create(:employee, id: 5, group_id: 11)
+        FactoryBot.create(:group, id: 11, name: 'g1')
+        FactoryBot.create(:employee, id: 1, group_id: 11)
+        FactoryBot.create(:employee, id: 2, group_id: 11)
+        FactoryBot.create(:employee, id: 3, group_id: 11)
+        FactoryBot.create(:employee, id: 4, group_id: 11)
+        FactoryBot.create(:employee, id: 5, group_id: 11)
 
         MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1)
         MeetingsSnapshotData.create!(id: 2, snapshot_id: 1, company_id: 1)
@@ -257,7 +257,7 @@ describe AlgorithmsHelper, type: :helper do
       Company.find_or_create_by!(id: 1, name: "Hevra10")
       Snapshot.find_or_create_by!(id: 1, name: "2016-01", company_id: 1, timestamp: Time.now)
       NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1)
-      FactoryGirl.create(:group, id: 11, name: 'g1')
+      FactoryBot.create(:group, id: 11, name: 'g1')
       create_emps('moshe', 'acme.com', 4, {gid: 11, sid: 1})
 
       MeetingsSnapshotData.create!(id: 1, snapshot_id: 1, company_id: 1, duration_in_minutes: 10)
@@ -359,20 +359,20 @@ describe AlgorithmsHelper, type: :helper do
       Snapshot.create!(id: 1, name: "2016-01", company_id: 1, timestamp: '2016-01-01 00:12:12')
       nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
 
-      FactoryGirl.create(:group, id: 11, name: 'g1')
-      FactoryGirl.create(:group, id: 12, name: 'g2', parent_group_id: 11)
-      FactoryGirl.create(:group, id: 13, name: 'g3', parent_group_id: 11)
-      FactoryGirl.create(:group, id: 14, name: 'g4', parent_group_id: 11)
-      FactoryGirl.create(:employee, id: 1, group_id: 11)
-      FactoryGirl.create(:employee, id: 2, group_id: 11)
-      FactoryGirl.create(:employee, id: 3, group_id: 12)
-      FactoryGirl.create(:employee, id: 4, group_id: 12)
-      FactoryGirl.create(:employee, id: 5, group_id: 12)
-      FactoryGirl.create(:employee, id: 6, group_id: 13)
-      FactoryGirl.create(:employee, id: 7, group_id: 14)
-      FactoryGirl.create(:employee, id: 8, group_id: 14)
-      FactoryGirl.create(:employee, id: 9, group_id: 14)
-      FactoryGirl.create(:employee, id: 10,group_id: 14)
+      FactoryBot.create(:group, id: 11, name: 'g1')
+      FactoryBot.create(:group, id: 12, name: 'g2', parent_group_id: 11)
+      FactoryBot.create(:group, id: 13, name: 'g3', parent_group_id: 11)
+      FactoryBot.create(:group, id: 14, name: 'g4', parent_group_id: 11)
+      FactoryBot.create(:employee, id: 1, group_id: 11)
+      FactoryBot.create(:employee, id: 2, group_id: 11)
+      FactoryBot.create(:employee, id: 3, group_id: 12)
+      FactoryBot.create(:employee, id: 4, group_id: 12)
+      FactoryBot.create(:employee, id: 5, group_id: 12)
+      FactoryBot.create(:employee, id: 6, group_id: 13)
+      FactoryBot.create(:employee, id: 7, group_id: 14)
+      FactoryBot.create(:employee, id: 8, group_id: 14)
+      FactoryBot.create(:employee, id: 9, group_id: 14)
+      FactoryBot.create(:employee, id: 10,group_id: 14)
 
       all = [
         [0,1,1,0,0,0,0,0,0,0],
@@ -447,10 +447,10 @@ describe AlgorithmsHelper, type: :helper do
       Snapshot.create!(id: 1, name: "2016-01", company_id: 1, timestamp: '2016-01-01 00:12:12')
       nid = NetworkName.find_or_create_by!(id: 1, name: "Communication Flow", company_id: 1).id
 
-      FactoryGirl.create(:group, id: 11, name: 'g1')
-      FactoryGirl.create(:employee, id: 1, group_id: 11)
-      FactoryGirl.create(:employee, id: 2, group_id: 11)
-      FactoryGirl.create(:employee, id: 3, group_id: 11)
+      FactoryBot.create(:group, id: 11, name: 'g1')
+      FactoryBot.create(:employee, id: 1, group_id: 11)
+      FactoryBot.create(:employee, id: 2, group_id: 11)
+      FactoryBot.create(:employee, id: 3, group_id: 11)
     end
 
     it 'should be zero only if traffic is symetric' do
@@ -512,8 +512,8 @@ describe AlgorithmsHelper, type: :helper do
 
   describe 'group_non_reciprocity' do
     it 'should be high if receiving is low' do
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
       res1 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
       CdsMetricScore.find(1).update!(score: 1)
       res2 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
@@ -521,8 +521,8 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     it 'should be low if receiving is high' do
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
       res1 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
       CdsMetricScore.find(1).update!(score: 30)
       res2 = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
@@ -535,22 +535,22 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     it 'shhould be NA if both values are zero' do
-      FactoryGirl.create(:cds_metric_score, score: 0, id: 1, group_id: 6, algorithm_id: 300)
-      FactoryGirl.create(:cds_metric_score, score: 0, id: 2, group_id: 6, algorithm_id: 301)
+      FactoryBot.create(:cds_metric_score, score: 0, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryBot.create(:cds_metric_score, score: 0, id: 2, group_id: 6, algorithm_id: 301)
       res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
       expect( res ).to eq(-99999)
     end
 
     it 'should be zero if sending is zero' do
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
-      FactoryGirl.create(:cds_metric_score, score:  0, id: 2, group_id: 6, algorithm_id: 301)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryBot.create(:cds_metric_score, score:  0, id: 2, group_id: 6, algorithm_id: 301)
       res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
       expect( res ).to eq(0.0)
     end
 
     it 'should be close to one if receving is zero' do
-      FactoryGirl.create(:cds_metric_score, score:  0, id: 1, group_id: 6, algorithm_id: 300)
-      FactoryGirl.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
+      FactoryBot.create(:cds_metric_score, score:  0, id: 1, group_id: 6, algorithm_id: 300)
+      FactoryBot.create(:cds_metric_score, score: 10, id: 2, group_id: 6, algorithm_id: 301)
       res = AlgorithmsHelper.group_non_reciprocity(1,6)[0][:measure]
       expect( res ).to be > 0.99
     end

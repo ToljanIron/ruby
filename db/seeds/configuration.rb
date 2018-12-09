@@ -1,3 +1,5 @@
+CompanyConfigurationTable.delete_all
+
 ## General parameters
 CompanyConfigurationTable.find_or_create_by(key: 'display_field_in_questionnaire', comp_id: -1).update(value: 'role')
 CompanyConfigurationTable.find_or_create_by(key: 'populate_questionnaire_automatically', comp_id: -1).update(value: 'true')
@@ -6,18 +8,22 @@ CompanyConfigurationTable.find_or_create_by(key: 'hide_employee_names', comp_id:
 ## Collector parameters
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_WRITE_TO_EVENT_LOG', comp_id: -1).update(value: 'true')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_LEVEL', comp_id: -1).update(value: 'info')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/dev/Development/collector')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/home/dev/Development/collector/files_portal')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_DIR', comp_id: -1).update(value: 'log_dir')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_DONE_DIR', comp_id: -1).update(value: 'log_dir/done')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_ERROR_DIR', comp_id: -1).update(value: 'log_dir/error')
+
+#CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/dev/Development/collector')
+#CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/home/dev/Development/collector/files_portal')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/var/collector')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/var/collector/files_portal')
+
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_DIR', comp_id: -1).update(value: 'logs_dir')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_DONE_DIR', comp_id: -1).update(value: 'logs_dir/done')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_FILES_ERROR_DIR', comp_id: -1).update(value: 'logs_dir/error')
 
 ## Collector params related to FTP and Samba
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_TYPE', comp_id: -1).update(value: 'Samba')
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_TYPE', comp_id: -1).update(value: 'FTP')
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_TYPE', comp_id: -1).update(value: 'SFTP')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_HOST', comp_id: -1).update(value: 'test.rebex.net')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_USER', comp_id: -1).update(value: 'demo')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_HOST', comp_id: -1).update(value: 'hostname')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_USER', comp_id: -1).update(value: 'username')
 password = CdsUtilHelper.encrypt('password')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_PASSWORD', comp_id: -1).update(value: password)
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_SRC_DIR', comp_id: -1).update(value: '.')
@@ -42,3 +48,8 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_PARSER_TYPE', comp_i
 
 ## App params
 CompanyConfigurationTable.find_or_create_by(key: 'INFO_LOG_LEVEL', comp_id: -1).update(value: 'info')
+CompanyConfigurationTable.find_or_create_by(key: 'APP_SERVER_NAME', comp_id: -1).update(value: 'stepahead')
+CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '3')
+CompanyConfigurationTable.find_or_create_by(key: 'NTP_SERVER', comp_id: -1).update(value: 'time.windows.com')
+CompanyConfigurationTable.find_or_create_by(key: 'process_meetings', comp_id: -1).update(value: 'true')
+

@@ -17,7 +17,7 @@ describe InteractBackofficeHelper, type: :helper do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'create_employee' do

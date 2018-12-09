@@ -1,0 +1,18 @@
+<html>
+<head>
+	<title>Stepahead | Setup</title>
+	<%= stylesheet_link_tag  'sa_setup', media: "all" %>
+	<%= javascript_include_tag 'sa_setup'%>
+	<%= csrf_meta_tags %>
+</head>
+
+<body>
+  <div class='sas-layout-top-bar'>
+    <img class='sas-layout-logo' src="<%= asset_path 'stepahead_logo.svg' %>" width=150 height=60 >
+  </div>
+
+  <div class='sas-layout-container'>
+    <%= yield %>
+  </div>
+</body>
+</html>

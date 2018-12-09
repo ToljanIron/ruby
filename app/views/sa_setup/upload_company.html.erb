@@ -1,0 +1,27 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    Please upload an excel with the list of employees you need in the system.<br>
+    You can download an example using the button at the bottom.<br><br>
+    <span style='color: blue;'>
+      It's important to note that the excel has two tabs, one for employees and the other for groups the employees belong to.<br>
+      The employees tab references the groups tab via the group field.
+    </span>
+  </div>
+  <br><br><br><br>
+
+  <form id="sasform" action="/sa_setup/employees_excel" method="post" enctype="multipart/form-data">
+
+    <label class="sas-input-label">Upload HR structure excel:<br><br>
+      <input class="sas-input-text" type="file" name="empsExcel[file]">
+    </label>
+
+    <br><br><br>
+
+    <button class="sas-submit-btn">Upload</button>
+  </form>
+
+  <br><br><br><br>
+
+  <%= link_to 'Download HR structure example', "#{root_url}/assets/example-employees.xlsx", { class: 'sas-download-url' } %>
+
+</div>

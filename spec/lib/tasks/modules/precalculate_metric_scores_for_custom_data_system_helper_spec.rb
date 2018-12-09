@@ -7,11 +7,11 @@ require 'date'
 include CompanyWithMetricsFactory
 
 describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
-  let(:group1) { FactoryGirl.create(:group, id: 1, company_id: 1, name: 'group1') }
-  let(:group2) { FactoryGirl.create(:group, id: 2, company_id: 1, name: 'group2') }
-  let(:employee1) { FactoryGirl.create(:group_employee, id: 1, company_id: 1, group_id: 1) }
-  let(:employee3) { FactoryGirl.create(:group_employee, id: 3, company_id: 1, group_id: 2) }
-  let(:employee2) { FactoryGirl.create(:employee, id: 2, company_id: 2, email: 'emp2@e.com', external_id: 2) }
+  let(:group1) { FactoryBot.create(:group, id: 1, company_id: 1, name: 'group1') }
+  let(:group2) { FactoryBot.create(:group, id: 2, company_id: 1, name: 'group2') }
+  let(:employee1) { FactoryBot.create(:group_employee, id: 1, company_id: 1, group_id: 1) }
+  let(:employee3) { FactoryBot.create(:group_employee, id: 3, company_id: 1, group_id: 2) }
+  let(:employee2) { FactoryBot.create(:employee, id: 2, company_id: 2, email: 'emp2@e.com', external_id: 2) }
 
 
   before do
@@ -26,15 +26,15 @@ describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'cds_calculate_z_scores' do
     before do
       AlgorithmType.create(id: 1, name: 'measure')
-      FactoryGirl.create(:algorithm, id: 101,  name: 'algo-101', algorithm_type_id: 1)
-      FactoryGirl.create(:algorithm, id: 102,  name: 'algo-102', algorithm_type_id: 1)
-      FactoryGirl.create(:algorithm, id: 103,  name: 'algo-103', algorithm_type_id: 1)
+      FactoryBot.create(:algorithm, id: 101,  name: 'algo-101', algorithm_type_id: 1)
+      FactoryBot.create(:algorithm, id: 102,  name: 'algo-102', algorithm_type_id: 1)
+      FactoryBot.create(:algorithm, id: 103,  name: 'algo-103', algorithm_type_id: 1)
       (1..5).each do |i|
         (1..3).each do |j|
           CdsMetricScore.create!(group_id: i, algorithm_id: (100 + j), score: i, company_id: 1, snapshot_id: 1, company_metric_id: 1, employee_id: -1)
@@ -44,7 +44,7 @@ describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
 
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     it 'should calculate correct z_scores' do
@@ -59,9 +59,9 @@ describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
   describe 'cds_calculate_z_scores' do
     before do
       AlgorithmType.create(id: 5, name: 'gauge')
-      FactoryGirl.create(:algorithm, id: 101,  name: 'algo-101', algorithm_type_id: 5)
-      FactoryGirl.create(:algorithm, id: 102,  name: 'algo-102', algorithm_type_id: 5)
-      FactoryGirl.create(:algorithm, id: 103,  name: 'algo-103', algorithm_type_id: 5)
+      FactoryBot.create(:algorithm, id: 101,  name: 'algo-101', algorithm_type_id: 5)
+      FactoryBot.create(:algorithm, id: 102,  name: 'algo-102', algorithm_type_id: 5)
+      FactoryBot.create(:algorithm, id: 103,  name: 'algo-103', algorithm_type_id: 5)
       (1..5).each do |i|
         (1..3).each do |j|
           CdsMetricScore.create!(group_id: i, algorithm_id: (100 + j), score: i, company_id: 1, snapshot_id: 1, company_metric_id: 1, employee_id: -1)
@@ -71,7 +71,7 @@ describe PrecalculateMetricScoresForCustomDataSystemHelper, type: :helper do
 
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     it 'should calculate correct z_scores' do

@@ -5,10 +5,12 @@ module JobsHelper
   JOB_INTERVALS_HOURLY = 'hourly'
 
   COLLECTOR_QUEUE = 'collector_queue'
+  APP_QUEUE       = 'app_queue'
 
   def self.get_jobs_list
     return [
-      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE}
+      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE},
+      {job: AlertsJob,    interval: JOB_INTERVALS_DAILY,  interval_offset: 0, queue: APP_QUEUE},
     ]
   end
 
@@ -26,13 +28,19 @@ module JobsHelper
         raise "Illegal job interval type: #{job[:interval]}"
       end
     end
+
+    create_historical_data_job
+
     puts('Schedule delayed jobs done')
   end
 
   def self.schedule_hourly_job(job, queue)
     (0..23).each do |h|
-      nh = h + 1
-      jobs = Delayed::Job.where("handler like '%#{job.to_s}%'").where(run_at: h.hours.from_now .. nh.hours.from_now)
+      hourstart = h.hours.from_now.beginning_of_hour
+      hourend   = h.hours.from_now.end_of_hour
+      jobs = Delayed::Job
+               .where("handler like '%#{job.to_s}%'")
+               .where(run_at: hourstart .. hourend)
       next if jobs.count > 0
       Delayed::Job.enqueue(job.new, queue: queue, run_at: h.hours.from_now)
     end
@@ -59,28 +67,36 @@ module JobsHelper
   end
 
   ####################################################################
-  # Check if there's such a job in the next 7 days, if not will
+  # Check if there's such a job tomorrow, if not will
   # schedule it.
   # offset is 0-23 starting Sunday
   ####################################################################
   def self.schedule_daily_job(job, queue='defaultqueue', hourofday=0)
-    beginning_of_day = Time.now.at_beginning_of_day
-    end_of_day       = Time.now.at_end_of_day
+    beginning_of_day = 1.day.from_now.at_beginning_of_day
+    end_of_day       = 1.day.from_now.at_end_of_day
 
     jobs = Delayed::Job
            .where("handler like '%#{job.to_s}%'")
            .where(run_at: beginning_of_day..end_of_day)
     return if jobs.count > 0
 
-    if Time.now.hour >= hourofday
-      next_job_run_at = beginning_of_day + hourofday.hours + 1.day
-    else
-      next_job_run_at = beginning_of_day + hourofday.hours
-    end
+    next_job_run_at = beginning_of_day + hourofday.hours
     Delayed::Job.enqueue(
       job.new,
       queue: queue,
       run_at: next_job_run_at)
+  end
+
+  #####################################################################
+  # Create a job for the initial push operation
+  #####################################################################
+  def create_historical_data_job
+    return if Company.find(1).setup_state != 'push'
+    return if PushProc.last.state != 'collector_done'
+    Delayed::Job.enqueue(
+      HistoricalDataJob.new,
+      queue: APP_QUEUE,
+      run_at: Time.now)
   end
 end
 

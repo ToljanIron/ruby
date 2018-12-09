@@ -7,7 +7,7 @@ describe CreateSnapshotHelper, type:  :helper do
   describe 'Check create emails snapshot create' do
     after do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     describe do
@@ -16,11 +16,11 @@ describe CreateSnapshotHelper, type:  :helper do
         @s = Snapshot.create(name: 'qq', snapshot_type: nil, timestamp: '2014-03-01', company_id: 1)
         @s2 = Snapshot.create(name: 'qq', timestamp: '2020-12-13', company_id: 1)
 
-        FactoryGirl.create(:raw_data_entry, date: '2013-12-12')
-        FactoryGirl.create(:raw_data_entry, date: '2014-12-12')
-        FactoryGirl.create(:raw_data_entry, date: '2014-12-13')
-        FactoryGirl.create(:raw_data_entry, date: '2014-03-12')
-        FactoryGirl.create(:raw_data_entry, date: '2014-03-13')
+        FactoryBot.create(:raw_data_entry, date: '2013-12-12')
+        FactoryBot.create(:raw_data_entry, date: '2014-12-12')
+        FactoryBot.create(:raw_data_entry, date: '2014-12-13')
+        FactoryBot.create(:raw_data_entry, date: '2014-03-12')
+        FactoryBot.create(:raw_data_entry, date: '2014-03-13')
 
         create_emps('from', 'email.com', 5)
         create_emps('to', 'email.com', 5)
@@ -29,7 +29,7 @@ describe CreateSnapshotHelper, type:  :helper do
     describe 'Check create emails snapshot create' do
       after do
         DatabaseCleaner.clean_with(:truncation)
-        FactoryGirl.reload
+        FactoryBot.reload
       end
 
       describe 'exteranl domains processing' do
@@ -37,7 +37,7 @@ describe CreateSnapshotHelper, type:  :helper do
         date      = '2016-10-10'
 
         before do
-          FactoryGirl.create(:company)
+          FactoryBot.create(:company)
           Domain.create!(company_id: 1, domain: 'email.com')
           @sid = Snapshot.create(name: 'qq', snapshot_type: nil, timestamp: date, company_id: 1).id
           create_emps('emp', 'email.com', 2)

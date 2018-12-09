@@ -1,0 +1,28 @@
+<div class="sas-inner-cont">
+  <div class="sas-guiding-text">
+    This is the final stage of the setup process. There are two ways to proceed from this stage:<br><br>
+      - Proceed to the regular processing mode. If selected, the system will start processing Exchange<br>
+        Message Trace log files as they come, and will create an analytics baseline once a week.<br>
+      - <u>Collect Now</u> historic data. If selected the system will look for all the log files currently available<br>
+        and will create as many analytics baselines as available in the files - one baseline per month.<br><br>
+
+    If selecting the Push option please make sure all log files are ready on the SFTP server that was <br>
+    defined earlier before clicking the <u>Collect Now</u> button.<br>
+    The process may take some time, it will be tracked on the screen. Once done the system will redirect you<br>
+    to its main screens where you will have to login.
+  </div>
+  <br><br><br><br>
+
+  <form id="sasform" action="/sa_setup/goto_system" method="get">
+    <label class="sas-input-label">Proceed to system:</label>
+    <br><br>
+    <button class="sas-submit-btn">Go To System</button>
+  </form>
+  <br><br>
+
+  <form id="sasform" action="/sa_setup/collect_now" method="get">
+    <label class="sas-input-label">Collect historical data</label>
+    <br><br>
+    <button class="sas-submit-btn">Collect Now</button>
+  </form>
+</div>

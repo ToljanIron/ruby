@@ -1,0 +1,20 @@
+/home/app/sa/log/onpremise.log {
+  rotate 20
+  size 10M
+  create 0640 app app
+  daily
+  compress
+  missingok
+  notifempty
+}
+
+/home/app/sa/log/delayed_job.log {
+  rotate 20
+  size 10M
+  create 0640 app app
+  daily
+  compress
+  missingok
+  notifempty
+}
+

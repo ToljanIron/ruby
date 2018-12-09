@@ -12,20 +12,20 @@ describe 'Questionnaire processes' do
     cid = Company.create!(name: "Hevra10").id
     sid = Snapshot.create!(name: "2016-01", company_id: 1, timestamp: 5.weeks.ago).id
     Algorithm.create!(id: 601, name: 'interact_indegree', algorithm_type_id: 8)
-    FactoryGirl.create(:question, is_funnel_question: true)
-    FactoryGirl.create(:question)
-    FactoryGirl.create(:question)
-    rootgid = FactoryGirl.create(:group, name: 'Comp').id
+    FactoryBot.create(:question, is_funnel_question: true)
+    FactoryBot.create(:question)
+    FactoryBot.create(:question)
+    rootgid = FactoryBot.create(:group, name: 'Comp').id
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'Existing groups and employees' do
     it 'should be copied over' do
-      l21gid = FactoryGirl.create(:group, name: 'L2-1', parent_group_id: rootgid).id
+      l21gid = FactoryBot.create(:group, name: 'L2-1', parent_group_id: rootgid).id
       create_emps('moshe', 'hevra10.com', 2, {gid: l21gid})
       InteractBackofficeActionsHelper.create_new_questionnaire(cid)
       lastsid = Snapshot.last
@@ -141,13 +141,13 @@ describe 'Questionnaire processes' do
       end
 
       it 'particpant and his answers should be removed from tables' do
-        InteractBackofficeHelper.delete_employee(qpid)
+        InteractBackofficeHelper.delete_participant(qpid)
         expect( QuestionnaireParticipant.where('employee_id <> -1').count ).to eq(0)
         expect( QuestionReply.count ).to eq(0)
       end
 
       it 'State of questionnaire should be consistant' do
-        InteractBackofficeHelper.delete_employee(qpid)
+        InteractBackofficeHelper.delete_participant(qpid)
         aq = Questionnaire.last
         expect( aq.state ).to eq('notstarted')
       end

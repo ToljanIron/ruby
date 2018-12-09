@@ -40,7 +40,7 @@ spec/helpers/*.csv
 
 /tmp/spec/*
 
-/public/assets
+/public/assets/*
 /public/employees/*.jpg
 
 questionnaire_reports
@@ -54,7 +54,13 @@ archives
 app/assets/v2/fonts/*
 **/*.swp
 
-dist
-templates
-tests
+/dist
 
+templates/*.key
+templates/*.crt
+templates/*.pem
+templates/*.pub
+templates/id_rsa_app
+templates/known_hosts_app
+
+/tests

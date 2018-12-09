@@ -1,5 +1,5 @@
 require 'spec_helper'
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 describe QuestionnaireParticipant, type: :model do
   after do

@@ -406,10 +406,10 @@ module NetworkSnapshotDataHelper
             .from('employees AS emps')
             .joins("LEFT JOIN cds_metric_scores AS cds ON cds.employee_id = emps.id AND cds.algorithm_id = #{aid}")
             .joins('JOIN snapshots AS sn ON sn.id = emps.snapshot_id')
-            .joins('JOIN offices AS o ON o.id = emps.office_id')
+            .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
             .joins('JOIN groups AS g ON g.id = emps.group_id')
-            .joins('JOIN job_titles AS jt ON jt.id = emps.job_title_id')
-            .joins('JOIN roles AS ro ON ro.id = emps.role_id')
+            .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
+            .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
             .group('first_name, last_name, emps.group_id, emps.color_id, gender, g.name,

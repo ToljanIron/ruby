@@ -4,18 +4,18 @@ require './lib/tasks/modules/create_alerts_task_helper.rb'
 
 describe CreateAlertsTaskHelper, type:  :helper do
   before do
-    FactoryGirl.create(:company)
-    FactoryGirl.create(:snapshot)
-    FactoryGirl.create(:algorithm, id: 103,  name: 'calc_gauges', algorithm_type_id: 5)
-    FactoryGirl.create(:metric_name, id: 3, name: 'Gauges')
-    FactoryGirl.create(:company_metric, id: 3, metric_id: 3, network_id: 3, algorithm_id: 103, algorithm_type_id: 5)
-    FactoryGirl.create(:algorithm, id: 104,  name: 'calc_measures', algorithm_type_id: 1)
-    FactoryGirl.create(:metric_name, id: 4, name: 'Measures')
-    FactoryGirl.create(:company_metric, id: 4, metric_id: 4, network_id: 4, algorithm_id: 104, algorithm_type_id: 1)
+    FactoryBot.create(:company)
+    FactoryBot.create(:snapshot)
+    FactoryBot.create(:algorithm, id: 103,  name: 'calc_gauges', algorithm_type_id: 5)
+    FactoryBot.create(:metric_name, id: 3, name: 'Gauges')
+    FactoryBot.create(:company_metric, id: 3, metric_id: 3, network_id: 3, algorithm_id: 103, algorithm_type_id: 5)
+    FactoryBot.create(:algorithm, id: 104,  name: 'calc_measures', algorithm_type_id: 1)
+    FactoryBot.create(:metric_name, id: 4, name: 'Measures')
+    FactoryBot.create(:company_metric, id: 4, metric_id: 4, network_id: 4, algorithm_id: 104, algorithm_type_id: 1)
     (0..15).each do |gid|
       size = 2 if (gid % 5) == 0
       size = 4 if (gid % 5) != 0
-      FactoryGirl.create(:group, id: gid, hierarchy_size: size)
+      FactoryBot.create(:group, id: gid, hierarchy_size: size)
     end
 
     ## set min group size to 2
@@ -24,7 +24,7 @@ describe CreateAlertsTaskHelper, type:  :helper do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   describe 'create_alert' do
@@ -36,20 +36,20 @@ describe CreateAlertsTaskHelper, type:  :helper do
       Group.find(4).update(parent_group_id: 3, hierarchy_size: 3, nsleft: 5, nsright: 6)
       Group.find(5).update(parent_group_id: 3, hierarchy_size: 1, nsleft: 7, nsright: 8)
 
-      FactoryGirl.create(:employee, id: 1, group_id: 2)
-      FactoryGirl.create(:employee, id: 2, group_id: 2)
-      FactoryGirl.create(:employee, id: 3, group_id: 3)
-      FactoryGirl.create(:employee, id: 4, group_id: 4)
-      FactoryGirl.create(:employee, id: 5, group_id: 4)
-      FactoryGirl.create(:employee, id: 6, group_id: 4)
-      FactoryGirl.create(:employee, id: 7, group_id: 5)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 1.1,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 3.3,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 6,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4)
-      FactoryGirl.create(:cds_metric_score, group_id: 1, employee_id: 7,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:employee, id: 1, group_id: 2)
+      FactoryBot.create(:employee, id: 2, group_id: 2)
+      FactoryBot.create(:employee, id: 3, group_id: 3)
+      FactoryBot.create(:employee, id: 4, group_id: 4)
+      FactoryBot.create(:employee, id: 5, group_id: 4)
+      FactoryBot.create(:employee, id: 6, group_id: 4)
+      FactoryBot.create(:employee, id: 7, group_id: 5)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 1.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 3.3,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 6,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 7,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4)
     end
 
     it 'should return highest result' do
@@ -69,21 +69,21 @@ describe CreateAlertsTaskHelper, type:  :helper do
 
   describe 'create_alerts_for_extreme_z_score_gauges' do
     before do
-      FactoryGirl.create(:cds_metric_score, group_id: 1,  z_score: 2.1,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 2,  z_score: 1.3,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 3,  z_score: 1.1,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 4,  z_score: 0.9,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 5,  z_score: 0.4,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 6,  z_score: 0.2,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 7,  z_score: 0.2,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 8,  z_score: 0.1,  algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 9,  z_score: -0.5, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 10, z_score: -0.6, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 11, z_score: -0.8, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 12, z_score: -1.1, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 13, z_score: -1.1, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 14, z_score: -1.4, algorithm_id: 103, company_metric_id: 3)
-      FactoryGirl.create(:cds_metric_score, group_id: 15, z_score: -1.4, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 1,  z_score: 2.1,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 2,  z_score: 1.3,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 3,  z_score: 1.1,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 4,  z_score: 0.9,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 5,  z_score: 0.4,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 6,  z_score: 0.2,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 7,  z_score: 0.2,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 8,  z_score: 0.1,  algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 9,  z_score: -0.5, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 10, z_score: -0.6, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 11, z_score: -0.8, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 12, z_score: -1.1, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 13, z_score: -1.1, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 14, z_score: -1.4, algorithm_id: 103, company_metric_id: 3)
+      FactoryBot.create(:cds_metric_score, group_id: 15, z_score: -1.4, algorithm_id: 103, company_metric_id: 3)
     end
 
     it 'should create one high value alert for the first group' do

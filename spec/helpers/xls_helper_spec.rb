@@ -4,7 +4,7 @@ include CompanyWithMetricsFactory
 
 describe XlsHelper, type: :helper, write_file: true do
   let(:employee) do
-    FactoryGirl.create(:group_employee,
+    FactoryBot.create(:group_employee,
                        first_name: 'First',
                        last_name: 'Last',
                        img_url: 'http://www.spectory.com/assets/spectory_landing_logo-1385b018b88b241eb8fa4c73864ffb47.png',
@@ -14,7 +14,7 @@ describe XlsHelper, type: :helper, write_file: true do
                        office_id: 1)
   end
   let(:employee2) do
-    FactoryGirl.create(:group_employee,
+    FactoryBot.create(:group_employee,
                        first_name: 'Second',
                        last_name: 'Last',
                        img_url: 'http://www.spectory.com/assets/spectory_landing_logo-1385b018b88b241eb8fa4c73864ffb47.png',
@@ -23,10 +23,10 @@ describe XlsHelper, type: :helper, write_file: true do
                        gender: 1,
                        office_id: 1)
   end
-  let(:group1) { FactoryGirl.create(:group, id: 1, name: 'group1', parent_group_id: 2) }
-  let(:parent_group) { FactoryGirl.create(:group, id: 2, name: 'div') }
-  let(:group2) { FactoryGirl.create(:group, id: 3, name: 'subgroup', parent_group_id: 1) }
-  let(:office1) { FactoryGirl.create(:office, id: 1, name: 'tlv') }
+  let(:group1) { FactoryBot.create(:group, id: 1, name: 'group1', parent_group_id: 2) }
+  let(:parent_group) { FactoryBot.create(:group, id: 2, name: 'div') }
+  let(:group2) { FactoryBot.create(:group, id: 3, name: 'subgroup', parent_group_id: 1) }
+  let(:office1) { FactoryBot.create(:office, id: 1, name: 'tlv') }
 
   before do
     @file_name = "emp_report-#{Time.now.to_f.to_s[11, 15]}.xls"
@@ -54,7 +54,7 @@ describe XlsHelper, type: :helper, write_file: true do
 
   after do
     DatabaseCleaner.clean_with(:truncation)
-    FactoryGirl.reload
+    FactoryBot.reload
   end
 
   after :all do
@@ -227,20 +227,20 @@ describe XlsHelper, type: :helper, write_file: true do
       expect(res).to eq(0)
     end
     it 'should return 120 if there 10 emails for emplyee ' do
-      FactoryGirl.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
-      FactoryGirl.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
+      FactoryBot.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
+      FactoryBot.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
       res = dollar_calculate(1, 1)
       expect(res).to eq(120)
     end
     it 'should return 72 if there 6 emails for employee2' do
-      FactoryGirl.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
-      FactoryGirl.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
+      FactoryBot.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
+      FactoryBot.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
       res = dollar_calculate(2, 1)
       expect(res).to eq(72)
     end
     it 'should return 0  if there no emails in the current snapshot for employee' do
-      FactoryGirl.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
-      FactoryGirl.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
+      FactoryBot.create(:email_snapshot_data, employee_from_id:  employee[:id], employee_to_id: employee2[:id], snapshot_id: 1, n1: 3, n2: 3)
+      FactoryBot.create(:email_snapshot_data, employee_from_id: 3, employee_to_id: employee[:id], snapshot_id: 1, n1: 2, n2: 1, n15: 1)
       res = dollar_calculate(2, 2)
       expect(res).to eq(0)
     end

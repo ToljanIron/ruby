@@ -49,30 +49,32 @@ class SessionsController < ApplicationController
     end
 
     if user
+    puts "@@@@@@@@@@@@@@@@@@@@@ 6"
       max_attempts = Company.find(user.company_id).max_login_attempts
       lock_delay   = CompanyConfigurationTable.lock_time_after_max_login_attempts
       if !user.can_login?(max_attempts, lock_delay)
+    puts "@@@@@@@@@@@@@@@@@@@@@ 7"
         render json: { msg: 'Too many login attempts, locking down.'}, status: 550
         EventLog.log_event(event_type_name: 'LOGIN', message: "User: #{user.id} exceeded max login attempts")
         return
       end
     end
 
-    puts "@@@@@@@@@@@@@@@@@@@@@ 6"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 8"
     logged = log_in user if user && user.authenticate(params[:password])
     if logged && params[:remember_me]
-    puts "@@@@@@@@@@@@@@@@@@@@@ 7"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 9"
       remember(user)
     end
-    puts "@@@@@@@@@@@@@@@@@@@@@ 8"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 10"
     unless logged
-    puts "@@@@@@@@@@@@@@@@@@@@@ 9"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 11"
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
       return
     end
     begin
-    puts "@@@@@@@@@@@@@@@@@@@@@ 10"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 12"
       EventLog.log_event(event_type_name: 'LOGIN', message: "User: #{user.id} logged in")
       render json: payload(user), status: 200
       return
@@ -81,10 +83,10 @@ class SessionsController < ApplicationController
       puts e.backtrace
       flash[:error] = 'error'
       render json: { msg: 'failed to authenticate user' }, status: 550
-    puts "@@@@@@@@@@@@@@@@@@@@@ 11"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 13"
       return
     end
-    puts "@@@@@@@@@@@@@@@@@@@@@ 12"
+    puts "@@@@@@@@@@@@@@@@@@@@@ 14"
 
   end
 

@@ -1,5 +1,5 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :algorithm do
-    name 'test'
+    name { 'test' }
   end
 end

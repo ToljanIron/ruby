@@ -8,7 +8,7 @@ include CdsUtilHelper
 class ApplicationController < ActionController::Base
   DYNAMIC_LOCALE = false
 
-  if ENV['USE_V3_LOGIN'] == 'false'
+  if false
     protect_from_forgery with: :null_session
   end
 
@@ -34,8 +34,6 @@ class ApplicationController < ActionController::Base
 
     @token = params['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
-
-    ap qp
 
     if qp
       # Added message when questionnaire is closed - Michael K. - 12.9.17

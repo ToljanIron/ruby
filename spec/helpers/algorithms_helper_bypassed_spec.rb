@@ -3,7 +3,7 @@ require 'pp'
 require 'spec_helper'
 require './spec/spec_factory'
 require './spec/factories/company_with_metrics_factory.rb'
-include FactoryGirl::Syntax::Methods
+include FactoryBot::Syntax::Methods
 
 include CompanyWithMetricsFactory
 
@@ -13,7 +13,7 @@ describe AlgorithmsHelper, type: :helper do
 
     after(:all) do
       DatabaseCleaner.clean_with(:truncation)
-      FactoryGirl.reload
+      FactoryBot.reload
     end
 
     before :all do

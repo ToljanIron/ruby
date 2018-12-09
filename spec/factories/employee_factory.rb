@@ -1,20 +1,20 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :employee do
-    first_name 'fst_name'
-    last_name 'lst_name'
+    first_name { 'fst_name' }
+    last_name { 'lst_name' }
     sequence(:email) { |n| "employee#{n}@domain.com" }
-    company_id 1
-    group_id 1
+    company_id { 1 }
+    group_id { 1 }
     sequence(:external_id) { |n| "#{n}" }
-    active true
+    active { true }
   end
 
   factory :group_employee, class: Employee do
-    first_name 'fst_name'
-    last_name 'lst_name'
+    first_name { 'fst_name' }
+    last_name { 'lst_name' }
     sequence(:email) { |n| "employee#{n}@domain.com" }
-    company_id 1
-    group_id 1
+    company_id { 1 }
+    group_id { 1 }
     sequence(:external_id) { |n| "#{n}" }
   end
 end
@@ -38,6 +38,6 @@ def create_emps(name, domain, times, p = nil)
 
   (from_index..from_index + times - 1).each do |n|
     email = "#{name}#{n}@#{domain}"
-    FactoryGirl.create(:employee, email: email, group_id: gid, snapshot_id: sid, office_id: oid, active: active)
+    FactoryBot.create(:employee, email: email, group_id: gid, snapshot_id: sid, office_id: oid, active: active)
   end
 end

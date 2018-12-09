@@ -14,7 +14,9 @@ require 'spork'
 Spork.prefork do
 
   ENV['RAILS_ENV'] ||= 'test'
+
   require File.expand_path('../../config/environment', __FILE__)
+
   require 'rspec/rails'
   Workships::Application.load_tasks
 
@@ -36,7 +38,6 @@ Spork.prefork do
     config.use_transactional_fixtures = false  # <<< important!!
     config.infer_base_class_for_anonymous_controllers = false
     config.order = 'random'
-    config.include Capybara::DSL
 
     config.before(:suite) do
       DatabaseCleaner.strategy = :transaction
@@ -50,7 +51,7 @@ Spork.prefork do
 
   Spork.each_run do
     # This code will be run each time you run your specs.
-    #Dir['./spec/factories/*_factory.rb'].each { |ff| require ff }
+    Dir['./spec/factories/*_factory.rb'].each { |ff| require ff }
   end
 end
 
@@ -75,10 +76,4 @@ def http_post_with_jwt_token(action, p = {})
   request.headers.merge!({'Authorization': "Bearer #{ENV['JWT_TOKEN_FOR_TESTING']}"})
   ret = post(action, params: p)
   return ret
-end
-
-def pp(q)
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
-  ap q
-  puts "$$$$$$$$$$$$$$$$$$$$$$$$"
 end
