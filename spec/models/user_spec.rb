@@ -81,18 +81,6 @@ describe User, type: :model do
     end
   end
 
-  describe 'remember token' do
-    before do
-      @user[:email] += 'a'
-      @user.save
-    end
-
-    describe '#remember_token' do
-      subject { super().remember_token }
-      it { is_expected.not_to be_blank }
-    end
-  end
-
   describe 'can_login?' do
     user = nil
     max_attempts = 3
