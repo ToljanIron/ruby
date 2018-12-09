@@ -10,7 +10,7 @@ default: &default
 
 development:
   <<: *default
-  database: workships_interact
+  database: workships_ext
   username: workships
   password: workships
   port: 5432
@@ -18,6 +18,9 @@ development:
 onpremise:
   <<: *default
   database: workships_app
+  username: workships
+  password: ??
+  port: 5433
 
 protractor:
   <<: *default

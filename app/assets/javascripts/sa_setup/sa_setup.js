@@ -2,6 +2,33 @@
 var sas = {};
 
 sas.updatePushState = function() {
+  var PARTIALLEN = 0.33;
+
+
+  // Assert whthere the collector is still working
+  var inCollect = function(state) {
+    return state === 'init' ||
+           state === 'transfer_log_files' ||
+           state === 'process_log_files';
+  };
+
+  // Assert whether system is creating snapshots
+  var inCreateSnapshot = function(state) {
+    return state === 'collector_done' ||
+           state === 'count_snapshots' ||
+           state === 'create_snapshots';
+  };
+
+  // Assert whether system is in precalculate stage
+  var inPrecalculate = function(state) {
+    return state === 'preprocess_snapshots' ||
+           state === 'done';
+  };
+
+  // Assert whether is error state
+  var inError = function(state) {
+    return state === 'error';
+  };
 
   $.get("/sa_setup/get_push_state", {},
     function(data, status) {
@@ -9,42 +36,38 @@ sas.updatePushState = function() {
         console.error("Error in get_push_state: ", status);
       }
 
-      // console.log( data );
+      //////////////// Calculate the fraction /////////////////////
+      var fraction = 0;
+      var local_fraction = 0;
+      var state = data.state;
 
-      // Number of files
-      document.getElementById('sas-files-num').innerHTML = data.num_files;
-      var files_fraction = data.num_files > 0 ? data.num_files_processed / data.num_files : 0;
-      var files_percent = 100 * files_fraction;
-      var border_width = Math.min( 16, 20 * (1 - files_fraction) );
-      var files_bar = document.getElementById('sas-files-bar');
-      files_bar.innerHTML = files_percent + '%';
+      if ( inCollect(state) ) {
+        local_fraction = data.num_files > 0 ? data.num_files_processed / data.num_files : 0;
+        fraction = PARTIALLEN * local_fraction;
+
+      } else if ( inCreateSnapshot(state) ) {
+        local_fraction = data.num_snapshots > 0 ? data.num_snapshots_created / data.num_snapshots : 0;
+        fraction = PARTIALLEN * (1 + local_fraction);
+
+      } else if ( inPrecalculate(state) ) {
+        local_fraction = data.num_snapshots > 0 ? data.num_snapshots_processed / data.num_snapshots_created : 0;
+        fraction =  PARTIALLEN * (2 + local_fraction);
+
+      } else if ( inError(state) ) {
+        throw new Error('Push processes ended with error: ' + data.error_message);
+
+      } else {
+        throw new Error('Illegal state: ' + state + ' in push_proc');
+      }
+
+      //////////////// Update the UI //////////////////////////////
+      var files_bar = document.getElementById('sas-progress-bar');
+      var percent = 100 * fraction;
+      percent = percent.toFixed(1);
+      var border_width = Math.min( 17, 20 * (1 - fraction) );
+      files_bar.innerHTML = percent + '%';
       var right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
       files_bar.setAttribute('style', right_border);
-
-      // Snapshots created
-      document.getElementById('sas-snp-created-num').innerHTML = data.num_snapshots;
-      var snpcre_fraction = 0;
-      if (data.num_snapshots_processed === 0) {
-        snpcre_fraction = data.num_snapshots > 0 ? data.num_snapshots_created / data.num_snapshots : 0;
-      } else {
-        snpcre_fraction = 1;
-      }
-      var snpcre_percent = Math.round(100 * snpcre_fraction);
-      border_width = Math.min( 16, 20 * (1 - snpcre_fraction) );
-      var snpcre_bar = document.getElementById('sas-snp-created-bar');
-      snpcre_bar.innerHTML = snpcre_percent + '%';
-      right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
-      snpcre_bar.setAttribute('style', right_border);
-
-      // Snapshots processed
-      document.getElementById('sas-snp-proced-num').innerHTML = data.num_snapshots_processed;
-      var snpprc_fraction = data.num_snapshots > 0 ? data.num_snapshots_processed / data.num_snapshots_created : 0;
-      var snpprc_percent = Math.round(100 * snpprc_fraction);
-      border_width = Math.min( 16, 20 * (1 - snpprc_fraction) );
-      var snpprc_bar = document.getElementById('sas-snp-proced-bar');
-      snpprc_bar.innerHTML = snpprc_percent + '%';
-      right_border = 'border-right: ' + border_width + 'rem solid #9fbb9f';
-      snpprc_bar.setAttribute('style', right_border);
 
       if (data.state !== 'done') {
         setTimeout( sas.updatePushState, 10000 );

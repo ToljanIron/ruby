@@ -39,6 +39,12 @@ class Company < ActiveRecord::Base
     :ready
   ]
 
+  def reset_to_standby_or_push
+    update(setup_state: 6)
+    PushProc.last.delete
+    PushProc.create!(company_id: id)
+  end
+
   def self.required_chars_options
     return ['AB', 'ab', '123', '#$%^&']
   end
