@@ -19,9 +19,6 @@ development:
 onpremise:
   <<: *default
   database: workships_app
-  username: workships
-  password: ??
-  port: 5433
 
 protractor:
   <<: *default
