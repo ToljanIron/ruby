@@ -2,6 +2,7 @@
 include Mobile::QuestionnaireHelper
 include XlsHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
+include ActionView::Helpers::SanitizeHelper
 
 class Questionnaire < ActiveRecord::Base
   include PrecalculateMetricScoresForCustomDataSystemHelper
@@ -326,6 +327,15 @@ class Questionnaire < ActiveRecord::Base
         qp = QuestionnaireParticipant.find_by(employee_id: -1, questionnaire_id: r['id'])
         quest['test_user_url'] = qp.get_link if !qp.nil?
         quest['stats'] = []
+
+        quest['name']            = sanitize(quest['name'])
+        quest['sms_text']        = sanitize(quest['sms_text'])
+        quest['email_text']      = sanitize(quest['email_text'])
+        quest['email_subject']   = sanitize(quest['email_subject'])
+        quest['test_user_name']  = sanitize(quest['test_user_name'])
+        quest['test_user_phone'] = sanitize(quest['test_user_phone'])
+        quest['test_user_email'] = sanitize(quest['test_user_email'])
+
         ret << quest
       end
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)

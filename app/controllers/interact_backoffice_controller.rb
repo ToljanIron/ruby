@@ -199,7 +199,7 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       quest = params[:questionnaire]
       qid           = sanitize_id(quest[:id])
-      testUserName  = sanitize_alphanumeric(quest[:test_user_name])
+      testUserName  = sanitize_alphanumeric_with_space(quest[:test_user_name])
       testUserEmail = sanitize_alphanumeric(quest[:test_user_email])
       testUserPhone = sanitize_alphanumeric(quest[:test_user_phone])
 
@@ -403,18 +403,18 @@ class InteractBackofficeController < ApplicationController
         ret << {
           pid: qp['pid'],
           eid: qp['eid'],
-          first_name: qp['first_name'],
-          last_name: qp['last_name'],
-          external_id: qp['external_id'],
+          first_name: sanitize( qp['first_name'] ),
+          last_name: sanitize( qp['last_name'] ),
+          external_id: sanitize( qp['external_id'] ),
           img_url: qp['img_url'],
-          group_name: qp['group_name'],
+          group_name: sanitize( qp['group_name'] ),
           status: status,
-          role: qp['role'],
+          role: sanitize( qp['role'] ),
           rank: qp['rank'],
-          office: qp['office'],
+          office: sanitize( qp['office'] ),
           gender: qp['gender'],
-          job_title: qp['job_title'],
-          phone_number: qp['phone_number'],
+          job_title: sanitize( qp['job_title'] ),
+          phone_number: sanitize( qp['phone_number'] ),
           email: qp['email'],
           active: active
         }

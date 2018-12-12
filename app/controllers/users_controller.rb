@@ -1,4 +1,6 @@
 require 'uri'
+include ActionView::Helpers::SanitizeHelper
+
 class UsersController < ApplicationController
   def user_details
     authorize :setting, :index?
@@ -6,9 +8,9 @@ class UsersController < ApplicationController
     company = Company.find(current_user.company_id)
 
     ret = {
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
+        email: sanitize(user.email),
+        first_name: sanitize(user.first_name),
+        last_name: sanitize(user.last_name),
         user_type: user.role,
         reports_encryption_key: user.document_encryption_password,
         session_timeout: company.session_timeout,

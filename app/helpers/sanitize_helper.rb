@@ -26,8 +26,8 @@ module SanitizeHelper
 
   def sanitize_alphanumeric_with_slash(s)
     return nil if s.nil?
-    raise "Parameter is not alphanumeric with slash" unless s.sanitize_is_alphanumeric_with_slash
-    return s
+    return s if !s.match(/[!@\#$%\^&\*)(\+=}{\?\s]+/)
+    raise "Parameter is not alphanumeric with slash"
   end
 
   def sanitize_alphanumeric_with_space(s)
@@ -38,13 +38,14 @@ module SanitizeHelper
 
   def sanitize_alphanumeric(s)
     return nil if s.nil?
-    raise "Parameter is not alphanumeric" unless s.is_alphanumeric?
-    return s
+    return s if !s.match(/[!\#\^&\*)(\+=}{\\\?\s]+/)
+    raise "Parameter is not alphanumeric"
   end
 
   def sanitize_id(id)
     return nil if id.nil?
     return nil if id == ''
+    return nil if id == 'null'
     return id if id.is_integer?
     raise "Parameter is not an id"
   end
