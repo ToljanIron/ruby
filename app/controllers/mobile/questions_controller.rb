@@ -3,26 +3,9 @@ include Mobile::Utils
 
 class Mobile::QuestionsController < Mobile::MobileController
 
-  def create
-    attrs = Utils.convert_strings_to_keys params[:question]
-    create_update_question attrs
-    redirect_to select_company_path(tab: 2, id: params[:question][:company_id])
-  end
-
-  def update
-    attrs =  Utils.convert_strings_to_keys params[:question]
-    update_question_by_id attrs
-    redirect_to select_company_path(tab: 2, id: params[:question][:company_id])
-  end
-
-  def remove
-    diactivate_question_by_id(params[:id].to_i)
-    redirect_to select_company_path(tab: 2, id: params[:company_id])
-  end
-
   def autosave
     json = params[:data]
-    token = json['token']
+    token = sanitize_alphanumeric(json['token'])
     qp = Mobile::Utils.authenticate_questionnaire_participant(token)
     unless qp
       render(json: { msg: 'Failed to get Question for Employee' }, status: 500)
@@ -33,7 +16,7 @@ class Mobile::QuestionsController < Mobile::MobileController
   end
 
   def next
-    json = params[:data]
+    json = sanitize_alphanumeric(params[:data])
     token = json['token']
     qp = Mobile::Utils.authenticate_questionnaire_participant(token)
     unless qp
@@ -49,7 +32,6 @@ class Mobile::QuestionsController < Mobile::MobileController
     end
     response = Mobile::QuestionnaireQuestionsHelper::build_next_question_response(qp)
     qp_status = QuestionnaireParticipant.update_questionnaire_participant_status(response[:status], response[:current_question_position], response[:total_questions])
-    puts "VVVVVV Status: >>>#{qp_status}<<<, stat: #{response[:status]}, curr quest: #{response[:current_question_position]}, tot quest: #{response[:total_questions]}"
 
     ## Once the test questionnaire has completed the first run the
     ## state is changed to ready, and from now on we can run the questionnaire.

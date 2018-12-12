@@ -1,8 +1,6 @@
 class ApiController < ActionController::Base
   include SessionsHelper
 
-  before_action :authenticate_user, except: [:request_google_access, :accept_google_access]
-
   private
 
   def authenticate_user

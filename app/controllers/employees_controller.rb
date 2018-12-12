@@ -11,7 +11,7 @@ class EmployeesController < ApplicationController
   def list_employees
     authorize :employee, :index?
     cid = current_user.company_id
-    sid = params[:sid].to_i
+    sid = sanitize_id(params[:sid]).to_i
     sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
     cache_key = "employees-company_id-#{cid}-#{sid}"
     res = cache_read(cache_key)
@@ -49,20 +49,17 @@ class EmployeesController < ApplicationController
   def list_managers
     authorize :employee_management_relation, :index?
     cid = current_user.company_id
-    sid = params[:sid].to_i
+    sid = sanitize_id(params[:sid]).to_i
     sid ||= Snapshot.last_snapshot_of_company(cid)
     cache_key = "list_managers-#{cid}-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       res = []
 
-      # managers = EmployeeManagementRelation.where(
-      #              employee_id: Employee.by_company(cid, sid).ids,
-      #              relation_type: DIRECT)
       managers = EmployeeManagementRelation.where(
                    employee_id: policy_scope(Employee).by_company(cid, sid).ids,
                    relation_type: DIRECT)
-      
+
       managers.each do |m|
         res.push m.pack_to_json
       end

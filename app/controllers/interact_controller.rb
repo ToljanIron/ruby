@@ -12,11 +12,11 @@ class InteractController < ApplicationController
   NO_PIN   ||= -1
 
   def get_question_data
-    authorize :measure, :index?
+    authorize :interact, :authorized?
     permitted = params.permit(:qqid, :gid)
 
-    qqid = permitted[:qqid].try(:to_i)
-    gid = permitted[:gid].try(:to_i)
+    qqid = sanitize_id(permitted[:qqid]).try(:to_i)
+    gid = sanitize_id(permitted[:gid]).try(:to_i)
     cid = current_user.company_id
 
     qq = nil
@@ -55,11 +55,11 @@ class InteractController < ApplicationController
   # Get everything needed to draw an explore map
   ###############################################
   def get_map
-    authorize :measure, :index?
+    authorize :interact, :authorized?
     permitted = params.permit(:qqid, :gids)
 
-    qqid = permitted[:qqid].try(:to_i)
-    gids = permitted[:gids]
+    qqid = sanitize_id(permitted[:qqid]).try(:to_i)
+    gids = sanitize_id(permitted[:gids])
     cid  = current_user.company_id
 
     qq = nil
@@ -78,18 +78,12 @@ class InteractController < ApplicationController
     quest = qq.questionnaire
     nid = qq.network_id
     sid = quest.snapshot_id
-    puts "************************************ 1"
-    puts gids
     if (gids.nil? || gids == [] || gids == '')
       gids = Group
                .by_snapshot(sid)
                .where(questionnaire_id: quest.id)
                .pluck(:id).join(',')
     end
-
-    puts "************************************ 2"
-    puts gids
-    puts "************************************ 2"
 
     cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 

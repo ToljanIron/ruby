@@ -71,107 +71,6 @@ class UtilsController < ApplicationController
     render json: res, status: 200
   end
 
-  def backend
-    authorize :application, :passthrough
-    select_company_by_id(@current_user.company_id)
-  end
-
-  def upload_csv_v2
-    CdsUtilHelper.cache_delete_all
-    authorize :application, :passthrough
-    errors = []
-    cid = current_user.company_id
-    employees =             params[:employees]
-    company_structure =     params[:company_structure_new]
-    managment_relations =   params[:managment_relations]
-    date_format =           params[:date_format]
-    images =                params[:images]
-
-    push_errors(errors, cid, company_structure,  nil, ImportDataHelper::GROUPS_CSV) if company_structure
-    push_errors(errors, cid, employees,          nil, ImportDataHelper::EMPLOYEES_CSV, false, date_format) if employees
-    push_errors(errors, cid, managment_relations,nil, ImportDataHelper::MANAGMENT_RELATION_CSV) if managment_relations
-
-    upload_images(cid, images) if images
-
-    if errors.count > 0
-      render json: errors.join("\n")
-    else
-      redirect_to backend_path
-    end
-  end
-
-  def upload_excel
-    CdsUtilHelper.cache_delete_all
-    authorize :application, :passthrough
-    errors = []
-    cid = current_user.company_id
-    errors = load_excel_sheet(cid, params[:spreadsheet])
-    if errors.count > 0
-      render json: errors.join("\n")
-    else
-      redirect_to backend_path
-    end
-  end
-
-  def precalculate
-    authorize :application, :passthrough
-    `rake db:precalculate_metric_scores\[6,-1,-1,-1,-1,true\]`
-    Rails.cache.clear
-    redirect_to backend_path
-  end
-
-  def init_report_xls
-    authorize :util, :index?
-    flash[:employee_data] = params[:employee_data]
-    render json: { status: 'Report init done...' }
-  end
-
-  def export_xls
-    authorize :util, :index?
-    filename = params[:filename]
-    send_file(Rails.root.join('tmp', "#{filename}"), encoding: 'utf8', type: 'application/vnd.ms-excel', disposition: 'attachment')
-  end
-
-  def create_and_download_report_xls
-    authorize :util, :index?
-    file_name = "employee_report_user#{current_user[:id]}_#{Time.now.to_f.to_s[11, 15]}.xls"
-    workbook = create_file(file_name)
-
-    center = workbook.add_format
-    red = workbook.add_format
-    red.set_color('red')
-    green = workbook.add_format
-    green.set_color('green')
-
-    formats = { center: center, red: red, green: green }
-    formats.values.each { |format| format.set_align('center') }
-
-    p = flash[:employee_data]
-    group_id = params[:group_id]
-    group_id = -1 if group_id != -1 && Group.find(group_id).parent_group_id.nil?
-    pin_id = params[:pin_id].to_i
-    p.each do |flag|
-      title = flag[:title]
-      employee_ids = flag[:employee_ids]
-      worksheet = workbook.add_worksheet(title)
-      write_report_to_sheet(worksheet, employee_ids, group_id, pin_id, formats)
-    end
-    workbook.close
-    send_file(Rails.root.join('tmp', "#{file_name}"), encoding: 'utf8', type: 'application/vnd.ms-excel', disposition: 'attachment') unless Rails.env.test?
-    render json: { status: 'File generated..' } if Rails.env.test?
-  end
-
-  def download_interact_report
-    authorize :util, :index?
-    cid = current_user.company_id
-    report = XlsHelper.export_employee_attributes(cid)
-    send_data(report,
-              filename: 'stepahed-report.csv',
-              disposition: 'attachment',
-              encoding: 'utf8',
-              type: 'text/csv')
-  end
-
   def download_generic_report
     authorize :util, :index?
     puts 'Uploading report.txt'
@@ -181,21 +80,6 @@ class UtilsController < ApplicationController
               disposition: 'attachment',
               encoding: 'utf8',
               type: 'text/csv')
-  end
-
-  def fetch_group_individual_state
-    authorize :util, :index?
-    state = UserConfiguration.where(user_id: current_user.id, key: 'bottom_up_view').first.try(:value) || false
-    render json: { state: state }
-  end
-
-  def save_group_individual_state
-    authorize :util, :index?
-    params[:state]
-    new_state = UserConfiguration.find_or_create_by(user_id: current_user.id)
-    success = new_state.update_attributes(key: 'bottom_up_view', value:  params[:state])
-    state = new_state.value
-    render json: { success: success, state: state }
   end
 
   private

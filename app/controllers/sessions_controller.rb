@@ -14,6 +14,10 @@ class SessionsController < ApplicationController
 
   def create
     authorize :application, :passthrough
+    sanitize_alphanumeric(params[:session][:email])
+    sanitize_alphanumeric(params[:session][:password])
+    sanitize_alphanumeric(params[:session][:remember_me])
+
     user = User.find_by(email: params[:session][:email].downcase)
     if user && user.authenticate(params[:session][:password])
       log_in user
@@ -35,6 +39,10 @@ class SessionsController < ApplicationController
   def api_signin
     puts "@@@@@@@@@@@@@@@@@@@@@ 1"
     authorize :application, :passthrough
+    sanitize_alphanumeric(params[:email])
+    sanitize_alphanumeric(params[:password])
+    sanitize_alphanumeric(params[:remember_me])
+
     puts "@@@@@@@@@@@@@@@@@@@@@ 2"
     user = User.find_by(email: params[:email].downcase)
     puts "@@@@@@@@@@@@@@@@@@@@@ 3"
@@ -120,35 +128,10 @@ class SessionsController < ApplicationController
     }
   end
 
-  def forgot_password
-    authorize :application, :passthrough
-    render 'forgot_password', layout: 'signin_layout'
-  end
-
-  def set_password
-    authorize :application, :passthrough
-    if !logged_in?
-      redirect_to signin_path
-      return
-    end
-    render 'set_password', layout: 'signin_layout'
-  end
-
-  def reset_password
-    authorize :application, :passthrough
-    flash[:token] = nil
-    verify_token = User.verify_password_token(params[:token])
-    unless verify_token
-      flash[:token] = 'Password reset link has expired'
-      redirect_to '/'
-      return
-    end
-    flash[:password] = nil
-    render 'reset_password', layout: 'signin_layout'
-  end
-
   def check_password
     authorize :application, :passthrough
+    sanitize_alphanumeric(params[:session][:email])
+
     user = User.find_by(email: params[:session][:email].downcase)
     if user
       redirect_to email_send_path
@@ -165,6 +148,8 @@ class SessionsController < ApplicationController
 
   def company_redirect
     authorize :application, :admin?
+    sanitize_id(params[:session][:company_id])
+
     current_user.update_attribute(:company_id, params[:session][:company_id].to_i)
     redirect_to root_path
   end

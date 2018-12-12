@@ -10,9 +10,9 @@ class GroupsController < ApplicationController
     authorize :group, :index?
 
     cid = current_user.company_id
-    sid = params[:sid].to_i
+    sid = sanitize_id(params[:sid]).to_i
     sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
-    qid = params[:qid]
+    qid = sanitize_id(params[:qid])
 
     cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)

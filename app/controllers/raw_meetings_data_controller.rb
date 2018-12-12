@@ -4,7 +4,7 @@ class RawMeetingsDataController < ApiController
 
   def new
   end
-  
+
   def import_meetings
     begin
       process_meetings_request JSON.parse(request.body.read)

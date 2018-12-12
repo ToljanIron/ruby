@@ -1,8 +1,8 @@
 class CompaniesController < ApplicationController
   def create
     authorize :company, :admin?
-    name = params[:data][:name]
-    domains = params[:data][:domains]
+    name = sanitize_alphanumeric( params[:data][:name] )
+    domains = sanitize_alphanumeric( params[:data][:domains] )
 
     ActiveRecord::Base.transaction do
       company = Company.new(name: name)
@@ -18,14 +18,6 @@ class CompaniesController < ApplicationController
         raise ActiveRecord::Rollback
       end
     end
-  end
-
-  def diactivate
-    authorize :company, :admin?
-    id = params[:id].to_i if params[:id]
-    comp = Company.find(id) if id
-    comp.update_attribute(:active, false) if comp
-    redirect_to admin_page_path
   end
 
   def update

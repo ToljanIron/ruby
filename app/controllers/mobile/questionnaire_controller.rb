@@ -9,9 +9,9 @@ module Mobile
     end
 
     def send_questionnaire
-      questionnaire_id = params[:questionnaire_id].to_i
-      send_only_to_unstarted = params[:send_only_to_unstarted]
-      sender_type = params[:sender_type]
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
+      send_only_to_unstarted = sanitize_boolean(params[:send_only_to_unstarted])
+      sender_type = sanitize_alphanumeric(params[:sender_type])
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
       q.send_q(send_only_to_unstarted, sender_type)
@@ -19,17 +19,16 @@ module Mobile
     end
 
     def reset_questionnaire_for_emp
-      questionnaire_id = params[:questionnaire_id].to_i
-      eid = params[:eid].to_i
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
+      eid = sanitize_id(params[:eid]).to_i
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       q.reset_questionnaire_for_emp(eid)
       render json: true
     end
 
     def send_questionnaire_for_emp
-      questionnaire_id = params[:questionnaire_id].to_i
-      eid = params[:eid].to_i
-      sender_type = 'email'
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
+      eid = sanitize_id(params[:eid]).to_i
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
       q.send_questionnaire_to_emp(eid)
@@ -37,9 +36,7 @@ module Mobile
     end
 
     def send_questionnaire_to_all_ajax
-      questionnaire_id = params[:questionnaire_id].to_i
-      # send_only_to_unstarted = params[:send_only_to_unstarted]
-      # sender_type = params[:sender_type]
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
       q.delay.resend_questionnaire_to_incomplete
@@ -47,7 +44,7 @@ module Mobile
     end
 
     def generate_questionnaire_report
-      questionnaire_id = params[:questionnaire_id].to_i
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
       q = Questionnaire.where(id: questionnaire_id, company_id: @current_user.company_id).first
       raise "Error in send_questionnaire questionnaire_id #{questionnaire_id} not found in company_id #{@current_user.company_id}" unless q
       report_path = q.generate_report
@@ -55,42 +52,16 @@ module Mobile
       render json: {report_path: report_path, status: true}
     end
 
-    def create_new_questionnaire
-      cid = @current_user.company_id
-      name = params['mobile']['name']
-      language_id = params['mobile']['language_id'].to_i
-      sms_text = params['mobile']['sms_text']
-      if name.empty?
-        flash[:error] = "Can't Create - Name is Empty!"
-      else
-        Mobile::QuestionnaireHelper.create_questionnaire(cid, name, language_id, sms_text)
-      end
-      redirect_to '/v2/backend'
-    end
-
-    def update_questionnaire
-      cid = @current_user.company_id
-      name = params['mobile']['name']
-      language_id = params['mobile']['language_id'].to_i
-      sms_text = params['mobile']['sms_text']
-      q_id = params['mobile']['questionnaire_id'].to_i
-      if name.empty?
-        flash[:error] = "Can't Update name is empty"
-      else
-        Mobile::QuestionnaireHelper.update_questionnaire(cid, q_id, name, language_id, sms_text)
-      end
-      redirect_to '/v2/backend'
-    end
-
     def active_employees
-      quest_id = params['questionnaire_id'].to_i
-      emps_arr = JSON.parse(params['emps_arr'])
+      quest_id = sanitize_id(params['questionnaire_id']).to_i
+      empsarr = sanitize_ids(params['emps_arr'])
+      emps_arr = JSON.parse(empsarr)
       Mobile::QuestionnaireHelper.set_active_employees(quest_id, emps_arr)
       redirect_to select_company_path(tab: 1, questionnaire_id: quest_id)
     end
 
     def download_csv
-      questionnaire_id = params[:questionnaire_id].to_i
+      questionnaire_id = sanitize_id(params[:questionnaire_id]).to_i
       q = Questionnaire.find(questionnaire_id)
       questionnaire_questions = q.questionnaire_questions
       if questionnaire_questions
@@ -109,24 +80,10 @@ module Mobile
     end
 
     def capture_quesitonnaire_in_snapshot
-      # unless @current_user.admin?
-      # redirect_to root_path
-      # return
-      # end
-      # quest_id = params[:questionnaire_id]
-
-      # cid = current_user.company_id
-      # state = Questionnaire.where(company_id: cid).last.state
-
       questionnaire = Questionnaire.last
       Rails.cache.clear
       questionnaire.delay.freeze_questionnaire
-      
-      # if sid.nil?
-      # render json: { error: 'Snapshot not created' }, status: 500
-      # else
       render json: { last_submitted: Questionnaire.find(questionnaire.id).last_submitted }
-      # end
     end
 
     def get_questionnaires_for_settings_tab
@@ -148,7 +105,7 @@ module Mobile
       relevant_questionnaires = Questionnaire.where(company_id: cid)
       res = []
       questions = QuestionnaireQuestion.where(questionnaire_id: relevant_questionnaires.pluck(:id))
-      
+
       relevant_questionnaires.each do |q|
         other = Employee.where(email: 'other@mail.com').first
         other = 0 unless other

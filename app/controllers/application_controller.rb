@@ -4,6 +4,8 @@ include Mobile::Utils
 include SessionsHelper
 include Pundit
 include CdsUtilHelper
+include SanitizeHelper
+include Asspects
 
 class ApplicationController < ActionController::Base
   DYNAMIC_LOCALE = false
@@ -22,17 +24,10 @@ class ApplicationController < ActionController::Base
   # Verify all actions pass authorization.
   after_action :verify_authorized
 
-  def show_v2_app
-    authorize :application, :passthrough
-    render 'v2_app', layout: 'v2_application'
-  end
-
   def show_mobile
     authorize :application, :passthrough
 
-    puts "@@@@@@@@@@@@@@@@@@ 1"
-
-    @token = params['token']
+    @token = sanitize_alphanumeric( params['token'] )
     qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
 
     if qp
@@ -100,7 +95,7 @@ class ApplicationController < ActionController::Base
     return current_user.company_id unless current_user.nil?
     data = params[:data]
     return nil if data.nil?
-    token = JSON.parse(data)['token']
+    token = sanitize_alphanumeric( JSON.parse(data)['token'] )
     qp = Mobile::Utils.authenticate_questionnaire_participant(token)
     return nil if qp.nil?
     emp = qp.employee
