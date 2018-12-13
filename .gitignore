@@ -47,6 +47,7 @@ questionnaire_reports
 
 public/assets-backup
 vendor/bundle
+vendor/cache
 log
 archives
 *~

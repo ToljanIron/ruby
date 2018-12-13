@@ -92,7 +92,6 @@
       }
       .mobile-header-title {
         @extend .header-text;
-        @include ellipsis;
         border-left: 1px solid #41698d;
         padding-left: 20px;
         width: 750px;

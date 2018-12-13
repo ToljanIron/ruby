@@ -16,8 +16,8 @@ class Mobile::QuestionsController < Mobile::MobileController
   end
 
   def next
-    json = sanitize_alphanumeric(params[:data])
-    token = json['token']
+    json = params[:data]
+    token = sanitize_alphanumeric(json['token'])
     qp = Mobile::Utils.authenticate_questionnaire_participant(token)
     unless qp
       render(json: { msg: 'Failed to get Question for Employee' }, status: 500)

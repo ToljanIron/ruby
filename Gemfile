@@ -37,8 +37,8 @@ group :production, :onpremise, :development do
   gem 'roo-xls', '~>1.1.0'
   gem 'dalli'
   gem 'therubyracer'
-  gem 'sass-rails', '~> 5.0'
-  gem 'compass-rails', '3.0.2'
+  gem 'sassc-rails'
+  #gem 'compass-rails', '3.0.2'
   gem 'uglifier'
   gem 'ejs'
   gem 'yui-compressor'
@@ -60,7 +60,6 @@ group :development, :test do
   gem 'guard-shell'
   gem 'simplecov', require: false, group: :test
   gem 'guard-rubocop'
-  gem 'scss_lint'
   gem 'transpec'
   gem 'database_cleaner'
   gem 'seed_dump'

@@ -48,7 +48,7 @@ GEM
       parser (~> 2.2)
     awesome_print (1.8.0)
     aws-eventstream (1.0.1)
-    aws-partitions (1.122.0)
+    aws-partitions (1.123.0)
     aws-sdk (3.0.1)
       aws-sdk-resources (~> 3)
     aws-sdk-acm (1.14.0)
@@ -168,7 +168,7 @@ GEM
     aws-sdk-configservice (1.21.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-connect (1.9.0)
+    aws-sdk-connect (1.10.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-core (3.44.0)
@@ -218,13 +218,13 @@ GEM
     aws-sdk-ecr (1.9.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-ecs (1.26.0)
+    aws-sdk-ecs (1.27.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-efs (1.7.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-eks (1.8.0)
+    aws-sdk-eks (1.9.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-elasticache (1.10.0)
@@ -266,7 +266,7 @@ GEM
     aws-sdk-globalaccelerator (1.0.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-glue (1.21.0)
+    aws-sdk-glue (1.22.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-greengrass (1.12.0)
@@ -374,7 +374,7 @@ GEM
     aws-sdk-mediapackage (1.10.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-mediastore (1.7.0)
+    aws-sdk-mediastore (1.8.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-mediastoredata (1.8.0)
@@ -619,7 +619,7 @@ GEM
     aws-sdk-robomaker (1.0.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-route53 (1.16.0)
+    aws-sdk-route53 (1.17.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-route53domains (1.8.0)
@@ -635,7 +635,7 @@ GEM
     aws-sdk-s3control (1.1.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
-    aws-sdk-sagemaker (1.25.0)
+    aws-sdk-sagemaker (1.26.0)
       aws-sdk-core (~> 3, >= 3.39.0)
       aws-sigv4 (~> 1.0)
     aws-sdk-sagemakerruntime (1.7.0)
@@ -734,28 +734,11 @@ GEM
     callsite (0.0.11)
     childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
-    chunky_png (1.3.11)
     coderay (1.1.2)
     colorize (0.8.1)
-    compass (1.0.3)
-      chunky_png (~> 1.2)
-      compass-core (~> 1.0.2)
-      compass-import-once (~> 1.0.5)
-      rb-fsevent (>= 0.9.3)
-      rb-inotify (>= 0.9)
-      sass (>= 3.3.13, < 3.5)
-    compass-core (1.0.3)
-      multi_json (~> 1.0)
-      sass (>= 3.3.0, < 3.5)
-    compass-import-once (1.0.5)
-      sass (>= 3.2, < 3.5)
-    compass-rails (3.0.2)
-      compass (~> 1.0.0)
-      sass-rails (< 5.1)
-      sprockets (< 4.0)
     concurrent-ruby (1.1.3)
     crass (1.0.4)
-    daemons (1.2.6)
+    daemons (1.3.0)
     dalli (2.7.9)
     database_cleaner (1.7.0)
     delayed_job (4.1.5)
@@ -809,7 +792,7 @@ GEM
     heroku-deflater (0.6.3)
       rack (>= 1.4.5)
     hirb (0.7.3)
-    i18n (1.1.1)
+    i18n (1.2.0)
       concurrent-ruby (~> 1.0)
     jaro_winkler (1.5.1)
     jasmine-core (2.99.2)
@@ -850,7 +833,6 @@ GEM
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
-    multi_json (1.13.1)
     multipart-post (2.0.0)
     nenv (0.3.0)
     net-sftp (2.1.2)
@@ -965,16 +947,15 @@ GEM
     ruby-progressbar (1.10.0)
     ruby_dep (1.5.0)
     rubyzip (1.2.2)
-    sass (3.4.25)
-    sass-rails (5.0.7)
-      railties (>= 4.0.0, < 6)
-      sass (~> 3.1)
-      sprockets (>= 2.8, < 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
-      tilt (>= 1.1, < 3)
-    scss_lint (0.55.0)
-      rake (>= 0.9, < 13)
-      sass (~> 3.4.20)
+    sassc (2.0.0)
+      ffi (~> 1.9.6)
+      rake
+    sassc-rails (2.0.0)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     seed_dump (3.3.1)
       activerecord (>= 4)
       activesupport (>= 4)
@@ -1040,7 +1021,6 @@ DEPENDENCIES
   bcrypt
   byebug
   colorize
-  compass-rails (= 3.0.2)
   daemons
   dalli
   database_cleaner
@@ -1076,8 +1056,7 @@ DEPENDENCIES
   roo
   roo-xls (~> 1.1.0)
   rspec-rails (~> 3.8)
-  sass-rails (~> 5.0)
-  scss_lint
+  sassc-rails
   seed_dump
   simplecov
   spork
@@ -1097,4 +1076,4 @@ RUBY VERSION
    ruby 2.4.4p296
 
 BUNDLED WITH
-   1.16.3
+   1.16.6
