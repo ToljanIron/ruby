@@ -38,7 +38,6 @@ group :production, :onpremise, :development do
   gem 'dalli'
   gem 'therubyracer'
   gem 'sassc-rails'
-  #gem 'compass-rails', '3.0.2'
   gem 'uglifier'
   gem 'ejs'
   gem 'yui-compressor'
@@ -52,26 +51,16 @@ group :production, :onpremise, :development do
 end
 
 group :development, :test do
-  gem 'rspec-rails', '~> 3.8'
-  gem 'guard-rspec'
   gem 'spork'
-  gem 'guard-spork'
-  gem 'jasmine-rails'
-  gem 'guard-shell'
-  gem 'simplecov', require: false, group: :test
-  gem 'guard-rubocop'
+  gem 'rspec-rails', '~> 3.8'
   gem 'transpec'
-  gem 'database_cleaner'
   gem 'seed_dump'
 end
 
 group :test do
-  #gem 'faker'
-  #gem 'ruby-prof'
-  #gem 'capybara'
-  #gem 'libnotify'
   gem 'factory_bot', '~> 4.11', '>= 4.11.1'
-  #gem 'rubocop-rspec'
+  gem 'database_cleaner'
+  gem 'jasmine-rails'
 end
 
 group :production do

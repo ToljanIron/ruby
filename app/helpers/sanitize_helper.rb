@@ -1,7 +1,7 @@
 module SanitizeHelper
 
   def sanitize_gids(gids)
-    return sanitize_ids(ids)
+    return sanitize_ids(gids)
   end
 
   #################################################
