@@ -1,6 +1,7 @@
 require 'csv'
 require 'zip'
 require 'json'
+require 'twilio-ruby'
 
 namespace :db do
   desc 'generic_task'
@@ -8,30 +9,23 @@ namespace :db do
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
-    CSV.foreach("./lycored-managers.csv") do |l|
+    # Get your Account SID and Auth Token from twilio.com/console
+    account_sid = 'AC03d0412a54b3e287104ed1c8bf6cbc02'
+    auth_token = '9bc9acef34899cd1b1ad85e16fd5690c'
 
-      efn = l[0].try(:strip)
-      eln = l[1].try(:strip)
-      man = l[2].nil? ? nil : l[2].split(',')
-      mfn = man[1].try(:strip) if !man.nil?
-      mln = man[0].try(:strip) if !man.nil?
+    # Initialize Twilio Client
+    @client = Twilio::REST::Client.new(account_sid, auth_token)
 
-      #puts "first name: #{efn}, last name: #{eln}, manager first name: #{mfn}, manager last name: #{mln}"
+    # Get an object from its sid. If you do not have a sid,
+    # check out the list resource examples on this page
+    res = @client.messages.create(
+      from: '+972524649837',
+      to:   '+972052-6141030',
+      body: 'Test123')
 
-      emp = Employee.find_by(first_name: efn, last_name: eln)
-      if emp.nil?
-        puts "EMPLOYEE NOT FOUND - #{l}"
-        next
-      end
-
-      man = Employee.find_by(first_name: mfn, last_name: mln)
-      if man.nil?
-        puts "MANAGER NOT FOUND - #{l}"
-        next
-      end
-
-      EmployeeManagementRelation.create!(manager_id: man.id, employee_id: emp.id, relation_type: 0)
-    end
+    puts "======================="
+    ap res
+    puts "======================="
   end
 end
 

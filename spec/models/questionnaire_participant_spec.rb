@@ -188,6 +188,7 @@ describe QuestionnaireParticipant, type: :model do
       it 'Should return the second, dependent, question in porcess even with one answer' do
         QuestionReply.create!(questionnaire_id: @q.id, questionnaire_question_id: @qq1.id, questionnaire_participant_id: @qp1.id, reffered_questionnaire_participant_id: @qp3.id, answer: true)
         QuestionReply.create!(questionnaire_id: @q.id, questionnaire_question_id: @qq2.id, questionnaire_participant_id: @qp1.id, reffered_questionnaire_participant_id: @qp2.id, answer: true)
+        byebug
         qq, status = @qp1.find_next_question
         expect( status ).to eq('in process')
         expect( qq.id ).to eq(2)

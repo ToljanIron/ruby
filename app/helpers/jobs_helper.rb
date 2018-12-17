@@ -1,11 +1,11 @@
 module JobsHelper
 
-  JOB_INTERVALS_DAILY  = 'daily'
-  JOB_INTERVALS_WEEKLY = 'weekly'
-  JOB_INTERVALS_HOURLY = 'hourly'
+  JOB_INTERVALS_DAILY  ||= 'daily'
+  JOB_INTERVALS_WEEKLY ||= 'weekly'
+  JOB_INTERVALS_HOURLY ||= 'hourly'
 
-  COLLECTOR_QUEUE = 'collector_queue'
-  APP_QUEUE       = 'app_queue'
+  COLLECTOR_QUEUE ||= 'collector_queue'
+  APP_QUEUE       ||= 'app_queue'
 
   def self.get_jobs_list
     return [

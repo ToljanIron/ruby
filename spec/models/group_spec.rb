@@ -66,7 +66,10 @@ describe Group, type: :model do
       expect( g1.nsleft ).to be < g11.nsleft
       expect( g21.nsright ).to be < g22.nsleft
       expect( g22.nsright ).to be < g2.nsright
-      expect( g1.nsright ).to be < g2.nsleft
+
+      # The values of g1 should be either both larger or both smaller than those of g2
+      comperator = (g1.nsright - g2.nsright) * (g1.nsleft - g2.nsleft)
+      expect( comperator ).to be > 1
     end
 
     it 'should not fail when there are lone groups' do

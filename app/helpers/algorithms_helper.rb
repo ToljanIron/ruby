@@ -1321,8 +1321,6 @@ module AlgorithmsHelper
       network_density = (s_sum_traffic_network.to_f / (bin * s_max_email_traffic)).round(3)
     end
 
-    puts "network_density: #{network_density}"
-
     return [{ group_id: group_id, measure: network_density }]
   end
 
@@ -1620,35 +1618,34 @@ module AlgorithmsHelper
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
-    sqlstr = "SELECT outter_nsd.from_employee_id, outter_nsd.to_employee_id, COUNT(id) AS maximum_traffic
-              FROM network_snapshot_data AS outter_nsd
-              WHERE outter_nsd.snapshot_id      = #{sid}
-              AND   network_id                  = #{nid}
-              AND   outter_nsd.value            = 1
-              AND   outter_nsd.to_employee_id   IN (#{empsstr})
-              AND   outter_nsd.from_employee_id IN (#{empsstr})
-              AND   outter_nsd.from_employee_id <> outter_nsd.to_employee_id
-              GROUP BY outter_nsd.from_employee_id, outter_nsd.to_employee_id
-              HAVING 	COUNT(id) = (
-                SELECT MAX(emailsum)          AS maxi
-                FROM (SELECT COUNT(id)        AS emailsum
-                  FROM network_snapshot_data  AS inner_nsd
-              	  WHERE inner_nsd.snapshot_id       = #{sid}
-                  AND   network_id                  = #{nid}
-                  AND   inner_nsd.value             = 1
-                  AND   inner_nsd.to_employee_id    IN (#{empsstr})
-                  AND   inner_nsd.from_employee_id  IN (#{empsstr})
-                  AND   inner_nsd.from_employee_id <> inner_nsd.to_employee_id
-              	  GROUP BY inner_nsd.from_employee_id, inner_nsd.to_employee_id) AS innercount)"
+    sqlstr = "SELECT emp1, emp2, SUM(value) AS traffic FROM
+                (SELECT from_employee_id AS emp1, to_employee_id AS emp2, value
+                   FROM network_snapshot_data AS nsd1
+                   WHERE from_employee_id > to_employee_id AND
+                         nsd1.snapshot_id = #{sid} AND
+                         nsd1.network_id  = #{nid} AND
+                         nsd1.from_employee_id IN (#{empsstr}) AND
+                         nsd1.to_employee_id IN (#{empsstr})
+                 UNION ALL
+                 SELECT to_employee_id AS emp1, from_employee_id AS emp2, value
+                   FROM network_snapshot_data AS nsd2
+                   WHERE from_employee_id < to_employee_id AND
+                         nsd2.snapshot_id = #{sid} AND
+                         nsd2.network_id  = #{nid} AND
+                         nsd2.from_employee_id IN (#{empsstr}) AND
+                         nsd2.to_employee_id IN (#{empsstr}) ) AS innerq
+              GROUP BY emp1, emp2
+              ORDER BY traffic desc
+              LIMIT 1"
 
     max_traffic = ActiveRecord::Base.connection.exec_query(sqlstr)
     h_max_traffic = max_traffic.to_hash[0]
 
     return nil if h_max_traffic.nil?
     return {
-      from: h_max_traffic['from_employee_id'],
-      to:   h_max_traffic['to_employee_id'],
-      max:  h_max_traffic['maximum_traffic']
+      from: h_max_traffic['emp1'],
+      to:   h_max_traffic['emp2'],
+      max:  h_max_traffic['traffic']
     }
   end
 

@@ -25,7 +25,7 @@ class AlertsController < ApplicationController
   def acknowledge_alert
     authorize :alert, :update?
 
-    measures_return_result do
+    render_json do
       sp = {cid: current_user.company_id}
       alid = params[:alid]
       sp[:alid] = alid.to_i

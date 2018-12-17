@@ -247,7 +247,7 @@ module InteractBackofficeActionsHelper
     client = Twilio::REST::Client.new account_sid, auth_token
     sms_text = aq.sms_text
     body = "#{sms_text} #{qp.create_link}"
-    client.account.messages.create(
+    client.messages.create(
       from: from,
       to:  '+972' + phone_number,
       body: body

@@ -99,7 +99,7 @@ describe AlgorithmsHelper, type: :helper do
       FactoryBot.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 2, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
 
       s_sum2 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
-      expect(s_sum1[0][:measure]).to be > s_sum2[0][:measure]
+      expect(s_sum1[0][:measure]).to be < s_sum2[0][:measure]
     end
 
     it 'should be zero if there is no traffic' do
@@ -221,7 +221,7 @@ describe AlgorithmsHelper, type: :helper do
       FactoryBot.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 4, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
       FactoryBot.create(:network_snapshot_data, from_employee_id: 4, to_employee_id: 1, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
       FactoryBot.create(:network_snapshot_data, from_employee_id: 1, to_employee_id: 3, value: 1, snapshot_id: @sid, company_id: @cid, network_id: @nid)
-      expect(AlgorithmsHelper.s_calc_max_traffic_between_two_employees(1, @nid, -1, -1)).to eq(2)    # changed to 10 due to original containing n2 results for an unknown reason
+      expect(AlgorithmsHelper.s_calc_max_traffic_between_two_employees(1, @nid, -1, -1)).to eq(3)
     end
     it 'should behave if no values' do
       Employee.delete_all

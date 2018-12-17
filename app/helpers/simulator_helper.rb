@@ -1,5 +1,5 @@
 module SimulatorHelper
-  DENSITY = 0.6
+  DENSITY ||= 0.6
 
   def self.simulate_questionnaire_replies(sid)
     ActiveRecord::Base.transaction do

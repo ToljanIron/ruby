@@ -7,21 +7,19 @@
 
 module PopulateQuestionnaireHelper
   # scores
-  FRIEND_OF_FRIEND = 1
-  PICKED_ME = 100
-  UNDER_SAME_MANAGER = 3
-  UNDER_ME = 3
-  PEER_RECEIVER = 3
-  IN_MY_GROUP = 3
-  IN_SIBLING_GROUPS = 1
-  IN_PARENT_GROUP = 2
-  IN_DAUGHTER_GROUPS = 2
-  MANAGER = 3
-  RANDOM = 1
+  FRIEND_OF_FRIEND ||= 1
+  PICKED_ME ||= 100
+  UNDER_SAME_MANAGER ||= 3
+  UNDER_ME ||= 3
+  PEER_RECEIVER ||= 3
+  IN_MY_GROUP ||= 3
+  IN_SIBLING_GROUPS ||= 1
+  IN_PARENT_GROUP ||= 2
+  IN_DAUGHTER_GROUPS ||= 2
+  MANAGER ||= 3
+  RANDOM ||= 1
 
-  DEFAULT_MAX_QUESTIONNAIRE_POPULATION = 100
-
-  POPULATE_QUESTIONNAIRE_HELPER_DEBUG = false
+  DEFAULT_MAX_QUESTIONNAIRE_POPULATION ||= 100
 
   def self.run(cid)
     employees = Employee.by_company(cid)
@@ -78,8 +76,8 @@ module PopulateQuestionnaireHelper
                         .pluck(:id)
                         .sample(length)
     res = emp_array.map { |id| [id, RANDOM] }.to_h
-    puts "Randomly picked for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Randomly picked for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -93,8 +91,8 @@ module PopulateQuestionnaireHelper
   def self.in_daughter_groups(emp)
     daughter_groups = Group.where(parent_group_id: emp[:group_id])
     res = PopulateQuestionnaireHelper.employees_in_groups(daughter_groups.pluck(:id), emp, IN_DAUGHTER_GROUPS)
-    puts "Emps in daughter groups for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps in daughter groups for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -103,8 +101,8 @@ module PopulateQuestionnaireHelper
     return [] if group.nil?
     parent_group_id = group[:parent_group_id]
     res = PopulateQuestionnaireHelper.employees_in_groups(parent_group_id, emp, IN_PARENT_GROUP)
-    puts "Emps in parent group for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps in parent group for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -113,15 +111,15 @@ module PopulateQuestionnaireHelper
     return [] if group.nil?
     sibling_groups = group.sibling_groups
     res = PopulateQuestionnaireHelper.employees_in_groups(sibling_groups.pluck(:id), emp, IN_SIBLING_GROUPS)
-    puts "Emps in sibling groups for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps in sibling groups for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
   def self.in_my_group(emp)
     res = PopulateQuestionnaireHelper.employees_in_groups(emp[:group_id], emp, IN_MY_GROUP)
-    puts "Emps in own group for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps in own group for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -138,16 +136,16 @@ module PopulateQuestionnaireHelper
     res =            emp_array[0..4].map   { |e| [e[:to_employee_id], PEER_RECEIVER * 3] }.to_h
     res = res.merge( emp_array[5..15].map  { |e| [e[:to_employee_id], PEER_RECEIVER * 2] }.to_h ) if !emp_array[5..15].nil?
     res = res.merge( emp_array[16..-1].map { |e| [e[:to_employee_id], PEER_RECEIVER]     }.to_h )     if !emp_array[16..-1].nil?
-    puts "Emps who are email peers for emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps who are email peers for emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
   def self.under_me(emp)
     emp_array = EmployeeManagementRelation.where(manager_id: emp.id).pluck(:employee_id)
     res = emp_array.map { |id| [id, UNDER_ME] }.to_h
-    puts "Emps managed by emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps managed by emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -159,8 +157,8 @@ module PopulateQuestionnaireHelper
                 .where.not(employee_id: emp.id)
                 .pluck(:employee_id)
     res = emp_array.map { |id| [id, UNDER_SAME_MANAGER] }.to_h
-    puts "Emps managed under same manager as emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps managed under same manager as emp ID: #{emp.id}" if false
+    ap res if false
     return res
   end
 
@@ -179,8 +177,8 @@ module PopulateQuestionnaireHelper
     emps = QuestionnaireParticipant.where(id: qp_who_picked_emp).pluck(:employee_id).uniq
     emp_array = emps.map { |eid| [eid, PICKED_ME] }
     res = emp_array.to_h
-    puts "Emps who mpicked emp ID: #{emp.id} in last questionnaire" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps who mpicked emp ID: #{emp.id} in last questionnaire" if false
+    ap res if false
     return res
   end
 
@@ -193,8 +191,7 @@ module PopulateQuestionnaireHelper
                                     [eid, FRIEND_OF_FRIEND] # TODO: if the dude is on the list more than once he should get higher score probably? - then remove .uniq
                                   end
     res = previous_friends_of_friends.to_h
-    puts "Emps managed under same manager as emp ID: #{emp.id}" if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
-    ap res if POPULATE_QUESTIONNAIRE_HELPER_DEBUG
+    puts "Emps managed under same manager as emp ID: #{emp.id}" if false
     return res
   end
 
