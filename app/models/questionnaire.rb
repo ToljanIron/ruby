@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-include Mobile::QuestionnaireHelper
 include XlsHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
 include ActionView::Helpers::SanitizeHelper
@@ -190,35 +189,6 @@ class Questionnaire < ActiveRecord::Base
 
   def questionnaire_participant_ids
     return QuestionnaireParticipant.where(questionnaire_id: id, active: true).pluck(:id)
-  end
-
-  def freeze_questionnaire
-    puts 'Freezing'
-    puts "Working on questionnaire ID: #{id}"
-    EventLog.create!(message: "Freezing questionnaire id: #{id}", event_type_id: 1)
-
-    if state != 'sent'
-      msg = "Questionnaire in state: #{state} and is not ready to be processed into a snapshot, aboriting."
-      puts msg
-      EventLog.create!(message: msg, event_type_id: 1)
-      return
-    end
-
-    update(state: :processing)
-    sid = Mobile::QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
-
-    puts "Working on Snapshot: #{sid}"
-    cid = Snapshot.find(sid).company_id
-    puts 'In precalculate'
-    EventLog.create!(message: "Precalculate for compay: #{cid}, snapshot: #{sid}", event_type_id: 1)
-    cds_calculate_scores_for_generic_networks(cid, sid)
-
-    puts 'Done with precalculate, clearing cache'
-    EventLog.create!(message: 'Clear cache', event_type_id: 1)
-    Rails.cache.clear
-    update(state: :completed)
-    puts 'Done'
-    EventLog.create!(message: 'Freeze questionnaire completed', event_type_id: 1)
   end
 
   def generate_report
