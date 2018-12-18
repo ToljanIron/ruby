@@ -129,31 +129,76 @@ module QuestionnaireHelper
     return ret
   end
 
+
   ##############################################################################
-  # This is a utility function. It takes a base list of participants relevant
-  # to the current question and a list of replies to the same question, and then
-  # merges the two into a unified list.
-  # The list strucutres are different:
-  # - base_list - Is a numbers array of questionnaire_participants
-  # - answered_list - has this format:
-  #        [ {reffered_questionnaire_participant_id: num, answer: <0 | 1>} ... ]
+  # This API will attempt to colse current question. If it succeeds it will
+  #   update the participant's current_questiannair_question_id field.
   #
-  # It returns:
-  #        [ {qpid: number, answer: <true | false | nil>}, ... ]
+  # Returns nil if success, or message with fail reason.
+  #
+  # If current question is a funnel question then the number of 'true' replies
+  #   has to be between min and max values.
+  #
+  # If current question is dependent question then it has to have replies for
+  #   all participants with 'true' replies for the funnel question.
+  #
+  # If current question is independent question then there are two cases:
+  #   1. If not using employees_connections then it has to have replies for
+  #      all participants in the quesitonnaire.
+  #   2. If using employees_connections then it has to have replies for all
+  #      connected employees.
+  #
   ##############################################################################
-  def merge_qps_lists(base_list, answered_list)
-    hash = {}
-    base_list.each do |qpid|
-      hash[qpid] = {qpid: qpid, answer: nil}
+  def close_questionnaire_question(token)
+    qd = get_questionnaire_details(token)
+    qid  = qd[:questionnaire_id]
+    qqid = qd[:question_id]
+    qpid = qd[:qpid]
+    max = qd[:max]
+    min = qd[:min]
+    eid = QuestionnaireParticipant.find_by(id: qpid)
+    raise "Did not find employee for participant: #{qpid}" if eid.nil?
+
+    fail_res = nil
+
+    answered_list = QuestionReply
+                      .where(questionnaire_id: qid,
+                             questionnaire_question_id: qqid,
+                             questionnaire_participant_id: qpid)
+                      .select(:answer)
+
+    if qd[:is_funnel_question]
+      selected_qps = answered_list.where(answer: true).pluck(:answer).length
+      fail_res = 'Too few participants selected' if selected_qps < min
+      fail_res = 'Too many participants selected' if selected_qps > max
+
+    else
+      replies_len = answered_list.pluck(:answer).length
+
+      if !qd[:depends_on_question].nil?
+        num_selected_by_funnel_question = QuestionReply
+                     .where(questionnaire_id: qid,
+                            questionnaire_question_id: qd[:depends_on_question],
+                            questionnaire_participant_id: qpid)
+                     .select(:answer).count
+        can_close = (num_selected_by_funnel_question == replies_len)
+        fail_res = 'Fewer replies than selected participants in funnel question' if !can_close
+
+      else
+        if qd[:use_employee_connections]
+          qps_len = get_qps_from_employees_connections(eid).length
+          fail_res = 'Less replies than employee connections' if (replies_len < qps_len)
+        else
+          qps_len = get_qps_from_questionnaire_participants(qid, qpid).length
+          fail_res = 'Less replies than participants' if (replies_len < qps_len)
+        end
+      end
     end
 
-    answered_list.each do |reply|
-      elem = hash[reply[:reffered_questionnaire_participant_id]]
-      elem[:answer] = reply[:answer]
-    end
-
-    return hash.values
+    return fail_res
   end
+
+
 
   private
 
@@ -180,5 +225,31 @@ module QuestionnaireHelper
                     answer: true)
              .select(:reffered_questionnaire_participant_id)
              .pluck(:reffered_questionnaire_participant_id)
+  end
+
+  ##############################################################################
+  # This is a utility function. It takes a base list of participants relevant
+  # to the current question and a list of replies to the same question, and then
+  # merges the two into a unified list.
+  # The list strucutres are different:
+  # - base_list - Is a numbers array of questionnaire_participants
+  # - answered_list - has this format:
+  #        [ {reffered_questionnaire_participant_id: num, answer: <0 | 1>} ... ]
+  #
+  # It returns:
+  #        [ {qpid: number, answer: <true | false | nil>}, ... ]
+  ##############################################################################
+  def merge_qps_lists(base_list, answered_list)
+    hash = {}
+    base_list.each do |qpid|
+      hash[qpid] = {qpid: qpid, answer: nil}
+    end
+
+    answered_list.each do |reply|
+      elem = hash[reply[:reffered_questionnaire_participant_id]]
+      elem[:answer] = reply[:answer]
+    end
+
+    return hash.values
   end
 end

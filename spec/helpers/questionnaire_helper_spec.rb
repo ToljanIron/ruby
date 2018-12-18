@@ -21,7 +21,7 @@ describe QuestionnaireHelper, type: :helper do
     @qp6 = QuestionnaireParticipant.create!(employee_id: @e6.id, questionnaire_id: @q.id, active: true, token: 't6')
     @qp7 = QuestionnaireParticipant.create!(employee_id: -1, questionnaire_id: @q.id, active: true,     token: 't7', participant_type: 'tester')
 
-    @qq1 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 11, active: true, order: 1)
+    @qq1 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 11, active: true, order: 1, min: 2, max: 4)
     @qq2 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 12, active: true, order: 2)
     @qq3 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 13, active: true, order: 3)
   end
@@ -161,7 +161,137 @@ describe QuestionnaireHelper, type: :helper do
         end
       end
     end
+  end
 
+  describe 'close_questionnaire_question' do
+    context 'in funnel question' do
+      before do
+        @qq1.update!(is_funnel_question: true)
+      end
+
+      it 'should refuse if there are no replies' do
+        ret = close_questionnaire_question('t1')
+        expect(ret).to eq 'Too few participants selected'
+      end
+
+      it 'should refuse if there are too few replies' do
+        add_question_reply(@qq1.id, @qp1.id, @qp2.id, true)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to eq 'Too few participants selected'
+      end
+
+      it 'should refuse if there are too many replies' do
+        add_question_reply(@qq1.id, @qp1.id, @qp2.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp3.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp4.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp5.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp6.id, true)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to eq 'Too many participants selected'
+      end
+
+      it 'should refuse if there are not enough "true" replies' do
+        add_question_reply(@qq1.id, @qp1.id, @qp2.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp3.id, false)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to eq 'Too few participants selected'
+      end
+
+      it 'should accept if there are just enough replies' do
+        add_question_reply(@qq1.id, @qp1.id, @qp2.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp3.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp4.id, true)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to be_nil
+      end
+    end
+
+    context 'in dependent question' do
+      before do
+        @qp1.update!(current_questiannair_question_id: @qq2.id)
+        @qq2.update!(depends_on_question: @qq1.id)
+
+        add_question_reply(@qq1.id, @qp1.id, @qp2.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp3.id, true)
+        add_question_reply(@qq1.id, @qp1.id, @qp4.id, true)
+      end
+
+      it 'should refuse if number of replies is less than in funnel question' do
+        add_question_reply(@qq2.id, @qp1.id, @qp2.id, false)
+        add_question_reply(@qq2.id, @qp1.id, @qp3.id, true)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to eq 'Fewer replies than selected participants in funnel question'
+      end
+
+      it 'should accept if number of replies equals that of in funnel question' do
+        add_question_reply(@qq2.id, @qp1.id, @qp2.id, false)
+        add_question_reply(@qq2.id, @qp1.id, @qp3.id, true)
+        add_question_reply(@qq2.id, @qp1.id, @qp4.id, true)
+
+        ret = close_questionnaire_question('t1')
+        expect(ret).to be_nil
+      end
+    end
+
+    context 'in independent question' do
+      before do
+        @qp1.update!(current_questiannair_question_id: @qq2.id)
+      end
+
+      context 'use employee_connections' do
+        before do
+          @q.update!(use_employee_connections: true)
+          EmployeesConnection.create!(employee_id: @e1.id, connection_id: @e3.id)
+          EmployeesConnection.create!(employee_id: @e1.id, connection_id: @e4.id)
+          EmployeesConnection.create!(employee_id: @e1.id, connection_id: @e5.id)
+        end
+
+        it 'should refuse if number of replies is less than in employees_connection' do
+          add_question_reply(@qq2.id, @qp1.id, @qp3.id, false)
+          add_question_reply(@qq2.id, @qp1.id, @qp4.id, true)
+
+          ret = close_questionnaire_question('t1')
+          expect(ret).to eq 'Less replies than employee connections'
+        end
+
+        it 'should accept if number of replies equalts that in employees_connection' do
+          add_question_reply(@qq2.id, @qp1.id, @qp3.id, false)
+          add_question_reply(@qq2.id, @qp1.id, @qp4.id, true)
+          add_question_reply(@qq2.id, @qp1.id, @qp5.id, false)
+
+          ret = close_questionnaire_question('t1')
+          expect(ret).to be_nil
+        end
+      end
+
+      context 'reply on all participants' do
+        it 'should refuse if number of replies is less than number of participants' do
+          add_question_reply(@qq2.id, @qp1.id, @qp3.id, false)
+          add_question_reply(@qq2.id, @qp1.id, @qp4.id, true)
+          add_question_reply(@qq2.id, @qp1.id, @qp5.id, true)
+          add_question_reply(@qq2.id, @qp1.id, @qp6.id, false)
+
+          ret = close_questionnaire_question('t1')
+          expect(ret).to eq 'Less replies than participants'
+        end
+
+        it 'should accept if number of replies equalts that in employees_connection' do
+          add_question_reply(@qq2.id, @qp1.id, @qp2.id, false)
+          add_question_reply(@qq2.id, @qp1.id, @qp3.id, false)
+          add_question_reply(@qq2.id, @qp1.id, @qp4.id, true)
+          add_question_reply(@qq2.id, @qp1.id, @qp5.id, true)
+          add_question_reply(@qq2.id, @qp1.id, @qp6.id, false)
+
+          ret = close_questionnaire_question('t1')
+          expect(ret).to be_nil
+        end
+      end
+    end
   end
 end
 
