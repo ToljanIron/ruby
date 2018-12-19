@@ -38,4 +38,11 @@ module Mobile::SessionsHelper
     session.delete(:user_id)
     @current_user = nil
   end
+
+  def authenticate_questionnaire_participant(token)
+    raise "Null token" unless token
+    qp = QuestionnaireParticipant.find_by(token: token)
+    return false unless qp
+    return qp
+  end
 end

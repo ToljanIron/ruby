@@ -6,12 +6,12 @@ describe QuestionnaireHelper, type: :helper do
     @c = Company.create!(name: "Acme")
     @q = Questionnaire.create!(name: "test", company_id: @c.id, state: 'sent')
 
-    @e1 = Employee.create!(company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')
-    @e2 = Employee.create!(company_id: @c.id, email: 'bb2@mail.com', first_name: 'Bb2', last_name: 'Qq2', external_id: 'bbb2')
-    @e3 = Employee.create!(company_id: @c.id, email: 'bb3@mail.com', first_name: 'Bb3', last_name: 'Qq3', external_id: 'bbb3')
-    @e4 = Employee.create!(company_id: @c.id, email: 'bb4@mail.com', first_name: 'Bb4', last_name: 'Qq4', external_id: 'bbb4')
-    @e5 = Employee.create!(company_id: @c.id, email: 'bb5@mail.com', first_name: 'Bb5', last_name: 'Qq5', external_id: 'bbb5')
-    @e6 = Employee.create!(company_id: @c.id, email: 'bb6@mail.com', first_name: 'Bb6', last_name: 'Qq6', external_id: 'bbb6')
+    @e1 = Employee.create!(id: 11, company_id: @c.id, email: 'bb1@mail.com', first_name: 'Bb1', last_name: 'Qq1', external_id: 'bbb1')
+    @e2 = Employee.create!(id: 12, company_id: @c.id, email: 'bb2@mail.com', first_name: 'Bb2', last_name: 'Qq2', external_id: 'bbb2')
+    @e3 = Employee.create!(id: 13, company_id: @c.id, email: 'bb3@mail.com', first_name: 'Bb3', last_name: 'Qq3', external_id: 'bbb3')
+    @e4 = Employee.create!(id: 14, company_id: @c.id, email: 'bb4@mail.com', first_name: 'Bb4', last_name: 'Qq4', external_id: 'bbb4')
+    @e5 = Employee.create!(id: 15, company_id: @c.id, email: 'bb5@mail.com', first_name: 'Bb5', last_name: 'Qq5', external_id: 'bbb5')
+    @e6 = Employee.create!(id: 16, company_id: @c.id, email: 'bb6@mail.com', first_name: 'Bb6', last_name: 'Qq6', external_id: 'bbb6')
 
     @qp1 = QuestionnaireParticipant.create!(employee_id: @e1.id, questionnaire_id: @q.id, active: true, token: 't1')
     @qp2 = QuestionnaireParticipant.create!(employee_id: @e2.id, questionnaire_id: @q.id, active: true, token: 't2')
@@ -34,13 +34,41 @@ describe QuestionnaireHelper, type: :helper do
 	  it 'should get all questionnaire details' do
       res = get_questionnaire_details('t2')
       expect( res[:q_state] ).to eq('sent')
-      expect( res[:qp_state] ).to eq('notstarted')
+      expect( res[:qp_state] ).to eq('entered')
       expect( res[:questionnaire_id] ).to eq(@q.id)
       expect( res[:total_questions] ).to eq(3)
     end
 
     it 'should raise exception if participant does not exsit' do
       expect{ get_questionnaire_details('t11') }.to raise_error(RuntimeError, 'Not found participant with token: t11')
+    end
+
+    it 'should get correct position of question' do
+      @qp2.update!(current_questiannair_question_id: @qq2.id)
+      res = get_questionnaire_details('t2')
+      expect( res[:current_question_position] ).to eq(2)
+    end
+
+    context 'where there are inactive questions' do
+      it 'should get correct position of question' do
+        @qp2.update!(current_questiannair_question_id: @qq3.id)
+        @qq2.update!(active: false)
+        res = get_questionnaire_details('t2')
+        expect( res[:current_question_position] ).to eq(2)
+      end
+    end
+
+    context 'first time enter' do
+      it 'should update participant status and current question' do
+        res = get_questionnaire_details('t2')
+        ## This line is not as dumb as it looks, @qp2's DB state has chagned
+        ##   In the previous line and thus should be reloaded.
+        @qp2 = QuestionnaireParticipant.find(@qp2.id)
+        expect( @qp2.status ).to eq('entered')
+        expect( @qp2.current_questiannair_question_id ).to eq(@qq1.id)
+        expect( res[:qp_state] ).to eq('entered')
+        expect( res[:question_id] ).to eq(@qq1.id)
+      end
     end
   end
 
@@ -53,7 +81,7 @@ describe QuestionnaireHelper, type: :helper do
       end
 
       it 'should return all employees with answer nil' do
-        ret = get_question_participants('t1')
+        ret = get_question_participants('t1')[:replies]
         qps_with_answer_nil = ret.select { |r| r[:answer].nil? }
         expect( qps_with_answer_nil.length ).to eq (5)
       end
@@ -65,7 +93,7 @@ describe QuestionnaireHelper, type: :helper do
         end
 
         it 'should return some employees with answer nil and some with numbers' do
-          ret = get_question_participants('t1')
+          ret = get_question_participants('t1')[:replies]
 
           expect( find_by_qp(ret, 2)[:answer] ).to eq(true)
           expect( find_by_qp(ret, 3)[:answer] ).to eq(false)
@@ -88,7 +116,7 @@ describe QuestionnaireHelper, type: :helper do
       end
 
       it 'should return correct state' do
-        ret = get_question_participants('t1')
+        ret = get_question_participants('t1')[:replies]
 
         expect( find_by_qp(ret, 2)[:answer] ).to eq(true)
         expect( find_by_qp(ret, 3)[:answer] ).to eq(false)
@@ -113,7 +141,7 @@ describe QuestionnaireHelper, type: :helper do
       end
 
       it 'should return correct state' do
-        ret = get_question_participants('t1')
+        ret = get_question_participants('t1')[:replies]
 
         expect( find_by_qp(ret, 2)[:answer] ).to eq(true)
         expect( find_by_qp(ret, 3) ).to be_nil
@@ -132,7 +160,7 @@ describe QuestionnaireHelper, type: :helper do
 
       context 'without employee_connections' do
         it 'should return all employees' do
-          ret = get_question_participants('t1')
+          ret = get_question_participants('t1')[:replies]
 
           expect( find_by_qp(ret, 2)[:answer] ).to eq(true)
           expect( find_by_qp(ret, 3)[:answer] ).to be_nil
@@ -151,7 +179,7 @@ describe QuestionnaireHelper, type: :helper do
         end
 
         it 'should return employees only from employees_connections' do
-          ret = get_question_participants('t1')
+          ret = get_question_participants('t1')[:replies]
 
           expect( find_by_qp(ret, 2)[:answer] ).to eq(true)
           expect( find_by_qp(ret, 3) ).to be_nil
@@ -296,7 +324,7 @@ describe QuestionnaireHelper, type: :helper do
 end
 
 def find_by_qp(list, qpid)
-  return list.find { |l| l[:qpid] == qpid }
+  return list.find { |l| l[:e_id] == qpid }
 end
 
 def add_question_reply(qqid, fqpid, tqpid, answer)

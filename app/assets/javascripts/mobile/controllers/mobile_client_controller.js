@@ -36,7 +36,8 @@ angular.module('workships-mobile').controller('mobileClientController', ['$scope
     mobileAppService.setToken(token);
     mobileAppService.setUserName(name);
     var params = { token: token };
-    ajaxService.keepAlive({alive: true});
+    // TODO !!!!!!!!!!!  ajaxService.keepAlive({alive: true});
+    console.log("Sending get_next_question from mobile_client_cont");
     ajaxService.get_next_question(params).then(function (response) {
       initFromParams(response.data);
     });

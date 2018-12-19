@@ -311,6 +311,7 @@ angular.module('workships-mobile')
     }
     //params.token = $scope.token;
     var p1 = ajaxService.get_employees(params);
+    console.log("Sending get_next_question from mobile_questionnaire_cont");
     var p2 = ajaxService.get_next_question(params);
     var employee_ids_in_question;
     if (options && options.reset) {

@@ -1,4 +1,6 @@
 module SessionsHelper
+  attr_writer :current_user
+
   def log_in(user)
     session[:user_id] = user.id
   end
@@ -15,7 +17,12 @@ module SessionsHelper
     cookies.delete(:remember_token)
   end
 
-  attr_writer :current_user
+  def authenticate_questionnaire_participant(token)
+    raise "Null token" unless token
+    qp = QuestionnaireParticipant.find_by(token: token)
+    return false unless qp
+    return qp
+  end
 
   def current_user
     if (user_id = session[:user_id])

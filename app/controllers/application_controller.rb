@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 include ApplicationHelper
-include Mobile::Utils
 include SessionsHelper
 include Pundit
 include CdsUtilHelper
@@ -28,7 +27,7 @@ class ApplicationController < ActionController::Base
     authorize :application, :passthrough
 
     @token = sanitize_alphanumeric( params['token'] )
-    qp = Mobile::Utils.authenticate_questionnaire_participant(@token)
+    qp = authenticate_questionnaire_participant(@token)
 
     if qp
       # Added message when questionnaire is closed - Michael K. - 12.9.17

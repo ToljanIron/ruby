@@ -22,8 +22,8 @@ Workships::Application.routes.draw do
 
   get   '/mobile',          to: 'mobile/companies#show'
   get   '/questionnaire',   to: 'application#show_mobile'
-  get   'get_questionnaire_employees' => 'mobile/employees#all_employees'
-  post  'get_next_question' => 'mobile/questions#next'
+  get   'get_questionnaire_employees' => 'questionnaire#all_employees'
+  post  'get_next_question' => 'questionnaire#get_next_question'
 
   get   'keep_alive'     => 'mobile/mobile#keep_alive'
   get   'question/active_employess', to: 'mobile/questionnaire#active_employees'
