@@ -39,6 +39,15 @@ class QuestionnaireController < ApplicationController
     render json: res
   end
 
+  def update_replies
+    authorize :application, :passthrough
+    puts "======================================="
+    ap params
+    puts "======================================="
+    token = sanitize_alphanumeric(params[:data][:token])
+    raise "No such participant" if token.nil?
+  end
+
   def show_home
     goto_home
     redirect_to ''

@@ -5,6 +5,8 @@ angular.module('workships-mobile').controller('mobileClientController', ['$scope
   function initFromParams(data) {
     mobileAppService.setIndexOfCurrentQuestion(data.current_question_position);
     mobileAppService.setTotalQuestions(data.total_questions);
+    mobileAppService.setState(data);
+
     if (data.min === data.max) {
       mobileAppService.setQuestionTypeClearScreen();
     } else {

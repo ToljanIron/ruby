@@ -10,6 +10,7 @@ angular.module('workships-mobile')
     function ($scope, ajaxService, $q, mobileAppService, $timeout, $log) {
 
   var undo_stack = [];
+  var mass = mobileAppService.s;
 
   function buildQuestionResponseStructs() {
     $log.debug('In buildQuestionResponseStructs()');
@@ -127,11 +128,17 @@ angular.module('workships-mobile')
       employee_id: employee_id,
       response: null,
     };
-    //changes made here
     undo_stack.push(undo_step);
+
+    // Update the response
     r.response = response;
+    // console.log('mass: ', mass);
+    mass.updateRepliesNumberUp(response);
+
     var emp = $scope.unselected_workers.splice(_.findIndex($scope.unselected_workers, {id: employee_id}), 1);
-    $scope.search_added_emps.splice($scope.search_added_emps.indexOf(employee_id), $scope.search_added_emps.indexOf(employee_id) + 1);
+
+    var inx = $scope.search_added_emps.indexOf(employee_id);
+    $scope.search_added_emps.splice( inx, inx + 1);
     var added_employee = _.find($scope.employees, function (e) {
       return e.qp_id === employee_id;
     });
@@ -140,9 +147,13 @@ angular.module('workships-mobile')
     }
     if (emp[0]) { $scope.undo_worker_stack.push(emp[0]); }
     $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+
+    // force click on next when the max number of replies was reached
     if ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === $scope.numberOfEmployeesForQuestion($scope.r.question_id)) {
       $scope.clicked_on_next[0] = true; // force click on next
     }
+
+    ///// NEED to see if can get rid of this line. This is what causes the annoying message to pop up sometimes.
     if (mobileAppService.isQuestionTypeMinMax()) { isLessAvailableEmployeesThanMinimum(); }
   };
 
@@ -160,6 +171,8 @@ angular.module('workships-mobile')
       if (!r) { return; }
       r.response = undo_step.response;
       $scope.currentlyFocusedEmployeeId = undo_step.employee_id;
+
+      mass.updateRepliesNumberDown(r.response);
     }
     $scope.clicked_on_next[0] = false;
   };
@@ -189,6 +202,43 @@ angular.module('workships-mobile')
       }).length;
     }
   };
+
+  /************************************************
+   * New state implemenations
+   ************************************************/
+
+  $scope.numOfAnswers = function() {
+    if (mass.is_funnel_question) {
+      return mass.num_replies_true;
+    }
+    return mass.num_replies_true + mass.num_replies_false;
+  };
+
+  $scope.clientMaxReplies = function() {
+    return mass.client_max_replies;
+  };
+
+  // If is a funnel question then only replies whose value is 'true' count.
+  // Otherwise, we count both 'true' and 'false'
+  $scope.isFinished = function () {
+    // console.log('In isFinished()');
+    if (mass.is_funnel_question) {
+      return mass.num_replies_true >= mass.client_min_replies &&
+             mass.num_replies_true >= mass.client_max_replies;
+    }
+
+    var num_reps = mass.num_replies_true + mass.num_replies_false;
+    return num_reps === mass.client_max_replies;
+  };
+
+  $scope.isAnsweredAllNessecearyQuestions = function () {
+    console.log('Deprecated function');
+  };
+
+  /************************************************
+   * End of new state implemenations
+   ************************************************/
+
 
   $scope.numberOfEmployeesAnsweredFalseForQuestion = function (question_id) {
     if ($scope.isLoaded()) {
@@ -220,14 +270,6 @@ angular.module('workships-mobile')
     $scope.r = $scope.responses[_.keys($scope.responses)[$scope.index_of_current_question - 1]];
   };
 
-  function updateScopeResponsesFromAnswers() {
-    $log.debug('In updateScopeResponsesFromAnswers()');
-    var responses = $scope.responses[_.keys($scope.responses)[0]].responses;
-    _.forEach($scope.original_data.replies, function (r, i) {
-      r.answer = responses[i].response;
-    });
-  }
-
   $scope.employeeHasResponseForQuestion = function (question_id, employee_id) {
     $log.debug('In employeeHasResponseForQuestion()');
     var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
@@ -237,36 +279,10 @@ angular.module('workships-mobile')
     return r.response !== null;
   };
 
-  $scope.isAnsweredAllNessecearyQuestions = function () {
-    $log.debug('In isAnsweredAllNessecearyQuestions()');
-    if ($scope.isLoaded()) {
-      if (mobileAppService.isQuestionTypeClearScreen()) {
-        return $scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === $scope.numberOfEmployeesForQuestion($scope.r.question_id);
-      }
-      if (mobileAppService.isQuestionTypeMinMax()) {
-        return $scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) >= (mobileAppService.getMinMaxAmounts().min);
-      }
-    }
-  };
 
   $scope.isUndoDisabled = function () {
     if ($scope.isLoaded()) {
       return $scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === 0;
-    }
-  };
-
-  $scope.isFinished = function () {
-    $log.debug('In isFinished()');
-    if ($scope.isLoaded()) {
-      if (mobileAppService.isQuestionTypeClearScreen()) {
-        return $scope.isAnsweredAllNessecearyQuestions();
-      }
-      if (mobileAppService.isQuestionTypeMinMax()) {
-        if ($scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) === (mobileAppService.getMinMaxAmounts().max)) { return true; }
-        if (($scope.numberOfEmployeesAnsweredTrueForQuestion($scope.r.question_id) >= (mobileAppService.getMinMaxAmounts().min)) && $scope.clicked_on_next[0]) {
-          return true;
-        }
-      }
     }
   };
 
@@ -302,8 +318,9 @@ angular.module('workships-mobile')
     return replies;
   }
 
+
   function syncDataWithServer(params, options) {
-    $log.debug('In syncDataWithServer()');
+    console.log('In syncDataWithServer(), params: ', params);
     if (options && options.continue_later) {
       params.continue_later = true;
     } else {
@@ -313,7 +330,7 @@ angular.module('workships-mobile')
     var p1 = ajaxService.get_employees(params);
     console.log("Sending get_next_question from mobile_questionnaire_cont");
     var p2 = ajaxService.get_next_question(params);
-    var employee_ids_in_question;
+
     if (options && options.reset) {
       $q.all([
         p1.then(function (response) {
@@ -326,7 +343,7 @@ angular.module('workships-mobile')
         }),
         p2.then(function (response) {
           $scope.original_data = response.data;
-          employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
+          var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
           var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
           $scope.workers = employees_for_question;
           $scope.unselected_workers = $scope.workers;
@@ -365,9 +382,18 @@ angular.module('workships-mobile')
   $scope.loadMore = function () {
     $log.debug('In loadMore()');
     var startIndex = $scope.tiny_array.length;
-    console.log('loadMore', startIndex);
     $scope.tiny_array = _.union($scope.tiny_array, $scope.r.responses.slice(startIndex, startIndex + 10));
   };
+
+  function updateScopeResponsesFromAnswers() {
+    var responses = $scope.responses[_.keys($scope.responses)[0]].responses;
+    _.forEach($scope.original_data.replies, function (r, i) {
+      r.answer = responses[i].response;
+    });
+
+    // Update the server here
+    ajaxService.update_responses($scope.original_data);
+  }
 
   $scope.minMaxOnFinish = function () {
     $log.debug('In minMaxOnFinish()');
@@ -381,7 +407,7 @@ angular.module('workships-mobile')
   };
 
   $scope.clearScreenOnFinish = function () {
-    if (!$scope.isAnsweredAllNessecearyQuestions()) { return; }
+    if (!$scope.isFinished()) { return; }
     updateScopeResponsesFromAnswers();
     $scope.init($scope.original_data);
   };
@@ -427,7 +453,8 @@ angular.module('workships-mobile')
   };
 
   $scope.init = function (next_question_params, options) {
-    $log.debug('In init() - next_question_params: ', next_question_params);
+    console.log('In init() - next_question_params: ', next_question_params);
+    console.log('init() - options: ', options);
     $scope._ = _;
     $scope.search_added_emps = [];
     options = options || {};

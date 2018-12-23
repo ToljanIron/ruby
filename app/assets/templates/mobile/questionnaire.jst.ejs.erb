@@ -99,15 +99,17 @@
         <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
         <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
       </div>
+
       <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div>
-      <div class="right-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen() && isLoaded()'>
-        {{numberOfEmployeesAnsweredForQuestion(r.question_id)}} of {{numberOfEmployeesForQuestion(r.question_id)}}
+
+      <div class="right-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()'>
+        {{numOfAnswers()}} of {{clientMaxReplies()}}
         <i class="fa fa-chevron-right" ng-show='isFinished()'></i>
       </div>
-      <div class="right-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
+      <!-- div class="right-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
         <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} of {{displayMaxAmount()}}</span>
         <i class="fa fa-chevron-right" ng-show='isAnsweredAllNessecearyQuestions()'></i>
-      </div>
+      </div -->
     </div>
   </div>
 </div>

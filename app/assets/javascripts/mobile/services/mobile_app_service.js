@@ -1,4 +1,4 @@
-/*globals angular, window*/
+/*globals angular, window, _*/
 
 angular.module('workships-mobile.services').factory('mobileAppService', function () {
   'use strict';
@@ -29,6 +29,41 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
 
   // var LANGUAGE_DIRECTION = 'rtl';
   var LANGUAGE_DIRECTION = 'ltr';
+
+  // Questionnaire state
+  var s = null;
+
+  // This is the state as we receive it from the server
+  mobileAppService.setState = function(_state) {
+    s = _.clone( _state );
+    s.num_replies_true  = _.filter(s.replies, function(e) {
+      return  e.answer;
+    }).length;
+    s.num_replies_false = _.filter(s.replies, function(e) {
+      return ((e.answer !== null) && (e.answer === false));
+    }).length;
+    s.replies = null;
+
+    s.updateRepliesNumberUp = function(response) {
+      // console.log('mobileAppService.updateRepliesNumberUp() increase response: ', response);
+      if (response) {
+        s.num_replies_true += 1;
+      } else {
+        s.num_replies_false += 1;
+      }
+    };
+    s.updateRepliesNumberDown = function(response) {
+      // console.log('mobileAppService.updateRepliesNumberDown() decrease response: ', response);
+      if (response) {
+        s.num_replies_true -= 1;
+      } else {
+        s.num_replies_false -= 1;
+      }
+    };
+
+    // console.log('MAS state: ', s);
+    mobileAppService.s = s;
+  };
 
   mobileAppService.displayConnectionLostOverlayBlocker = function (options) {
     if (options) {
@@ -140,10 +175,6 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
 
   mobileAppService.setFirstEnterView = function () {
     VIEW = FIRST_ENTER_VIEW;
-  };
-
-  mobileAppService.goToGoogleForm = function () {
-    window.location.href = 'http://goo.gl/forms/znA4ByL6K1';
   };
 
   mobileAppService.setIndexOfCurrentQuestion = function (current_question_index) {

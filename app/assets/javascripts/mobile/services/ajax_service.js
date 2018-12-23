@@ -29,6 +29,13 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       return getPromise(method, url, null, params);
     }
 
+    function updateRepliesInServer(_params) {
+      var method = 'POST';
+      var url = '/update_replies';
+      var params = { data: _params };
+      return getPromise(method, url, null, params);
+    }
+
     function loadOverlayEntityConfiguration() {
       var method = 'GET';
       var url = '/get_overlay_entity_configuration';
@@ -60,6 +67,10 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
 
     ajaxService.get_next_question = function (params) {
       return loadQuestionFromServer(params);
+    };
+
+    ajaxService.update_responses = function(params) {
+      return updateRepliesInServer(params);
     };
 
     ajaxService.changeEntityConfigurationStatus = function (params) {
