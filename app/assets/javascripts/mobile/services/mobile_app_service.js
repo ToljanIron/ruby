@@ -36,6 +36,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   // This is the state as we receive it from the server
   mobileAppService.setState = function(_state) {
     s = _.clone( _state );
+
     s.num_replies_true  = _.filter(s.replies, function(e) {
       return  e.answer;
     }).length;
@@ -63,6 +64,15 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
 
     // console.log('MAS state: ', s);
     mobileAppService.s = s;
+  };
+
+  mobileAppService.updateState = function(_state) {
+    mobileAppService.s.num_replies_true  = _.filter(_state.replies, function(e) {
+      return  e.answer;
+    }).length;
+    mobileAppService.s.num_replies_false = _.filter(_state.replies, function(e) {
+      return ((e.answer !== null) && (e.answer === false));
+    }).length;
   };
 
   mobileAppService.displayConnectionLostOverlayBlocker = function (options) {

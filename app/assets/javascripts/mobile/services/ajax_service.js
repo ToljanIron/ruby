@@ -29,9 +29,9 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       return getPromise(method, url, null, params);
     }
 
-    function updateRepliesInServer(_params) {
+    function closeQuestion(_params) {
       var method = 'POST';
-      var url = '/update_replies';
+      var url = '/close_question';
       var params = { data: _params };
       return getPromise(method, url, null, params);
     }
@@ -69,8 +69,8 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       return loadQuestionFromServer(params);
     };
 
-    ajaxService.update_responses = function(params) {
-      return updateRepliesInServer(params);
+    ajaxService.close_question = function(params) {
+      return closeQuestion(params);
     };
 
     ajaxService.changeEntityConfigurationStatus = function (params) {

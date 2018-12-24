@@ -8,6 +8,7 @@ class QuestionnaireController < ApplicationController
   before_action :authenticate_user, except: [:show_mobile,
                                              :all_employees,
                                              :get_next_question,
+                                             :close_question,
                                              :keep_alive,
                                              :show_quest,
                                              :autosave]
@@ -17,7 +18,7 @@ class QuestionnaireController < ApplicationController
     authorize :application, :passthrough
     permitted = params.permit(:token)
     token = sanitize_alphanumeric(permitted[:token])
-    raise "No such participant" if token.nil?
+    raise "No such token" if token.nil?
     emps = hash_employees_of_company_by_token(token)
     if emps
       render json: emps, status: 200
@@ -29,23 +30,35 @@ class QuestionnaireController < ApplicationController
   def get_next_question
     authorize :application, :passthrough
     token = sanitize_alphanumeric(params[:data][:token])
-    raise "No such participant" if token.nil?
+    raise "No such token" if token.nil?
     res = get_questionnaire_details(token)
     reps = get_question_participants(token, res)
     res[:replies] = reps[:replies]
     res[:client_min_replies] = reps[:client_min_replies]
     res[:client_max_replies] = reps[:client_max_replies]
+
+    puts "ggggggggggggggggggggggggggggggggggg 3"
+    ap res
+    puts "ggggggggggggggggggggggggggggggggggg 4"
     res = Oj.dump(res)
     render json: res
   end
 
-  def update_replies
+  def close_question
     authorize :application, :passthrough
-    puts "======================================="
-    ap params
-    puts "======================================="
     token = sanitize_alphanumeric(params[:data][:token])
-    raise "No such participant" if token.nil?
+    raise "No such token" if token.nil?
+    qd = get_questionnaire_details(token)
+
+    ## Update replies
+    ## We defer sanitizing to the helper where we rely on ActiveRecord to do that
+    update_replies(qd[:qpid], params[:data])
+
+    msg = close_questionnaire_question(token, qd)
+
+    res = (msg.nil? ? {status: 'ok'} : {status: 'fail', reason: msg});
+    res = Oj.dump(res)
+    render json: res
   end
 
   def show_home

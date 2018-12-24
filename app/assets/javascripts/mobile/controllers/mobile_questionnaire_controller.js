@@ -1,4 +1,4 @@
-/*globals angular, unused, localStorage, _, $, document */
+/*globals angular, unused, localStorage, _, $, document, Promise */
 'use strict';
 
 angular.module('workships-mobile')
@@ -318,52 +318,95 @@ angular.module('workships-mobile')
     return replies;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  //  Handle results returning from the get_questionnaire_employees API
+  /////////////////////////////////////////////////////////////////////////////
+  function handleEmployeesResult(response) {
+    console.log('In handleEmployeesResult(), response: ', response);
+    $scope.employees = response.data;
+    _.each($scope.employees, function (e) {
+      e.id = +e.id;
+      e.qp_id = +e.qp_id;
+    });
+    $scope.search_list = getSearchList();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  //  Handle results returning from the get_next_question API
+  /////////////////////////////////////////////////////////////////////////////
+  function hadleGetNextQuestionResult(response, options) {
+    console.log('In hadleGetNextQuestionResult(), response: ', response);
+    $scope.original_data = response.data;
+    var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
+    var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
+    $scope.workers = employees_for_question;
+    $scope.unselected_workers = $scope.workers;
+
+    if (options && options.reset_question) {
+      $scope.original_data.replies = resetAllReplies($scope.original_data.replies);
+      $scope.currentlyFocusedEmployeeId = -1;
+    }
+    mobileAppService.setIndexOfCurrentQuestion(response.data.current_question_position);
+
+    if (response.data.min === response.data.max) {
+      mobileAppService.setQuestionTypeClearScreen();
+    } else {
+      mobileAppService.setQuestionTypeMinMax(response.data.min, response.data.max);
+    }
+
+    $scope.questions_to_answer = format_questions_to_answer(response.data);
+
+    buildQuestionResponseStructs();
+    mobileAppService.updateState(response.data);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  //  Handle results returning from the close_question API
+  /////////////////////////////////////////////////////////////////////////////
+  function handleCloseQuestionResult(response) {
+
+    console.log('In handleCloseQuestionResult(), response: ', response);
+    if (response === undefined) { return; }
+    var res = response.data;
+    if (res && res.status === 'fail') {
+      console.error('Question was not closed becuase: ', res.reason);
+    }
+    console.log('handleCloseQuestionResult() done');
+  }
 
   function syncDataWithServer(params, options) {
     console.log('In syncDataWithServer(), params: ', params);
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
     if (options && options.continue_later) {
       params.continue_later = true;
     } else {
       params.continue_later = false;
     }
-    //params.token = $scope.token;
+
     var p1 = ajaxService.get_employees(params);
-    console.log("Sending get_next_question from mobile_questionnaire_cont");
-    var p2 = ajaxService.get_next_question(params);
+    // The reason for doing this here is that the first time this function is
+    // called we don't want to close the question, but in subsequent calls we
+    // do. At any rate we can only call get_next_question if the previouse
+    // question was already called.
+    console.log('options before calling p2: ', options);
+    console.log('is true? : ', (options && options.close_question) );
+    var p2 = (options && options.close_question ?
+              ajaxService.close_question(params) :
+              Promise.resolve());
 
     if (options && options.reset) {
       $q.all([
         p1.then(function (response) {
-          $scope.employees = response.data;
-          _.each($scope.employees, function (e) {
-            e.id = +e.id;
-            e.qp_id = +e.qp_id;
-          });
-          $scope.search_list = getSearchList();
+          handleEmployeesResult(response);
         }),
         p2.then(function (response) {
-          $scope.original_data = response.data;
-          var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
-          var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
-          $scope.workers = employees_for_question;
-          $scope.unselected_workers = $scope.workers;
-
-          if (options && options.reset_question) {
-            $scope.original_data.replies = resetAllReplies($scope.original_data.replies);
-            $scope.currentlyFocusedEmployeeId = -1;
-          }
-          mobileAppService.setIndexOfCurrentQuestion(response.data.current_question_position);
-
-          if (response.data.min === response.data.max) {
-            mobileAppService.setQuestionTypeClearScreen();
-          } else {
-            mobileAppService.setQuestionTypeMinMax(response.data.min, response.data.max);
-          }
-
-          $scope.questions_to_answer = format_questions_to_answer(response.data);
-
-          buildQuestionResponseStructs();
-        }),
+            handleCloseQuestionResult(response);
+          }).then(function () {
+              console.log('Calling get_next_question now');
+              return ajaxService.get_next_question(params);
+            }).then(function (response) {
+              hadleGetNextQuestionResult(response, options);
+            })
       ]).then(function () {
         if ($scope.original_data.status === 'done') {
           mobileAppService.setFinishView();
@@ -390,9 +433,6 @@ angular.module('workships-mobile')
     _.forEach($scope.original_data.replies, function (r, i) {
       r.answer = responses[i].response;
     });
-
-    // Update the server here
-    ajaxService.update_responses($scope.original_data);
   }
 
   $scope.minMaxOnFinish = function () {
@@ -409,7 +449,7 @@ angular.module('workships-mobile')
   $scope.clearScreenOnFinish = function () {
     if (!$scope.isFinished()) { return; }
     updateScopeResponsesFromAnswers();
-    $scope.init($scope.original_data);
+    $scope.init($scope.original_data, {close_question: true});
   };
 
   $scope.continueLater = function () {
@@ -458,7 +498,6 @@ angular.module('workships-mobile')
     $scope._ = _;
     $scope.search_added_emps = [];
     options = options || {};
-    // $scope.token = token;
     $scope.undo_worker_stack = [];
     $scope.clicked_on_next = [false];
     $scope.state_saved = [false];
@@ -472,7 +511,14 @@ angular.module('workships-mobile')
       left: false,
     };
     $scope.params = next_question_params || { token: mobileAppService.getToken() };
-    syncDataWithServer($scope.params, {continue_later: !next_question_params, reset: true, reset_question: options.reset_question});
+    $scope.params.token = mobileAppService.getToken();
+    var opts = {
+      continue_later: !next_question_params,
+      reset: true,
+      reset_question: options.reset_question,
+      close_question: (options.close_question === true ? true : false)
+    };
+    syncDataWithServer($scope.params, opts);
     $scope.search_input = { text: ''};
 
     $scope.workers = null;

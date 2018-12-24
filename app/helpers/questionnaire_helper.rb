@@ -39,39 +39,54 @@ module QuestionnaireHelper
     aq = Questionnaire.find(qp.questionnaire_id)
     raise "No questionnaire found for participant #{qp.id}" if aq.nil?
 
-    qq = QuestionnaireQuestion.find_by(id: qp.current_questiannair_question_id)
-
-    if qq.nil?
-      qq = QuestionnaireQuestion
-             .where(questionnaire_id: aq.id, active: true)
-             .order(:order)
-             .first
-      qp.current_questiannair_question_id = qq.id
-      qp.status = :entered
-      qp.save!
+    qq = nil
+    if qp.current_questiannair_question_id == -1
+      qp.update!(current_questiannair_question_id: nil,
+                 status: :completed)
+    else
+      qq = QuestionnaireQuestion.find_by(id: qp.current_questiannair_question_id)
+      if qq.nil?
+        qq = QuestionnaireQuestion
+               .where(questionnaire_id: aq.id, active: true)
+               .order(:order)
+               .first
+        qp.current_questiannair_question_id = qq.id
+        qp.status = :entered
+        qp.save!
+      end
+      raise "No questions defined for questionnaire" if qq.nil?
     end
-    raise "No questions defined for questionnaire" if qq.nil?
-
 
     total_questions = QuestionnaireQuestion
                         .where(questionnaire_id: aq.id, active: true).count
-    current_question_position = qq.question_position
+
+    status = nil
+    if qp.status == 'notstarted'
+      status = 'first time'
+    elsif qp.status == 'entered' || qp.status == 'in_process'
+      status = 'in process'
+    elsif qp.status == 'completed'
+      status = 'done'
+    else
+      raise "Unknown status: #{qp.status} for questionnaire participant: #{qp.id}"
+    end
 
     return {
       q_state: aq.state,
       qp_state: qp.status,
+      status: status,
       questionnaire_id: aq.id,
       qpid: qp.id,
-      question_id: qq.id,
-      depends_on_question: qq.depends_on_question,
-      is_funnel_question: qq.is_funnel_question,
-      max: qq.max,
-      min: qq.min,
+      question_id: (qq.nil? ? nil : qq.id),
+      depends_on_question: (qq.nil? ? nil : qq.depends_on_question),
+      is_funnel_question: (qq.nil? ? nil : qq.is_funnel_question),
+      max: (qq.nil? ? nil : qq.max),
+      min: (qq.nil? ? nil : qq.min),
       questionnaire_name: aq.name,
       use_employee_connections: aq.use_employee_connections,
-      question: qq.body,
-      question_title: qq.title,
-      current_question_position: current_question_position,
+      question: (qq.nil? ? nil : qq.body),
+      question_title: (qq.nil? ? nil : qq.title),
+      current_question_position: (qq.nil? ? nil : qq.question_position),
       total_questions: total_questions
     }
   end
@@ -166,14 +181,14 @@ module QuestionnaireHelper
   #      connected employees.
   #
   ##############################################################################
-  def close_questionnaire_question(token)
-    qd = get_questionnaire_details(token)
+  def close_questionnaire_question(token, qd)
     qid  = qd[:questionnaire_id]
     qqid = qd[:question_id]
     qpid = qd[:qpid]
     max = qd[:max]
     min = qd[:min]
-    eid = QuestionnaireParticipant.find_by(id: qpid).try(:employee_id)
+    qp = QuestionnaireParticipant.find_by(id: qpid)
+    eid = qp.try(:employee_id)
     raise "Did not find employee for participant: #{qpid}" if eid.nil?
 
     fail_res = nil
@@ -207,16 +222,31 @@ module QuestionnaireHelper
           fail_res = 'Less replies than employee connections' if (replies_len < qps_len)
         else
           qps_len = get_qps_from_questionnaire_participants(qid, qpid).length
+          puts "ooooooooooooooooooooooooooooooooooooo"
+          puts "qps_len: #{qps_len}, replies_len: #{replies_len}"
+          puts "ooooooooooooooooooooooooooooooooooooo"
           fail_res = 'Less replies than participants' if (replies_len < qps_len)
         end
       end
     end
 
+    ## Update question
+    qq = QuestionnaireQuestion.find(qqid)
+    next_qq = QuestionnaireQuestion
+                .where(questionnaire_id: qid, active: true)
+                .where("questionnaire_questions.order > #{qq.order}")
+                .order(:order)
+                .first
+
+    next_qq_id = (next_qq.nil? ? -1 : next_qq.id)
+    qp.current_questiannair_question_id = next_qq_id
+    qp.save!
+
     return fail_res
   end
 
   #############################################################################
-  # This is the structure that's conssumed by th client, so do not chante.
+  # This is the structure that's conssumed by th client, so do not change.
   #############################################################################
   def hash_employees_of_company_by_token(token)
     qp_ids = QuestionnaireParticipant
@@ -238,6 +268,18 @@ module QuestionnaireHelper
     res = ActiveRecord::Base.connection.select_all(query)
     res = res.to_json
     return res
+  end
+
+  #############################################################################
+  # Update the participant's replies
+  #############################################################################
+  def update_replies(qpid, json)
+    qp = QuestionnaireParticipant.find_by(id: qpid)
+    raise 'No such participant' if qp.nil?
+    if !json['replies'].nil?
+      QuestionnaireHelper.create_employees_connections(json, qp)
+      qp.update_replies(json['replies'])
+    end
   end
 
   private
@@ -308,5 +350,35 @@ module QuestionnaireHelper
     end
 
     return hash.values
+  end
+
+  ## Add entries to the employees_connections table base on the replies
+  def self.create_employees_connections(json, qp)
+    response_emps_ids = json['replies'].map do |r|
+      if r['eid'] || r['answer'] == false
+        nil
+      else
+        r['employee_details_id']
+      end
+    end.compact
+    return if response_emps_ids.nil? || response_emps_ids.empty?
+
+    select_query = "select employee_id, connection_id from employees_connections
+                    where (employee_id in (#{response_emps_ids.join(',')}) and connection_id = #{qp[:employee_id]})
+                    or (employee_id = #{qp[:employee_id]} and connection_id in (#{response_emps_ids.join(',')}))"
+
+    existing_connections = JSON.parse(ActiveRecord::Base.connection.select_all(select_query).to_json)
+
+    values = []
+    (response_emps_ids - existing_connections.map { |ec| ec['connection_id'].to_i }).each do |connection_id|
+      values << "(#{qp.employee_id}, #{connection_id})"
+    end
+    (response_emps_ids - existing_connections.map { |ec| ec['employee_id'].to_i }).each do |employee_id|
+      values << "(#{employee_id}, #{qp.employee_id})"
+    end
+
+    return if values.empty?
+    insert_query = "insert into employees_connections (employee_id, connection_id) values #{values.join(',')}"
+    ActiveRecord::Base.connection.execute(insert_query)
   end
 end
