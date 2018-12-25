@@ -50,7 +50,7 @@ module SanitizeHelper
     raise "Parameter is not an id"
   end
 
-  def sanitze_boolean(b)
+  def sanitize_boolean(b)
     return nil if b.nil?
     return nil if b == ''
     return b if b == true || b == 'true' || b == 'True'

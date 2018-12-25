@@ -25,8 +25,8 @@ Workships::Application.routes.draw do
   get   'get_questionnaire_employees', to: 'questionnaire#all_employees'
   post  'get_next_question',           to: 'questionnaire#get_next_question'
   post  'close_question',              to: 'questionnaire#close_question'
+  get   'keep_alive',                  to: 'questionnaire#keep_alive'
 
-  get   'keep_alive'     => 'mobile/mobile#keep_alive'
   get   'question/active_employess', to: 'mobile/questionnaire#active_employees'
   post  'receive_sms', to: 'sms#receive_and_respond'
 

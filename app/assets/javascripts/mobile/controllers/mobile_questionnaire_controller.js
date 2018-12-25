@@ -109,6 +109,8 @@ angular.module('workships-mobile')
   }
 
   function isLessAvailableEmployeesThanMinimum() {
+    if (!mass.isFunnelQuestion()) { return; }
+
     if ($scope.numberOfEmployeesForQuestion($scope.r.question_id) - $scope.numberOfEmployeesAnsweredFalseForQuestion($scope.r.question_id) < mobileAppService.getMinMaxAmounts().min) {
       $timeout(function () {
         mobileAppService.displayOverlayBlocker(mobileAppService.getMinMaxAmounts().min, {unblock_on_click: true});
@@ -130,9 +132,7 @@ angular.module('workships-mobile')
     };
     undo_stack.push(undo_step);
 
-    // Update the response
     r.response = response;
-    // console.log('mass: ', mass);
     mass.updateRepliesNumberUp(response);
 
     var emp = $scope.unselected_workers.splice(_.findIndex($scope.unselected_workers, {id: employee_id}), 1);
@@ -154,7 +154,9 @@ angular.module('workships-mobile')
     }
 
     ///// NEED to see if can get rid of this line. This is what causes the annoying message to pop up sometimes.
-    if (mobileAppService.isQuestionTypeMinMax()) { isLessAvailableEmployeesThanMinimum(); }
+    if (mobileAppService.isQuestionTypeMinMax()) {
+      isLessAvailableEmployeesThanMinimum();
+    }
   };
 
   $scope.onUndo = function () {

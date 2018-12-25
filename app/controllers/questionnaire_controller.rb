@@ -29,10 +29,16 @@ class QuestionnaireController < ApplicationController
 
   def get_next_question
     authorize :application, :passthrough
+    p = params.permit!
     token = sanitize_alphanumeric(params[:data][:token])
     raise "No such token" if token.nil?
+
+    is_desktop = sanitize_boolean(params[:data][:desktop])
+    is_desktop = true  if is_desktop == 'true'  || is_desktop == true
+    is_desktop = false if is_desktop == 'false' || is_desktop == false
+
     res = get_questionnaire_details(token)
-    reps = get_question_participants(token, res)
+    reps = get_question_participants(token, res, is_desktop)
     res[:replies] = reps[:replies]
     res[:client_min_replies] = reps[:client_min_replies]
     res[:client_max_replies] = reps[:client_max_replies]
@@ -100,10 +106,11 @@ class QuestionnaireController < ApplicationController
   end
 
   def keep_alive
-    counter = params[:counter]
+    authorize :application, :passthrough
+    permitted = params.permit(:counter)
+    counter = permitted[:counter]
     render json: { alive: counter }, status: 200
   end
-
 
   private
 

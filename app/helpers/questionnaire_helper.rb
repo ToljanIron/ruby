@@ -39,37 +39,42 @@ module QuestionnaireHelper
     aq = Questionnaire.find(qp.questionnaire_id)
     raise "No questionnaire found for participant #{qp.id}" if aq.nil?
 
-    qq = nil
+    status = nil
+    qq     = nil
+
+    ## If its the last question
     if qp.current_questiannair_question_id == -1
-      qp.update!(current_questiannair_question_id: nil,
-                 status: :completed)
+      status = 'done'
+      qp_status = :completed
+      current_questiannair_question_id = nil
+
+    ## Not the last question
     else
       qq = QuestionnaireQuestion.find_by(id: qp.current_questiannair_question_id)
+
+      ## It is nil if it's the first question
       if qq.nil?
         qq = QuestionnaireQuestion
                .where(questionnaire_id: aq.id, active: true)
                .order(:order)
                .first
-        qp.current_questiannair_question_id = qq.id
-        qp.status = :entered
-        qp.save!
+        raise "No questions defined for questionnaire" if qq.nil?
+
+        status = 'first time'
+        qp_status = :entered
+
+      ## Not the first or last question
+      else
+        status = 'in process'
+        qp_status = :in_process
       end
-      raise "No questions defined for questionnaire" if qq.nil?
+      current_questiannair_question_id = qq.id
     end
+      qp.update!(current_questiannair_question_id: current_questiannair_question_id,
+                 status: qp_status)
 
     total_questions = QuestionnaireQuestion
                         .where(questionnaire_id: aq.id, active: true).count
-
-    status = nil
-    if qp.status == 'notstarted'
-      status = 'first time'
-    elsif qp.status == 'entered' || qp.status == 'in_process'
-      status = 'in process'
-    elsif qp.status == 'completed'
-      status = 'done'
-    else
-      raise "Unknown status: #{qp.status} for questionnaire participant: #{qp.id}"
-    end
 
     return {
       q_state: aq.state,
@@ -113,7 +118,7 @@ module QuestionnaireHelper
   #       appear yet in the question_replies.
   #
   ##############################################################################
-  def get_question_participants(token, qd=nil)
+  def get_question_participants(token, qd=nil, is_desktop=false)
     qd = get_questionnaire_details(token) if qd.nil?
     qid  = qd[:questionnaire_id]
     qqid = qd[:question_id]
@@ -143,7 +148,7 @@ module QuestionnaireHelper
           base_list = get_qps_from_questionnaire_participants(qid, qpid)
         end
       end
-      client_min_replies = base_list.length
+      client_min_replies = is_desktop ? 0    : base_list.length
       client_max_replies = base_list.length
     end
 
@@ -222,9 +227,6 @@ module QuestionnaireHelper
           fail_res = 'Less replies than employee connections' if (replies_len < qps_len)
         else
           qps_len = get_qps_from_questionnaire_participants(qid, qpid).length
-          puts "ooooooooooooooooooooooooooooooooooooo"
-          puts "qps_len: #{qps_len}, replies_len: #{replies_len}"
-          puts "ooooooooooooooooooooooooooooooooooooo"
           fail_res = 'Less replies than participants' if (replies_len < qps_len)
         end
       end

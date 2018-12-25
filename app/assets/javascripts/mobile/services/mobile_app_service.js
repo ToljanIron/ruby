@@ -46,7 +46,6 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     s.replies = null;
 
     s.updateRepliesNumberUp = function(response) {
-      // console.log('mobileAppService.updateRepliesNumberUp() increase response: ', response);
       if (response) {
         s.num_replies_true += 1;
       } else {
@@ -54,7 +53,6 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
       }
     };
     s.updateRepliesNumberDown = function(response) {
-      // console.log('mobileAppService.updateRepliesNumberDown() decrease response: ', response);
       if (response) {
         s.num_replies_true -= 1;
       } else {
@@ -62,7 +60,10 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
       }
     };
 
-    // console.log('MAS state: ', s);
+    s.isFunnelQuestion = function() {
+      console.log("s: ", s);
+    };
+
     mobileAppService.s = s;
   };
 

@@ -101,7 +101,7 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
 
       qid = sanitize_id(params['qid'])
-      rerun = sanitze_boolean(params['rerun'])
+      rerun = sanitize_boolean(params['rerun'])
 
       err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid, rerun)
       quests = Questionnaire.get_all_questionnaires(@cid)
