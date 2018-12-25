@@ -8,19 +8,15 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
   function setView(status) {
     switch (status) {
     case 'first time':
-      console.log('VVV in: first time');
       mobileAppService.setFirstEnterView();
       break;
     case 'done':
-      console.log('VVV in: done');
       mobileAppService.setFinishView();
       break;
     case 'in process':
-      console.log('VVV in: in process');
       mobileAppService.setWelcomeBackView();
       break;
     default:
-      console.log('VVV in: default');
       mobileAppService.setWelcomeBackView();
     }
   }
@@ -103,7 +99,6 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     if (response.data.status === 'done') {
       mobileAppService.setFinishView();
     }
-    console.log('reply for get_next: ', response);
 
     $scope.replies = response.data.replies;
     $scope.response = response;
@@ -129,7 +124,6 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
   }
 
   $scope.sendAnswers = function() {
-    console.log('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb 1');
     var chosen_workers_size = $scope.selected_workers.length;
     if (chosen_workers_size < $scope.minimum_required) {
       $scope.selected_less_then_minimum = true;
@@ -138,7 +132,6 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.selected_less_then_minimum = false;
 
     $scope.response.replies = $scope.replies;
-    console.log('get_next_question from sendAnswers(), params: ', $scope.response);
     var params = {
       token: $scope.token,
       replies: $scope.response.replies,
@@ -175,7 +168,6 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     }
     updateReplies();
     $scope.response.replies = $scope.replies;
-    console.log('get_next_question from sendDependentAnswers(), params: ', $scope.response);
     ajaxService.get_next_question($scope.response).then(function () {
       handleGetNextQuestionReply($scope.response, true);
     });
@@ -189,6 +181,12 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     });
     return _.last($scope.replies);
   }
+
+  $scope.numOfReplies = function() {
+    return  _.filter($scope.replies, function(r) {
+      return r.answer !== null;
+    }).length;
+  };
 
   function findOrCreateEmployeeIdInEmployeeReplies(employee_id) {
     var employee_replies =  _.find($scope.replies, { employee_details_id: employee_id});
@@ -368,7 +366,6 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
 
     ajaxService.keepAlive({alive: true});
 
-    console.log('get_next_question from init(), params: ', params);
     ajaxService.get_next_question(params).then(function (response) {
       handleGetNextQuestionReply(response, continue_questionnair);
     });

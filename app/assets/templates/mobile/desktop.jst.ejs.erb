@@ -56,7 +56,7 @@
       <div class='select-left-panel'>
         <div class='selected-title'><%= I18n.t("questionnaire.selected") %></div>
         <div class='questions-wrapper'>
-          <div class='question-out-of-questions'> {{selected_workers.length}} </div>
+          <div class='question-out-of-questions'> {{numOfReplies()}} </div>
           <div class='total-questions'>/{{maximum_required}} </div>
           <div class="clear-btn" ng-click='clearSelection()'><%= I18n.t('questionnaire.clear_selection') %></div>
         </div>

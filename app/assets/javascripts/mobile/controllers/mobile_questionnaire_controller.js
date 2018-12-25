@@ -223,18 +223,24 @@ angular.module('workships-mobile')
   // If is a funnel question then only replies whose value is 'true' count.
   // Otherwise, we count both 'true' and 'false'
   $scope.isFinished = function () {
-    // console.log('In isFinished()');
+    if (mass.is_funnel_question) {
+      return mass.num_replies_true === mass.client_max_replies;
+    }
+    var num_reps = mass.num_replies_true + mass.num_replies_false;
+    return num_reps === mass.client_max_replies;
+  };
+
+  $scope.canFinish = function () {
     if (mass.is_funnel_question) {
       return mass.num_replies_true >= mass.client_min_replies &&
-             mass.num_replies_true >= mass.client_max_replies;
+             mass.num_replies_true <= mass.client_max_replies;
     }
-
     var num_reps = mass.num_replies_true + mass.num_replies_false;
     return num_reps === mass.client_max_replies;
   };
 
   $scope.isAnsweredAllNessecearyQuestions = function () {
-    console.log('Deprecated function');
+    // console.log('Deprecated function');
   };
 
   /************************************************
@@ -324,7 +330,6 @@ angular.module('workships-mobile')
   //  Handle results returning from the get_questionnaire_employees API
   /////////////////////////////////////////////////////////////////////////////
   function handleEmployeesResult(response) {
-    console.log('In handleEmployeesResult(), response: ', response);
     $scope.employees = response.data;
     _.each($scope.employees, function (e) {
       e.id = +e.id;
@@ -336,8 +341,7 @@ angular.module('workships-mobile')
   /////////////////////////////////////////////////////////////////////////////
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
-  function hadleGetNextQuestionResult(response, options) {
-    console.log('In hadleGetNextQuestionResult(), response: ', response);
+  function handleGetNextQuestionResult(response, options) {
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
     var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
@@ -367,18 +371,14 @@ angular.module('workships-mobile')
   /////////////////////////////////////////////////////////////////////////////
   function handleCloseQuestionResult(response) {
 
-    console.log('In handleCloseQuestionResult(), response: ', response);
     if (response === undefined) { return; }
     var res = response.data;
     if (res && res.status === 'fail') {
       console.error('Question was not closed becuase: ', res.reason);
     }
-    console.log('handleCloseQuestionResult() done');
   }
 
   function syncDataWithServer(params, options) {
-    console.log('In syncDataWithServer(), params: ', params);
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
     if (options && options.continue_later) {
       params.continue_later = true;
     } else {
@@ -390,8 +390,6 @@ angular.module('workships-mobile')
     // called we don't want to close the question, but in subsequent calls we
     // do. At any rate we can only call get_next_question if the previouse
     // question was already called.
-    console.log('options before calling p2: ', options);
-    console.log('is true? : ', (options && options.close_question) );
     var p2 = (options && options.close_question ?
               ajaxService.close_question(params) :
               Promise.resolve());
@@ -404,10 +402,9 @@ angular.module('workships-mobile')
         p2.then(function (response) {
             handleCloseQuestionResult(response);
           }).then(function () {
-              console.log('Calling get_next_question now');
               return ajaxService.get_next_question(params);
             }).then(function (response) {
-              hadleGetNextQuestionResult(response, options);
+              handleGetNextQuestionResult(response, options);
             })
       ]).then(function () {
         if ($scope.original_data.status === 'done') {
@@ -449,7 +446,7 @@ angular.module('workships-mobile')
   };
 
   $scope.clearScreenOnFinish = function () {
-    if (!$scope.isFinished()) { return; }
+    if (!$scope.canFinish()) { return; }
     updateScopeResponsesFromAnswers();
     $scope.init($scope.original_data, {close_question: true});
   };
@@ -495,8 +492,6 @@ angular.module('workships-mobile')
   };
 
   $scope.init = function (next_question_params, options) {
-    console.log('In init() - next_question_params: ', next_question_params);
-    console.log('init() - options: ', options);
     $scope._ = _;
     $scope.search_added_emps = [];
     options = options || {};

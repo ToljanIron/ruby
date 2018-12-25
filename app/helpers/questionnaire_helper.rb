@@ -208,41 +208,21 @@ module QuestionnaireHelper
       selected_qps = answered_list.where(answer: true).pluck(:answer).length
       fail_res = 'Too few participants selected' if selected_qps < min
       fail_res = 'Too many participants selected' if selected_qps > max
-
-    else
-      replies_len = answered_list.pluck(:answer).length
-
-      if !qd[:depends_on_question].nil?
-        num_selected_by_funnel_question = QuestionReply
-                     .where(questionnaire_id: qid,
-                            questionnaire_question_id: qd[:depends_on_question],
-                            questionnaire_participant_id: qpid)
-                     .select(:answer).count
-        can_close = (num_selected_by_funnel_question == replies_len)
-        fail_res = 'Fewer replies than selected participants in funnel question' if !can_close
-
-      else
-        if qd[:use_employee_connections]
-          qps_len = get_qps_from_employees_connections(eid).length
-          fail_res = 'Less replies than employee connections' if (replies_len < qps_len)
-        else
-          qps_len = get_qps_from_questionnaire_participants(qid, qpid).length
-          fail_res = 'Less replies than participants' if (replies_len < qps_len)
-        end
-      end
     end
 
     ## Update question
-    qq = QuestionnaireQuestion.find(qqid)
-    next_qq = QuestionnaireQuestion
-                .where(questionnaire_id: qid, active: true)
-                .where("questionnaire_questions.order > #{qq.order}")
-                .order(:order)
-                .first
+    if fail_res.nil?
+      qq = QuestionnaireQuestion.find(qqid)
+      next_qq = QuestionnaireQuestion
+                  .where(questionnaire_id: qid, active: true)
+                  .where("questionnaire_questions.order > #{qq.order}")
+                  .order(:order)
+                  .first
 
-    next_qq_id = (next_qq.nil? ? -1 : next_qq.id)
-    qp.current_questiannair_question_id = next_qq_id
-    qp.save!
+      next_qq_id = (next_qq.nil? ? -1 : next_qq.id)
+      qp.current_questiannair_question_id = next_qq_id
+      qp.save!
+    end
 
     return fail_res
   end

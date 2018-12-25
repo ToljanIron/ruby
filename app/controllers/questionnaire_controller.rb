@@ -43,9 +43,6 @@ class QuestionnaireController < ApplicationController
     res[:client_min_replies] = reps[:client_min_replies]
     res[:client_max_replies] = reps[:client_max_replies]
 
-    puts "ggggggggggggggggggggggggggggggggggg 3"
-    ap res
-    puts "ggggggggggggggggggggggggggggggggggg 4"
     res = Oj.dump(res)
     render json: res
   end

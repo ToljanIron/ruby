@@ -87,9 +87,9 @@
         <i class="fa fa-chevron-left" ng-show='isAnsweredAllNessecearyQuestions()'></i>
         <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} / {{displayMaxAmount()}}</span>
       </div>
-      <div class="left-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()' ng-if='mobile_app_service.isQuestionTypeClearScreen() && isLoaded()'>
-        <i class="fa fa-chevron-left" ng-show='isFinished()'></i>
-        {{numberOfEmployeesAnsweredForQuestion(r.question_id)}} / {{numberOfEmployeesForQuestion(r.question_id)}}
+      <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
+        <i class="fa fa-chevron-left" ng-show='canFinish()'></i>
+        {{numOfAnswers()}} of {{clientMaxReplies()}}
       </div>
     </div>
   </div>
@@ -102,14 +102,10 @@
 
       <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div>
 
-      <div class="right-button" ng-class='{finished: isFinished(), disabled: !isFinished()}' ng-click='clearScreenOnFinish()'>
+      <div class="right-button" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
         {{numOfAnswers()}} of {{clientMaxReplies()}}
-        <i class="fa fa-chevron-right" ng-show='isFinished()'></i>
+        <i class="fa fa-chevron-right" ng-show='canFinish()'></i>
       </div>
-      <!-- div class="right-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
-        <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} of {{displayMaxAmount()}}</span>
-        <i class="fa fa-chevron-right" ng-show='isAnsweredAllNessecearyQuestions()'></i>
-      </div -->
     </div>
   </div>
 </div>
