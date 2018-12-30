@@ -216,6 +216,12 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
       employee_replies.selected = !employee_replies.selected;
       employee_replies.answer = !employee_replies.answer;
     }
+
+    // Also update $scope.replies
+    if (selected === false) {
+      var reply = _.find($scope.replies, function(r) { return r.e_id === employee_replies.e_id; });
+      reply.answer = null;
+    }
   };
 
   $scope.approve_worker = function (id) {
