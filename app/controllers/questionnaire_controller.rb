@@ -9,6 +9,7 @@ class QuestionnaireController < ApplicationController
                                              :all_employees,
                                              :get_next_question,
                                              :close_question,
+                                             :update_question_replies,
                                              :keep_alive,
                                              :show_quest,
                                              :autosave]
@@ -47,6 +48,20 @@ class QuestionnaireController < ApplicationController
     render json: res
   end
 
+  def update_question_replies
+    authorize :application, :passthrough
+    p = params.permit!
+    token = sanitize_alphanumeric(p[:data][:token])
+    raise "No such token" if token.nil?
+    qd = get_questionnaire_details(token)
+
+    ## We defer sanitizing to the helper where we rely on ActiveRecord to do that
+    update_replies(qd[:qpid], params[:data])
+    res = Oj.dump({status: 'ok'})
+    render json: res
+
+  end
+
   def close_question
     authorize :application, :passthrough
     token = sanitize_alphanumeric(params[:data][:token])
@@ -57,7 +72,7 @@ class QuestionnaireController < ApplicationController
     ## We defer sanitizing to the helper where we rely on ActiveRecord to do that
     update_replies(qd[:qpid], params[:data])
 
-    msg = close_questionnaire_question(token, qd)
+    msg = close_questionnaire_question(qd)
 
     res = (msg.nil? ? {status: 'ok'} : {status: 'fail', reason: msg});
     res = Oj.dump(res)

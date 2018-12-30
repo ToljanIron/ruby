@@ -13,9 +13,10 @@ angular.module('workships-mobile')
   var mass = mobileAppService.s;
 
   function buildQuestionResponseStructs() {
-    $log.debug('In buildQuestionResponseStructs()');
     $scope.responses = {};
+
     var q = $scope.questions_to_answer;
+
     $scope.responses[q.id] = {
       question_id: q.id,
       question: q.question,
@@ -56,7 +57,9 @@ angular.module('workships-mobile')
     res.question_title = data.question_title;
     res.employee_data = [];
     _.each(data.replies, function (r) {
-      res.employee_data.push({e_id: r.e_id, answer: r.answer, employee_details_id: r.employee_details_id});
+      if (r.answer === null) {
+        res.employee_data.push({e_id: r.e_id, answer: r.answer, employee_details_id: r.employee_details_id});
+      }
     });
     return res;
   }
@@ -128,7 +131,7 @@ angular.module('workships-mobile')
       question_id: question_id,
       employee_details_id: employee_details_id,
       employee_id: employee_id,
-      response: null,
+      response: response,
     };
     undo_stack.push(undo_step);
 
@@ -153,7 +156,6 @@ angular.module('workships-mobile')
       $scope.clicked_on_next[0] = true; // force click on next
     }
 
-    ///// NEED to see if can get rid of this line. This is what causes the annoying message to pop up sometimes.
     if (mobileAppService.isQuestionTypeMinMax()) {
       isLessAvailableEmployeesThanMinimum();
     }
@@ -171,10 +173,10 @@ angular.module('workships-mobile')
       var r = $scope.responseForQuestionAndEmployee(undo_step.question_id, undo_step.employee_id);
       $scope.unselected_workers.push($scope.undo_worker_stack.pop());
       if (!r) { return; }
-      r.response = undo_step.response;
+      r.response = null;
       $scope.currentlyFocusedEmployeeId = undo_step.employee_id;
 
-      mass.updateRepliesNumberDown(r.response);
+      mass.updateRepliesNumberDown(undo_step.response);
     }
     $scope.clicked_on_next[0] = false;
   };
@@ -412,6 +414,7 @@ angular.module('workships-mobile')
         } else {
           $scope.r = $scope.responses[_.keys($scope.responses)[0]];
           $scope.tiny_array = $scope.r.responses.slice(0, 10);
+          $scope.currentlyFocusedEmployeeId = $scope.tiny_array[0].employee_id;
           if (!options.reset_question) {
             $scope.show_full_question = true;
           }
@@ -419,6 +422,12 @@ angular.module('workships-mobile')
         }
       });
     }
+  }
+
+  function updateReplies(params) {
+    ajaxService.update_replies(params).then(function(res) {
+      console.log('update_replies() - res: ', res);
+    });
   }
 
   $scope.loadMore = function () {
@@ -429,9 +438,20 @@ angular.module('workships-mobile')
 
   function updateScopeResponsesFromAnswers() {
     var responses = $scope.responses[_.keys($scope.responses)[0]].responses;
-    _.forEach($scope.original_data.replies, function (r, i) {
-      r.answer = responses[i].response;
+
+    // The arrays: responses and $scope.original_data.replies do not have the same size,
+    // so we fix it here.
+    var updated_replies = [];
+    _.forEach($scope.original_data.replies, function (r) {
+      // Find the right employee
+      var response = _.find(responses, function(resp) { return resp.employee_id === r.e_id; });
+
+      if ( response !== undefined ) {
+        r.answer = response.response;
+        updated_replies.push(r);
+      }
     });
+    $scope.original_data.replies = updated_replies;
   }
 
   $scope.minMaxOnFinish = function () {
@@ -455,7 +475,8 @@ angular.module('workships-mobile')
     $log.debug('In continueLater()');
     updateScopeResponsesFromAnswers();
     $scope.state_saved[0] = true;
-    syncDataWithServer($scope.original_data, {continue_later: true, reset: false});
+    $scope.original_data.token = $scope.params.token;
+    updateReplies($scope.original_data);
   };
 
   $scope.getEmployeeIdByName = function (name) {
@@ -476,7 +497,6 @@ angular.module('workships-mobile')
     if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
       var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
       $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
-      // $scope.onUserResponse($scope.r.question_id, $scope.currentlyFocusedEmployeeId, true, $item.id);
     } else {
       var emp = _.find($scope.employees, { 'id': $item.id });
       $scope.search_added_emps.push(emp.qp_id);

@@ -61,7 +61,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     };
 
     s.isFunnelQuestion = function() {
-      console.log("s: ", s);
+      return false;
     };
 
     mobileAppService.s = s;

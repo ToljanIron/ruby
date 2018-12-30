@@ -186,7 +186,7 @@ module QuestionnaireHelper
   #      connected employees.
   #
   ##############################################################################
-  def close_questionnaire_question(token, qd)
+  def close_questionnaire_question(qd)
     qid  = qd[:questionnaire_id]
     qqid = qd[:question_id]
     qpid = qd[:qpid]
