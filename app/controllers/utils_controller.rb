@@ -1,8 +1,6 @@
 include ImportDataHelper
 include XlsHelper
 include CdsUtilHelper
-require './app/helpers/mobile/companies_helper.rb'
-include Mobile::CompaniesHelper
 
 class UtilsController < ApplicationController
   def qqq
