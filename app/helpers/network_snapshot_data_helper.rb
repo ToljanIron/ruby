@@ -400,7 +400,7 @@ module NetworkSnapshotDataHelper
   def get_employees_for_map(empids, snapshot_field, interval, sid, aid)
     extids = Employee.where(id: empids).pluck(:external_id)
     nodes = Employee
-            .select("first_name, last_name, emps.group_id, emps.color_id, gender,
+            .select("first_name, last_name, emps.group_id, g.color_id, gender,
                      emps.external_id, avg(cds.score) AS d, o.name AS office_name, g.name,
                      jt.name AS job_title_name, rank_id, ro.name AS role_name, email")
             .from('employees AS emps')
@@ -412,7 +412,7 @@ module NetworkSnapshotDataHelper
             .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
             .where("sn.%s = '%s'", snapshot_field, interval)
             .where("emps.external_id IN ('#{extids.join("','")}')")
-            .group('first_name, last_name, emps.group_id, emps.color_id, gender, g.name,
+            .group('first_name, last_name, emps.group_id, g.color_id, gender, g.name,
                     office_name, jt.name, rank_id, role_name, emps.external_id, email')
 
     nodes = nodes.as_json

@@ -183,7 +183,8 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
 
     ibo_process_request do
-      qid = sanitize_id(params[:qid])
+      p = params.permit(:qid)
+      qid = sanitize_id(p[:qid])
       aq = Questionnaire.find(qid)
       InteractBackofficeActionsHelper.close_questionnaire(aq)
       res_aq = Questionnaire.find(qid).as_json

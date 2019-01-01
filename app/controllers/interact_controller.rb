@@ -59,7 +59,7 @@ class InteractController < ApplicationController
     permitted = params.permit(:qqid, :gids)
 
     qqid = sanitize_id(permitted[:qqid]).try(:to_i)
-    gids = sanitize_id(permitted[:gids])
+    gids = sanitize_gids(permitted[:gids])
     cid  = current_user.company_id
 
     qq = nil

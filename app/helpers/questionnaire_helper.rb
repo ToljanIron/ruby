@@ -28,6 +28,8 @@ Non-funnel questions do not have min/max numbers and the current participant
 
 module QuestionnaireHelper
 
+  EVENT_TYPE ||= 'QUESTIONNAIRE'
+
   ##############################################################################
   # Returns a questionnaire's state
   ##############################################################################
@@ -264,6 +266,62 @@ module QuestionnaireHelper
     end
   end
 
+  def self.freeze_questionnaire_replies_in_snapshot(quest_id, date = Time.now.strftime('%Y-%m-%d'))
+
+    questionnaire = Questionnaire.find_by(id: quest_id)
+    raise "Did not find questionnaire for id: #{quest_id}" unless questionnaire
+    cid = questionnaire.company.id
+
+    replies = QuestionReply.where(questionnaire_id: quest_id)
+    begin
+      sid = questionnaire.snapshot_id
+      puts "current sid: #{sid}"
+
+      EventLog.log_event(event_type_name: EVENT_TYPE, message: "with name: #{questionnaire.name} copied to snapshot: #{sid}")
+
+      ii = 0
+      replies.select { |reply| !reply.answer.nil? }.each do |reply|
+        puts "Batch #{ii}" if ((ii % 200) == 0)
+        ii += 1
+        qqid = reply.questionnaire_question_id
+        qq = QuestionnaireQuestion.find_by_id(qqid)
+        nid = qq.network_id
+        next if nid.nil?
+        value = convert_answer(reply.answer)
+        from = QuestionnaireParticipant.where(id: reply.questionnaire_participant_id).first
+        to = QuestionnaireParticipant.where(id: reply.reffered_questionnaire_participant_id).first
+        next unless from && to
+
+        newfromid = Employee.id_in_snapshot(from.employee.id, sid)
+        newtoid   = Employee.id_in_snapshot(  to.employee.id, sid)
+
+        next if (newfromid == nil || newtoid == nil)
+
+        NetworkSnapshotData.find_or_create_by(
+          snapshot_id:               sid,
+          original_snapshot_id:      sid,
+          network_id:                nid,
+          company_id:                cid,
+          from_employee_id:          newfromid,
+          to_employee_id:            newtoid,
+          value:                     value,
+          questionnaire_question_id: reply.questionnaire_question_id
+        )
+      end
+      questionnaire.update(last_snapshot_id: sid)
+      Snapshot.find(sid).update(status: 2)
+      sid
+    rescue => e
+      puts "EXCEPTION: Failed to freeze questionnaire with id: #{quest_id}, error: #{e.message[0..1000]}"
+      puts e.backtrace
+      raise ActiveRecord::Rollback
+    end
+  end
+
+  def self.convert_answer(answer)
+    return 1 if answer == true
+    return 0
+  end
   private
 
   #############################################################################

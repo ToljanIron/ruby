@@ -89,12 +89,9 @@ class Questionnaire < ActiveRecord::Base
 
     EmailMessage.where(questionnaire_participant_id: q_participants).update_all(pending: true)
     pending_emails = EmailMessage.where(pending: true)
-    puts "************************"
     ActionMailer::Base.smtp_settings
     pending_emails.each do |email|
 
-      puts "Sending mail..."
-      puts "************************"
       # Remove comment from next line when you want to send emails.
       ExampleMailer.sample_email(email).deliver_now
       email.send_email
@@ -311,6 +308,32 @@ class Questionnaire < ActiveRecord::Base
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
     end
     return ret
+  end
+
+  def freeze_questionnaire
+    puts 'Freezing'
+    puts "Working on questionnaire ID: #{id}"
+    EventLog.create!(message: "Freezing questionnaire id: #{id}", event_type_id: 1)
+    if state != 'sent'
+      msg = "Questionnaire in state: #{state} and is not ready to be processed into a snapshot, aboriting."
+      puts msg
+      EventLog.create!(message: msg, event_type_id: 1)
+      return
+    end
+
+    update(state: :processing)
+    sid = QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
+    puts "Working on Snapshot: #{sid}"
+    cid = Snapshot.find(sid).company_id
+    puts 'In precalculate'
+    EventLog.create!(message: "Precalculate for compay: #{cid}, snapshot: #{sid}", event_type_id: 1)
+    cds_calculate_scores_for_generic_networks(cid, sid)
+    puts 'Done with precalculate, clearing cache'
+    EventLog.create!(message: 'Clear cache', event_type_id: 1)
+    Rails.cache.clear
+    update(state: :completed)
+    puts 'Done'
+    EventLog.create!(message: 'Freeze questionnaire completed', event_type_id: 1)
   end
 
   def self.state_name_to_number(state)

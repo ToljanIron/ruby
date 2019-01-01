@@ -13,7 +13,6 @@ class NetworkSnapshotDataController < ApplicationController
     aid = Algorithm.get_algorithm_id(cid, algo)
 
     cache_key = "get_dynamics_employee_map-cid-#{cid}-eid-#{eid}-interval-#{interval}-aid-#{aid}"
-    puts "cache_key: #{cache_key}"
     res = cache_read(cache_key)
     if res.nil?
       res = get_dynamics_employee_map_from_helper(cid, eid, interval, aid)

@@ -12,6 +12,7 @@ module SanitizeHelper
   def sanitize_ids(ids)
     return nil if ids.nil?
     return [] if ids == []
+    return '' if ids == ''
 
     if ids.class == String
       return ids if ids.match(/^[\,0-9]+$/)
