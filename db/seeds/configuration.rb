@@ -1,4 +1,5 @@
 CompanyConfigurationTable.delete_all
+Dotenv.load
 
 ## General parameters
 CompanyConfigurationTable.find_or_create_by(key: 'display_field_in_questionnaire', comp_id: -1).update(value: 'role')
@@ -6,6 +7,8 @@ CompanyConfigurationTable.find_or_create_by(key: 'populate_questionnaire_automat
 CompanyConfigurationTable.find_or_create_by(key: 'hide_employee_names', comp_id: -1).update(value: 'false')
 
 ## Collector parameters
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).update(value: 'Office365')
+#CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).update(value: 'Exchange')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_WRITE_TO_EVENT_LOG', comp_id: -1).update(value: 'true')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_LEVEL', comp_id: -1).update(value: 'info')
 
@@ -28,6 +31,19 @@ password = CdsUtilHelper.encrypt('password')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_PASSWORD', comp_id: -1).update(value: password)
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_SRC_DIR', comp_id: -1).update(value: '.')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TRNAS_FILE_MASK', comp_id: -1).update(value: '*.log;*.gpg;*.zip;*.LOG')
+
+## Collector office365 parameters
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_CLIENT_ID', comp_id: -1).update(value: '7f571d02-9714-4535-8517-e437b30c5150')
+client_secret = ENV['OFFICE_365_CLIENT_SECRET']
+encrypted_client_secret = CdsUtilHelper.encrypt(client_secret)
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_CLIENT_SECRET', comp_id: -1).update(value: encrypted_client_secret)
+redirect_uri = ENV['OFFICE_365_REDIRECT_URI']
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_REDIRECT_URI', comp_id: -1).update(value: redirect_uri)
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TOKEN_ENDPOINT', comp_id: -1).update(value: 'https://login.microsoftonline.com/tenant-id/oauth2/v2.0/token')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TENANT_ID', comp_id: -1).update(value: 'd6ddb1e1-3318-49e6-8c48-014b35fd9b44')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_WHITE_LIST_FILE', comp_id: -1).update(value: './collector/white_list.csv')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_SCOPE', comp_id: -1).update(value: 'https://graph.microsoft.com/.default')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_USERS_BASE_URL', comp_id: -1).update(value: 'https://graph.microsoft.com/v1.0/users')
 
 ## Log files unzip
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_UNZIP_TYPE', comp_id: -1).update(value: 'unzip')

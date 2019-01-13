@@ -12,6 +12,11 @@ class Hash
     self[key] = new_entry
     return new_entry, self
   end
+
+  def maybe(key, alt={})
+    return self[key] if self.key?(key)
+    return alt
+  end
 end
 
 class NMatrix
