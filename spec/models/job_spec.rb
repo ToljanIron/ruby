@@ -1,29 +1,31 @@
 require 'spec_helper'
 
 describe Job, type: :model do
-  before :all do
+  p = nil
+  before do
     EventType.create!(id: 19, name: 'JOB')
-  end
-
-  it 'should go through an entire flow' do
-
-    ## Create a new job
     p = Job.create!(
       company_id: 1,
       domain_id: 'test_proc',
       module_name: 'spec',
       job_type: 'testing'
     )
+  end
 
+  after do
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  it 'should go through an entire flow' do
     ## Add two stages
     stage1 = p.create_stage('stage1', order: 1, value: 8)
     expect( stage1.stage_type ).to eq('testing')
     expect( stage1.job_id ).to eq(p.id)
-    expect( stage1.value ).to eq(8)
+    expect( stage1.value ).to eq('8')
     expect( stage1.stage_order ).to eq(1)
 
     stage2 = p.create_stage('stage2', order: 2)
-    expect( stage2.value ).to eq(1)
+    expect( stage2.value ).to eq('1')
 
     ## Start job
     p.start
@@ -64,5 +66,20 @@ describe Job, type: :model do
     expect( EventLog.count ).to eq(7)
   end
 
+  describe 'update_progress' do
+    it 'should update progress' do
+      p.update_progress('First step', 55.33 )
+      expect(p.name_of_step).to eq('First step')
+      expect(p.percent_complete).to eq(55.3)
+    end
+
+    it 'should update progress without percent_complete' do
+      p.create_stage('s1').update(status: :done)
+      p.create_stage('s2').update(status: :running)
+      p.create_stage('s3')
+      p.update_progress
+      expect(p.percent_complete).to eq(33.3)
+    end
+  end
 
 end

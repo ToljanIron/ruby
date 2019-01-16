@@ -22,6 +22,22 @@ class CompanyConfigurationTable < ActiveRecord::Base
 
   belongs_to :company, foreign_key: 'comp_id'
 
+  #############################################################################
+  ## Catch method calls which look like this: get_some_name(cid=nil) where
+  ## some_name is the name of a configuration parameter in this table.
+  ## From here we try to capitalize the param and look for it in the database.
+  ## First with a company_id, if exists, and if not found then without it.
+  #############################################################################
+  def method_missing(m, *a)
+    raise "Unknow method: #{m}" if !m.to_s.starts_with?('get_')
+    cid = !a.nil? ? a[0] : nil
+    param_name = m[4..-1].upcase
+    ret = CompanyConfigurationTable.where(key: param_name, comp_id: cid) if cid
+    ret = (ret.nil? ? CompanyConfigurationTable.where(key: param_name, comp_id: -1) : nil)
+    raise "Configuration parameter: #{param_name} not found in company_configuration_table" if ret.nil?
+    return ret.last.value
+  end
+
   def self.getKey(key, company_id=nil)
     val = CompanyConfigurationTable.where(key: key, comp_id: company_id).last.try(:value) if !company_id.nil?
     return val if val

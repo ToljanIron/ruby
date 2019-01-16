@@ -91,7 +91,7 @@ describe InteractHelper, type: :helper do
         expect(res).to eq(0)
       end
 
-      it 'should work' do
+      it 'A fuller network should have a higher score' do
         all = [
           [0,0,1,0,0],
           [1,0,0,0,1],

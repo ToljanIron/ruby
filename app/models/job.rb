@@ -78,6 +78,28 @@ class Job < ActiveRecord::Base
     end
   end
 
+  #############################################################################
+  ## Update progress bar related data.
+  ## if percent_complete then count number of job_stages in status 'done'
+  #############################################################################
+  def update_progress(name_of_step=nil, percent_complete=nil)
+    if percent_complete.nil?
+      stages_report = JobStage.where(job_id: id).group(:status).count
+      num_pending = stages_report.maybe('ready', 0)
+      num_running = stages_report.maybe('running', 0)
+      num_done    = stages_report.maybe('done', 0)
+      num_all     = num_pending + num_running + num_done
+      if num_all > 0
+        percent_complete = ((num_done.to_f * 100) / num_all.to_f).round(1)
+      else
+        percent_complete = 0.0
+      end
+    end
+    raise "percent_complete should be a number between 0 and 100" if (percent_complete < 0 || percent_complete > 100)
+    update!(percent_complete: percent_complete.to_f.round(1),
+            name_of_step: name_of_step)
+  end
+
   private
 
   def logevent(msg)

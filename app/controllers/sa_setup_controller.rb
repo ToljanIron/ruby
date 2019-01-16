@@ -6,7 +6,24 @@ include SftpHelper
 
 class SaSetupController < ActionController::Base
 
+  before_action :init_conf
+
   def base
+    redirect_if_needed
+  end
+
+  def microsoft_auth
+    Company.last.update(setup_state: :microsoft_auth)
+  end
+
+  def microsoft_auth_redirect
+    url = get_redirect_auth_path
+    redirect_to url
+  end
+
+  def microsoft_auth_back
+    Company.last.update(setup_state: :upload_company)
+    write_tenant_to_conf(params)
     redirect_if_needed
   end
 
@@ -152,7 +169,6 @@ class SaSetupController < ActionController::Base
   def collect_now
     puts "in collect_now"
     Company.last.update(setup_state: :push)
-    PushProc.create(company_id: Company.last.id)
     Delayed::Job.enqueue(
       HistoricalDataJob.new,
       queue: 'collector_queue',
@@ -200,9 +216,16 @@ class SaSetupController < ActionController::Base
     curr_action = params[:action]
     setup_state = Company.last.setup_state
 
+    @conf.get_collector_type
     case setup_state
     when 'init'
-      redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
+      if @conf.get_collector_type == 'Office365'
+        redirect_to controller: 'sa_setup', action: 'microsoft_auth' unless curr_action == 'microsoft_auth'
+      elsif @conf.get_collector_type == 'Exchange'
+        redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
+      end
+    when 'microsoft_auth'
+      redirect_to controller: 'sa_setup', action: 'microsoft_auth' unless curr_action == 'microsoft_auth'
     when 'log_files_location'
       redirect_to controller: 'sa_setup', action: 'log_files_location' unless curr_action == 'log_files_location'
     when 'log_files_location_verification'
@@ -232,5 +255,37 @@ class SaSetupController < ActionController::Base
     return "Authentication failed" if msg.include?('Authentication failed')
     return "No such file or directory" if msg.include?('no such file')
     return "Unknown error: #{msg}"
+  end
+
+  def init_conf
+    @conf = CompanyConfigurationTable.new
+  end
+
+  #############################################################################
+  ## Get a URL to login to office365. It will look something like this:
+  ##
+  ## url = 'https://login.microsoftonline.com/common/adminconsent?' +
+  ## '&client_id=75a31645-f694-4368-a42a-fa5c56532077' +
+  ## '&state=btx4jv7FFaFTj9ukKjDA' +
+  ## '&redirect_uri=https://dev.spectory.com:3000/app_redirect'
+  ##
+  #############################################################################
+  def get_redirect_auth_path
+    url = 'https://login.microsoftonline.com/common/adminconsent?' +
+    '&client_id='+ @conf.get_collector_o365_client_id +
+    '&state=' + @conf.get_collector_o365_redirect_state +
+    '&redirect_uri=' + @conf.get_collector_o365_redirect_uri
+
+    return url
+  end
+
+  def write_tenant_to_conf(params)
+    state = params['state']
+    raise "Did not identify origin of reply from Microsoft" if state != @conf.get_collector_o365_redirect_state
+    tenant = params['tenant']
+    CompanyConfigurationTable.create!(
+      key: 'COLLECTOR_O365_TENANT_ID',
+      comp_id: Company.last,
+      value: tenant)
   end
 end

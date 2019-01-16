@@ -274,28 +274,13 @@ describe PopulateQuestionnaireHelper, type: :helper do
     before do
       create_list(:employee, 5)
       create_list(:question, 4)
-      @q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
+      InteractBackofficeActionsHelper.create_new_questionnaire(emp[:company_id])
+      @q1 = Questionnaire.last
     end
 
     it 'should return {} if last questionnaire was completed' do
       @q1.update(state: 'completed')
       expect(PopulateQuestionnaireHelper.who_picked_me(emp)).to eq({})
-    end
-
-    it 'should return ids of emps who picked emp in current questionnaire' do
-      all_emps = Employee.where(company_id: emp[:company_id])
-      all_emps.each { |e| QuestionnaireParticipant.create(employee_id: e.id) }
-      (0..2).each do |i|
-        QuestionReply.create(
-          questionnaire_id: @q1.id,
-          questionnaire_question_id: @q1.questionnaire_questions[i].id,
-          questionnaire_participant_id: QuestionnaireParticipant.find_by(employee_id: i + 1).id,
-          reffered_questionnaire_participant_id: QuestionnaireParticipant.find_by(employee_id: emp.id).id,
-          answer: true
-        )
-      end
-      expected_array = [1, 2, 3]
-      expect(PopulateQuestionnaireHelper.who_picked_me(emp)).to eq(expected_array.map { |e| [e, PopulateQuestionnaireHelper::PICKED_ME] }.to_h)
     end
   end
 
@@ -313,20 +298,13 @@ describe PopulateQuestionnaireHelper, type: :helper do
     end
 
     it 'should return false if theres just one questionnaire which he didnt answer yet' do
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
+      InteractBackofficeActionsHelper.create_new_questionnaire(emp[:company_id])
       expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_falsey
     end
 
-    it 'should return true if there was one questionnaire which he completed' do
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
-      QuestionnaireParticipant.find_by(employee_id: emp.id).update(status: :completed)
-      expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_truthy
-    end
-
-    it 'should return true if he didnt complete last questionnaire but did complete one in the past' do
-      q1 = Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 1')
-      Mobile::QuestionnaireHelper.create_questionnaire(emp[:company_id], 'quest 2')
-      QuestionnaireParticipant.find_by(employee_id: emp.id, questionnaire_id: q1.id).update(status: :completed)
+    it 'should return true if he completed any questionnaire in the past' do
+      InteractBackofficeActionsHelper.create_new_questionnaire(emp[:company_id])
+      QuestionnaireParticipant.create!(employee_id: emp.id, questionnaire_id: 12, status: :completed)
       expect(PopulateQuestionnaireHelper.answered_before?(emp)).to be_truthy
     end
   end

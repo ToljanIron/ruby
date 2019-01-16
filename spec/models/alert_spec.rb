@@ -4,7 +4,7 @@ SNAPSHOT_NAME1 = 'Jan/18'
 SNAPSHOT_NAME2 = 'Feb/18'
 
 describe Alert, type: :model do
-  before :all do
+  before do
     FactoryBot.create(:snapshot, id: 1, timestamp: DateTime.new(2018, 1, 1), company_id: 1)
     FactoryBot.create(:snapshot, id: 2, timestamp: DateTime.new(2018, 2, 1), company_id: 1)
 
@@ -25,7 +25,7 @@ describe Alert, type: :model do
     Alert.create!(company_id: 1, snapshot_id: 2, group_id: 4, alert_type: 1, company_metric_id: 14, state: 1)
   end
 
-  after :all do
+  after do
     DatabaseCleaner.clean_with(:truncation)
   end
 

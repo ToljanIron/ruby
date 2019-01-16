@@ -11,23 +11,15 @@ module MeetingsHelper
   def self.create_meetings_and_attendees(relevant_meetings, cid, sid)
     meetings_values = []
     meetings_attendees = {}
-      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 1"
     relevant_meetings.each do |raw_meeting|
       meeting_value = raw_meeting.convert_to_param_array(cid, sid)
-      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 2"
       next if meeting_value.nil?
 
       meetings_values << "(#{raw_meeting.convert_to_param_array(cid, sid).try(:join, ',')})"
-      #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 2.5"
-      #ap meetings_values
 
       meeting_identifier = RawMeetingsData.meeting_identifier(
         raw_meeting[:subject], raw_meeting[:organizer]
       )
-    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 3"
-    #puts raw_meeting[:attendees]
-    #ap raw_meeting
-    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 4"
       meetings_attendees[meeting_identifier] =
         raw_meeting[:attendees]
           .tr('\"', '')
@@ -38,12 +30,7 @@ module MeetingsHelper
     return if meetings_values.empty?
     sql = "INSERT INTO meetings_snapshot_data (#{MEETING_ATTRIBUTES.join(',')})
        VALUES #{meetings_values.join(',')}"
-    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 5"
-    #puts sql
     ActiveRecord::Base.connection.execute( sql )
-
-    #puts "}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} 5.1"
-    #ap meetings_attendees
     create_attendees(meetings_attendees, sid)
   end
 

@@ -7,12 +7,12 @@ include FactoryBot::Syntax::Methods
 
 describe CdsEmployeeManagementRelationHelper, type: :helper do
 
-  after(:all) do
+  after do
     DatabaseCleaner.clean_with(:truncation)
     FactoryBot.reload
   end
 
-  before(:all) do
+  before do
     Company.find_or_create_by(id: 1, name: "Hevra10")
     Snapshot.find_or_create_by(id: 1, name: "2016-01", company_id: 1)
     Group.find_or_create_by(id: 6, name: "R&D", company_id: 1, parent_group_id: 1, color_id: 10)
@@ -34,7 +34,7 @@ describe CdsEmployeeManagementRelationHelper, type: :helper do
 
   describe 'formal_structure_index' do
     fsi = nil
-    before(:all) do
+    before do
       fsi = formal_structure_index(1)
     end
 

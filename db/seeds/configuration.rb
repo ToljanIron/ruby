@@ -44,6 +44,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TENANT_ID', com
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_WHITE_LIST_FILE', comp_id: -1).update(value: './collector/white_list.csv')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_SCOPE', comp_id: -1).update(value: 'https://graph.microsoft.com/.default')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_USERS_BASE_URL', comp_id: -1).update(value: 'https://graph.microsoft.com/v1.0/users')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_REDIRECT_STATE', comp_id: -1).update(value: 'o7iWc60KWrbHKeWi')
 
 ## Log files unzip
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_UNZIP_TYPE', comp_id: -1).update(value: 'unzip')

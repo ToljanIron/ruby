@@ -81,7 +81,7 @@ describe AlgorithmsHelper, type: :helper do
     end
 
     it 'density is higher when everyone sends emails with uniform volumes' do
-      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 0)
+      fg_multi_create_network_snapshot_data(4, @sid, @cid, @nid, 4)
       s_sum1 = AlgorithmsHelper.density_of_network(1, @gid, -1, @nid)
       ## Now some of the employees do not send emails
       NetworkSnapshotData.where("from_employee_id in (1,2)").delete_all

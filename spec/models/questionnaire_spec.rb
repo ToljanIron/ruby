@@ -18,22 +18,6 @@ describe Questionnaire, type: :model do
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  describe 'prepare_for_send' do
-    it 'should create 0 question replies for all workers when pending send has unstarted argument' do
-      @questionnaire.update(pending_send: 'unstarted|email')
-      @questionnaire.prepare_for_send
-      expect(QuestionReply.count).to eq 0
-      expect(@questionnaire.state).to eq('notstarted')
-    end
-    it 'should create 0 question replies for all workers when pending send has started argument' do
-      @questionnaire.update(pending_send: 'started|email')
-      QuestionReply.create(questionnaire_id: @questionnaire.id, questionnaire_question_id: @questionnair_question.id, questionnaire_participant_id: @question_recipient1.id, reffered_questionnaire_participant_id: @question_recipient2.id)
-      @questionnaire.prepare_for_send
-      expect(QuestionReply.count).to eq 1
-      expect(@questionnaire.state).to eq('notstarted')
-    end
-  end
-
   describe 'get_all_questionnaires' do
     it 'should work' do
       res = Questionnaire.get_all_questionnaires(@comp.id)

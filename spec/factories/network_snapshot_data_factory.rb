@@ -26,6 +26,7 @@ end
 def fg_multi_create_network_snapshot_data(empsnum, sid, cid, nid, traffic_density)
   (1..empsnum).each do |i|
     (1..empsnum).each do |j|
+      next if i == j
       value = ((i + j) % (5 - traffic_density) == 0) ? 1 : 0
       FactoryBot.create(:network_snapshot_data,
         from_employee_id: i,

@@ -84,26 +84,26 @@ describe SanitizeHelper, type: :helper do
     end
   end
 
-  describe 'sanitze_boolean' do
+  describe 'sanitize_boolean' do
     it 'should retrun same input' do
-      expect( sanitze_boolean(true)).to eq(true)
-      expect( sanitze_boolean('true')).to eq('true')
-      expect( sanitze_boolean('True')).to eq('True')
-      expect( sanitze_boolean(false)).to eq(false)
-      expect( sanitze_boolean('false')).to eq('false')
-      expect( sanitze_boolean('False')).to eq('False')
+      expect( sanitize_boolean(true)).to eq(true)
+      expect( sanitize_boolean('true')).to eq('true')
+      expect( sanitize_boolean('True')).to eq('True')
+      expect( sanitize_boolean(false)).to eq(false)
+      expect( sanitize_boolean('false')).to eq('false')
+      expect( sanitize_boolean('False')).to eq('False')
     end
 
     it 'should retrun nil' do
-      expect( sanitze_boolean(nil) ).to be_nil
+      expect( sanitize_boolean(nil) ).to be_nil
     end
 
     it 'should retrun nil if is empty string' do
-      expect( sanitze_boolean('') ).to be_nil
+      expect( sanitize_boolean('') ).to be_nil
     end
 
     it 'should not accpet a string that is not a boolean' do
-      expect{ sanitze_boolean('s') }.to raise_error
+      expect{ sanitize_boolean('s') }.to raise_error
     end
   end
 

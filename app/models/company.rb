@@ -28,6 +28,8 @@ class Company < ActiveRecord::Base
 
   enum setup_state: [
     :init,
+    :microsoft_auth,
+    :microsoft_auth_redirect,
     :log_files_location,
     :log_files_location_verification,
     :gpg_passphrase,

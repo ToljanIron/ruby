@@ -34,6 +34,9 @@ Workships::Application.routes.draw do
   ######################## onprem setup ############################
   get  '/sa_setup',                         to: 'sa_setup#base'
   get  '/sa_setup/form_error',              to: 'sa_setup#form_error'
+  get  '/sa_setup/microsoft_auth',          to: 'sa_setup#microsoft_auth'
+  get  '/sa_setup/microsoft_auth_redirect', to: 'sa_setup#microsoft_auth_redirect'
+  get  '/sa_setup/microsoft_auth_back',     to: 'sa_setup#microsoft_auth_back'
   get  '/sa_setup/log_files_location',      to: 'sa_setup#log_files_location'
   post '/sa_setup/log_files_location',      to: 'sa_setup#log_files_location_set'
   get  '/sa_setup/log_files_location_verification', to: 'sa_setup#log_files_location_verification'

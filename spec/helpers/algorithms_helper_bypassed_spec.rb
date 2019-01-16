@@ -11,12 +11,12 @@ describe AlgorithmsHelper, type: :helper do
   describe 'bypassed managers' do
     res = nil
 
-    after(:all) do
+    after do
       DatabaseCleaner.clean_with(:truncation)
       FactoryBot.reload
     end
 
-    before :all do
+    before do
       all = [
       #  1 2 3 4 5 6 7 8 9 10
         [0,2,1,4,1,5,1,0,0,1], # 1
@@ -66,7 +66,7 @@ describe AlgorithmsHelper, type: :helper do
 
     describe 'adding emails' do
       ids = []
-      after :all do
+      after do
         NetworkSnapshotData.where(id: ids).delete_all
       end
 

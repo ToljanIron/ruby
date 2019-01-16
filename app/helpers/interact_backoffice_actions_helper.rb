@@ -129,7 +129,6 @@ module InteractBackofficeActionsHelper
       pars = QuestionnaireParticipant
                .where(questionnaire_id: qid)
                .where.not(employee_id: -1)
-      puts "Creating questionnaire participants"
       pars.each do |p|
         eid = Employee.id_in_snapshot(p.employee_id, sid)
         eids << eid

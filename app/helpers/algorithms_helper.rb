@@ -1310,7 +1310,7 @@ module AlgorithmsHelper
     return [{ group_id: group_id, measure: 0.0 }] if n <= 3
 
     s_max_email_traffic   = s_calc_max_traffic_between_two_employees(sid, nid, gid, pid)
-    s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid) / 2
+    s_sum_traffic_network = s_calc_sum_of_matrix(sid, gid, pid, nid)
 
     # The number of paires in the groups
     bin = (n.to_f * (n.to_f - 1)) / 2

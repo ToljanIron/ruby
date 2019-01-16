@@ -28,6 +28,13 @@ class CreateJobs < ActiveRecord::Migration[5.1]
       # For example, can reference a snapshot or a questionnaire
       t.integer :ref_id
 
+      # For progress bars
+      # An estimate of how much of the job is completed
+      t.decimal :percent_complete, null: false, default: 0
+      # This string is meant to be displayed above a progress bar to give an indication
+      # of what does the system do now.
+      t.string  :name_of_step
+
       # Date of move into in_progress_state
       t.datetime  :run_start_at
 

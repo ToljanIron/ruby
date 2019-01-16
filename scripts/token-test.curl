@@ -1,0 +1,5 @@
+#!/bin/bash
+
+curl -vvv -i -X POST -H "Content-Type: application/x-www-form-urlencoded" \
+             -d 'client_id=7f571d02-9714-4535-8517-e437b30c5150&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&client_secret=zYFqSyKhTDJHIJcaLDR1LleVDfF4BHvQEEBjzNOO6ps=&grant_type=client_credentials' \
+             'https://login.microsoftonline.com/d6ddb1e1-3318-49e6-8c48-014b35fd9b44/oauth2/v2.0/token'
