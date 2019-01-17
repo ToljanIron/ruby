@@ -8,8 +8,6 @@ class AddIndexes < ActiveRecord::Migration[4.2]
     add_index :groups, :company_id, name: 'index_groups_on_company_id'
     add_index :job_titles, :company_id, name: 'index_job_titles_on_company_id'
     add_index :job_to_api_client_task_convertors, :job_id, name: 'index_job_to_api_client_task_convertors_on_job_id'
-    add_index :jobs, :company_id, name: 'index_jobs_on_company_id'
-    add_index :jobs, :job_id, name: 'index_jobs_on_jobs_id'
     add_index :jobs_archives, :job_id, name: 'index_jobs_archives_on_job_id'
     add_index :jobs_queues, :job_id, name: 'index_jobs_queues_on_job_id'
     add_index :offices, :company_id, name: 'index_offices_on_company_id'
