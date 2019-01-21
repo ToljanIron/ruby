@@ -25,6 +25,6 @@ module Workships
     # when queue_adapter is unset, jobs will run immediately
     config.active_job.queue_adapter = :delayed_job
 
-    Dotenv.load if Rails.env.development?
+    Dotenv.overload #if Rails.env.development?
   end
 end

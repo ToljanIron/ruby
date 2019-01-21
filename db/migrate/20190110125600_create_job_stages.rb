@@ -23,8 +23,8 @@ class CreateJobStages < ActiveRecord::Migration[5.1]
       # be an array of IDs: [id1, id2, .. ]
       t.string :value
 
-      # If this stage failed, this field gives an error message
-      t.string :error_message
+      # A summary of this stage or an error message in case it failed
+      t.string :res
 
       # Date of move into running state
       t.datetime  :run_start_at

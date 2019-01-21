@@ -9,6 +9,7 @@ require File.expand_path('../application', __FILE__)
 Workships::Application.initialize!
 
 Dotenv.load
+
 ActionMailer::Base.smtp_settings = {
   :address        => ENV['MAILGUN_ADDRESS'],
   :port           => ENV['MAILGUN_PORT'],

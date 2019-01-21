@@ -197,8 +197,18 @@ class SaSetupController < ActionController::Base
 
   def get_push_state
     puts "In get_push_state"
-    pp = Company.last.push_proc
-    render json: Oj.dump( pp ), status: 200
+    job = Company.last.jobs.where("domain_id like '%historical-data%'").last
+    ret = {}
+    if job.status == 'done'
+      ret = { status: 'done', percent_complete: 100.0 }
+    else
+      ret = {
+        status: job.status == 'error' ? 'error' : 'ok',
+        error_msg: job.error_message,
+        percent_complete: job.percent_complete
+      }
+    end
+    render json: Oj.dump( ret ), status: 200
   end
 
   def form_error

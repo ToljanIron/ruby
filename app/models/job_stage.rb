@@ -21,11 +21,12 @@ class JobStage < ActiveRecord::Base
     end
   end
 
-  def finish_successfully(_value)
+  def finish_successfully(_res=nil)
     JobStage.transaction do
       update!(status: :done,
               run_end_at: Time.now,
-              value: (_value.nil? ? value : _value))
+              res: (_res.nil? ? res : _res))
+      job.update_progress
       logevent("Finished successfully")
     end
   end
@@ -33,7 +34,7 @@ class JobStage < ActiveRecord::Base
   def finish_with_error(error_msg)
     JobStage.transaction do
       update!(status: :error,
-              error_message: error_msg,
+              res: error_msg,
               run_end_at: Time.now)
       logevent("Finished with error: #{error_msg}")
     end

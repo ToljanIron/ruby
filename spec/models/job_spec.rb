@@ -70,7 +70,7 @@ describe Job, type: :model do
     it 'should update progress' do
       p.update_progress('First step', 55.33 )
       expect(p.name_of_step).to eq('First step')
-      expect(p.percent_complete).to eq(55.3)
+      expect(p.percent_complete.to_s.to_f).to eq(55.3)
     end
 
     it 'should update progress without percent_complete' do
@@ -80,6 +80,50 @@ describe Job, type: :model do
       p.update_progress
       expect(p.percent_complete).to eq(33.3)
     end
-  end
 
+    context 'with 9 stages and 3 stage_types' do
+      before do
+        p.create_stage('t1s1', stage_type: 't1')
+        p.create_stage('t1s2', stage_type: 't1')
+        p.create_stage('t1s3', stage_type: 't1')
+        p.create_stage('t2s1', stage_type: 't2')
+        p.create_stage('t2s2', stage_type: 't2')
+        p.create_stage('t2s3', stage_type: 't2')
+        p.create_stage('t3s1', stage_type: 't3')
+        p.create_stage('t3s2', stage_type: 't3')
+        p.create_stage('t3s3', stage_type: 't3')
+      end
+
+      it 'with all stages ready' do
+        p.update_progress
+        expect(p.percent_complete).to eq(0)
+      end
+
+      it 'with some stages done' do
+        JobStage.where(stage_type: 't1').update_all(status: 'done')
+        p.update_progress
+        expect(p.percent_complete).to eq(33.3)
+
+        JobStage.where(domain_id: 't2s1').update_all(status: 'done')
+        p.update_progress
+        expect(p.percent_complete).to eq(44.4)
+
+        JobStage.where(domain_id: 't2s2').update_all(status: 'done')
+        p.update_progress
+        expect(p.percent_complete.to_s.to_f).to eq(55.5)
+      end
+
+      it 'with one of the stages running' do
+        JobStage.where(stage_type: 't1').update_all(status: 'done')
+        JobStage.where(stage_type: 't2').update_all(status: 'done')
+        JobStage.where(domain_id: 't3s1').update_all(status: 'running')
+        p.update_progress
+        expect(p.percent_complete.to_s.to_f).to eq(66.6)
+
+        JobStage.where(domain_id: 't3s1').last.finish_successfully
+        p = Job.last
+        expect(p.percent_complete.to_s.to_f).to eq(77.7)
+      end
+    end
+  end
 end

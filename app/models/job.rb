@@ -84,19 +84,32 @@ class Job < ActiveRecord::Base
   #############################################################################
   def update_progress(name_of_step=nil, percent_complete=nil)
     if percent_complete.nil?
-      stages_report = JobStage.where(job_id: id).group(:status).count
-      num_pending = stages_report.maybe('ready', 0)
-      num_running = stages_report.maybe('running', 0)
-      num_done    = stages_report.maybe('done', 0)
-      num_all     = num_pending + num_running + num_done
-      if num_all > 0
-        percent_complete = ((num_done.to_f * 100) / num_all.to_f).round(1)
-      else
-        percent_complete = 0.0
+      # Get number of stage types, and the overall weight of each
+      stage_names = job_stage.select(:stage_type).distinct.pluck(:stage_type)
+      num_of_stages = stage_names.count
+      stage_weight = (1.00 / num_of_stages.to_f).round(3)
+
+      # For each type calculate ratio of ready and running to done and then
+      # calculate contribution, and add them up
+      stages = job_stage.group(:stage_type, :status).order(:stage_type).count
+      percent_complete = 0
+
+      stage_names.each do |s|
+        num_pending = stages.maybe([s, 'ready'], 0)
+        num_running = stages.maybe([s, 'running'], 0)
+        num_done    = stages.maybe([s, 'done'], 0)
+        num_all     = num_pending + num_running + num_done
+
+        if num_all > 0
+          percent_complete += ((num_done.to_f * stage_weight) / num_all.to_f).round(3)
+        end
       end
+
+      percent_complete = (percent_complete * 100)
     end
+
     raise "percent_complete should be a number between 0 and 100" if (percent_complete < 0 || percent_complete > 100)
-    update!(percent_complete: percent_complete.to_f.round(1),
+    update!(percent_complete: percent_complete.round(1),
             name_of_step: name_of_step)
   end
 
@@ -108,5 +121,4 @@ class Job < ActiveRecord::Base
       event_type_id: EVENT_ID_PROCESS_UPDATES
     )
   end
-
 end
