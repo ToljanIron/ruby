@@ -31,6 +31,10 @@ include CreateSnapshotHelper
 # The reason create_snapshots go from 1 to N and precaluculates to M is that N
 # can be bigger than M if some snapshots turn out to be empty.
 #
+# The flow is a little tricky because it's intended to handle retries. This means
+# that if it was run and was stopped at any time, it should know to procedd from
+# the stage where it has strated. That is the reason for the 4 "if" statements -
+# these if's check to see at which stage to commence the flow.
 ###############################################################################
 module AnalyzeHistoricalDataHelper
 
@@ -43,30 +47,35 @@ module AnalyzeHistoricalDataHelper
     job.retry if job.status == 'wait_for_retry'
     stage = job.get_next_stage
 
-
     main_create_snapshot_stage = nil
     main_precalculate_stage    = nil
 
     ## Check if already created sub-snapshot stages and proceed from there
+    puts "1 >>> stage: #{stage.domain_id}"
     if (stage.domain_id == 'collect-history-create-snapshot')
       main_create_snapshot_stage = stage
       main_create_snapshot_stage.start
-      add_create_snapshot_stages(main_create_snapshot_stage)
+      add_create_snapshot_stages(job, main_create_snapshot_stage)
       stage = job.get_next_stage
     end
 
+    ap JobStage.select(:domain_id, :stage_type, :stage_order).order(:stage_order)
+
+
     ## Get the main create_snapshot stage and continue with the create_snapshot
     ## stages
+    puts "2 >>> stage: #{stage.domain_id}"
     if (stage.stage_type == 'create_snapshot')
       next_stage = stage
       main_create_snapshot_stage = JobStage.where(domain_id: 'collect-history-create-snapshot')
                                            .last
-      next_stage = run_create_snapshot_stages(next_stage)
-      main_create_snapshot_stage.finish_succesfully("snapshots created")
+      next_stage = run_create_snapshot_stages(job, next_stage, cid)
+      main_create_snapshot_stage.finish_successfully("snapshots created")
       stage = next_stage
     end
 
     ## Check if already created sub-precalc stages and proceed from there
+    puts "3 >>> stage: #{stage.domain_id}"
     if (stage.domain_id == 'collect-history-precalculate')
       main_precalculate_stage = stage
       main_precalculate_stage.start
@@ -75,13 +84,14 @@ module AnalyzeHistoricalDataHelper
 
     ## Get the main precalculate stage and continue with precalculate stages.
     ## Otherwise this is an unexpected situation
+    puts "4 >>> stage: #{stage.domain_id}"
     if (stage.stage_type == 'precalculate')
       puts "Start precalculate"
       main_precalculate_stage = JobStage.where(domain_id: 'collect-history-precalculate').last if main_precalculate_stage.nil?
-      run_precalculate_stages(job, stage)
+      run_precalculate_stages(job, stage, cid)
       main_precalculate_stage.finish_successfully
     else
-      msg = "Unexpected stage: #{stage.id}, domain_id: #{stage.domain_id}, type: #{stage.stage_type}"
+      msg = "Unexpected stage: id: #{stage.id}, domain_id: #{stage.domain_id}, type: #{stage.stage_type}"
       job.finish_with_error(msg)
       raise msg
     end
@@ -93,29 +103,33 @@ module AnalyzeHistoricalDataHelper
   #############################################################################
   # Go over all precalculate stages one by one.
   #############################################################################
-  def run_precalculate_stages(job, stage)
+  def run_precalculate_stages(job, stage, cid)
     ii = 0
-    num_stages = JobStage.where(stage_type: 'precalculate', status: ready).count
+    num_stages = JobStage.where(stage_type: 'precalculate', status: :ready).count
     next_stage = stage
-    while (next_stage.stage_type == 'precalculate') do
-      next_stage.start
-      sid = next_stage.value
-
+    while (next_stage.try(:stage_type) == 'precalculate') do
       ii += 1
+      sid = next_stage.value
       puts "#################################################################"
       puts "In precalculate of snapshot: #{sid}. #{ii} out of #{num_stages}"
       puts "#################################################################"
-      PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid, -1, -1, -1, sid, true)
-      PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(cid, sid, true)
-      PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(cid, sid, true)
-      next_stage.finish_successfully
+      next_stage = run_precalculate_stage(job, next_stage, sid, cid)
     end
+  end
+
+  def run_precalculate_stage(job, next_stage, sid, cid)
+    next_stage.start
+    PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_scores(cid, -1, -1, -1, sid, true)
+    PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_gauges(cid, sid, true)
+    PrecalculateMetricScoresForCustomDataSystemHelper::cds_calculate_z_scores_for_measures(cid, sid, true)
+    next_stage.finish_successfully
+    return job.get_next_stage
   end
 
   #############################################################################
   # Add create_snapshot job_stages for each week.
   #############################################################################
-  def add_create_snapshot_stages(stage)
+  def add_create_snapshot_stages(job, stage)
     ## Find number of snapshots
     mind = RawDataEntry.select('MIN(date)').where(company_id: 1, processed: false)[0][:min]
     maxd = RawDataEntry.select('MAX(date)').where(company_id: 1, processed: false)[0][:max]
@@ -133,10 +147,10 @@ module AnalyzeHistoricalDataHelper
       date = (mind + i.weeks).to_s
       domain_id = "collect-history-create-snapshot-#{i}"
       next if JobStage.where(domain_id: domain_id).count > 0
-      Job.create_stage(domain_id,
+      job.create_stage(domain_id,
                        stage_type: stage.stage_type,
                        value: date,
-                       stage_order: stage.stage_order + 1)
+                       order: stage.stage_order + i + 1)
     end
   end
 
@@ -144,28 +158,34 @@ module AnalyzeHistoricalDataHelper
   # Create snapshots for each stage. When a snapshot is created this function
   # also creates a matching precalculate stage.
   #############################################################################
-  def run_create_snapshot_stages(next_stage)
-    ## Create snapshots
-    #######snapshots_arr = []
+  def run_create_snapshot_stages(job, next_stage, cid)
+
+    ii = 1
     while (next_stage.stage_type == 'create_snapshot') do
+      puts "In stage: #{next_stage.domain_id}"
       next_stage.start
       date = next_stage.value
       snapshot = CreateSnapshotHelper::create_company_snapshot_by_weeks(cid, date.to_s, true)
       if snapshot.nil?
         next_stage.finish_successfully('Nothing to do')
+        next_stage = job.get_next_stage
         next
       end
-      ########### snapshots_arr.push(snapshot)
+
       sid = snapshot.id
       puts "#################################################################"
       puts "Create snapshot of week of the: #{date}, sid: #{sid}"
       puts "#################################################################"
-      Job.create_stage("collect-history-precalculate-#{sid}",
-                       stage_type: precalculate,
-                       value: snp.sid,
-                       stage_order: 1000 + 1)
+      job.create_stage("collect-history-precalculate-#{sid}",
+                       stage_type: 'precalculate',
+                       value: sid,
+                       order: 1000 + ii)
+      ii += 1
       next_stage.finish_successfully("Snapshot: #{sid}")
       next_stage = job.get_next_stage
+      puts "ii: #{ii}"
     end
+
+    return next_stage
   end
 end
