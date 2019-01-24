@@ -32,9 +32,9 @@ include CreateSnapshotHelper
 # can be bigger than M if some snapshots turn out to be empty.
 #
 # The flow is a little tricky because it's intended to handle retries. This means
-# that if it was run and was stopped at any time, it should know to procedd from
-# the stage where it has strated. That is the reason for the 4 "if" statements -
-# these if's check to see at which stage to commence the flow.
+# that if it was run and was stopped at any time, it should know how  to resume from
+# the last stage it visited. That is the reason for the 4 "if" statements -
+# these if's check to see at which stage to resume the flow.
 ###############################################################################
 module AnalyzeHistoricalDataHelper
 
@@ -45,8 +45,23 @@ module AnalyzeHistoricalDataHelper
              .where("domain_id like '%collection-historical%'")
              .last
     job.retry if job.status == 'wait_for_retry'
-    stage = job.get_next_stage
 
+    begin
+      run_job(cid, job)
+    rescue RuntimeError => ex
+      msg = "Exception while running job: #{job.domain_id}, error message: #{ex.message}"
+      job.finish_with_error(msg)
+      puts msg
+      puts ex.backtrace
+      raise msg
+    end
+
+    puts "Done with AnalyzeHistoricalDataHelper job"
+    job.finish_successfully
+  end
+
+  def run_job(cid, job)
+    stage = job.get_next_stage
     main_create_snapshot_stage = nil
     main_precalculate_stage    = nil
 
@@ -95,9 +110,6 @@ module AnalyzeHistoricalDataHelper
       job.finish_with_error(msg)
       raise msg
     end
-
-    puts "Done with AnalyzeHistoricalDataHelper job"
-    job.finish_successfully
   end
 
   #############################################################################

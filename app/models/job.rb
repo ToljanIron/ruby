@@ -54,7 +54,7 @@ class Job < ActiveRecord::Base
 
   def finish_with_error(error_msg, retrie=true)
     Job.transaction do
-      if retrie == false || number_of_retries >= max_number_of_retries
+      if retrie == false || number_of_retries >= (max_number_of_retries - 1)
         update!(status: :error,
                 error_message: error_msg,
                 run_end_at: Time.now)

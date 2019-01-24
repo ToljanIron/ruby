@@ -88,6 +88,7 @@ describe AnalyzeHistoricalDataHelper, type:  :helper do
                         value: 'Create snapshot',
                         order: JOB_STAGE_ORDER_PRECALCULATRE,
                         stage_type: 'precalculate')
+      job.start
     end
 
     it 'a full cycle should work' do
@@ -95,66 +96,94 @@ describe AnalyzeHistoricalDataHelper, type:  :helper do
       validate_job
     end
 
-    context 'job is restarted after some snapshots where already created' do
-      before do
-        create_snapshot_stages(cid, job, 4)
-        AnalyzeHistoricalDataHelper.run(cid)
-      end
-
-      it 'should create all stages and finish the job' do
-        validate_job
-      end
-    end
-
-    context 'job is restarted after all snapshots where already created' do
-      before do
-        create_snapshot_stages(cid, job, 10)
-        AnalyzeHistoricalDataHelper.run(cid)
-      end
-
-      it 'should finish the job' do
-        validate_job
+    context 'a stage throws an exception' do
+      it 'should mark job as wait_for_retry' do
+        allow(AnalyzeHistoricalDataHelper).to receive(:run_precalculate_stage).and_raise('Unexpected error')
+        begin
+          AnalyzeHistoricalDataHelper.run(cid)
+        rescue
+          puts 'Exception was thrown'
+        end
+        expect( Job.last.status ).to eq('wait_for_retry')
       end
     end
 
-    context 'job is restarted after some snapshots where already processed' do
-      before do
-        create_snapshot_stages(cid, job, 10, 8)
-        AnalyzeHistoricalDataHelper.run(cid)
-      end
-
-      it 'should finish the job' do
-        validate_job
-      end
-    end
-
-    context 'job is restarted after all snapshots where already processed' do
-      before do
-        create_snapshot_stages(cid, job, 10, 11)
-        AnalyzeHistoricalDataHelper.run(cid)
-      end
-
-      it 'should finish the job' do
-        validate_job
+    context 'a stage throws 3 excpetions' do
+      it 'should mark job as error' do
+        allow(AnalyzeHistoricalDataHelper).to receive(:run_precalculate_stage).and_raise('Unexpected error')
+        (0..2).each do
+          begin
+            AnalyzeHistoricalDataHelper.run(cid)
+          rescue
+            puts 'Exception was thrown'
+          end
+        end
+        expect( Job.last.status ).to eq('error')
       end
     end
 
-    context 'job is restarted after some snapshots where calculated' do
-      before do
-        create_snapshot_stages(cid, job, 10, 11)
-        first_precalc_stage = JobStage.where(stage_type: 'precalculate')
-                                      .where("stage_order > 1000")
-                                      .order(:stage_order)
-                                      .first
-        AnalyzeHistoricalDataHelper.run_precalculate_stage(job,
-                                                           first_precalc_stage,
-                                                           first_precalc_stage.sid,
-                                                           cid)
-        AnalyzeHistoricalDataHelper.run(cid)
+    describe 'Resuming uncompleted jobs' do
+      context 'job is restarted after some snapshots where already created' do
+        before do
+          create_snapshot_stages(cid, job, 4)
+          AnalyzeHistoricalDataHelper.run(cid)
+        end
+
+        it 'should create all stages and finish the job' do
+          validate_job
+        end
       end
 
-      it 'should finish the job' do
-        validate_job
+      context 'job is restarted after all snapshots where already created' do
+        before do
+          create_snapshot_stages(cid, job, 10)
+          AnalyzeHistoricalDataHelper.run(cid)
+        end
+
+        it 'should finish the job' do
+          validate_job
+        end
+      end
+
+      context 'job is restarted after some snapshots where already processed' do
+        before do
+          create_snapshot_stages(cid, job, 10, 8)
+          AnalyzeHistoricalDataHelper.run(cid)
+        end
+
+        it 'should finish the job' do
+          validate_job
+        end
+      end
+
+      context 'job is restarted after all snapshots where already processed' do
+        before do
+          create_snapshot_stages(cid, job, 10, 11)
+          AnalyzeHistoricalDataHelper.run(cid)
+        end
+
+        it 'should finish the job' do
+          validate_job
+        end
+      end
+
+      context 'job is restarted after some snapshots where calculated' do
+        before do
+          create_snapshot_stages(cid, job, 10, 11)
+          first_precalc_stage = JobStage.where(stage_type: 'precalculate')
+                                        .where("stage_order > 1000")
+                                        .order(:stage_order)
+                                        .first
+          AnalyzeHistoricalDataHelper.run_precalculate_stage(job,
+                                                             first_precalc_stage,
+                                                             first_precalc_stage.sid,
+                                                             cid)
+          AnalyzeHistoricalDataHelper.run(cid)
+        end
+
+        it 'should finish the job' do
+          validate_job
+        end
       end
     end
   end

@@ -10,11 +10,10 @@ default: &default
 
 development:
   <<: *default
-  #database: workships_development
-  #username: workships
-  #password: workships
-  #port: 5432
-  database: workships_app
+  database: workships_development
+  username: workships
+  password: workships
+  port: 5432
 
 onpremise:
   <<: *default
