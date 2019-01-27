@@ -2339,7 +2339,7 @@ module AlgorithmsHelper
   end
 
   def calc_avg_num_of_ppl_in_meetings(sid, gid = NO_GROUP, pid = NO_PIN)
-    employee_ids = Employee.where(group_id: gid).pluck(:id)
+    employee_ids = Group.find(gid).extract_employees
 
     sqlstr = "SELECT meeting_id, COUNT(meeting_id) as measure
               FROM meeting_attendees
@@ -2418,7 +2418,7 @@ module AlgorithmsHelper
   # main widget.
   #############################################################################
   def avg_time_spent_in_meetings_gauge(sid, gid = NO_GROUP, pid = NO_PIN)
-    employee_ids = Employee.where(group_id: gid).pluck(:id)
+    employee_ids = Group.find(gid).extract_employees
     employee_count = employee_ids.count
 
     sqlstr = "SELECT meeting_id, duration_in_minutes, COUNT(meeting_attendees.meeting_id) as ppl_count

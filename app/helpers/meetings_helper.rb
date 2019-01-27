@@ -20,12 +20,16 @@ module MeetingsHelper
       meeting_identifier = RawMeetingsData.meeting_identifier(
         raw_meeting[:subject], raw_meeting[:organizer]
       )
-      meetings_attendees[meeting_identifier] =
-        raw_meeting[:attendees]
-          .tr('\"', '')
-          .tr('[]','')
-          .tr('{}', '')
-          .split(',')
+
+      meetings_attendees[meeting_identifier] = raw_meeting[:attendees]
+      if raw_meeting[:attendees].class == String
+        meetings_arr = raw_meeting[:attendees]
+                  .tr('\"', '')
+                  .tr('[]','')
+                  .tr('{}', '')
+                  .split(',')
+        meetings_attendees[meeting_identifier] = meetings_arr
+      end
     end
     return if meetings_values.empty?
     sql = "INSERT INTO meetings_snapshot_data (#{MEETING_ATTRIBUTES.join(',')})

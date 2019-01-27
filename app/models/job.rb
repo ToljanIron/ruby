@@ -117,7 +117,7 @@ class Job < ActiveRecord::Base
 
   def logevent(msg)
     EventLog.create!(
-      message: "Job: #{id} - msg",
+      message: "Job: #{id} - #{msg}",
       event_type_id: EVENT_ID_PROCESS_UPDATES
     )
   end

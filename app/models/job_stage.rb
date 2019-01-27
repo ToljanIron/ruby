@@ -44,7 +44,7 @@ class JobStage < ActiveRecord::Base
 
   def logevent(msg)
     EventLog.create!(
-      message: "JobStage: #{id} - msg",
+      message: "JobStage: #{id} - #{msg}",
       event_type_id: EVENT_ID_JOB_UPDATES
     )
   end

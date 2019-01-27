@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/zsh -l
 
 ###################################################################
 #
@@ -11,11 +11,9 @@
 #   - Precalculate
 #
 ###################################################################
-export APP_HOME=/home/app/sa
-export RUN_ENV=$1
 
 ## Rails env
-if [ "$1" == '' ];then
+if [ "$1" eq '' ];then
   echo "First argument must be an envriornmt"
   exit 1
 else
@@ -23,11 +21,9 @@ else
 fi
 
 ## home dir
-if [ "$2" == '' ];then
-  echo "arg 2 is empty"
+if [ "$2" eq '' ];then
   export APP_HOME=/home/app/sa
 else
-  echo "arg 2 is not empty"
   export APP_HOME=$2
 fi
 

@@ -199,7 +199,9 @@ class SaSetupController < ActionController::Base
     puts "In get_push_state"
     job = Company.last.jobs.where("domain_id like '%historical-data%'").last
     ret = {}
-    if job.status == 'done'
+    if job.nil?
+      ret = { status: 'ok', percent_complete: 0.0 }
+    elsif job.status == 'done'
       ret = { status: 'done', percent_complete: 100.0 }
     else
       ret = {

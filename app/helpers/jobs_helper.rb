@@ -92,7 +92,6 @@ module JobsHelper
   #####################################################################
   def create_historical_data_job
     return if Company.find(1).setup_state != 'push'
-    return if PushProc.last.state != 'collector_done'
     Delayed::Job.enqueue(
       HistoricalDataJob.new,
       queue: APP_QUEUE,
