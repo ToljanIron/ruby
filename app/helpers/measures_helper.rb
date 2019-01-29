@@ -583,10 +583,10 @@ module MeasuresHelper
     # Find min/max for each algorithm - out of all groups for the same algorithm
     a_min_max = []
     aids.each do |aid|
-      entries = rows.select{|s| s['algo_id']===aid}
+      entries = rows.select{|s| ((s['algo_id'] == aid) && (!s['score'].nil?)) }
       next if entries.nil? || entries.count === 0
-      min = entries.min {|a,b| a['score'] <=> b['score']}['score']
-      max = entries.max {|a,b| a['score'] <=> b['score']}['score']
+      min = entries.min {|a,b| a['score'] <=> b['score'] }['score']
+      max = entries.max {|a,b| a['score'] <=> b['score'] }['score']
       a_min_max << {
         'aid' => aid,
         'min' => min,
@@ -594,6 +594,13 @@ module MeasuresHelper
       }
     end
     return a_min_max
+  end
+
+  def scores_compare(a, b)
+    return a <=> b if !a.nil? and !b.nil?
+    return 0  if a.nil? and b.nil?
+    return 1  if !a.nil? and b.nil?
+    return -1 if a.nil? and !b.nil?
   end
 
   # Parse query result -

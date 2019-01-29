@@ -129,7 +129,6 @@ module CreateSnapshotHelper
     puts "create snapshot - get existing domains"
     in_domain_raw_data_entries_res = in_domain_emails_filter(raw_data_entries, company_employee_emails_hash, cid)
     in_domain_raw_data_entries                      = in_domain_raw_data_entries_res[0]
-    in_domain_raw_data_entries                      = in_domain_raw_data_entries_res[0]
 
     puts "create snapshot - calculate email relations and subjects"
     existing_records_arr = []

@@ -11,6 +11,7 @@ namespace :db do
     JobStage.delete_all
     EventLog.delete_all
     Logfile.delete_all
+    Delayed::Job.delete_all
 
     MeetingsSnapshotData.delete_all
     MeetingAttendee.delete_all

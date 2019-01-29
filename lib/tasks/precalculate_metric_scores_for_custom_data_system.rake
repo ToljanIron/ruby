@@ -5,7 +5,7 @@ namespace :db do
   include CdsUtilHelper
 
   desc 'precalculate_metric_scores_for_custom_data_system'
-  task :precalculate_metric_scores_for_custom_data_system, [:cid, :gid, :pid, :mid, :sid, :rewrite, :calc_all] => :setup_logger do |t, args|
+  task :precalculate_metric_scores_for_custom_data_system, [:cid, :gid, :pid, :mid, :sid, :rewrite, :calc_all] => :environment do |t, args|
     error = 1
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)

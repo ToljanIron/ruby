@@ -11,7 +11,7 @@ TIMEOUT = 60 * 60 * 24
 
 namespace :db do
   desc 'update_images_from_s3'
-  task :update_images_from_s3, [:cid] => :setup_logger  do |t, args|
+  task :update_images_from_s3, [:cid] => :environment  do |t, args|
     cid = args[:cid] || -1
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)

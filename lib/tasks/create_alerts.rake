@@ -5,7 +5,7 @@ namespace :db do
   include CdsUtilHelper
 
   desc 'create_alerts'
-  task :create_alerts, [:cid, :sid] => :setup_logger do |t, args|
+  task :create_alerts, [:cid, :sid] => :environment do |t, args|
     config = ActiveRecord::Base.configurations[Rails.env || 'development'] || ENV['DATABASE_URL']
     ActiveRecord::Base.establish_connection(config)
 
