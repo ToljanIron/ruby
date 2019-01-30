@@ -77,6 +77,7 @@ namespace :db do
         end unless companies.empty?
       rescue => e
         puts "***************"
+        puts e
         puts e.message
         puts e.backtrace
         raise ActiveRecord::Rollback
@@ -86,7 +87,9 @@ namespace :db do
 
   def create_s3_object_url(cid, ident, signer, bucket, bucket_name)
     url = create_url(cid, ident, 'jpg')
-    url = bucket.object(url).exists? ? url : create_url(cid, ident, 'png')
+    if !bucket.object(url).exists?
+      url = create_url(cid, ident, 'png')
+    end
 
     if bucket.object(url).exists?
       safe_url = signer.presigned_url(
