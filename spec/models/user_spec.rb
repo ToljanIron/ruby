@@ -216,5 +216,28 @@ describe User, type: :model do
         expect(gids_arr).to eq([12, 13])
       end
     end
+
+    describe 'group_authorized?' do
+      before :each do
+        FactoryBot.create(:snapshot, id: 1)
+        Group.prepare_groups_for_hierarchy_queries(1)
+      end
+
+      it 'should be true if group is under permissible group' do
+        expect( @user.group_authorized?(4) ).to be_truthy
+      end
+
+      it 'should be true if group is a permissible group' do
+        expect( @user.group_authorized?(2) ).to be_truthy
+      end
+
+      it 'should be false if group not under a permissible group' do
+        expect( @user.group_authorized?(5) ).to be_falsey
+      end
+
+      it 'should be false if group not under a permissible group and is root group' do
+        expect( @user.group_authorized?(1) ).to be_falsey
+      end
+    end
   end
 end

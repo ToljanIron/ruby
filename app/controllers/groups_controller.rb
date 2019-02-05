@@ -20,6 +20,7 @@ class GroupsController < ApplicationController
       puts 'Retrieving all groups. Replace with authorized groups only'
       groups_ids = Group.by_snapshot(sid).pluck(:id) if qid.nil?
       groups_ids = Group.by_snapshot(sid).where(questionnaire_id: qid.to_i).pluck(:id) if !qid.nil?
+      groups_ids = current_user.filter_authorized_groups(groups_ids)
 
       raise 'empty groups select list' if groups_ids.nil? || groups_ids.length == 0
       res = CdsGroupsHelper.groups_with_sizes(groups_ids)

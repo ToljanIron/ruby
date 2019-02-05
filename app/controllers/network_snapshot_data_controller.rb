@@ -47,8 +47,10 @@ class NetworkSnapshotDataController < ApplicationController
 
     cid = current_user.company_id
     gid      = permitted[:gid].safe_sanitize_integer
+    raise 'Not authorized' if !current_user.group_authorized?(group.id)
     interval = permitted[:interval].sanitize_is_alphanumeric
     gids     = permitted[:gids].split(',').map(&:sanitize_integer)
+    gids = current_user.filter_authorized_groups(gids)
 
     cache_key = "get_interfaces_map-cid-#{cid}-gid-#{gid}-interval-#{interval}-#{gids}"
     res = cache_read(cache_key)

@@ -172,6 +172,18 @@ class User < ActiveRecord::Base
     return ret
   end
 
+  def group_authorized?(gid)
+    return true  if (role == 'admin' || role == 'hr')
+    return false if (role != 'manager')
+    group = Group.find(gid)
+    sid = group.snapshot_id
+    top_permissable_group = Group.where(external_id: permissible_group)
+                                 .where(snapshot_id: sid)
+                                 .last
+    return group.nsleft  >= top_permissable_group.nsleft &&
+           group.nsright <= top_permissable_group.nsright
+  end
+
   private
 
   def create_remember_token

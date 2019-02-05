@@ -43,7 +43,7 @@ class SettingsController < ApplicationController
   end
 
   def get_config_params
-    authorize :setting, :update?
+    authorize :setting, :index?
     ret = {
       incomingEmailToTime: CompanyConfigurationTable.incoming_email_to_time,
       outgoingEmailToTime: CompanyConfigurationTable.outgoing_email_to_time,

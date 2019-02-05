@@ -12,11 +12,12 @@ class InteractController < ApplicationController
   NO_PIN   ||= -1
 
   def get_question_data
-    authorize :interact, :authorized?
+    authorize :interact, :view_reports?
     permitted = params.permit(:qqid, :gid)
 
     qqid = sanitize_id(permitted[:qqid]).try(:to_i)
     gid = sanitize_id(permitted[:gid]).try(:to_i)
+    raise 'Not authorized' if !current_user.group_authorized?(gid)
     cid = current_user.company_id
 
     qq = nil
@@ -55,11 +56,13 @@ class InteractController < ApplicationController
   # Get everything needed to draw an explore map
   ###############################################
   def get_map
-    authorize :interact, :authorized?
+    authorize :interact, :view_reports?
     permitted = params.permit(:qqid, :gids)
 
     qqid = sanitize_id(permitted[:qqid]).try(:to_i)
     gids = sanitize_gids(permitted[:gids])
+    gids = current_user.filter_authorized_groups(gids.split(','))
+    gids = gids.join(',')
     cid  = current_user.company_id
 
     qq = nil

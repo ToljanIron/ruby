@@ -14,7 +14,9 @@ class EmployeePolicy < ApplicationPolicy
     end
 
     def resolve
-      return Group.find(user['group_id']).extract_employees_records if (!user.admin? && !user.hr?)
+      if (!user.admin? && !user.hr?)
+        return Group.find(user['group_id']).extract_employees_records
+      end
       return scope.all
     end
   end

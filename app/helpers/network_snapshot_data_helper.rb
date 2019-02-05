@@ -282,6 +282,7 @@ module NetworkSnapshotDataHelper
     if group.nil?
       group = Group.where(english_name: group_name, snapshot_id: last_sid).last
     end
+    raise 'Not authorized' if !current_user.group_authorized?(group.id)
     empids = group.extract_employees
     max_emps = CompanyConfigurationTable.max_emps_in_map
 
