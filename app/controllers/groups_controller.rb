@@ -14,7 +14,7 @@ class GroupsController < ApplicationController
     sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
     qid = sanitize_id(params[:qid])
 
-    cache_key = "groups-comapny_id-cid-#{cid}-sid-#{sid}"
+    cache_key = "groups-comapny_id-uid-#{current_user.id}-cid-#{cid}-sid-#{sid}"
     res = cache_read(cache_key)
     if res.nil?
       puts 'Retrieving all groups. Replace with authorized groups only'

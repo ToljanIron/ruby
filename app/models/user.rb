@@ -153,8 +153,8 @@ class User < ActiveRecord::Base
       permissible_groups_arr.each do |gid|
         permissible_groups_hash[gid] = true
       end
+      CdsUtilHelper.dev_cache_write(cache_key, permissible_groups_hash, 1.minute)
     end
-    CdsUtilHelper.dev_cache_write(cache_key, permissible_groups_hash, 1.minute)
     return permissible_groups_hash
   end
 
@@ -166,6 +166,7 @@ class User < ActiveRecord::Base
   def filter_authorized_groups(gids_arr)
     return gids_arr if (role == 'admin' || role == 'hr')
     return nil if (role != 'manager')
+
     sid = Group.find(gids_arr.first).snapshot_id
     permissible_groups_hash = get_permissible_groups_hash(sid)
     ret = gids_arr.select { |gid| permissible_groups_hash[gid.to_i] }
