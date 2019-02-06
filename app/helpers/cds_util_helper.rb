@@ -129,17 +129,20 @@ module CdsUtilHelper
 
   def cache_read(key)
     fail 'Key is nil' if key.nil?
+    key = "uid-#{current_user.id}-#{key}"
     return Rails.cache.fetch(key) if to_cache?
     return nil
   end
 
   def cache_write(key, value)
     fail 'Key is nil' if key.nil?
+    key = "uid-#{current_user.id}-#{key}"
     Rails.cache.write(key, value, expires_in: 24.hours) if to_cache?
   end
 
   def cache_delete(key, _value)
     fail 'Key is nil' if key.nil?
+    key = "uid-#{current_user.id}-#{key}"
     Rails.cache.delete(key) if to_cache?
   end
 
