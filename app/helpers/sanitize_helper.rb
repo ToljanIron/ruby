@@ -39,7 +39,7 @@ module SanitizeHelper
 
   def sanitize_alphanumeric(s)
     return nil if s.nil?
-    return s if !s.match(/[!\#\^\*)(\+=}{\\\?\s]+/)
+    return s if !s.match(/[\#\^\*)(\+=}{\\\?\s]+/)
     raise "Parameter is not alphanumeric"
   end
 

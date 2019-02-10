@@ -266,11 +266,14 @@ class Group < ActiveRecord::Base
 
       ## Fix parent group IDs
       Group.by_snapshot(sid).each do |currg|
+        puts "=========================="
+        puts "currg: #{currg.external_id}"
         parent_in_prev_sid = currg.parent_group_id
         next if parent_in_prev_sid.nil?
         external_id = Group.find(parent_in_prev_sid).external_id
+        puts "external_id: #{external_id}"
         parent_in_sid = Group.by_snapshot(sid).where(external_id: external_id).last
-        currg.update(parent_group_id: parent_in_sid.id)
+        currg.update(parent_group_id: parent_in_sid.id) if !parent_in_sid.nil?
       end
 
       Group.prepare_groups_for_hierarchy_queries(sid)
