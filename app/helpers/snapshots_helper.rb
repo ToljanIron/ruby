@@ -14,7 +14,8 @@ module SnapshotsHelper
                   timestamp,
                   max(timestamp) OVER (PARTITION BY month) AS max_timestamp
                 FROM snapshots
-                WHERE company_id = #{cid}
+                WHERE company_id = #{cid} AND
+                      is_interact is false
               ) t
               WHERE timestamp = max_timestamp AND company_id = #{cid}
               ORDER BY timestamp ASC
