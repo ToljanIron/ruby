@@ -47,7 +47,7 @@ class NetworkSnapshotDataController < ApplicationController
 
     cid = current_user.company_id
     gid      = permitted[:gid].safe_sanitize_integer
-    raise 'Not authorized' if !current_user.group_authorized?(group.id)
+    raise 'Not authorized' if !current_user.group_authorized?(gid)
     interval = permitted[:interval].sanitize_is_alphanumeric
     gids     = permitted[:gids].split(',').map(&:sanitize_integer)
     gids = current_user.filter_authorized_groups(gids)
