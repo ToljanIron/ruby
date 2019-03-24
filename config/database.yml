@@ -10,7 +10,7 @@ default: &default
 
 development:
   <<: *default
-  database: workships_ext
+  database: workships_interact
   username: workships
   password: workships
   port: 5432

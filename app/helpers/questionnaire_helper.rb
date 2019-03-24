@@ -289,9 +289,9 @@ module QuestionnaireHelper
         next if nid.nil?
         value = convert_answer(reply.answer)
         from = QuestionnaireParticipant.where(id: reply.questionnaire_participant_id).first
-        puts "FROM ID: #{reply.questionnaire_participant_id}" if (from.employee.nil?)
         to = QuestionnaireParticipant.where(id: reply.reffered_questionnaire_participant_id).first
-        next unless from && to && from.participant_type == 1
+
+        next unless from && to && from.participant_type != 'tester'
 
         newfromid = Employee.id_in_snapshot(from.employee.id, sid)
         newtoid   = Employee.id_in_snapshot(  to.employee.id, sid)

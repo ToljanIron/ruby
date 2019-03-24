@@ -818,7 +818,7 @@ GEM
       rake (>= 0.8.1)
     pg (0.21.0)
     phantomjs (2.1.1.0)
-    puma (3.12.0)
+    puma (3.12.1)
     pundit (2.0.0)
       activesupport (>= 3.0.0)
     rack (2.0.6)
