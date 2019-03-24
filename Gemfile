@@ -55,7 +55,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.8'
   gem 'transpec'
   gem 'seed_dump'
-  #gem 'puma', '~> 3.7'
+  gem 'puma', '~> 3.7'
 end
 
 group :test do

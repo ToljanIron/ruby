@@ -289,6 +289,7 @@ module QuestionnaireHelper
         next if nid.nil?
         value = convert_answer(reply.answer)
         from = QuestionnaireParticipant.where(id: reply.questionnaire_participant_id).first
+        puts "FROM ID: #{reply.questionnaire_participant_id}" if (from.nil?)
         to = QuestionnaireParticipant.where(id: reply.reffered_questionnaire_participant_id).first
         next unless from && to
 
