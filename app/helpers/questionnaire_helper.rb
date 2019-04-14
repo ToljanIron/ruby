@@ -334,7 +334,11 @@ module QuestionnaireHelper
 
     qids.each do |qid|
       puts "Fixing cold questionnaires for: #{qid}"
-      last_question_id = QuestionnaireQuestion.where(questionnaire_id: qid).order(order: :desc).limit(1)[0].try(:id)
+      last_question_id = QuestionnaireQuestion
+                           .where(questionnaire_id: qid, active: true)
+                           .order(order: :desc)
+                           .limit(1)[0]
+                           .try(:id)
       next if last_question_id.nil?
       puts "last_question_id: #{last_question_id}"
 
