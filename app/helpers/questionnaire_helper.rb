@@ -323,6 +323,42 @@ module QuestionnaireHelper
     return 1 if answer == true
     return 0
   end
+
+  ############################################################################
+  # Find participants that completed the questionnaire but did not click the
+  # "Finish" button. We call such questionnaires: "Cold"
+  ############################################################################
+  def self.find_and_fix_cold_questionnaires
+
+    qids = Questionnaire.where(state: 5).pluck(:id)
+
+    qids.each do |qid|
+      puts "Fixing cold questionnaires for: #{qid}"
+      last_question_id = QuestionnaireQuestion.where(questionnaire_id: qid).order(order: :desc).limit(1)[0].try(:id)
+      next if last_question_id.nil?
+
+      sqlstr = "
+       UPDATE questionnaire_participants SET status = 3 WHERE id IN (
+         SELECT qpid
+         FROM (SELECT COUNT(*) AS replies_count,
+                      MAX((SELECT EXTRACT (EPOCH FROM AGE(created_at)))/ 60 / 60) AS last_changed,
+                      questionnaire_participant_id AS qpid
+               FROM question_replies AS qr
+               WHERE
+                 questionnaire_id = #{qid} AND
+                 questionnaire_question_id = #{last_question_id}
+               GROUP BY questionnaire_participant_id) AS innerq
+         JOIN questionnaire_participants AS qp ON qp.id = innerq.qpid
+         WHERE
+         qp.status IN (1,2) AND
+         qp.questionnaire_id = #{qid} AND
+         last_changed > 12)"
+
+      ActiveRecord::Base.connection.exec_query(sqlstr)
+    end
+
+  end
+
   private
 
   #############################################################################

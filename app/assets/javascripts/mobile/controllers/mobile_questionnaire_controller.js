@@ -159,6 +159,11 @@ angular.module('workships-mobile')
     if (mobileAppService.isQuestionTypeMinMax()) {
       isLessAvailableEmployeesThanMinimum();
     }
+
+    // Save partial results to the database
+    if ( ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) % 3) === 0) {
+      $scope.continueLater();
+    }
   };
 
   $scope.onUndo = function () {

@@ -30,6 +30,38 @@ describe QuestionnaireHelper, type: :helper do
     DatabaseCleaner.clean_with(:truncation)
   end
 
+  describe 'find_and_fix_cold_questionnaires' do
+    it 'should fix a cold questionnaire' do
+      add_question_reply(@qq3.id, @qp1.id, @qp2.id, true, 3.days.ago)
+      add_question_reply(@qq3.id, @qp1.id, @qp3.id, true, 3.days.ago)
+      add_question_reply(@qq3.id, @qp1.id, @qp4.id, true, 3.days.ago)
+      @qp1.update(status: :in_process)
+      QuestionnaireHelper.find_and_fix_cold_questionnaires
+      qp1 = QuestionnaireParticipant.find(@qp1.id)
+      expect( qp1.status ).to eq('completed')
+    end
+
+    it 'should not fix a questionnaire where the last question was not answered at all' do
+      add_question_reply(@qq2.id, @qp1.id, @qp2.id, true, 3.days.ago)
+      add_question_reply(@qq2.id, @qp1.id, @qp3.id, true, 3.days.ago)
+      add_question_reply(@qq2.id, @qp1.id, @qp4.id, true, 3.days.ago)
+      @qp1.update(status: :in_process)
+      QuestionnaireHelper.find_and_fix_cold_questionnaires
+      qp1 = QuestionnaireParticipant.find(@qp1.id)
+      expect( qp1.status ).to eq('in_process')
+    end
+
+    it 'should not fix a questionnaire where the last question was answered today' do
+      add_question_reply(@qq1.id, @qp1.id, @qp2.id, true, 5.hours.ago)
+      add_question_reply(@qq1.id, @qp1.id, @qp3.id, true, 5.hours.ago)
+      add_question_reply(@qq1.id, @qp1.id, @qp4.id, true, 5.hours.ago)
+      @qp1.update(status: :in_process)
+      QuestionnaireHelper.find_and_fix_cold_questionnaires
+      qp1 = QuestionnaireParticipant.find(@qp1.id)
+      expect( qp1.status ).to eq('in_process')
+    end
+  end
+
   describe 'get_questionnaire_details' do
 	  it 'should get all questionnaire details' do
       res = get_questionnaire_details('t2')
@@ -249,12 +281,14 @@ def find_by_qp(list, qpid)
   return list.find { |l| l[:e_id] == qpid }
 end
 
-def add_question_reply(qqid, fqpid, tqpid, answer)
-  QuestionReply.create!(
+def add_question_reply(qqid, fqpid, tqpid, answer, date=nil)
+  qp = QuestionReply.create!(
     questionnaire_id: @q.id,
     questionnaire_question_id: qqid,
     questionnaire_participant_id: fqpid,
     reffered_questionnaire_participant_id: tqpid,
     answer: answer
   )
+
+  qp.update(created_at: date, updated_at: date) if !date.nil?
 end
