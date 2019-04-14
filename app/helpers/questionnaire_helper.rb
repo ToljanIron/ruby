@@ -336,6 +336,7 @@ module QuestionnaireHelper
       puts "Fixing cold questionnaires for: #{qid}"
       last_question_id = QuestionnaireQuestion.where(questionnaire_id: qid).order(order: :desc).limit(1)[0].try(:id)
       next if last_question_id.nil?
+      puts "last_question_id: #{last_question_id}"
 
       sqlstr = "
        UPDATE questionnaire_participants SET status = 3 WHERE id IN (
