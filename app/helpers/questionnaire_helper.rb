@@ -330,7 +330,7 @@ module QuestionnaireHelper
   ############################################################################
   def self.find_and_fix_cold_questionnaires
 
-    qids = Questionnaire.where(state: 5).pluck(:id)
+    qids = Questionnaire.where("state <= 5").pluck(:id)
 
     qids.each do |qid|
       puts "Fixing cold questionnaires for: #{qid}"
