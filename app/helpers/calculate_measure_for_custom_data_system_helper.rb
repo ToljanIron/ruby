@@ -749,7 +749,7 @@ module CalculateMeasureForCustomDataSystemHelper
   def total_average_from_gauge(cid, interval, snapshot_field, extids, aid)
     sqlstr = "
       SELECT AVG(agg) FROM
-       (SELECT (SUM(cds.numerator) / SUM(cds.denominator)) AS agg, cds.snapshot_id AS snid
+       (SELECT (SUM(cds.numerator) / COALESCE(NULLIF(SUM(cds.denominator),0), 1) ) AS agg, cds.snapshot_id AS snid
         FROM cds_metric_scores AS cds
         JOIN groups AS g ON g.id =  cds.group_id
         JOIN snapshots AS sn ON sn.id = cds.snapshot_id

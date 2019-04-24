@@ -40,7 +40,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_CLIENT_SECRET',
 redirect_uri = ENV['OFFICE_365_REDIRECT_URI']
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_REDIRECT_URI', comp_id: -1).update(value: redirect_uri)
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TOKEN_ENDPOINT', comp_id: -1).update(value: 'https://login.microsoftonline.com/tenant-id/oauth2/v2.0/token')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TENANT_ID', comp_id: -1).update(value: 'd6ddb1e1-3318-49e6-8c48-014b35fd9b44')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_TENANT_ID', comp_id: -1).update(value: '')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_WHITE_LIST_FILE', comp_id: -1).update(value: './collector/white_list.csv')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_SCOPE', comp_id: -1).update(value: 'https://graph.microsoft.com/.default')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_O365_USERS_BASE_URL', comp_id: -1).update(value: 'https://graph.microsoft.com/v1.0/users')

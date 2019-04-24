@@ -1,5 +1,15 @@
 #!/bin/bash
 
+echo "*****************************************"
+echo "This seed is created in test mode. It means that some params"
+echo "  are hardcoded:"
+echo "  - admin password: 12345"
+echo "  - company_name: Questcomp"
+echo "  - domain: 2stepaheadtarget.onmicrosoft.com"
+echo "to acknowladge click enter"
+echo "*****************************************"
+read anything
+
 echo "Type admin user password"
 #read password
 #export ADMIN_USER_PASSWORD=$password
@@ -13,7 +23,7 @@ export COMPANY_NAME=Questcomp
 echo "Type company_domain"
 #read company_domain
 #export COMPANY_DOMAIN=$company_domain
-export COMPANY_DOMAIN=questcomp.com
+export COMPANY_DOMAIN=2stepaheadtarget.onmicrosoft.com
 
 echo "Souring"
 source /home/dev/Development/workships/.env

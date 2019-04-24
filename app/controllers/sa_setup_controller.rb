@@ -295,9 +295,6 @@ class SaSetupController < ActionController::Base
     state = params['state']
     raise "Did not identify origin of reply from Microsoft" if state != @conf.get_collector_o365_redirect_state
     tenant = params['tenant']
-    CompanyConfigurationTable.create!(
-      key: 'COLLECTOR_O365_TENANT_ID',
-      comp_id: Company.last,
-      value: tenant)
+    CompanyConfigurationTable.find_by(key: 'COLLECTOR_O365_TENANT_ID', comp_id: -1).update(value: tenant)
   end
 end

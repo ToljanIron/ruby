@@ -18,7 +18,7 @@ module MeetingsHelper
       meetings_values << "(#{raw_meeting.convert_to_param_array(cid, sid).try(:join, ',')})"
 
       meeting_identifier = RawMeetingsData.meeting_identifier(
-        raw_meeting[:subject], raw_meeting[:organizer]
+        raw_meeting[:subject], raw_meeting[:organizer], raw_meeting[:start_time]
       )
 
       meetings_attendees[meeting_identifier] = raw_meeting[:attendees]
@@ -42,6 +42,7 @@ module MeetingsHelper
     return if meetings_attendees.empty?
     attendees_values = []
     meetings_attendees.each do |uniq_id, attendees|
+
       meeting = MeetingsSnapshotData.find_by(meeting_uniq_id: uniq_id)
       cid = meeting.company_id
       attendees_converted = convert_attendees_to_attendee_entries(attendees, cid, meeting.id, sid)

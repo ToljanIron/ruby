@@ -13,7 +13,7 @@ class RawMeetingsData < ActiveRecord::Base
 
   def convert_to_param_array(cid, sid)
     meeting_uniq_id = RawMeetingsData.meeting_identifier(
-                          self[:subject], self[:organizer]
+                          self[:subject], self[:organizer], self[:start_time]
     )
 
     emp = Employee.find_by(snapshot_id: sid, email: self[:organizer])
@@ -31,9 +31,9 @@ class RawMeetingsData < ActiveRecord::Base
     ].map { |param| param ? "'#{param}'" : 'null' }
   end
 
-  def self.meeting_identifier(subject, organizer)
+  def self.meeting_identifier(subject, organizer, starttime)
     return Digest::SHA1.hexdigest(
-      "#{subject}-#{organizer}"
+      "#{subject}-#{organizer}-#{starttime}"
     )
   end
 
