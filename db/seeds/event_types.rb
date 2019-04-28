@@ -11,3 +11,6 @@ EventType.create!(id: 16  , name: 'QUESTIONNAIRE') unless EventType.find_by(name
 EventType.create!(id: 17  , name: 'LOGIN') unless EventType.find_by(name: 'LOGIN')
 EventType.create!(id: 18  , name: 'COLLECTOR') unless EventType.find_by(name: 'COLLECTOR')
 EventType.create!(id: 19  , name: 'JOB_UPDATES') unless EventType.find_by(name: 'JOB_UPDATES')
+EventType.create!(id: 20  , name: 'ALERTS_JOB') unless EventType.find_by(name: 'ALERTS_JOB')
+EventType.create!(id: 21  , name: 'CREATE_SNAPSHOT_JOB') unless EventType.find_by(name: 'CREATE_SNAPSHOT_JOB')
+EventType.create!(id: 22  , name: 'PRECALCULATE_JOB') unless EventType.find_by(name: 'PRECALCULATE_JOB')

@@ -1,7 +1,7 @@
 class AlertsJob
   def perform
     puts 'create_alerts job started'
-    EventLog.log_event(message: 'create_alerts job started')
+    EventLog.log_event(message: 'create_alerts job started', event_type_name: 'ALERTS_JOB' )
     cids = Company.pluck(:id)
 
     cids.each do |cid|
@@ -14,19 +14,19 @@ class AlertsJob
       end
     end
 
-    EventLog.log_event(message: 'create_alerts job completed')
+    EventLog.log_event(message: 'create_alerts job completed', event_type_name: 'ALERTS_JOB')
   end
 
   def error(job, ex)
     msg = "AlertsJob error: #{ex.message}"
     puts msg
-    EventLog.log_event(message: msg)
+    EventLog.log_event(message: msg, event_type_name: 'ALERTS_JOB')
     puts ex.backtrace
   end
 
   def failure(job)
     msg = 'AlertsJob failure'
     puts msg
-    EventLog.log_event(message: msg)
+    EventLog.log_event(message: msg, event_type_name: 'ALERTS_JOB')
   end
 end

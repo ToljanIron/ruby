@@ -1,0 +1,18 @@
+<html>
+<head>
+	<title>Stepahead | Manage</title>
+	<%= stylesheet_link_tag  'sa_manage', media: "all" %>
+	<%= javascript_include_tag 'sa_manage'%>
+	<%= csrf_meta_tags %>
+</head>
+
+<body>
+  <div class='sam-layout-top-bar'>
+    <img class='sam-layout-logo' src="<%= asset_path 'stepahead_logo.svg' %>" width=150 height=60 >
+  </div>
+
+  <div class='sam-layout-container'>
+    <%= yield %>
+  </div>
+</body>
+</html>

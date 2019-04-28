@@ -9,8 +9,10 @@ module JobsHelper
 
   def self.get_jobs_list
     return [
-      {job: CollectorJob, interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE},
-      {job: AlertsJob,    interval: JOB_INTERVALS_DAILY,  interval_offset: 0, queue: APP_QUEUE},
+      {job: CollectorJob,      interval: JOB_INTERVALS_HOURLY, interval_offset: 0, queue: COLLECTOR_QUEUE},
+      {job: AlertsJob,         interval: JOB_INTERVALS_DAILY,  interval_offset: 0, queue: APP_QUEUE},
+      {job: CreateSnapshotJob, interval: JOB_INTERVALS_WEEKLY, interval_offset: 0, queue: APP_QUEUE},
+      {job: PrecalculateJob,   interval: JOB_INTERVALS_WEEKLY, interval_offset: 0, queue: APP_QUEUE},
     ]
   end
 
