@@ -12,14 +12,14 @@ class CreateSnapshotJob
   end
 
   def error(job, ex)
-    msg = "CreateSnapshotJob error: #{ex.message[0..1000]}"
+    msg = "create_snapshot job error: #{ex.message[0..1000]}"
     puts msg
     EventLog.log_event(message: msg, event_type_name: 'CREATE_SNAPSHOT_JOB')
     puts ex.backtrace
   end
 
   def failure(job)
-    msg = 'CreateSnapshotJob failure'
+    msg = 'create_snapshot job failure'
     puts msg
     EventLog.log_event(message: msg, event_type_name: 'CREATE_SNAPSHOT_JOB')
   end

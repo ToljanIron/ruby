@@ -99,6 +99,8 @@ Workships::Application.routes.draw do
   post 'v3/setting/edit_password'            ,to: 'settings#edit_password'
   get 'v3/get_config_params'                 ,to: 'settings#get_config_params'
 
+  get 'v3/jobs_status'                       ,to: 'jobs#jobs_status'
+
   get 'v3/get_snapshots'                     ,to: 'snapshots#get_snapshots'
   get 'v3/get_time_picker_snapshots'         ,to: 'snapshots#get_time_picker_snapshots'
 

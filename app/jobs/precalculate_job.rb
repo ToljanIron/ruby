@@ -1,7 +1,7 @@
 class PrecalculateJob
   def perform
     puts 'precalculate job started'
-    EventLog.log_event(message: 'preclaculate job started', event_type_name: 'PRECALCULATE_JOB' )
+    EventLog.log_event(message: 'precalaculate job started', event_type_name: 'PRECALCULATE_JOB' )
 
     cid = 1
     sid = Snapshot.where(company_id: cid).last.id if sid == '-1'
@@ -16,14 +16,14 @@ class PrecalculateJob
   end
 
   def error(job, ex)
-    msg = "PrecalculateJob error: #{ex.message[0..1000]}"
+    msg = "precalaculate job error: #{ex.message[0..1000]}"
     puts msg
     EventLog.log_event(message: msg, event_type_name: 'PRECALCULATE_JOB')
     puts ex.backtrace
   end
 
   def failure(job)
-    msg = 'PrecalculateJob failure'
+    msg = 'precalaculate job failure'
     puts msg
     EventLog.log_event(message: msg, event_type_name: 'PRECALCULATE_JOB')
   end

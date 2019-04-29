@@ -18,7 +18,7 @@ class AlertsJob
   end
 
   def error(job, ex)
-    msg = "AlertsJob error: #{ex.message}"
+    msg = "alerts job error: #{ex.message}"
     puts msg
     EventLog.log_event(message: msg, event_type_name: 'ALERTS_JOB')
     puts ex.backtrace

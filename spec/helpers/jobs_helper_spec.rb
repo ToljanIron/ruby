@@ -112,4 +112,50 @@ describe JobsHelper, type: :helper do
       expect(weekly_job.count).to eq(1)
     end
   end
+
+  describe 'jobs_status' do
+    before do
+      Delayed::Job.enqueue(CollectorJob.new, queue: 'testqueue', run_at: DateTime.new(2018,8,30,12))
+      Delayed::Job.enqueue(CollectorJob.new, queue: 'testqueue', run_at: DateTime.new(2018,8,30,13))
+      Delayed::Job.enqueue(CollectorJob.new, queue: 'testqueue', run_at: DateTime.new(2018,8,30,14))
+      Delayed::Job.enqueue(AlertsJob.new, queue: 'testqueue', run_at: DateTime.new(2018,8,30,11))
+      Delayed::Job.enqueue(CreateSnapshotJob.new, queue: 'testqueue', run_at: DateTime.new(2018,9,1,15))
+      Delayed::Job.enqueue(PrecalculateJob.new, queue: 'testqueue', run_at: DateTime.new(2018,9,2,15))
+
+      EventLog.create!(
+        message: 'PRECALCULATE_JOB: precalaculate job started',
+        event_type_id: 22,
+        created_at: 5.hours.ago
+      )
+      EventLog.create!(
+        message: 'PRECALCULATE_JOB: precalaculate job completed',
+        event_type_id: 22,
+        created_at: 3.hours.ago
+      )
+    end
+
+    it 'should work' do
+      res = JobsHelper.jobs_status()
+      expect(res['PrecalculateJob'][:job_status]).to start_with("Last finished at:")
+      expect(res['CollectorJob'][:next_run]).to eq('2018-08-30 12:00:00')
+      expect(res['AlertsJob'][:job_status]).to eq('Never ran')
+    end
+
+    it 'should detect currently running jobs' do
+      EventLog.last.delete
+      res = JobsHelper.jobs_status()
+      expect(res['PrecalculateJob'][:job_status]).to include("still running")
+    end
+
+    it 'should detect errors' do
+      EventLog.last.delete
+      EventLog.create!(
+        message: 'PRECALCULATE_JOB: precalaculate job error: bad error',
+        event_type_id: 22,
+        created_at: 3.hours.ago
+      )
+      res = JobsHelper.jobs_status()
+      expect(res['PrecalculateJob'][:job_status]).to include("with error")
+    end
+  end
 end
