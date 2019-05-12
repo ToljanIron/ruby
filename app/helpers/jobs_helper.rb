@@ -54,6 +54,7 @@ module JobsHelper
   # offset is 0-6 starting Sunday
   ####################################################################
   def self.schedule_weekly_job(job, queue='defaultqueue', dayofweek=0)
+    byebug
     wday = Date.today.wday
     if wday <= dayofweek
       next_job_run_at = Date.today - wday + dayofweek

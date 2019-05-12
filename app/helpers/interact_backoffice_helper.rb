@@ -565,7 +565,7 @@ module InteractBackofficeHelper
     last_name = p['last_name']
     email = p['email']
     phone_number = p['phone_number']
-    group_name = p['group']
+    group_name = p['group_name']
     office = p['office']
     role = p['role']
     rank = p['rank']
@@ -579,7 +579,6 @@ module InteractBackofficeHelper
     gid = nil
 
     if !group_name.nil? && !group_name.empty?
-
       ## Clear questionnaire_id if group has changed
       old_group = emp.group
       update_questionnaire_id_in_groups_heirarchy(old_group.id, nil) if old_group.name != group_name
