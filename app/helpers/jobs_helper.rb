@@ -129,9 +129,9 @@ module JobsHelper
     ret['CreateSnapshotJob'][:job_status] = create_snapshot_status
 
     alerts_status = get_single_job_status(
-                                'ALERTS_JOB: alerts job started',
-                                'ALERTS_JOB: alerts job completed',
-                                'ALERTS_JOB: alerts job error:%')
+                                'ALERTS_JOB: create_alerts job started',
+                                'ALERTS_JOB: create_alerts job completed',
+                                'ALERTS_JOB: create_alerts job error:%')
     ret['AlertsJob'][:job_status] = alerts_status
 
     collector_status = get_single_job_status(

@@ -11,6 +11,8 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).update(value: 'Exchange')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_WRITE_TO_EVENT_LOG', comp_id: -1).update(value: 'true')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_LEVEL', comp_id: -1).update(value: 'info')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_DUMMY_COLLECTION_MODE', comp_id: -1).update(value: 'true')
+
 
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/dev/Development/collector')
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_FILES_PORTAL', comp_id: -1).update(value: '/home/dev/Development/collector/files_portal')
