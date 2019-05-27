@@ -55,7 +55,8 @@ module JobsHelper
   ####################################################################
   def self.schedule_weekly_job(job, queue='defaultqueue', dayofweek=0)
     wday = Date.today.wday
-    if wday <= dayofweek
+
+    if wday < dayofweek
       next_job_run_at = Date.today - wday + dayofweek
     else
       next_job_run_at = Date.today + 7 - wday + dayofweek
@@ -63,7 +64,7 @@ module JobsHelper
 
     jobs = Delayed::Job
            .where("handler like '%#{job.to_s}%'")
-           .where(run_at: next_job_run_at)
+           .where(run_at: next_job_run_at - 1.day .. next_job_run_at + 1.day)
     return if jobs.count > 0
     Delayed::Job.enqueue(job.new, queue: queue, run_at: next_job_run_at)
   end
@@ -139,6 +140,14 @@ module JobsHelper
                                 'COLLECTOR(1)-INFO - end run',
                                 'COLLECTOR(1)-ERROR - %')
     ret['CollectorJob'][:job_status] = collector_status
+
+    if !ret['HistoricalDataJob'].nil?
+      historical_status = get_single_job_status(
+                                  'GENERAL_EVENT: historical_data job started',
+                                  'GENERAL_EVENT: historical job completed',
+                                  'GENERAL_EVENT: HistoricalDataJob error:')
+      ret['HistoricalDataJob'][:job_status] = historical_status
+    end
 
     return ret
   end

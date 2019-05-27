@@ -38,6 +38,6 @@ cd $APP_HOME
 RAILS_ENV=$RUN_ENV rake db:delayed_jobs_scheduler
 
 ## Run delayed jobs
-RAILS_ENV=$RUN_ENV QUEUE=app_queue rake jobs:workoff
+RAILS_ENV=$RUN_ENV QUEUE=app_queue rake jobs:workoff >> $APP_HOME/log/onpremise.log 2>&1
 
 ## Run log rotate

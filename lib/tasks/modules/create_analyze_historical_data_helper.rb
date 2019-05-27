@@ -58,6 +58,7 @@ module AnalyzeHistoricalDataHelper
 
     puts "Done with AnalyzeHistoricalDataHelper job"
     job.finish_successfully
+    Company.find(1).update(setup_state: 11)
   end
 
   def run_job(cid, job)
