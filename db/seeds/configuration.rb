@@ -11,7 +11,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_TYPE', comp_id: -1).update(value: 'Exchange')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_WRITE_TO_EVENT_LOG', comp_id: -1).update(value: 'true')
 CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_LOG_LEVEL', comp_id: -1).update(value: 'info')
-CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_DUMMY_COLLECTION_MODE', comp_id: -1).update(value: 'true')
+CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_DUMMY_COLLECTION_MODE', comp_id: -1).update(value: 'false')
 
 
 #CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_HOME', comp_id: -1).update(value: '/home/dev/Development/collector')
@@ -68,7 +68,7 @@ CompanyConfigurationTable.find_or_create_by(key: 'COLLECTOR_PARSER_TYPE', comp_i
 ## App params
 CompanyConfigurationTable.find_or_create_by(key: 'INFO_LOG_LEVEL', comp_id: -1).update(value: 'info')
 CompanyConfigurationTable.find_or_create_by(key: 'APP_SERVER_NAME', comp_id: -1).update(value: 'stepahead')
-CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '3')
+CompanyConfigurationTable.find_or_create_by(key: 'MIN_EMPS_IN_GROUP_FOR_ALGORITHMS', comp_id: -1).update(value: '2')
 CompanyConfigurationTable.find_or_create_by(key: 'NTP_SERVER', comp_id: -1).update(value: 'time.windows.com')
 CompanyConfigurationTable.find_or_create_by(key: 'process_meetings', comp_id: -1).update(value: 'true')
 

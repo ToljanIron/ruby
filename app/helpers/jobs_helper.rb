@@ -31,7 +31,7 @@ module JobsHelper
       end
     end
 
-    #create_historical_data_job
+    create_historical_data_job
 
     puts('Schedule delayed jobs done')
   end
@@ -54,7 +54,6 @@ module JobsHelper
   # offset is 0-6 starting Sunday
   ####################################################################
   def self.schedule_weekly_job(job, queue='defaultqueue', dayofweek=0)
-    byebug
     wday = Date.today.wday
     if wday <= dayofweek
       next_job_run_at = Date.today - wday + dayofweek
@@ -94,7 +93,8 @@ module JobsHelper
   # Create a job for the initial push operation
   #####################################################################
   def create_historical_data_job
-    return if Company.find(1).setup_state != 'push'
+    return if (Company.find(1).setup_state != 'push')
+    return if (Delayed::Job.where("handler like '%HistoricalDataJob%'").count > 0)
     Delayed::Job.enqueue(
       HistoricalDataJob.new,
       queue: APP_QUEUE,

@@ -66,10 +66,6 @@ class SaSetupController < ActionController::Base
     end
 
     CompanyConfigurationTable.find_by(
-      key: 'COLLECTOR_TRNAS_TYPE',
-      comp_id: -1
-    ).update(value: 'SFTP')
-    CompanyConfigurationTable.find_by(
       key: 'COLLECTOR_TRNAS_HOST',
       comp_id: -1
     ).update(value: host)
@@ -86,8 +82,15 @@ class SaSetupController < ActionController::Base
       comp_id: -1
     ).update(value: logs_dir)
 
+    trans_type = CompanyConfigurationTable.find_by(
+      key: 'COLLECTOR_TRNAS_TYPE',
+      comp_id: -1
+    ).value
+
     begin
-      SftpHelper.sftp_copy(host, user, pass, '*.log', logs_dir, '/tmp')
+      if trans_type == 'SFTP'
+        SftpHelper.sftp_copy(host, user, pass, '*.log', logs_dir, '/tmp')
+      end
     rescue => ex
       error = translate_sftp_error(ex.message)
       msg = "SFTP server error: #{error}"

@@ -16,7 +16,6 @@ namespace :db do
 
     if clean
       puts "Clearing"
-      PushProc.last.update(state: 3)
       NetworkSnapshotData.delete_all
       CdsMetricScore.delete_all
       RawDataEntry.all.update(processed: false)

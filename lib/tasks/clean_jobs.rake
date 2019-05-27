@@ -19,9 +19,12 @@ namespace :db do
     CdsMetricScore.delete_all
 
     Snapshot.where.not(id: 1).delete_all
+
+    #puts "Not clearing employees and groups"
     Employee.delete_all
     Group.delete_all
 
+    #puts "Not resetting company setup_state"
     Company.last.update!(setup_state: 0)
     puts "Done"
   end
