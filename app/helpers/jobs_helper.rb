@@ -37,9 +37,10 @@ module JobsHelper
   end
 
   def self.schedule_hourly_job(job, queue)
-    (0..23).each do |h|
-      hourstart = h.hours.from_now.beginning_of_hour
-      hourend   = h.hours.from_now.end_of_hour
+    (1..23).each do |h|
+      utctime = Time.now.getutc + h.hours
+      hourstart = utctime.beginning_of_hour
+      hourend   = utctime.end_of_hour
       jobs = Delayed::Job
                .where("handler like '%#{job.to_s}%'")
                .where(run_at: hourstart .. hourend)
