@@ -166,7 +166,7 @@ class SaSetupController < ActionController::Base
   def goto_system
     puts "in goto_system"
     Company.last.update(setup_state: :ready)
-    redirect_to "https://stepahead.step-ahead.com"
+    redirect_to "https://stepahead.2stepahead.com"
   end
 
   def collect_now

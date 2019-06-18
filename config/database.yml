@@ -18,6 +18,7 @@ development:
 onpremise:
   <<: *default
   database: workships_app
+  port: 5433
 
 protractor:
   <<: *default

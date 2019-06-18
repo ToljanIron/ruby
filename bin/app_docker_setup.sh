@@ -6,8 +6,8 @@
 cd /home/app/sa
 
 ## nginx setup
-cp templates/step-ahead.com.crt /etc/ssl/certs/step-ahead.com.crt
-cp templates/step-ahead.com.key /etc/ssl/private/step-ahead.com.key
+cp templates/2stepahead.crt /etc/ssl/certs/2stepahead.crt
+cp templates/2stepahead.key /etc/ssl/private/2stepahead.key
 cp templates/sa-nginx.conf.ssltemplate /etc/nginx/sites-available/sa-nginx.conf.ssltemplate
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/sa-nginx.conf.ssltemplate /etc/nginx/sites-enabled/step-ahead.com.conf
