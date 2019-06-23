@@ -1,4 +1,5 @@
 <div ng-controller="mobileQuestionnaireController" ng-init="init()">
+
   <div ng-if="mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()' dir='rtl'>
     <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
