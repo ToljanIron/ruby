@@ -28,7 +28,6 @@ gem 'tzinfo-data'
 gem 'awesome_print'
 gem 'byebug'
 
-
 group :production, :onpremise, :development do
   gem 'mail'
   gem 'write_xlsx'
