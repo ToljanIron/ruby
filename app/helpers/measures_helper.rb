@@ -636,11 +636,11 @@ module MeasuresHelper
         if(min < 0) # shift scores up if negative min
           h['min'] = 0
           h['max'] = (max + min.abs).to_f.round(2)
-          h['curScore'] = (score + min.abs).to_f.round(2)
+          h['curScore'] = !score.nil? ? (score + min.abs).to_f.round(2) : 0
         else
           h['min'] = min.to_f.round(2)
           h['max'] = max.to_f.round(2)
-          h['curScore'] = score.to_f.round(2)
+          h['curScore'] = !score.nil? ? score.to_f.round(2) : 0
         end
 
         res << h
