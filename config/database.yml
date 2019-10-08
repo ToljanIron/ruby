@@ -27,9 +27,7 @@ protractor:
 test:
   <<: *default
   datebase: localhost
-  port: 5432
-  username: workships
-  password: workships
+  port: 5433
   database: workships_test
 
 test-sqlserver:

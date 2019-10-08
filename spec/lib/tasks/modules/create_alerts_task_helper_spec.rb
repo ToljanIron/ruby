@@ -122,4 +122,126 @@ describe CreateAlertsTaskHelper, type:  :helper do
       expect(als.length).to eq(2)
     end
   end
+
+  describe 'Create alerts for big changes in measure scores' do
+    before do
+
+      Group.delete_all
+      Employee.delete_all
+
+      # Snapshot 1
+      FactoryBot.create(:group, id: 2, snapshot_id: 2)
+
+      FactoryBot.create(:employee, group_id: 1, external_id: 'ext1', snapshot_id: 1)
+      FactoryBot.create(:employee, group_id: 1, external_id: 'ext2', snapshot_id: 1)
+      FactoryBot.create(:employee, group_id: 1, external_id: 'ext3', snapshot_id: 1)
+      FactoryBot.create(:employee, group_id: 1, external_id: 'ext4', snapshot_id: 1)
+      FactoryBot.create(:employee, group_id: 1, external_id: 'ext5', snapshot_id: 1)
+
+      # Snapshot 2
+      FactoryBot.create(:snapshot, timestamp: Time.now + 1.week)
+      FactoryBot.create(:group, id: 1, snapshot_id: 1)
+
+      FactoryBot.create(:employee, group_id: 2, external_id: 'ext1', snapshot_id: 2)
+      FactoryBot.create(:employee, group_id: 2, external_id: 'ext2', snapshot_id: 2)
+      FactoryBot.create(:employee, group_id: 2, external_id: 'ext3', snapshot_id: 2)
+      FactoryBot.create(:employee, group_id: 2, external_id: 'ext4', snapshot_id: 2)
+      FactoryBot.create(:employee, group_id: 2, external_id: 'ext5', snapshot_id: 2)
+
+    end
+
+    it 'One employee\'s score has increased significantly ' do
+      # Snapshot 1
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 1.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+
+      # Snapshot 2
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 6,   z_score: 2.0,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 7,   z_score: 0.8,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 8,   z_score: 1.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 9,   z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 10,  z_score: 0.4,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      res = create_alerts_for_big_delta_in_z_score_measures(1, 2, 104)
+
+      expect(res.length).to eq(1)
+      expect(res[0]['employee_id']).to eq(8)
+      expect(res[0]['direction']).to eq('high')
+    end
+
+    it '2 employee\'s scores changed significantly ' do
+
+      # Snapshot 1
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 1.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+
+      # Snapshot 2
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 6,   z_score: 1.0,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 7,   z_score: 0.8,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 8,   z_score: 1.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 9,   z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 10,  z_score: 0.4,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      res = create_alerts_for_big_delta_in_z_score_measures(1, 2, 104)
+
+      expect(res.length).to eq(2)
+      expect(res[0]['employee_id']).to eq(8)
+      expect(res[0]['direction']).to eq('high')
+      expect(res[1]['employee_id']).to eq(6)
+      expect(res[1]['direction']).to eq('low')
+    end
+
+    it 'No scores changed significantly ' do
+
+      # Snapshot 1
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 1.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+
+      # Snapshot 2
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 6,   z_score: 2.0,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 7,   z_score: 0.8,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 8,   z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 9,   z_score: 2.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 10,  z_score: 0.4,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      res = create_alerts_for_big_delta_in_z_score_measures(1, 2, 104)
+
+      expect(res.length).to eq(0)
+    end
+
+    describe 'alerts formatting should work' do
+      it 'should format the alert as a delta' do
+
+      # Snapshot 1
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 1,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 2,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 3,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 4,  z_score: 0.3,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+      FactoryBot.create(:cds_metric_score, group_id: 1, employee_id: 5,  z_score: 1.4,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 1)
+
+      # Snapshot 2
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 6,   z_score: 1.4,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 7,   z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 8,   z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 9,   z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+      FactoryBot.create(:cds_metric_score, group_id: 2, employee_id: 10,  z_score: 0.1,  algorithm_id: 104, company_metric_id: 4, snapshot_id: 2)
+
+      create_alerts(1, 2, 104)
+      alerts = Alert.alerts_for_snapshot_by_id(1, 2)
+      formatted_alerts = AlertsHelper.format_alerts(alerts)
+
+      expect(formatted_alerts.length).to eq(2)
+      texts = formatted_alerts[0][:text] + formatted_alerts[1][:text]
+      expect(texts).to include('increased')
+      expect(texts).to include('decreased')
+
+      end
+    end
+  end
 end

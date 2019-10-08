@@ -4,8 +4,9 @@ module CreateAlertsTaskHelper
   DIR_HIGH = 1
   DIR_LOW  = 2
 
-  ALERT_TYPE_EXTREME_Z_SCORE_FOR_GAUGE   = 1
-  ALERT_TYPE_EXTREME_Z_SCORE_FOR_MEASURE = 2
+  ALERT_TYPE_EXTREME_Z_SCORE_FOR_GAUGE        = 1
+  ALERT_TYPE_EXTREME_Z_SCORE_FOR_MEASURE      = 2
+  ALERT_TYPE_BIG_DELTA_IN_Z_SCORE_FOR_MEASURE = 3
 
   def create_alerts(cid, sid, aid)
     snapshot = Snapshot.find_by(id: sid)
@@ -18,7 +19,8 @@ module CreateAlertsTaskHelper
     alerts = []
     case al.algorithm_type_id
     when 1
-      alerts = create_alerts_for_extreme_z_score_measures(cid, sid, aid)
+      alerts =  create_alerts_for_extreme_z_score_measures(cid, sid, aid)
+      alerts += create_alerts_for_big_delta_in_z_score_measures(cid, sid, aid)
     when 5
       alerts = create_alerts_for_extreme_z_score_gauges(cid, sid, aid)
     else
@@ -28,6 +30,47 @@ module CreateAlertsTaskHelper
     alerts.each do |a|
       a.save!
     end
+  end
+
+  ####################### ALERT_TYPE_BIG_DELTA_IN_Z_SCORE_FOR_MEASURE ####################
+  def create_alerts_for_big_delta_in_z_score_measures(cid, sid, aid)
+    curr_snapshot = Snapshot.find(sid)
+    prev_snapshot = curr_snapshot.get_the_snapshot_before_this
+    prevsid = prev_snapshot.id
+    return [] if sid == prevsid
+
+    cm = CompanyMetric.where(company_id: cid, algorithm_id: aid).last
+
+    sqlstr = "
+      SELECT DISTINCT e.external_id, eold.id AS old_id, enew.id AS new_id, enew.group_id AS gid,
+                      cmsold.z_score AS old_score, cmsnew.z_score AS new_score,
+                      (cmsnew.z_score - cmsold.z_score) AS delta
+      FROM Employees AS e
+      JOIN employees AS eold ON eold.external_id = e.external_id AND eold.snapshot_id = #{prevsid}
+      JOIN employees as enew on enew.external_id = e.external_id AND enew.snapshot_id = #{sid}
+      JOIN cds_metric_scores AS cmsold ON cmsold.employee_id = eold.id AND
+                                          cmsold.snapshot_id = #{prevsid} AND
+                                          cmsold.algorithm_id = #{aid}
+      JOIN cds_metric_scores AS cmsnew ON cmsnew.employee_id = enew.id AND
+                                          cmsnew.snapshot_id = #{sid} AND
+                                          cmsnew.algorithm_id = #{aid}
+      WHERE e.snapshot_id = #{sid} AND e.company_id = #{cid} AND
+            e.active = true AND
+            ((cmsnew.z_score - cmsold.z_score) >= 1  OR
+             (cmsnew.z_score - cmsold.z_score) <= -1)
+      ORDER BY delta DESC"
+    deltas = ActiveRecord::Base.connection.exec_query(sqlstr)
+
+    ret = []
+    deltas.each do |d|
+      delta = d['delta']
+      if delta > 0
+        ret << create_alert(cid, sid, d['gid'], d['new_id'], ALERT_TYPE_BIG_DELTA_IN_Z_SCORE_FOR_MEASURE, cm.id, DIR_HIGH)
+      else
+        ret << create_alert(cid, sid, d['gid'], d['new_id'], ALERT_TYPE_BIG_DELTA_IN_Z_SCORE_FOR_MEASURE, cm.id, DIR_LOW)
+      end
+    end
+    return ret
   end
 
   ####################### ALERT_TYPE_EXTREME_Z_SCORE_FOR_MEASURE ####################
