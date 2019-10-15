@@ -31,6 +31,9 @@ Workships::Application.routes.draw do
   get   'question/active_employess', to: 'mobile/questionnaire#active_employees'
   post  'receive_sms', to: 'sms#receive_and_respond'
 
+  ######################## admin ##################################
+  post '/VWj05j3dBE/company/create',    to: 'companies#create'
+
   ######################## onprem setup ############################
   get  '/sa_setup',                         to: 'sa_setup#base'
   get  '/sa_setup/form_error',              to: 'sa_setup#form_error'

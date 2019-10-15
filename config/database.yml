@@ -10,10 +10,10 @@ default: &default
 
 development:
   <<: *default
-  database: workships_interact
-  username: workships
-  password: workships
-  port: 5432
+  database: workships_app
+  username: postgres
+  password: postgres
+  port: 5433
 
 onpremise:
   <<: *default

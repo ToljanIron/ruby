@@ -1,5 +1,5 @@
 class CompanyPolicy < ApplicationPolicy
-  def index?
+  def admin?
     true if user.admin?
   end
 

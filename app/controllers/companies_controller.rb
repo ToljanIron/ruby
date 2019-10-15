@@ -1,19 +1,17 @@
-class CompaniesController < ApplicationController
+class CompaniesController < ApiController
   def create
-    authorize :company, :admin?
-    name = sanitize_alphanumeric( params[:data][:name] )
-    domains = sanitize_alphanumeric( params[:data][:domains] )
 
     ActiveRecord::Base.transaction do
       company = Company.new(name: name)
       begin
         company.save!
-        domains.each do |d|
-          created_domain = Domain.new(company_id: company.id, domain: d[:name])
-          EmailService.create(domain_id: created_domain.id, name: d[:service]) if created_domain.save! && !d[:service].blank?
+        domains_arr.each do |d|
+          Domain.create(company_id: company.id, domain: d)
         end
-        redirect_to admin_page_path
-      rescue
+        render json: { success: true }
+      rescue => e
+        puts "EXCEPTION: #{e}"
+        puts e.backtrace.join("\n")
         render json: { error: 'Error creating company' }
         raise ActiveRecord::Rollback
       end
