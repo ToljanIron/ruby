@@ -32,8 +32,11 @@ Workships::Application.routes.draw do
   post  'receive_sms', to: 'sms#receive_and_respond'
 
   ######################## admin ##################################
-  post '/VWj05j3dBE/company/create',    to: 'companies#create'
-  post '/VWj05j3dBE/user/create',       to: 'users#create'
+  post '/0dWb7K61dIyxHkXkALixfEwKIEG7H9/create_company',     to: 'backoffice#create_company'
+  post '/0dWb7K61dIyxHkXkALixfEwKIEG7H9/create_user',        to: 'backoffice#create_user'
+  get  '/0dWb7K61dIyxHkXkALixfEwKIEG7H9/show_users',         to: 'backoffice#show_users'
+  get  '/0dWb7K61dIyxHkXkALixfEwKIEG7H9/show_companies',     to: 'backoffice#show_companies'
+  post '/0dWb7K61dIyxHkXkALixfEwKIEG7H9/change_user_company',to: 'backoffice#change_user_company'
 
   ######################## onprem setup ############################
   get  '/sa_setup',                         to: 'sa_setup#base'

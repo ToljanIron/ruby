@@ -1,39 +1,4 @@
 class CompaniesController < ApiController
-  def create
-
-    name = params[:name]
-    if name.nil?
-      render json: { error: 'No name given' }
-      return
-    end
-    domains = params[:domains]
-    if domains.nil?
-      render json: { error: 'No domains given' }
-      return
-    end
-    domains_arr = domains.split(';')
-    if domains_arr.empty?
-      render json: { error: 'No domain found' }
-      return
-    end
-
-    ActiveRecord::Base.transaction do
-      company = Company.new(name: name)
-      begin
-        company.save!
-        domains_arr.each do |d|
-          Domain.create(company_id: company.id, domain: d)
-        end
-        render json: { success: true }
-      rescue => e
-        puts "EXCEPTION: #{e}"
-        puts e.backtrace.join("\n")
-        render json: { error: "Error creating company: #{e.message} " }
-        raise ActiveRecord::Rollback
-      end
-    end
-  end
-
   def update
     authorize :company, :index?
     id = params[:company][:id].to_i if params[:company]

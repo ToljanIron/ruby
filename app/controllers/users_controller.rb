@@ -20,4 +20,5 @@ class UsersController < ApplicationController
       }
     render json: ret, status: 200
   end
+
 end
