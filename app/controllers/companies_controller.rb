@@ -1,6 +1,22 @@
 class CompaniesController < ApiController
   def create
 
+    name = params[:name]
+    if name.nil?
+      render json: { error: 'No name given' }
+      return
+    end
+    domains = params[:domains]
+    if domains.nil?
+      render json: { error: 'No domains given' }
+      return
+    end
+    domains_arr = domains.split(';')
+    if domains_arr.empty?
+      render json: { error: 'No domain found' }
+      return
+    end
+
     ActiveRecord::Base.transaction do
       company = Company.new(name: name)
       begin
@@ -12,7 +28,7 @@ class CompaniesController < ApiController
       rescue => e
         puts "EXCEPTION: #{e}"
         puts e.backtrace.join("\n")
-        render json: { error: 'Error creating company' }
+        render json: { error: "Error creating company: #{e.message} " }
         raise ActiveRecord::Rollback
       end
     end

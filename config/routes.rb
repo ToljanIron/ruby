@@ -33,6 +33,7 @@ Workships::Application.routes.draw do
 
   ######################## admin ##################################
   post '/VWj05j3dBE/company/create',    to: 'companies#create'
+  post '/VWj05j3dBE/user/create',       to: 'users#create'
 
   ######################## onprem setup ############################
   get  '/sa_setup',                         to: 'sa_setup#base'
