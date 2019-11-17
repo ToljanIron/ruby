@@ -593,7 +593,8 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
     ibo_process_request do
 
-      file = sanitize_alphanumeric(params[:file_name])
+      # file = sanitize_alphanumeric(params[:file_name])
+      file = params[:file_name]
       file_name = file.original_filename
       empident = file_name[0..-5]
 

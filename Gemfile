@@ -5,7 +5,7 @@ gem 'rails', '5.2.1'
 #gem 'clockwork'
 gem 'pundit'
 gem 'bcrypt'
-gem 'pg', '~> 0.18'
+gem 'pg'
 gem 'descriptive-statistics'
 gem 'writeexcel'
 gem 'fastimage'
@@ -47,6 +47,7 @@ group :production, :onpremise, :development do
   gem "jqcloud-rails"
   gem "daemons"
   gem 'colorize'
+  gem 'aws-sdk', '~> 3.0.0.rc1'
 end
 
 group :development, :test do
@@ -64,7 +65,6 @@ group :test do
 end
 
 group :production do
-  gem 'aws-sdk', '~> 3.0.0.rc1'
   gem 'heroku-deflater'
 end
 
