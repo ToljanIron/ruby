@@ -10,7 +10,7 @@ default: &default
 
 development:
   <<: *default
-  database: workships_app
+  database: workships_sndcom
   username: postgres
   password: postgres
   port: 5432
