@@ -354,6 +354,9 @@ module InteractBackofficeActionsHelper
     end
 
     ## Upload the file
+    puts "++++++++++++++++++++++++++++++"
+    puts img.path
+    puts "++++++++++++++++++++++++++++++"
     obj.upload_file(img.path)
 
     ## Get a safe url back
