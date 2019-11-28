@@ -360,6 +360,7 @@ module InteractBackofficeActionsHelper
     ## Get a safe url back
     img_url = create_s3_object_url(
             img.original_filename[0..-5],
+            cid,
             signer,
             bucket,
             s3_bucket_name)
@@ -367,7 +368,7 @@ module InteractBackofficeActionsHelper
     return img_url
   end
 
-  def self.create_s3_object_url(base_name, signer, bucket, bucket_name)
+  def self.create_s3_object_url(base_name, cid, signer, bucket, bucket_name)
     url = create_url(base_name, cid, 'jpg')
     puts "url: #{url}"
     url = bucket.object(url).exists? ? url : create_url(base_name, cid, 'png')
@@ -384,8 +385,8 @@ module InteractBackofficeActionsHelper
     end
   end
 
-  def self.create_url(base_name,cid, image_type)
-    return "employees/cid-#{base_name}.#{image_type}"
+  def self.create_url(base_name, cid, image_type)
+    return "employees/cid-#{cid}/#{base_name}.#{image_type}"
   end
 
   def self.check_img_name(img_id, emp, img_suffix)
