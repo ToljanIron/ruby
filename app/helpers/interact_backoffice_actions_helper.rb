@@ -304,9 +304,10 @@ module InteractBackofficeActionsHelper
     begin
       img_id = img.original_filename[0..-5]
       emp = Employee.find(eid)
+      cid = emp.company_id
       res = check_img_name(img_id, emp, img.original_filename[-3..-1] )
       return res unless res.nil?
-      img_url = upload_image(img)
+      img_url = upload_image(img, cid)
 
       emp.update!(
         img_url: img_url,
@@ -331,7 +332,7 @@ module InteractBackofficeActionsHelper
     return nil
   end
 
-  def self.upload_image(img)
+  def self.upload_image(img, cid)
     s3_access_key        = ENV['s3_access_key']
     s3_secret_access_key = ENV['s3_secret_access_key']
     s3_bucket_name       = ENV['s3_bucket_name']
@@ -345,7 +346,7 @@ module InteractBackofficeActionsHelper
     signer = Aws::S3::Presigner.new
     s3 =     Aws::S3::Resource.new
     bucket = s3.bucket(s3_bucket_name)
-    obj = bucket.object(img.original_filename)
+    obj = bucket.object("employees/cid-#{cid}/#{img.original_filename}")
 
     ## Resize the file
     if (File.size(img.path) > 60000)
@@ -354,9 +355,6 @@ module InteractBackofficeActionsHelper
     end
 
     ## Upload the file
-    puts "++++++++++++++++++++++++++++++"
-    puts img.path
-    puts "++++++++++++++++++++++++++++++"
     obj.upload_file(img.path)
 
     ## Get a safe url back
