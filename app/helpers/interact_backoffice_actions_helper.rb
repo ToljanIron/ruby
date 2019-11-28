@@ -368,9 +368,9 @@ module InteractBackofficeActionsHelper
   end
 
   def self.create_s3_object_url(base_name, signer, bucket, bucket_name)
-    url = create_url(base_name, 'jpg')
+    url = create_url(base_name, cid, 'jpg')
     puts "url: #{url}"
-    url = bucket.object(url).exists? ? url : create_url(base_name, 'png')
+    url = bucket.object(url).exists? ? url : create_url(base_name, cid, 'png')
 
     if bucket.object(url).exists?
       safe_url = signer.presigned_url(
@@ -384,8 +384,8 @@ module InteractBackofficeActionsHelper
     end
   end
 
-  def self.create_url(base_name, image_type)
-    return "#{base_name}.#{image_type}"
+  def self.create_url(base_name,cid, image_type)
+    return "employees/cid-#{base_name}.#{image_type}"
   end
 
   def self.check_img_name(img_id, emp, img_suffix)
