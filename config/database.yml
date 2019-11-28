@@ -26,20 +26,11 @@ protractor:
 
 test:
   <<: *default
-  datebase: localhost
-  port: 5433
+  host: localhost
+  port: 5434
   database: workships_test
-
-test-sqlserver:
-  mode: dblib
-  pool: 5
-  adapter: sqlserver
-  database: stepahead_app_db_test
-  host: 192.168.1.123
-  port: 1433
-  username: workships
-  password: workships
-  timeout: 20000000
+  username: postgres
+  password: postgres
 
 development-sqlserver:
   mode: dblib
@@ -56,14 +47,3 @@ development-sqlserver:
 production:
   <<: *default
   database: workships_app
-
-production-sqlserver:
-  mode: dblib
-  pool: 5
-  adapter: sqlserver
-  database: stepahead_app_db
-  host: 192.168.1.123
-  port: 1433
-  username: workships
-  password: workships
-  timeout: 20000000
