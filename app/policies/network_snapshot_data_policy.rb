@@ -1,7 +1,7 @@
 class NetworkSnapshotDataPolicy < ApplicationPolicy
 
   def index?
-    true if user.admin?
+    true if user.admin? || user.hr?
   end
 
   def update?
