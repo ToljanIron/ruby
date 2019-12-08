@@ -465,7 +465,7 @@ class InteractBackofficeController < ApplicationController
   def participants_delete
     authorize :interact, :authorized?
     ibo_process_request do
-      qpid = anitize_id(arams[:qpid])
+      qpid = sanitize_id(params[:qpid])
       aq = InteractBackofficeHelper.delete_participant(qpid)
       participants, errors = prepare_data(aq[:id])
       [{participants: participants, questionnaire: aq}, errors]
