@@ -301,6 +301,12 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       params.require(:question).permit!
       question = params[:question]
+      qid = params[:qid]
+      cid = Questionnaire.find(qid).try(:company_id)
+
+      if (cid != @cid)
+        raise "Not allowed"
+      end
 
       sanitize_id(question['id'])
       question['title']
@@ -310,7 +316,11 @@ class InteractBackofficeController < ApplicationController
       sanitize_boolean(question['active'])
 
       order = sanitize_number(params['order'])
-      InteractBackofficeHelper.create_new_question(@cid, @aq, question, order)
+      if (order.nil?)
+        order = question['order']
+      end
+      
+      InteractBackofficeHelper.create_new_question(@cid, qid, question, order)
       ['ok', nil]
     end
   end
