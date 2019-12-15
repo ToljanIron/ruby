@@ -887,6 +887,16 @@ module InteractBackofficeHelper
     return ret
   end
 
+  def self.get_funnel_question_id(qid)
+    funnel_question_id = QuestionnaireQuestion.where(
+                           questionnaire_id: qid,
+                           is_funnel_question: true,
+                           active: true)
+                         .last
+                         .try(:id)
+    return funnel_question_id
+  end
+
   def self.create_new_question(cid, qid, question, order)
     title = question['title']
     body = question['body']
@@ -903,6 +913,8 @@ module InteractBackofficeHelper
       )
     end
 
+    funnel_question_id = get_funnel_question_id(qid)
+
     QuestionnaireQuestion.create!(
       company_id: cid,
       questionnaire_id: qid,
@@ -912,7 +924,16 @@ module InteractBackofficeHelper
       min: min,
       max: max,
       order: order,
-      active: active
+      active: active,
+      depends_on_question: funnel_question_id
     )
+  end
+
+  def self.update_depends_on(qid, qqid, active)
+    funnel_question_id = active ? qqid : nil
+    QuestionnaireQuestion
+      .where(questionnaire_id: qid, active: true)
+      .where.not(is_funnel_question: true)
+      .update(depends_on_question: funnel_question_id)
   end
 end

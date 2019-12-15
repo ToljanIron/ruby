@@ -270,6 +270,10 @@ class InteractBackofficeController < ApplicationController
         active: active
       )
 
+      if (qq.is_funnel_question)
+        InteractBackofficeHelper.update_depends_on(qq.questionnaire_id, qq.id, active)
+      end
+
       aq = qq.questionnaire
       aq.update!(state: :questions_ready) if !participants_tab_enabled(aq)
       aq = aq.as_json
@@ -319,7 +323,7 @@ class InteractBackofficeController < ApplicationController
       if (order.nil?)
         order = question['order']
       end
-      
+
       InteractBackofficeHelper.create_new_question(@cid, qid, question, order)
       ['ok', nil]
     end
