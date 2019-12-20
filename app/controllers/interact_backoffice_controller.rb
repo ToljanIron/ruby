@@ -342,6 +342,63 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  ##
+  ## Return details about a particpant's progress in the qustionnaire
+  ##
+  def participant_status
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qpid = sanitize_id(params['qpid'])
+
+      qp = QuestionnaireParticipant.find(qpid)
+      quest_url = qp.create_link
+      current_question = qp.current_questiannair_question_id
+      emp = qp.employee
+      name = "#{emp.first_name} #{emp.last_name}"
+
+      questions =
+        QuestionReply
+          .select("qq.order, qq.title, questionnaire_question_id, count(*)")
+          .from("question_replies as qr")
+          .joins("join questionnaire_questions as qq on qq.id = questionnaire_question_id")
+          .where("questionnaire_participant_id = ?", qpid)
+          .group("qq.order, qq.title, questionnaire_question_id")
+        .order("qq.order")
+
+      sqlstr = "
+      SELECT qq.title, qq.order, qq.id AS questionnaire_question_id,
+        (
+          SELECT count(*)
+          FROM question_replies as qr
+          WHERE
+            qr.questionnaire_question_id = qq.id AND
+            qr.questionnaire_participant_id = #{qpid}
+        ) AS count
+      FROM questionnaire_questions as qq
+      WHERE qq.active = true AND questionnaire_id = #{qp.questionnaire_id}
+      ORDER BY qq.order"
+
+      questions2 = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+
+      puts "+++++++++++++++++++++++++"
+      ap questions
+      puts "+++++++++++++++++++++++++"
+      ap questions2
+      puts "+++++++++++++++++++++++++"
+
+      ret = {
+        participantId: qpid,
+        questionnaireUrl: quest_url,
+        currentQuestionId: current_question,
+        name: name,
+        questions: questions2,
+        status: QuestionnaireParticipant.translate_status(qp.status)
+      }
+
+     [ret, nil]
+    end
+  end
+
   def participants_filter
     authorize :interact, :authorized?
     @active_nav = 'participants'
@@ -496,6 +553,27 @@ class InteractBackofficeController < ApplicationController
         raise "Cant send messages to participants when questionnaire is not active"
       end
       InteractBackofficeActionsHelper.send_live_questionnaire(aq, qp)
+      [{}, nil]
+    end
+  end
+
+  def close_participant_questionnaire
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qpid = sanitize_id(params[:qpid])
+      qp = QuestionnaireParticipant.find(qpid)
+      qp.update(status: 3)
+      [{}, nil]
+    end
+  end
+
+  def set_active_questionnaire_question
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qqid = sanitize_id(params[:qqid])
+      qpid = sanitize_id(params[:qpid])
+      qp = QuestionnaireParticipant.find(qpid)
+      qp.update(current_questiannair_question_id: qqid)
       [{}, nil]
     end
   end
