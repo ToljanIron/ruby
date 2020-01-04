@@ -355,15 +355,7 @@ class InteractBackofficeController < ApplicationController
       current_question = qp.current_questiannair_question_id
       emp = qp.employee
       name = "#{emp.first_name} #{emp.last_name}"
-
-      questions =
-        QuestionReply
-          .select("qq.order, qq.title, questionnaire_question_id, count(*)")
-          .from("question_replies as qr")
-          .joins("join questionnaire_questions as qq on qq.id = questionnaire_question_id")
-          .where("questionnaire_participant_id = ?", qpid)
-          .group("qq.order, qq.title, questionnaire_question_id")
-        .order("qq.order")
+      qid = qp.questionnaire_id
 
       sqlstr = "
       SELECT qq.title, qq.order, qq.id AS questionnaire_question_id,
@@ -378,20 +370,30 @@ class InteractBackofficeController < ApplicationController
       WHERE qq.active = true AND questionnaire_id = #{qp.questionnaire_id}
       ORDER BY qq.order"
 
-      questions2 = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+      questions = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
 
-      puts "+++++++++++++++++++++++++"
-      ap questions
-      puts "+++++++++++++++++++++++++"
-      ap questions2
-      puts "+++++++++++++++++++++++++"
+      ## If there is a funnel question then the number of particpants per question
+      ## is it the number the particpant has selected.
+      ## otherwise it's the number of participants in the questionnaire
+      funnel_question = QuestionnaireQuestion
+        .where(questionnaire_id: qid, active: true, order: 0).last
+      qps_per_question = QuestionnaireParticipant
+        .where(questionnaire_id: qid).count - 1
+      if !funnel_question.nil?
+        qps_per_question = QuestionReply
+          .where(questionnaire_question_id: funnel_question.id,
+                 questionnaire_participant_id: qpid)
+          .where.not(answer: nil)
+          .count
+      end
 
       ret = {
         participantId: qpid,
+        qps_per_question: qps_per_question,
         questionnaireUrl: quest_url,
         currentQuestionId: current_question,
         name: name,
-        questions: questions2,
+        questions: questions,
         status: QuestionnaireParticipant.translate_status(qp.status)
       }
 
