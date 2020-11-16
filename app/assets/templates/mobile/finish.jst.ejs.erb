@@ -1,10 +1,13 @@
-<div>
+<div ng-controller="mobileQuestionnaireController" ng-init="init()">
 
   <div class='mobile-content' id="main_container">
     <div class='page_content'>
       <h1 class='page_title'><%= I18n.t('questionnaire.thank_you') %></h1>
       <div class='text'>
         <%= I18n.t('questionnaire.thank_you_note')  %>
+      </div>
+      <div style="direction: rtl; border: solid orange 2px; width: 340px; height: 120px; font-size: 36px; margin: 40px auto; text-algin: center;">
+        <a style="margin: 0 auto; color: black; text-decoration: none; line-height: 1.5; padding: 10px; float: right;" href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD/{{getParticipantId()}}">לחץ כאן למענה על מס' שאלות נוספות</a>
       </div>
       <div class='logo-mobile'>
         <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">

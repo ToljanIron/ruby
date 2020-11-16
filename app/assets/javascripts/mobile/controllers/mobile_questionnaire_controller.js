@@ -516,6 +516,10 @@ angular.module('workships-mobile')
     return (str.toLowerCase().indexOf(pattern.toLowerCase()) >= 0);
   };
 
+  $scope.getParticipantId = function () {
+    return $scope.original_data.qpid
+  }
+
   $scope.init = function (next_question_params, options) {
     $scope._ = _;
     $scope.search_added_emps = [];
