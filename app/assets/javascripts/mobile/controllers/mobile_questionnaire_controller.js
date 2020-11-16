@@ -517,7 +517,7 @@ angular.module('workships-mobile')
   };
 
   $scope.getParticipantId = function () {
-    return $scope.original_data.qpid
+    return $scope.original_data.token
   }
 
   $scope.init = function (next_question_params, options) {
