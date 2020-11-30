@@ -213,8 +213,8 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   };
 
   mobileAppService.isLangRtl = function() {
-    // return true;
-    return false;
+    return true;
+    //return false;
   };
 
   return mobileAppService;
