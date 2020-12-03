@@ -42,7 +42,7 @@ angular.module('workships-mobile')
         var role = emp.role === undefined ? 'N/A' : emp.role;
         res.push({
           id: emp.id,
-          name: emp.name + ', ' + role,
+          name: emp.name, // + ', ' + role,
         });
       });
       return res;

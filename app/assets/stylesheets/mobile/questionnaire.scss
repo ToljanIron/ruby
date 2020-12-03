@@ -71,6 +71,7 @@
             line-height: initial;
           }
           .dropdown-menu {
+            position: absolute;
             font-family: 'OpenSans', sans-serif !important;
             color:  rgba(42, 54, 62, 0.5);
             font-size: 45px;
@@ -79,7 +80,11 @@
             outline: none;
             padding-right: 3px;
             padding-left: 3px;
-            width: 100%;
+            /*width: 100%;*/
+            list-style-type: none ;
+            li {
+              line-height: 80px;
+            }
           }
           .mobile_search_img_container {
             width: 60px;
