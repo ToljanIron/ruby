@@ -1,4 +1,5 @@
 <!-- link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' -->
+
 <div class="background" ng-controller='desktopClientController' ng-init="init('<%= @name %>','<%= @token %>')">
   <div class="logo-medium"> <img src="<%= asset_path 'logo-medium.png' %>" height="63" width="257"> </div>
   <div class="welcome-back" ng-show='mobile_app_service.inWelcomeBackView()' >Welcome Back</div>

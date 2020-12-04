@@ -52,7 +52,7 @@ iw:
     must_select: 'עליך לבחור לפחות'
     people_to_continue: 'אנשים על מנת להמשיך'
     find_employees: 'חפש'
-    selected: 'עובדים שנבחרו'
+    selected: 'משתתפים שנבחרו'
     connection_lost: 'Connection is lost please check your internet connection'
   sms:
     success: 'ברוכ/ה הבא/ה לשאלון הערכת עובדים מטעם חברת Stepahead. לחצ/י על הקישור כדי להתחיל את השאלון'
