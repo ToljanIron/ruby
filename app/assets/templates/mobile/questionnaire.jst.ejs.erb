@@ -82,11 +82,17 @@
         <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
       </div>
       <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div>
-      <div class="left-button" ng-class='{finished: isAnsweredAllNessecearyQuestions(), disabled: !isAnsweredAllNessecearyQuestions()}' ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
+
+      <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
+                ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
         <i class="fa fa-chevron-left" ng-show='isAnsweredAllNessecearyQuestions()'></i>
-        <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>{{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} / {{displayMaxAmount()}}</span>
+        <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>
+        {{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} / {{displayMaxAmount()}}
+        </span>
       </div>
-      <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
+      
+      <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
+                ng-click='clearScreenOnFinish()' ng-if='!mobile_app_service.isQuestionTypeMinMax()'>
         <i class="fa fa-chevron-left" ng-show='canFinish()'></i>
         {{numOfAnswers()}} of {{clientMaxReplies()}}
       </div>
