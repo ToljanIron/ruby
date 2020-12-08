@@ -248,7 +248,8 @@ angular.module('workships-mobile')
     // console.log(mass)
     // console.log('num_reps: ', num_reps, ', mass.client_max_replies: ', mass.client_max_replies)
     // console.log('&&&&&&&&&&&&&&&&&&&&&&&')
-    return num_reps === mass.client_max_replies;
+    return num_reps <= mass.client_max_replies &&
+                   num_reps >= mass.client_min_replies
   };
 
   $scope.isAnsweredAllNessecearyQuestions = function () {

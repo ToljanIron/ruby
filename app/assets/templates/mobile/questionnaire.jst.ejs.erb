@@ -1,13 +1,13 @@
 <div ng-controller="mobileQuestionnaireController" ng-init="init()">
 
-  <div ng-if="mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()' dir='rtl'>
-    <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
+  <div ng-if="mobile_app_service.isLangRtl()" class="mobile-header"  dir='rtl'>
+    <div class="mobile-header-title" ng-click='toggleFullQuestionView()' ng-bind-html='r.question_title'></div>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
   </div>
 
-  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()'>
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header"'>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
-    <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
+    <div class="mobile-header-title" ng-click='toggleFullQuestionView()' ng-bind-html='r.question_title'></div>
   </div>
   <div class='mobile-content' id="main_container">
     <div class='question-instruction-tooltip' ng-click='toggleFullQuestionView()'>
