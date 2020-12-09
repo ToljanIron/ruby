@@ -243,7 +243,7 @@ angular.module('workships-mobile')
   $scope.canFinish = function () {
     
     if (mass.is_funnel_question) {
-      return mass.num_replies_true >= mass.client_min_replies &&
+      return mass.num_replies_true >= 15 &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;
@@ -469,11 +469,11 @@ angular.module('workships-mobile')
 
   $scope.minMaxOnFinish = function () {
     $log.debug('In minMaxOnFinish()');
-    if (!$scope.isFinished()) {
+    if (!$scope.canFinish()) {
       $scope.clicked_on_next[0] = true;
     } else {
       updateScopeResponsesFromAnswers();
-      $scope.init($scope.original_data);
+      $scope.init($scope.original_data, {close_question: true});
       $scope.currentlyFocusedEmployeeId = -1;
     }
   };
