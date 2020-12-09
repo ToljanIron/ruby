@@ -96,6 +96,8 @@
         border-right: 1px solid #41698d;
         padding: 0 20px 0 20px;
         width: 678px;
+        white-space: nowrap;
+        overflow: hidden;
       }
       .mobile_search_click {
         @extend .header-text;
