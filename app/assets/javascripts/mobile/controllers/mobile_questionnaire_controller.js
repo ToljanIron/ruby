@@ -122,7 +122,7 @@ angular.module('workships-mobile')
     }
   }
 
-  $scope.onUserResponse = function (question_id, employee_id, response, employee_details_id) {
+  $scope.onUserResponse = function (question_id, employee_id, response, employee_details_id, needToFocus) {
     $log.debug('In onUserResponse()');
     $scope.state_saved[0] = false;
     var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
@@ -149,7 +149,10 @@ angular.module('workships-mobile')
       $scope.original_data.replies.splice(0, 0, { e_id: employee_id, employee_details_id: added_employee.id });
     }
     if (emp[0]) { $scope.undo_worker_stack.push(emp[0]); }
-    $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+
+    if (needToFocus === undefined || needToFocus === true) {
+      $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+    }
 
     // force click on next when the max number of replies was reached
     if ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) === $scope.numberOfEmployeesForQuestion($scope.r.question_id)) {
@@ -248,8 +251,7 @@ angular.module('workships-mobile')
     // console.log(mass)
     // console.log('num_reps: ', num_reps, ', mass.client_max_replies: ', mass.client_max_replies)
     // console.log('&&&&&&&&&&&&&&&&&&&&&&&')
-    return num_reps <= mass.client_max_replies &&
-                   num_reps >= mass.client_min_replies
+    return num_reps === mass.client_max_replies
   };
 
   $scope.isAnsweredAllNessecearyQuestions = function () {
@@ -504,17 +506,23 @@ angular.module('workships-mobile')
   };
 
   $scope.onSelect = function ($item) {
-    $log.debug('In onSelect()');
-    if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
-      var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
-      $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
-    } else {
+    if (confirm("Are you sure you want to select this person?")) {
       var emp = _.find($scope.employees, { 'id': $item.id });
-      $scope.search_added_emps.push(emp.qp_id);
-      $scope.r.responses.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
-      $scope.tiny_array.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
-      $scope.currentlyFocusedEmployeeId = emp.qp_id;
+      var qpid = emp.qp_id
+      $scope.onUserResponse(undefined, qpid, true, undefined, false);
     }
+    return
+    // $log.debug('In onSelect()');
+    // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
+    //   var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
+    //   $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
+    // } else {
+    //   var emp = _.find($scope.employees, { 'id': $item.id });
+    //   $scope.search_added_emps.push(emp.qp_id);
+    //   $scope.r.responses.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+    //   $scope.tiny_array.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+    //   $scope.currentlyFocusedEmployeeId = emp.qp_id;
+    // }
   };
 
   $scope.matchString = function (pattern, str) {
