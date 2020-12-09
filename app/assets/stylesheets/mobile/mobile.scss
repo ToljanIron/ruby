@@ -86,15 +86,22 @@
       }
       .mobile-header-page-num {
         @extend .header-text;
-        border-right: 1px solid #9ec2e2;
+        border-left: 1px solid #9ec2e2;
+        border-right: 1px solid #41698d;
         text-align: center;
         width: 110px;
       }
       .mobile-header-title {
         @extend .header-text;
-        border-left: 1px solid #41698d;
-        padding-left: 20px;
-        width: 750px;
+        border-right: 1px solid #41698d;
+        padding: 0 20px 0 20px;
+        width: 678px;
+      }
+      .mobile_search_click {
+        @extend .header-text;
+        border-left: 1px solid #9ec2e2;
+        text-align: center;
+        width: 70px;
       }
     }
     .mobile-content {
