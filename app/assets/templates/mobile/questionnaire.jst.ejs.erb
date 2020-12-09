@@ -84,7 +84,7 @@
 
       <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
                 ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
-        <i class="fa fa-chevron-left" ng-show='isAnsweredAllNessecearyQuestions()'></i>
+        <i class="fa fa-chevron-left" ng-show='canFinish()'></i>
         <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>
         {{numberOfEmployeesAnsweredTrueForQuestion(r.question_id)}} / {{displayMaxAmount()}}
         </span>
