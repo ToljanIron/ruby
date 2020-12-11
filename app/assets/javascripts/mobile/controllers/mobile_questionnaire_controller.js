@@ -507,15 +507,12 @@ angular.module('workships-mobile')
   };
 
   $scope.onSelect = function ($item) {
-    console.log('qqqqqqqq 1')
-    if (confirm("Are you sure you want to select this person?")) {
-      console.log('qqqqqqqq 2')
-      var emp = _.find($scope.employees, { 'id': $item.id });
+    var emp = _.find($scope.employees, { 'id': $item.id });
+    if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
       var qpid = emp.qp_id
       console.log('emp: ', emp)
       $scope.onUserResponse(undefined, qpid, true, undefined, false);
     }
-    console.log('qqqqqqqq 3')
     return
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
