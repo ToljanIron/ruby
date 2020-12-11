@@ -39,6 +39,7 @@ angular.module('workships-mobile')
       _.each($scope.employees, function (emp) {
         if (!emp) { return; }
         if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
+        if (!_.find($scope.tiny_array, {employee_details_id: emp.id}) ) {return;}
         var role = emp.role === undefined ? 'N/A' : emp.role;
         res.push({
           id: emp.id,
@@ -243,7 +244,7 @@ angular.module('workships-mobile')
   $scope.canFinish = function () {
     
     if (mass.is_funnel_question) {
-      return mass.num_replies_true >= 15 &&
+      return mass.num_replies_true >= 3 &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;
@@ -506,11 +507,15 @@ angular.module('workships-mobile')
   };
 
   $scope.onSelect = function ($item) {
+    console.log('qqqqqqqq 1')
     if (confirm("Are you sure you want to select this person?")) {
+      console.log('qqqqqqqq 2')
       var emp = _.find($scope.employees, { 'id': $item.id });
       var qpid = emp.qp_id
+      console.log('emp: ', emp)
       $scope.onUserResponse(undefined, qpid, true, undefined, false);
     }
+    console.log('qqqqqqqq 3')
     return
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
