@@ -94,7 +94,8 @@ module QuestionnaireHelper
       question: (qq.nil? ? nil : qq.body),
       question_title: (qq.nil? ? nil : qq.title),
       current_question_position: (qq.nil? ? nil : qq.question_position),
-      total_questions: total_questions
+      total_questions: total_questions,
+      current_emp_id: qp.employee_id
     }
   end
 

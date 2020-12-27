@@ -177,6 +177,9 @@
             margin-left: -420px;
           }
           .mobile-employee-text {
+            direction: rtl;
+            padding-right: 50px;
+            box-sizing: border-box;
             z-index: 100;
             position: absolute;
             display: flex;
