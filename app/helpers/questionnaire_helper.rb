@@ -464,4 +464,14 @@ module QuestionnaireHelper
     insert_query = "insert into employees_connections (employee_id, connection_id) values #{values.join(',')}"
     ActiveRecord::Base.connection.execute(insert_query)
   end
+
+  def is_contain_funnel_question(token)
+    qp = QuestionnaireParticipant.find_by(token: token)
+    q = Questionnaire.find(qp.questionnaire_id)
+    if(q && q.questionnaire_questions.where(:is_funnel_question => true, :active =>true).length > 0)
+      return true
+    else
+      return false
+    end
+  end
 end

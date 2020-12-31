@@ -47,6 +47,12 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.dot_list = new Array($scope.dot_list);
   }
 
+  $scope.display_search = function() {
+    if($scope.is_contain_funnel_question && !$scope.is_funnel_question)
+      return false;
+    return true;
+  };
+
   $scope.clearSearch = function () {
     $scope.search_input.text = '';
   };
@@ -99,6 +105,8 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     if (response.data.status === 'done') {
       mobileAppService.setFinishView();
     }
+    $scope.is_contain_funnel_question = response.data.is_contain_funnel_question
+    $scope.is_funnel_question = response.data.is_funnel_question
     $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
