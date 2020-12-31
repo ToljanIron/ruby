@@ -99,7 +99,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     if (response.data.status === 'done') {
       mobileAppService.setFinishView();
     }
-
+    $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
     $scope.question_title = response.data.question_title;
@@ -108,7 +108,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.question_number = response.data.current_question_position;
     $scope.total_questions = response.data.total_questions;
     $scope.question = response.data.question;
-    $scope.minimum_required = response.data.client_min_replies;
+    $scope.minimum_required = response.data.client_min_replies || 1;
     $scope.maximum_required = response.data.client_max_replies;
     $scope.dependent_maximum_required = response.data.client_min_replies;
     $scope.dependent_minimum_required = response.data.client_max_replies;
