@@ -85,7 +85,7 @@ module InteractBackofficeActionsHelper
     if questcopy
       questions = QuestionnaireQuestion.where(questionnaire_id: qid)
     else
-      questions = Question.all
+      questions = Question.order(:order)
     end
 
     ii = 0
