@@ -11,6 +11,54 @@
           }
         }
       }
+      .mobile-content{
+        bottom: 0;
+        height: 99%;
+      }
+      .mobile-header-title-n{
+        width: 100%;
+        white-space: nowrap;
+        /*height: 7%;*/
+        height: 140px;
+        background-color: #6892b7;
+      }
+      .logo-mobile-finish{
+        margin-top: 20%;
+        margin-bottom: 4rem;
+        width: 100%;
+      }
+      .additional_questions-btn{
+        background-color: orange;
+        text-align: center;
+        width: 85%;
+        padding: 3rem;
+        text-algin: center;
+        margin-top: 7rem;
+        font-size: 33pt;
+        a{
+          color: black;
+          text-decoration: none;
+          line-height: 1.5;
+          padding: 10px;
+          font-weight: bold;
+        }
+      }
+      .foot{
+        text-align: center;
+        align-items: center;
+        width: 100%;
+        flex-direction: row;
+        display: flex;
+        bottom: 0px;
+        height: 12%;
+        position: absolute;
+        span{
+          font-size: 30pt;
+          margin-right: 3rem;
+          margin-left: 46px;
+          margin-top: 12px;
+        }
+      }
     }
   }
 }

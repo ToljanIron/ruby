@@ -533,7 +533,8 @@ angular.module('workships-mobile')
   };
 
   $scope.getParticipantId = function () {
-    return $scope.original_data.token
+    //return $scope.original_data.token
+    return $scope.original_data.external_id
   }
 
   $scope.display_search = function() {
