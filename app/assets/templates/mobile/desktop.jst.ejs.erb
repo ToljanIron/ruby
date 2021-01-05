@@ -65,7 +65,7 @@
           <div class='total-questions'>/{{maximum_required}} </div>
           <div class="clear-btn" ng-click='clearSelection()'><%= I18n.t('questionnaire.clear_selection') %></div>
         </div>
-        <div class='search-tab search-desktop'>
+        <div class='search-tab search-desktop' ng-if='display_search()'>
           <img class='search-img' ng-click='clearSearch()' alt="clear" src="<%= asset_path 'clear_search.png' %>"/>
           <input  class='search-input-field' placeholder='<%= I18n.t("questionnaire.find_employees") %>...' type='text' ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | nameStartWith:$viewValue | limitTo:10"  typeahead-on-select='select_worker($item, true)'/>
         </div>
@@ -154,7 +154,7 @@
           <div class="clear-btn" ng-click='clearSelection()'><%= I18n.t('questionnaire.clear_selection') %></div>
         </div>
         <div class='selected-title'><%= I18n.t("questionnaire.selected") %></div>
-        <div class='search-tab search-desktop'>
+        <div class='search-tab search-desktop' ng-if='display_search()'>
           <img class='search-img-rtl' ng-click='clearSearch()' alt="clear" src="<%= asset_path 'clear_search.png' %>"/>
           <input class='search-input-field' placeholder='  <%= I18n.t("questionnaire.find_employees") %>...' type='text' ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | nameStartWith:$viewValue | limitTo:10"  typeahead-on-select='select_worker($item, true)'/>
         </div>

@@ -78,6 +78,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
 
     mobileAppService.s.client_max_replies = _state.client_max_replies;
     mobileAppService.s.is_funnel_question = _state.is_funnel_question;
+    mobileAppService.s.is_contain_funnel_question = _state.is_contain_funnel_question;
   };
 
   mobileAppService.displayConnectionLostOverlayBlocker = function (options) {

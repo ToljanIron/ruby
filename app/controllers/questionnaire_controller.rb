@@ -43,6 +43,7 @@ class QuestionnaireController < ApplicationController
     res[:replies] = reps[:replies]
     res[:client_min_replies] = reps[:client_min_replies]
     res[:client_max_replies] = reps[:client_max_replies]
+    res[:is_contain_funnel_question] = is_contain_funnel_question(token)
 
     res = Oj.dump(res)
     render json: res

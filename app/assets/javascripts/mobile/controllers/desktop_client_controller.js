@@ -47,6 +47,12 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.dot_list = new Array($scope.dot_list);
   }
 
+  $scope.display_search = function() {
+    if($scope.is_contain_funnel_question && !$scope.is_funnel_question)
+      return false;
+    return true;
+  };
+
   $scope.clearSearch = function () {
     $scope.search_input.text = '';
   };
@@ -99,7 +105,9 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     if (response.data.status === 'done') {
       mobileAppService.setFinishView();
     }
-
+    $scope.is_contain_funnel_question = response.data.is_contain_funnel_question
+    $scope.is_funnel_question = response.data.is_funnel_question
+    $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
     $scope.question_title = response.data.question_title;
@@ -108,7 +116,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.question_number = response.data.current_question_position;
     $scope.total_questions = response.data.total_questions;
     $scope.question = response.data.question;
-    $scope.minimum_required = response.data.client_min_replies;
+    $scope.minimum_required = response.data.client_min_replies || 1;
     $scope.maximum_required = response.data.client_max_replies;
     $scope.dependent_maximum_required = response.data.client_min_replies;
     $scope.dependent_minimum_required = response.data.client_max_replies;

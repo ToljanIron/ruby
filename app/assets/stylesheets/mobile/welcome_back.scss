@@ -12,10 +12,17 @@ body{
         margin-top: 0px;
       }
       .welcome {
-        padding-top: 250px;
+        padding-top: 0;
       }
     } 
     .welcome-back {
+      .mobile-interact-page{
+        .mobile-header {
+          .mobile-header-title {
+            text-align: right !important;
+          }
+        }
+      }
       .mobile-footer {
         .mobile-btns-container {
           .right-button {

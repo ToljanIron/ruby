@@ -77,6 +77,7 @@ module QuestionnaireHelper
 
     total_questions = QuestionnaireQuestion
                         .where(questionnaire_id: aq.id, active: true).count
+    employee = Employee.find(qp.employee_id)
 
     return {
       q_state: aq.state,
@@ -95,7 +96,8 @@ module QuestionnaireHelper
       question_title: (qq.nil? ? nil : qq.title),
       current_question_position: (qq.nil? ? nil : qq.question_position),
       total_questions: total_questions,
-      current_emp_id: qp.employee_id
+      current_emp_id: qp.employee_id,
+      external_id: employee.external_id
     }
   end
 
@@ -463,5 +465,15 @@ module QuestionnaireHelper
     return if values.empty?
     insert_query = "insert into employees_connections (employee_id, connection_id) values #{values.join(',')}"
     ActiveRecord::Base.connection.execute(insert_query)
+  end
+
+  def is_contain_funnel_question(token)
+    qp = QuestionnaireParticipant.find_by(token: token)
+    q = Questionnaire.find(qp.questionnaire_id)
+    if(q && q.questionnaire_questions.where(:is_funnel_question => true, :active =>true).length > 0)
+      return true
+    else
+      return false
+    end
   end
 end

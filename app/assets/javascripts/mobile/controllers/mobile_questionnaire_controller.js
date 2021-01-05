@@ -38,8 +38,8 @@ angular.module('workships-mobile')
       var res = [];
       _.each($scope.employees, function (emp) {
         if (!emp) { return; }
-        if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
-        if (!_.find($scope.tiny_array, {employee_details_id: emp.id}) ) {return;}
+       if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
+       // if (!_.find($scope.tiny_array, {employee_details_id: emp.id}) ) {return;}
         var role = emp.role === undefined ? 'N/A' : emp.role;
         res.push({
           id: emp.id,
@@ -533,8 +533,15 @@ angular.module('workships-mobile')
   };
 
   $scope.getParticipantId = function () {
-    return $scope.original_data.token
+    //return $scope.original_data.token
+    return $scope.original_data.external_id
   }
+
+  $scope.display_search = function() {
+    if(mass.is_contain_funnel_question && !mass.is_funnel_question)
+      return false;
+    return true;
+  };
 
   $scope.init = function (next_question_params, options) {
     $scope._ = _;

@@ -22,7 +22,7 @@
       </div>
     </div>
     <div ng-show='!isFinished() && isLoaded()'>
-      <div class="mobile_search_container">
+      <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
           <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='onSelect($item); search_input.text=""'/>        
           <div class="mobile_search_img_container" ng-click='clearSearch()'>
@@ -50,28 +50,32 @@
       </slot-machine-directive>
     </div>
 
-    <div ng-if="mobile_app_service.isLangRtl()" dir='rtl' ng-show='isFinished() && isLoaded()' >
-      <div class='page_content finish-task' style='margin-top: 150px;' >
+    <div ng-if="mobile_app_service.isLangRtl()" dir='rtl' ng-show='isFinished() && isLoaded()'  >
+      <div class='page_content finish-task mobile-interact-page-content' style='margin-top: 150px;' >
+        <div class="large-logo-mobile">
+          <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+        </div>
         <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
-        <div class="options">
-          <div class="option"><i class="fa fa-share rtl" ng-click= "onUndo()"></i><div class="button-text-rtl"><%=I18n.t('questionnaire.revise_selection') %></div></div>
-          <div class="spacer-rtl"><%=I18n.t('questionnaire.or') %></div>
-          <div class="option">
-            <i class="fa fa-chevron-left rtl" ng-click='clearScreenOnFinish()'></i><div class="button-text-rtl"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
-          </div>
+        <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
+          <%= I18n.t('questionnaire.continue_answer_next_question') %>
+        </div>
+        <div class="saved-location-text">
+          <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
       </div>
     </div>
 
     <div ng-if="!mobile_app_service.isLangRtl()" ng-show='isFinished() && isLoaded()' >
-      <div class='page_content finish-task' style='margin-top: 150px;' >
+      <div class='page_content finish-task mobile-interact-page-content' style='margin-top: 150px;' >
+        <div class="large-logo-mobile">
+          <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+        </div>
         <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
-        <div class="options">
-          <div class="option"><i class="fa fa-reply" ng-click= "onUndo()"></i><div class="button-text"><%=I18n.t('questionnaire.revise_selection') %></div></div>
-          <div class="spacer"><%=I18n.t('questionnaire.or') %></div>
-          <div class="option">
-            <i class="fa fa-chevron-right" ng-click='clearScreenOnFinish()'></i><div class="button-text"><%=I18n.t('questionnaire.continue_to_next_question') %></div>
-          </div>
+        <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
+          <%= I18n.t('questionnaire.continue_answer_next_question') %>
+        </div>
+        <div class="saved-location-text">
+          <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
       </div>
     </div>
@@ -83,7 +87,7 @@
         <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
         <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
       </div>
-      <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div>
+     <!--  <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div> -->
 
       <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
                 ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
@@ -107,7 +111,7 @@
         <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
       </div>
 
-      <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div>
+      <!-- <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div> -->
 
       <div class="right-button" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
         {{numOfAnswers()}} of {{clientMaxReplies()}}

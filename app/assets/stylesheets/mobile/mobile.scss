@@ -64,7 +64,7 @@
   }
   .mobile-container {
     height: 100%;
-    width: 90%;
+    width: 98%;
     position: absolute;
     right: 0;
     left: 0;
@@ -89,13 +89,14 @@
         border-left: 1px solid #9ec2e2;
         border-right: 1px solid #41698d;
         text-align: center;
-        width: 110px;
+        width: 11%;
       }
       .mobile-header-title {
         @extend .header-text;
         border-right: 1px solid #41698d;
         padding: 0 20px 0 20px;
-        width: 678px;
+        /*width: 678px;*/
+        width: 80%;
         white-space: nowrap;
         overflow: hidden;
       }
@@ -103,7 +104,7 @@
         @extend .header-text;
         border-left: 1px solid #9ec2e2;
         text-align: center;
-        width: 70px;
+        width: 9%;
       }
     }
     .mobile-content {
@@ -164,7 +165,7 @@
       }
       .page_content {
         height: 100%;
-        width: 670px;
+        width: 80%;
         margin: 0 auto;
         margin-top: 400px;
         .page_title {
@@ -283,6 +284,75 @@
           transform: scale(-1, 1);
         }
       }
+    }
+    .mobile-interact-page{
+      .mobile-content{
+        bottom: 0;
+        height: 100%;
+      }
+      .mobile-header-title-n{
+        width: 100%;
+        white-space: nowrap;
+        /*height: 7%;*/
+        height: 140px;
+        background-color: #6892b7;
+      }
+    }
+    .mobile-interact-page-content{
+      font-size: 33pt;
+      .large-logo-mobile{
+        margin-top: 40%;
+        margin-bottom: 4rem;
+        margin-right: auto;
+        margin-left:auto;
+        width: 90%;
+      }
+      .interact-page-primary-btn{
+        background-color: orange;
+        text-align: center;
+        width: fit-content;
+        padding: 4rem;
+        text-algin: center;
+        margin-top: 7rem;
+        margin-bottom: 7rem;
+        margin-right: auto;
+        margin-left: auto;
+        font-size: 36pt;
+        font-weight: bold;
+        a{
+          color: black;
+          text-decoration: none;
+          line-height: 1.5;
+          /*padding: 10px;*/
+          font-weight: bold;
+        }
+      }
+      .saved-location-text{
+        font-weight: normal;
+        line-height: 1.5;
+        text-align: center;
+      }
+      .foot{
+        text-align: center;
+        align-items: center;
+        width: 100%;
+        flex-direction: row;
+        display: flex;
+        bottom: 0px;
+        height: 12%;
+        position: absolute;
+        justify-content: center;
+        left: 0;
+        right: 0;
+        span{
+          font-size: 30pt;
+          margin-right: 3rem;
+          margin-left: 46px;
+          margin-top: 12px;
+          font-weight: normal;
+        }
+      }    
+
     }
   }
 }
