@@ -334,6 +334,46 @@ angular.module('workships-mobile')
   $scope.toggleFullQuestionView = function () {
     $scope.show_full_question = !$scope.show_full_question;
   };
+  $scope.logoSrc = function () {
+    if(mass.logo_url)
+      return mass.logo_url;
+    else
+      return '/assets/logo-medium.png';
+  };
+  $scope.referralUrl = function () {
+    var ref_url = '';
+    if(mass.referral_btn_url)
+      ref_url = mass.referral_btn_url + String(mass.external_id);
+    return ref_url;
+  };
+  $scope.referralBtnColor = function () {
+    var bg_color;
+    if(mass.referral_btn_color)
+      bg_color = mass.referral_btn_color;
+    else
+      bg_color = 'orange';
+    return {"background-color": bg_color};
+  };
+  $scope.isReferralBtn = function(){
+    return mass.is_referral_btn;
+  }
+  $scope.closeTitle = function () {
+    var e = document.getElementById('close_title');
+    var title = e.getAttribute('data-close-title');
+    if(mass.close_title)
+      return mass.close_title;
+    else
+      return title;
+  };
+
+  $scope.closeSubTitle = function (){
+    var e1 = document.getElementById('close_sub_title');
+    var sub_title = e1.getAttribute('data-close-sub-title');
+    if(mass.close_sub_title)
+      return mass.close_sub_title;
+    else
+      return sub_title;
+  };
 
   function resetAllReplies(replies) {
     _.each(replies, function (r) {
@@ -534,7 +574,7 @@ angular.module('workships-mobile')
 
   $scope.getParticipantId = function () {
     //return $scope.original_data.token
-    return $scope.original_data.external_id
+    return $scope.original_data.external_id;
   }
 
   $scope.display_search = function() {

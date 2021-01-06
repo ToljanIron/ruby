@@ -6,7 +6,7 @@
     <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
   </div>
 
-  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header"'>
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header">
     <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
     <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
