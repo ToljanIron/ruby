@@ -12,7 +12,7 @@
     <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
   </div>
   
-  <div class='mobile-content' id="main_container">
+  <div class='mobile-content' id="main_container" ng-class="{'finish-question': isFinished() && isLoaded()}">
     <div class='question-instruction-tooltip' ng-click='toggleFullQuestionView()'>
       <div class='full-question-blocker-show' ng-class="!show_full_question && 'full-question-blocker-hide'"></div>
       <div class='question-container' ng-class="show_full_question && 'question-container-display'">
@@ -62,6 +62,11 @@
         <div class="saved-location-text">
           <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
+        <div class='foot'>
+          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
+          <span>Powered by</span>
+        </div>
+
       </div>
     </div>
 
@@ -77,10 +82,15 @@
         <div class="saved-location-text">
           <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
+        <div class='foot'>
+          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
+          <span>Powered by</span>
+        </div>
+
       </div>
     </div>
   </div>
-
+<div ng-if = "!(isFinished() && isLoaded())">
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container">
       <div class="right-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
@@ -119,4 +129,5 @@
       </div>
     </div>
   </div>
+</div>
 </div>

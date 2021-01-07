@@ -64,7 +64,7 @@
   }
   .mobile-container {
     height: 100%;
-    width: 98%;
+    width: 90%;
     position: absolute;
     right: 0;
     left: 0;
@@ -284,6 +284,10 @@
           transform: scale(-1, 1);
         }
       }
+    }
+    .mobile-content.finish-question{
+        bottom: 0 !important;
+        height: 100%;    
     }
     .mobile-interact-page{
       .mobile-content{
