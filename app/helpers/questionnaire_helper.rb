@@ -48,7 +48,7 @@ module QuestionnaireHelper
     if qp.current_questiannair_question_id == -1
       status = 'done'
       qp_status = :completed
-      current_questiannair_question_id = nil
+      current_questiannair_question_id = -1
 
     ## Not the last question
     else
