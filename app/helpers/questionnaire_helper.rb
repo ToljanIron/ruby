@@ -48,7 +48,7 @@ module QuestionnaireHelper
     if qp.current_questiannair_question_id == -1
       status = 'done'
       qp_status = :completed
-      current_questiannair_question_id = nil
+      current_questiannair_question_id = -1
 
     ## Not the last question
     else
@@ -97,7 +97,14 @@ module QuestionnaireHelper
       current_question_position: (qq.nil? ? nil : qq.question_position),
       total_questions: total_questions,
       current_emp_id: qp.employee_id,
-      external_id: employee.external_id
+      external_id: employee.external_id,
+      logo_url: aq.logo_url,
+      close_title: aq.close_title,
+      close_sub_title: aq.close_sub_title,
+      is_referral_btn: aq.is_referral_btn,
+      referral_btn_url: aq.referral_btn_url,
+      referral_btn_id: aq.referral_btn_id,
+      referral_btn_color: aq.referral_btn_color
     }
   end
 

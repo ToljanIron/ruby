@@ -3,14 +3,19 @@
   <div class='mobile-content' id="main_container">
     <div class='page_content mobile-interact-page-content'>
       <div class="large-logo-mobile">
-        <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+        <img src="{{logoSrc()}}"  width="100%">
+        <%#= asset_path 'logo-medium.png' %>
       </div>
-      <h1 class='page_title'><%= I18n.t('questionnaire.thank_you') %></h1>
-      <div class='text'>
-        <%= I18n.t('questionnaire.thank_you_note')  %>
+      <div style="display:none;" id='close_title' data-close-title="<%= I18n.t('questionnaire.thank_you') %>"></div>
+      <h1  class='page_title'>{{closeTitle()}}</h1>
+      <div id = 'close_sub_title' class='text' data-close-sub-title="<%= I18n.t('questionnaire.thank_you_note') %>">
+        {{closeSubTitle()}}
       </div>
-      <div class="interact-page-primary-btn">
-        <a href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD?id={{getParticipantId()}}"><%= I18n.t('questionnaire.click_to_answer_additional_questions')  %></a>
+      <div class="interact-page-primary-btn" ng-if="isReferralBtn()" ng_style="{{referralBtnColor()}}">
+        <a href="{{referralUrl()}}">
+          <%= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
+        </a>
+        <!-- <a href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD?id={{getParticipantId()}}"><%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %></a> -->
       </div>
       <div class='foot'>
         <span>Powered by</span>

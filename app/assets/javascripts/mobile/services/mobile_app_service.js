@@ -79,6 +79,13 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     mobileAppService.s.client_max_replies = _state.client_max_replies;
     mobileAppService.s.is_funnel_question = _state.is_funnel_question;
     mobileAppService.s.is_contain_funnel_question = _state.is_contain_funnel_question;
+    mobileAppService.s.is_referral_btn = _state.is_referral_btn;
+    mobileAppService.s.logo_url = _state.logo_url;
+    mobileAppService.s.referral_btn_url = _state.referral_btn_url;
+    mobileAppService.s.referral_btn_color = _state.referral_btn_color;
+    mobileAppService.s.external_id = _state.external_id;
+    mobileAppService.s.close_title = _state.close_title;
+    mobileAppService.s.close_sub_title = _state.close_sub_title;
   };
 
   mobileAppService.displayConnectionLostOverlayBlocker = function (options) {
