@@ -26,7 +26,7 @@ iw:
     how_to_tap_html: '<b>הקש/י</b> על <p class=x-icon></p> או <p class=v-icon></p><br> על מנת לענות על השאלה' 
     or: 'או'
     how_to_swipe_html: '<b>החלק/י</b> ימינה על מנת לענות כן <br> <b>החלק/י</b> שמאלה על מנת לענות לא'
-    how_to_scroll_html: '<b>גלול/גללי</b> מטה או מעלה על מנת לעבור לעובד הבא ברשימה'
+    how_to_scroll_html: '<b>גלול/גללי</b> מטה או מעלה על מנת לעבור למשתתפ/ת הבא ברשימה'
     continue_button: 'המשך'
     continue_later_button: 'המשך אחר כך'
     close_button: 'סגור'
