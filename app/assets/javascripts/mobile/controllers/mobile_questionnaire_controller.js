@@ -150,9 +150,13 @@ angular.module('workships-mobile')
       $scope.original_data.replies.splice(0, 0, { e_id: employee_id, employee_details_id: added_employee.id });
     }
     if (emp[0]) { $scope.undo_worker_stack.push(emp[0]); }
-
     if (needToFocus === undefined || needToFocus === true) {
       $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+    }else{
+      if($scope.currentlyFocusedEmployeeId == employee_id){
+        $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+      }
+
     }
 
     // force click on next when the max number of replies was reached
@@ -168,6 +172,8 @@ angular.module('workships-mobile')
     if ( ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) % 3) === 0) {
       $scope.continueLater();
     }
+    var pos = ($scope.employees.map(function(e) { return e.qp_id; })).indexOf(employee_id);
+    $scope.employees.splice( pos, 1);
   };
 
   $scope.onUndo = function () {
@@ -549,9 +555,18 @@ angular.module('workships-mobile')
   $scope.onSelect = function ($item) {
     var emp = _.find($scope.employees, { 'id': $item.id });
     if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
-      var qpid = emp.qp_id
       console.log('emp: ', emp)
-      $scope.onUserResponse(undefined, qpid, true, undefined, false);
+      $log.debug('In onSelect()');
+      if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
+        // var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
+        // $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
+      } else {
+        $scope.search_added_emps.push(emp.qp_id);
+        $scope.r.responses.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+        $scope.tiny_array.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+        // $scope.currentlyFocusedEmployeeId = emp.qp_id;
+      }
+      $scope.onUserResponse(undefined, emp.qp_id, true, undefined,false);
     }
     return
     // $log.debug('In onSelect()');
