@@ -150,9 +150,13 @@ angular.module('workships-mobile')
       $scope.original_data.replies.splice(0, 0, { e_id: employee_id, employee_details_id: added_employee.id });
     }
     if (emp[0]) { $scope.undo_worker_stack.push(emp[0]); }
-
     if (needToFocus === undefined || needToFocus === true) {
       $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+    }else{
+      if($scope.currentlyFocusedEmployeeId == employee_id){
+        $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(question_id, employee_id);
+      }
+
     }
 
     // force click on next when the max number of replies was reached
@@ -168,6 +172,8 @@ angular.module('workships-mobile')
     if ( ($scope.numberOfEmployeesAnsweredForQuestion($scope.r.question_id) % 3) === 0) {
       $scope.continueLater();
     }
+    var pos = ($scope.employees.map(function(e) { return e.qp_id; })).indexOf(employee_id);
+    $scope.employees.splice( pos, 1);
   };
 
   $scope.onUndo = function () {
@@ -313,6 +319,9 @@ angular.module('workships-mobile')
   $scope.isLoaded = function () {
     return $scope.loaded[0];
   };
+  $scope.removeUser = function (){
+    return;
+  }
 
   $scope.employeeDoesNotHaveResponseForQuestion = function (question_id, employee_id) {
     return !$scope.employeeHasResponseForQuestion(question_id, employee_id);
@@ -333,6 +342,52 @@ angular.module('workships-mobile')
 
   $scope.toggleFullQuestionView = function () {
     $scope.show_full_question = !$scope.show_full_question;
+  };
+  $scope.hidePopup = function (popup) {
+    if($scope.show_full_question){
+      $scope.show_popup = false;
+      $scope.show_full_question = false;
+    }
+  };
+  $scope.logoSrc = function () {
+    if(mass.logo_url)
+      return mass.logo_url;
+    else
+      return '/assets/logo-medium.png';
+  };
+  $scope.referralUrl = function () {
+    var ref_url = '';
+    if(mass.referral_btn_url)
+      ref_url = mass.referral_btn_url + String(mass.external_id);
+    return ref_url;
+  };
+  $scope.referralBtnColor = function () {
+    var bg_color;
+    if(mass.referral_btn_color)
+      bg_color = mass.referral_btn_color;
+    else
+      bg_color = 'orange';
+    return {"background-color": bg_color};
+  };
+  $scope.isReferralBtn = function(){
+    return mass.is_referral_btn;
+  }
+  $scope.closeTitle = function () {
+    var e = document.getElementById('close_title');
+    var title = e.getAttribute('data-close-title');
+    if(mass.close_title)
+      return mass.close_title;
+    else
+      return title;
+  };
+
+  $scope.closeSubTitle = function (){
+    var e1 = document.getElementById('close_sub_title');
+    var sub_title = e1.getAttribute('data-close-sub-title');
+    if(mass.close_sub_title)
+      return mass.close_sub_title;
+    else
+      return sub_title;
   };
 
   function resetAllReplies(replies) {
@@ -431,6 +486,7 @@ angular.module('workships-mobile')
           $scope.currentlyFocusedEmployeeId = $scope.tiny_array[0].employee_id;
           if (!options.reset_question) {
             $scope.show_full_question = true;
+            $scope.show_pupup = true;
           }
           $scope.loaded[0] = true;
         }
@@ -506,13 +562,52 @@ angular.module('workships-mobile')
     } return foundItem;
   };
 
-  $scope.onSelect = function ($item) {
+  $scope.isChoseBySearch = function () {
+    return $scope.is_chose_by_search;
+  }
+  $scope.getChosenEmployee = function() {
+    if($scope.chosen_employee)
+      return $scope.chosen_employee.name;;
+    return '';
+  }
+  $scope.showConfirmBox = function($item) {
     var emp = _.find($scope.employees, { 'id': $item.id });
-    if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
-      var qpid = emp.qp_id
-      console.log('emp: ', emp)
-      $scope.onUserResponse(undefined, qpid, true, undefined, false);
-    }
+    $scope.chosen_employee = emp;
+    $scope.is_chose_by_search = true;
+    $scope.show_popup = true;
+
+  }
+  $scope.onCancel = function() {
+    $scope.chosen_employee = undefined;
+    $scope.is_chose_by_search = false;
+    $scope.show_popup = false;
+
+  }
+
+  $scope.onSelect = function () {
+    var emp = $scope.chosen_employee;
+    // var emp = _.find($scope.employees, { 'id': $item.id });
+    // $scope.chosen_employee = emp;
+    // $scope.is_chose_by_search = true;
+    // $scope.show_popup = true;
+  //  if()
+    // if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
+    //   console.log('emp: ', emp)
+    //   $log.debug('In onSelect()');
+      if (_.any($scope.r.responses, function (r) { return r.employee_details_id === emp.id; })) {
+        // var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
+        // $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
+      } else {
+        $scope.search_added_emps.push(emp.qp_id);
+        $scope.r.responses.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+        $scope.tiny_array.splice(0, 0, { employee_id: emp.qp_id, employee_details_id: emp.id });
+        // $scope.currentlyFocusedEmployeeId = emp.qp_id;
+      }
+      $scope.onUserResponse(undefined, emp.qp_id, true, undefined,false);
+    // }
+      $scope.show_popup = false;
+      $scope.is_chose_by_search = false;
+      $scope.chosen_employee = undefined;
     return
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
@@ -534,7 +629,7 @@ angular.module('workships-mobile')
 
   $scope.getParticipantId = function () {
     //return $scope.original_data.token
-    return $scope.original_data.external_id
+    return $scope.original_data.external_id;
   }
 
   $scope.display_search = function() {
@@ -551,6 +646,9 @@ angular.module('workships-mobile')
     $scope.clicked_on_next = [false];
     $scope.state_saved = [false];
     $scope.loaded = [false];
+    $scope.show_popup = false;
+    $scope.is_chose_by_search = false;
+    $scope.chosen_employee = undefined;
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;
     }, 0);

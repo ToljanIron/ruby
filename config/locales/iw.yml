@@ -26,7 +26,7 @@ iw:
     how_to_tap_html: '<b>הקש/י</b> על <p class=x-icon></p> או <p class=v-icon></p><br> על מנת לענות על השאלה' 
     or: 'או'
     how_to_swipe_html: '<b>החלק/י</b> ימינה על מנת לענות כן <br> <b>החלק/י</b> שמאלה על מנת לענות לא'
-    how_to_scroll_html: '<b>גלול/גללי</b> מטה או מעלה על מנת לעבור לעובד הבא ברשימה'
+    how_to_scroll_html: '<b>גלול/גללי</b> מטה או מעלה על מנת לעבור למשתתפ/ת הבא ברשימה'
     continue_button: 'המשך'
     continue_later_button: 'המשך אחר כך'
     close_button: 'סגור'
@@ -57,6 +57,7 @@ iw:
     to_continue: 'על מנת להמשיך'
     find_employees: 'חפש'
     selected: 'משתתפים שנבחרו'
+    are_you_sure: 'האם את/ה בטוח/ה כי ברצונך לבחור את'
     connection_lost: 'Connection is lost please check your internet connection'
   sms:
     success: 'ברוכ/ה הבא/ה לשאלון הערכת עובדים מטעם חברת Stepahead. לחצ/י על הקישור כדי להתחיל את השאלון'

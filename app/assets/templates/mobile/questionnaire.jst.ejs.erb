@@ -6,29 +6,40 @@
     <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
   </div>
 
-  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header"'>
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header">
     <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
     <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
   </div>
   
-  <div class='mobile-content' id="main_container">
-    <div class='question-instruction-tooltip' ng-click='toggleFullQuestionView()'>
-      <div class='full-question-blocker-show' ng-class="!show_full_question && 'full-question-blocker-hide'"></div>
+  <div class='mobile-content' id="main_container" ng-class="{'finish-question': isFinished() && isLoaded()}">
+    <div class='question-instruction-tooltip' ng-click='hidePopup()'>
+      <div class='full-question-blocker-show' ng-class="(!show_full_question && !show_popup) && 'full-question-blocker-hide'"></div>
       <div class='question-container' ng-class="show_full_question && 'question-container-display'">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question'></bdi></div>
         <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
         <div class='close-btn'><%= I18n.t('questionnaire.close_button') %></div>
       </div>
+      <div class="genericPopUp confirm-box" ng-class="{'confirm-box-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
+        <div class="subject">
+          <span><%= I18n.t('questionnaire.are_you_sure')%></span>
+          <span>{{getChosenEmployee()}}? </span>
+        </div>
+        <div class="popup-buttons">
+          <div class= "actions-btn ok-btn" ng-click="onSelect()">אישור</div>
+          <div class="actions-btn cancel-btn" ng-click="onCancel()">ביטול</div>
+        </div>
+      </div>
+
     </div>
     <div ng-show='!isFinished() && isLoaded()'>
       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
-          <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='onSelect($item); search_input.text=""'/>        
+          <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
           <div class="mobile_search_img_container" ng-click='clearSearch()'>
             <img class='mobile_search_img' alt="clear" src="<%= asset_path 'x.png' %>"/>
           </div>
-          <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='onSelect($item); search_input.text=""'/>
+          <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>
         </div>
       </div>
       <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
@@ -62,6 +73,11 @@
         <div class="saved-location-text">
           <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
+        <div class='foot'>
+          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
+          <span>Powered by</span>
+        </div>
+
       </div>
     </div>
 
@@ -77,10 +93,15 @@
         <div class="saved-location-text">
           <%= I18n.t('questionnaire.saved_location_message') %>
         </div>
+        <div class='foot'>
+          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
+          <span>Powered by</span>
+        </div>
+
       </div>
     </div>
   </div>
-
+<div ng-if = "!(isFinished() && isLoaded())">
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container">
       <div class="right-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
@@ -119,4 +140,5 @@
       </div>
     </div>
   </div>
+</div>
 </div>

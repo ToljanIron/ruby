@@ -57,6 +57,7 @@ en:
     to_continue: 'to continue'
     find_employees: 'Find employees'
     selected: 'Selected'
+    are_you_sure: 'Are you sure you want to choose'
     connection_lost: 'Connection is lost please check your internet connection'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
