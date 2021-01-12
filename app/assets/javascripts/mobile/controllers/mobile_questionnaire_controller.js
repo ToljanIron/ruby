@@ -319,6 +319,9 @@ angular.module('workships-mobile')
   $scope.isLoaded = function () {
     return $scope.loaded[0];
   };
+  $scope.removeUser = function (){
+    return;
+  }
 
   $scope.employeeDoesNotHaveResponseForQuestion = function (question_id, employee_id) {
     return !$scope.employeeHasResponseForQuestion(question_id, employee_id);
@@ -339,6 +342,12 @@ angular.module('workships-mobile')
 
   $scope.toggleFullQuestionView = function () {
     $scope.show_full_question = !$scope.show_full_question;
+  };
+  $scope.hidePopup = function (popup) {
+    if($scope.show_full_question){
+      $scope.show_popup = false;
+      $scope.show_full_question = false;
+    }
   };
   $scope.logoSrc = function () {
     if(mass.logo_url)
@@ -477,6 +486,7 @@ angular.module('workships-mobile')
           $scope.currentlyFocusedEmployeeId = $scope.tiny_array[0].employee_id;
           if (!options.reset_question) {
             $scope.show_full_question = true;
+            $scope.show_pupup = true;
           }
           $scope.loaded[0] = true;
         }
@@ -552,12 +562,39 @@ angular.module('workships-mobile')
     } return foundItem;
   };
 
-  $scope.onSelect = function ($item) {
+  $scope.isChoseBySearch = function () {
+    return $scope.is_chose_by_search;
+  }
+  $scope.getChosenEmployee = function() {
+    if($scope.chosen_employee)
+      return $scope.chosen_employee.name;;
+    return '';
+  }
+  $scope.showConfirmBox = function($item) {
     var emp = _.find($scope.employees, { 'id': $item.id });
-    if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
-      console.log('emp: ', emp)
-      $log.debug('In onSelect()');
-      if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
+    $scope.chosen_employee = emp;
+    $scope.is_chose_by_search = true;
+    $scope.show_popup = true;
+
+  }
+  $scope.onCancel = function() {
+    $scope.chosen_employee = undefined;
+    $scope.is_chose_by_search = false;
+    $scope.show_popup = false;
+
+  }
+
+  $scope.onSelect = function () {
+    var emp = $scope.chosen_employee;
+    // var emp = _.find($scope.employees, { 'id': $item.id });
+    // $scope.chosen_employee = emp;
+    // $scope.is_chose_by_search = true;
+    // $scope.show_popup = true;
+  //  if()
+    // if (confirm("האם את/ה בטוח/ה כי ברצונך להוסיף את המשתתף לבחירתך?")) {
+    //   console.log('emp: ', emp)
+    //   $log.debug('In onSelect()');
+      if (_.any($scope.r.responses, function (r) { return r.employee_details_id === emp.id; })) {
         // var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
         // $scope.currentlyFocusedEmployeeId = employee_with_focus.employee_id;
       } else {
@@ -567,7 +604,10 @@ angular.module('workships-mobile')
         // $scope.currentlyFocusedEmployeeId = emp.qp_id;
       }
       $scope.onUserResponse(undefined, emp.qp_id, true, undefined,false);
-    }
+    // }
+      $scope.show_popup = false;
+      $scope.is_chose_by_search = false;
+      $scope.chosen_employee = undefined;
     return
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
@@ -606,6 +646,9 @@ angular.module('workships-mobile')
     $scope.clicked_on_next = [false];
     $scope.state_saved = [false];
     $scope.loaded = [false];
+    $scope.show_popup = false;
+    $scope.is_chose_by_search = false;
+    $scope.chosen_employee = undefined;
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;
     }, 0);
