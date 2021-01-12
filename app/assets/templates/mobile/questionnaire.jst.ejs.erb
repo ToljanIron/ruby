@@ -64,7 +64,8 @@
     <div ng-if="mobile_app_service.isLangRtl()" dir='rtl' ng-show='isFinished() && isLoaded()'  >
       <div class='page_content finish-task mobile-interact-page-content' style='margin-top: 150px;' >
         <div class="large-logo-mobile">
-          <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+          <img src="{{logoSrc()}}"  width="100%">
+          <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
         </div>
         <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
         <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
@@ -84,7 +85,8 @@
     <div ng-if="!mobile_app_service.isLangRtl()" ng-show='isFinished() && isLoaded()' >
       <div class='page_content finish-task mobile-interact-page-content' style='margin-top: 150px;' >
         <div class="large-logo-mobile">
-          <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+          <img src="{{logoSrc()}}"  width="100%">
+          <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
         </div>
         <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
         <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
