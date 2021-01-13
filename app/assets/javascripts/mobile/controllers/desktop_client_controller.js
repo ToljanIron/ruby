@@ -120,6 +120,8 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.maximum_required = response.data.client_max_replies;
     $scope.dependent_maximum_required = response.data.client_min_replies;
     $scope.dependent_minimum_required = response.data.client_max_replies;
+    $scope.external_id = response.data.external_id;
+    $scope.referral_btn_url = response.data.referral_btn_url
     createTopBar($scope.total_questions);
 
     if (continue_questionnair === undefined) {
@@ -351,6 +353,12 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
 
   $scope.answeredAllQuestions = function () {
     return $scope.approved_or_disapproved_workers.length === $scope.dependent_minimum_required;
+  };
+  $scope.referralUrl = function () {
+    var ref_url = '';
+    if($scope.referral_btn_url)
+      ref_url = $scope.referral_btn_url + String($scope.external_id);
+    return ref_url;
   };
 
   $scope.init = function (name, token, continue_questionnair) {
