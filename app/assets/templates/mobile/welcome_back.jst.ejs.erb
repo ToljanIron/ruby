@@ -10,7 +10,8 @@
   <div class='mobile-content' id="main_container">
     <div class='page_content welcome mobile-interact-page-content'>
       <div class="large-logo-mobile">
-        <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+        <img ng-src="{{logoSrc()}}"  width="100%">
+        <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
       </div>
       <h1 class='page_title'><%= I18n.t('questionnaire.welcome_back') %> {{mobile_app_service.getUserName()}}</h1>
       <div class='text'>
@@ -39,7 +40,8 @@
   <div class='mobile-content' id="main_container">
     <div class='page_content welcome mobile-interact-page-content'>
       <div class="large-logo-mobile">
-        <img src="<%= asset_path 'logo-medium.png' %>"  width="100%">
+        <img ng-src="{{logoSrc()}}"  width="100%">
+        <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
       </div>
       <h1 class='page_title'><%= I18n.t('questionnaire.welcome_back') %> {{mobile_app_service.getUserName()}}</h1>
       <div class='text'>

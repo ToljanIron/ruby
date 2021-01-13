@@ -608,7 +608,7 @@ angular.module('workships-mobile')
       $scope.show_popup = false;
       $scope.is_chose_by_search = false;
       $scope.chosen_employee = undefined;
-    return
+    return;
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
     //   var employee_with_focus =  $scope.findOrLoadAndFind($item.id);
