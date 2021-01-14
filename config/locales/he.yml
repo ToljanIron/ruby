@@ -19,7 +19,7 @@
 # To learn more, please read the Rails Internationalization guide
 # available at http://guides.rubyonrails.org/i18n.html.
 
-iw:
+he:
   questionnaire:
     hi: 'שלום'
     how_to_answer_html: 'לפניך שאלון אינטראקטיבי קצר.<br><b>הקש/י</b> או <b>החלק/י</b> על המסך לפי ההוראות על מנת לענות על השאלון'    
