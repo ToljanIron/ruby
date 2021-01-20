@@ -102,6 +102,8 @@ Workships::Application.routes.draw do
 
   post '/interact_backoffice/simulate_replies',        to: 'interact_backoffice#simulate_results'
 
+   post '/interact_backoffice/remove_participants',      to: 'interact_backoffice#remove_participants'
+
   ############################ v3 ############################
 
   post 'v3/setting/update_user_info'         ,to: 'settings#update_user_info'

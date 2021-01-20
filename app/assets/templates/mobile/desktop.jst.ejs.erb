@@ -16,7 +16,7 @@
   <div>
     <div ng-if='mobile_app_service.inFinishView()' >
       <div class="background">
-        <div class="thank-you"><%= I18n.t('questionnaire.thank_you') %>, {{getEmployee(current_emp_id).name}}</div>
+        <div class="thank-you"><%= I18n.t('questionnaire.thank_you') %></div>
         <div class="thank-you-p"><%= I18n.t('questionnaire.thank_you_note') %></div>
         <div style="direction: rtl; border: solid orange 2px; width: 258px; height: 120px; font-size: 30px; margin: 40px auto; text-algin: center;">
           <a style="margin: 0 auto; color: black; text-decoration: none; line-height: 1.5; padding: 10px; float: right;" ng-href="{{referralUrl()}}">
@@ -105,7 +105,7 @@
   <div>
     <div ng-if='mobile_app_service.inFinishView()' >
       <div class="background">
-        <div class="thank-you" dir='rtl'><%= I18n.t('questionnaire.thank_you') %> {{getEmployee(current_emp_id).name}},</div>
+        <div class="thank-you" dir='rtl'><%= I18n.t('questionnaire.thank_you') %></div>
         <div class="thank-you-p"><%= I18n.t('questionnaire.thank_you_note') %></div>
         <div style="direction: rtl; border: solid orange 2px; width: 258px; height: 120px; font-size: 30px; margin: 40px auto; text-algin: center;">
           <a style="margin: 0 auto; color: black; text-decoration: none; line-height: 1.5; padding: 10px; float: right;" ng-href="{{referralUrl()}}">
