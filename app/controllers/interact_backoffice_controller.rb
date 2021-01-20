@@ -95,6 +95,16 @@ class InteractBackofficeController < ApplicationController
       [{quests: quests, activeQuest: aq}, nil]
     end
   end
+  
+  def remove_participants
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qid = params[:qid]
+      q = Questionnaire.find(qid)
+      errors = InteractBackofficeActionsHelper.remove_questionnaire_participans(qid)
+      [{participants: [], questionnaire: q}, errors: [] ]
+    end
+  end
 
   def questionnaire_copy
     authorize :interact, :authorized?
