@@ -28,7 +28,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
 
   def get_link
     if Rails.env == 'test' || Rails.env == 'development'
-      base_url = 'http://dev.com:3000/'
+      base_url = 'http://localhost:3000/'
     else
       Dotenv.load
       base_url = ENV['STEPAHEAD_BASE_URL']
