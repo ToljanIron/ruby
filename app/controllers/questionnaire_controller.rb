@@ -13,7 +13,9 @@ class QuestionnaireController < ApplicationController
                                              :keep_alive,
                                              :show_quest,
                                              :autosave]
-  before_action :set_locale
+  # before_action :set_locale
+
+
 
   def all_employees
     authorize :application, :passthrough
@@ -44,7 +46,6 @@ class QuestionnaireController < ApplicationController
     res[:client_min_replies] = reps[:client_min_replies]
     res[:client_max_replies] = reps[:client_max_replies]
     res[:is_contain_funnel_question] = is_contain_funnel_question(token)
-
     res = Oj.dump(res)
     render json: res
   end
@@ -127,9 +128,9 @@ class QuestionnaireController < ApplicationController
 
   private
 
-  def set_locale
-    I18n.locale = :en
-  end
+  # def set_locale
+  #   I18n.locale = :iw
+  # end
 
   def goto_home
     @curr_page = PAGES[:home]
@@ -137,5 +138,9 @@ class QuestionnaireController < ApplicationController
 
   def authenticate_user
     redirect_to signin_path unless  logged_in?
+  end
+ 
+  def set_locale(extract_locale= :en)
+    I18n.locale = extract_locale || :en
   end
 end

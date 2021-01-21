@@ -39,6 +39,7 @@ module QuestionnaireHelper
     raise "Inactive participant" if !qp.active
 
     aq = Questionnaire.find(qp.questionnaire_id)
+
     raise "No questionnaire found for participant #{qp.id}" if aq.nil?
 
     status = nil
@@ -72,13 +73,13 @@ module QuestionnaireHelper
       end
       current_questiannair_question_id = qq.id
     end
-      qp.update!(current_questiannair_question_id: current_questiannair_question_id,
+    qp.update!(current_questiannair_question_id: current_questiannair_question_id,
                  status: qp_status)
 
     total_questions = QuestionnaireQuestion
                         .where(questionnaire_id: aq.id, active: true).count
     employee = Employee.find(qp.employee_id)
-
+    language = aq.language_id ? Language.find(aq.language_id).name : 'English'
     return {
       q_state: aq.state,
       qp_state: qp.status,
@@ -104,7 +105,8 @@ module QuestionnaireHelper
       is_referral_btn: aq.is_referral_btn,
       referral_btn_url: aq.referral_btn_url,
       referral_btn_id: aq.referral_btn_id,
-      referral_btn_color: aq.referral_btn_color
+      referral_btn_color: aq.referral_btn_color,
+      language: language
     }
   end
 

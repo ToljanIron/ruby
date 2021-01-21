@@ -44,6 +44,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
       return ((e.answer !== null) && (e.answer === false));
     }).length;
     s.replies = null;
+    LANGUAGE_DIRECTION = (s.language =='Hebrew' ? 'rtl' : 'ltr');
 
     s.updateRepliesNumberUp = function(response) {
       if (response) {
@@ -221,7 +222,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   };
 
   mobileAppService.isLangRtl = function() {
-    return true;
+    return LANGUAGE_DIRECTION == 'rtl'
     //return false;
   };
 
