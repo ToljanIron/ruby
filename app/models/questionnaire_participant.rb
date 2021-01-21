@@ -225,7 +225,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
   end
 
   def gt_locale
-    return :iw if questionnaire.language.name == 'Hebrew'
+    return :he if questionnaire.language.name == 'Hebrew'
     return :en
   end
 
