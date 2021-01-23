@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
 
   around_action :global_error_handler
 
-  before_action :set_locale, except: [:signin, :api_signin]
+  #before_action :set_locale, except: [:signin, :api_signin]
 
   # check_authorization
   before_action :authenticate_user, except: [:show_mobile, :robots, :receive_and_respond]
