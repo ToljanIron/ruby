@@ -33,10 +33,11 @@ angular.module('workships-mobile').controller('mobileClientController', ['$scope
   };
 
 
-  $scope.init = function (name, token) {
+  $scope.init = function (name, token,  dict) {
     $scope.mobile_app_service = mobileAppService;
     mobileAppService.setToken(token);
     mobileAppService.setUserName(name);
+    mobileAppService.setDictionary(dict)
     var params = { token: token };
     // TODO !!!!!!!!!!!  ajaxService.keepAlive({alive: true});
     ajaxService.get_next_question(params).then(function (response) {

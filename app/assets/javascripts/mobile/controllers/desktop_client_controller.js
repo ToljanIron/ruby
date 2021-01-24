@@ -24,6 +24,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
   function initFromParams(data) {
     mobileAppService.setIndexOfCurrentQuestion(data.current_question_position);
     mobileAppService.setTotalQuestions(data.total_questions);
+    mobileAppService.setDirection(data.language)
     if (data.min === data.max) {
       mobileAppService.setQuestionTypeClearScreen();
     } else {
@@ -361,7 +362,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     return ref_url;
   };
 
-  $scope.init = function (name, token, continue_questionnair) {
+  $scope.init = function (name, token, dict) {
     $scope.token = token;
     $scope.name = name;
 
@@ -378,6 +379,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.allowed_clicking = $scope.maximum_required > $scope.selected_workers.length;
     mobileAppService.setToken(token);
     mobileAppService.setUserName(name);
+    mobileAppService.setDictionary(dict)
     var params = { token: token,
                    desktop: 'true' };
     ajaxService.get_employees(params).then(function (response) {
@@ -389,7 +391,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     ajaxService.keepAlive({alive: true});
 
     ajaxService.get_next_question(params).then(function (response) {
-      handleGetNextQuestionReply(response, continue_questionnair);
+      handleGetNextQuestionReply(response);
     });
   };
 }]);

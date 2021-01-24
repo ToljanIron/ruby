@@ -5,6 +5,7 @@ include Pundit
 include CdsUtilHelper
 include SanitizeHelper
 include Asspects
+require 'yaml'
 
 class ApplicationController < ActionController::Base
   DYNAMIC_LOCALE = false
@@ -38,9 +39,10 @@ class ApplicationController < ActionController::Base
 	      return
       end
       I18n.locale = qp.gt_locale
+      locale = I18n.locale
       @name = qp.employee.first_name          if qp.participant_type == 'participant'
       @name = qp.questionnaire.test_user_name if qp.participant_type == 'tester'
-
+      @dict = load_dict(locale)
       if (params['desktop'] == 'true' || !mobile?) && params['mobile'] != 'true'
         puts "@@@@@@@@@@@@@@@@@@ 2"
         render 'desk', layout: 'mobile_application'
@@ -111,4 +113,11 @@ class ApplicationController < ActionController::Base
     render json: Oj.dump(error: e.to_s)
     raise e
   end
+
+  def load_dict(locale)
+    path = Rails.root.join("config/locales", "#{locale.to_s}.yml").to_s
+    dict = YAML.load_file(path)
+    return dict[locale.to_s].to_json
+  end
+
 end

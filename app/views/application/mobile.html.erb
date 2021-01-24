@@ -1,4 +1,4 @@
-<div class='mobile-wrapper' ng-controller="mobileClientController" ng-init="init('<%= @name %>','<%= @token %>')">
+<div class='mobile-wrapper' ng-controller="mobileClientController" ng-init="init('<%= @name %>','<%= @token %>',<%= @dict %>)">
   <div class='overlay-blocker' ng-show='mobile_app_service.isOverlayBlockerDisplayed()' ng-click='mobile_app_service.onClickOverlayBlocker()'>
     <div class="overlay-message-box">
       <div class='text'>
