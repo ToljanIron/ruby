@@ -6,27 +6,29 @@
         <img ng-src="{{logoSrc()}}"  width="100%">
         <%#= asset_path 'logo-medium.png' %>
       </div>
-      <div style="display:none;" id='close_title' data-close-title="<%= I18n.t('questionnaire.thank_you') %>"></div>
+      <div style="display:none;" id='close_title' data-close-title="{{mobile_app_service.t('thank_you')}}"></div>
       <div ng-if="mobile_app_service.isLangRtl()" dir='rtl'>
         <h1  class='page_title'>{{closeTitle()}}</h1>
-        <div id = 'close_sub_title' class='text' data-close-sub-title="<%= I18n.t('questionnaire.thank_you_note') %>">
+        <div id = 'close_sub_title' class='text' data-close-sub-title="{{mobile_app_service.t('thank_you_note')}}">
           {{closeSubTitle()}}
         </div>
         <div class="interact-page-primary-btn" ng-if="isReferralBtn()" ng_style="{{referralBtnColor()}}">
           <a href="{{referralUrl()}}">
-            <%= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
+            {{mobile_app_service.t('click_to_answer_additional_questions')}}
+            <%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
           </a>
           <!-- <a href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD?id={{getParticipantId()}}"><%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %></a> -->
         </div>
       </div>
       <div ng-if="!mobile_app_service.isLangRtl()">
         <h1  class='page_title'>{{closeTitle()}}</h1>
-        <div id = 'close_sub_title' class='text' data-close-sub-title="<%= I18n.t('questionnaire.thank_you_note') %>">
+        <div id = 'close_sub_title' class='text' data-close-sub-title="{{mobile_app_service.t('thank_you_note')}}">
           {{closeSubTitle()}}
         </div>
         <div class="interact-page-primary-btn" ng-if="isReferralBtn()" ng_style="{{referralBtnColor()}}">
           <a href="{{referralUrl()}}">
-            <%= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
+            {{mobile_app_service.t('click_to_answer_additional_questions')}}
+            <%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
           </a>
           <!-- <a href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD?id={{getParticipantId()}}"><%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %></a> -->
         </div>

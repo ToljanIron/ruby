@@ -29,6 +29,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
 
   // var LANGUAGE_DIRECTION = 'rtl';
   var LANGUAGE_DIRECTION = 'ltr';
+  var DICT = {};
 
   // Questionnaire state
   var s = null;
@@ -225,6 +226,15 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     return LANGUAGE_DIRECTION == 'rtl'
     //return false;
   };
+  mobileAppService.setDictionary = function(dict) {
+    DICT = dict.questionnaire
+  }
+  mobileAppService.t = function(str) {
+    return DICT[str];
+  }
+  mobileAppService.setDirection = function(language) {
+    LANGUAGE_DIRECTION = (language =='Hebrew' ? 'rtl' : 'ltr');
+  }
 
   return mobileAppService;
 });

@@ -39,7 +39,7 @@ en:
     click_to_answer_additional_questions: 'Click here to answer a number of additional questions'
     questionnaire_completion_note: 'To complete the questionnaire, please continue to the following form'
     welcome_back: 'Welcome back'
-    you_are_in_html: 'You are in <b>question number</b>'
+    you_are_in_html: 'You are in question number'
     click_the_continue: 'Click the continue button below to continue your saved session'
     continue_saved_session_button: 'Continue Saved Session'
     continue_answer_next_question: 'Continue to the next question'

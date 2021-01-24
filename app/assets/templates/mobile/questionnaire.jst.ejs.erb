@@ -18,16 +18,16 @@
       <div class='question-container' ng-class="show_full_question && 'question-container-display'">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question'></bdi></div>
         <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
-        <div class='close-btn'><%= I18n.t('questionnaire.close_button') %></div>
+        <div class='close-btn'>{{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %></div>
       </div>
       <div class="genericPopUp confirm-box" ng-class="{'confirm-box-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
         <div class="subject">
-          <span><%= I18n.t('questionnaire.are_you_sure')%></span>
+          <span>{{mobile_app_service.t('are_you_sure')}}<%#= I18n.t('questionnaire.are_you_sure')%></span>
           <span>{{getChosenEmployee()}}? </span>
         </div>
         <div class="popup-buttons">
-          <div class= "actions-btn ok-btn" ng-click="onSelect()"><%= I18n.t('questionnaire.ok')%></div>
-          <div class="actions-btn cancel-btn" ng-click="onCancel()"><%= I18n.t('questionnaire.cancel')%></div>
+          <div class= "actions-btn ok-btn" ng-click="onSelect()">{{mobile_app_service.t('ok')}}<%#= I18n.t('questionnaire.ok')%></div>
+          <div class="actions-btn cancel-btn" ng-click="onCancel()">{{mobile_app_service.t('cancel')}}<%#= I18n.t('questionnaire.cancel')%></div>
         </div>
       </div>
 
@@ -35,11 +35,11 @@
     <div ng-show='!isFinished() && isLoaded()'>
       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
-          <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
+          <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
           <div class="mobile_search_img_container" ng-click='clearSearch()'>
             <img class='mobile_search_img' alt="clear" src="<%= asset_path 'x.png' %>"/>
           </div>
-          <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="<%= I18n.t('questionnaire.search')%>" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>
+          <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>
         </div>
       </div>
       <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
@@ -67,12 +67,13 @@
           <img ng-src="{{logoSrc()}}"  width="100%">
           <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
         </div>
-        <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
+        <h1 class='page_title'>{{mobile_app_service.t('question_completion_note_html')}}<%#=I18n.t('questionnaire.question_completion_note_html')%></h1>
         <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
-          <%= I18n.t('questionnaire.continue_answer_next_question') %>
+          {{mobile_app_service.t('continue_answer_next_question')}}<%#= I18n.t('questionnaire.continue_answer_next_question') %>
         </div>
         <div class="saved-location-text">
-          <%= I18n.t('questionnaire.saved_location_message') %>
+          {{mobile_app_service.t('saved_location_message')}}
+          <%#= I18n.t('questionnaire.saved_location_message') %>
         </div>
         <div class='foot'>
           <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
@@ -88,16 +89,18 @@
           <img ng-src="{{logoSrc()}}"  width="100%">
           <!-- <img src="<%#= asset_path 'logo-medium.png' %>"  width="100%"> -->
         </div>
-        <h1 class='page_title'><%=I18n.t('questionnaire.question_completion_note_html')%></h1>
+        <h1 class='page_title'>{{mobile_app_service.t('question_completion_note_html')}}<%#=I18n.t('questionnaire.question_completion_note_html')%></h1>
         <div class="interact-page-primary-btn" ng-click="clearScreenOnFinish()">
-          <%= I18n.t('questionnaire.continue_answer_next_question') %>
+          {{mobile_app_service.t('continue_answer_next_question')}}
+          <%#= I18n.t('questionnaire.continue_answer_next_question') %>
         </div>
         <div class="saved-location-text">
-          <%= I18n.t('questionnaire.saved_location_message') %>
+          {{mobile_app_service.t('saved_location_message')}}
+          <%#= I18n.t('questionnaire.saved_location_message') %>
         </div>
         <div class='foot'>
-          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
           <span>Powered by</span>
+          <img src="<%= asset_path 'logo-medium.png' %>" height="75" width="308">
         </div>
 
       </div>
@@ -107,8 +110,8 @@
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container">
       <div class="right-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
-        <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
-        <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
+        <span ng-show='!state_saved[0]'>{{mobile_app_service.t('continue_later_button')}}<%#=I18n.t('questionnaire.continue_later_button')%> </span>
+        <span ng-show='state_saved[0]'>{{mobile_app_service.t('saved')}}<%#=I18n.t('questionnaire.saved') %></span>
       </div>
      <!--  <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div> -->
 
@@ -130,8 +133,8 @@
   <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-footer">
     <div class="mobile-btns-container">
       <div class="left-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
-        <span ng-show='!state_saved[0]'><%=I18n.t('questionnaire.continue_later_button')%> </span>
-        <span ng-show='state_saved[0]'><%=I18n.t('questionnaire.saved') %></span>
+        <span ng-show='!state_saved[0]'>{{mobile_app_service.t('continue_later_button')}}<%#=I18n.t('questionnaire.continue_later_button')%> </span>
+        <span ng-show='state_saved[0]'>{{mobile_app_service.t('saved')}}<%#=I18n.t('questionnaire.saved') %></span>
       </div>
 
       <!-- <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div> -->
