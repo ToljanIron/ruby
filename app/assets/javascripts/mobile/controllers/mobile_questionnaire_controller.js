@@ -43,7 +43,8 @@ angular.module('workships-mobile')
         var role = emp.role === undefined ? 'N/A' : emp.role;
         res.push({
           id: emp.id,
-          name: emp.name, // + ', ' + role,
+          name: emp.name, 
+          role: role,
         });
       });
       return res;
@@ -407,6 +408,7 @@ angular.module('workships-mobile')
       e.qp_id = +e.qp_id;
     });
     $scope.search_list = getSearchList();
+
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -489,6 +491,7 @@ angular.module('workships-mobile')
             $scope.show_pupup = true;
           }
           $scope.loaded[0] = true;
+          $scope.hhh = $scope.search_list();
         }
       });
     }
@@ -534,6 +537,17 @@ angular.module('workships-mobile')
       $scope.currentlyFocusedEmployeeId = -1;
     }
   };
+  $scope.closeSearchResult = function () {
+    $scope.toggleSearchInput()
+    $scope.search_input.text = '';
+  }
+
+  $scope.toggleSearchInput = function () {
+    $scope.searchListOpen = !$scope.searchListOpen;
+    // if( $scope.searchListOpen){
+    //   $scope.hhh = $scope.search_list();
+    // }
+  }
 
   $scope.clearScreenOnFinish = function () {
     if (!$scope.canFinish()) { return; }
@@ -581,7 +595,11 @@ angular.module('workships-mobile')
     $scope.chosen_employee = undefined;
     $scope.is_chose_by_search = false;
     $scope.show_popup = false;
+    $scope.searchListOpen = false;
 
+  }
+  $scope.searchFunc = function () {
+    $scope.hhh = $scope.search_list();
   }
 
   $scope.onSelect = function () {
@@ -608,6 +626,7 @@ angular.module('workships-mobile')
       $scope.show_popup = false;
       $scope.is_chose_by_search = false;
       $scope.chosen_employee = undefined;
+      $scope.searchListOpen = false;
     return;
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
@@ -649,6 +668,8 @@ angular.module('workships-mobile')
     $scope.show_popup = false;
     $scope.is_chose_by_search = false;
     $scope.chosen_employee = undefined;
+    $scope.searchListOpen = false;
+
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;
     }, 0);

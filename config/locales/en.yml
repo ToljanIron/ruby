@@ -42,7 +42,7 @@ en:
     you_are_in_html: 'You are in question number'
     click_the_continue: 'Click the continue button below to continue your saved session'
     continue_saved_session_button: 'Continue Saved Session'
-    continue_answer_next_question: 'Continue to the next question'
+    continue_answer_next_question: 'Continue'
     saved_location_message: 'The system has saved your position in the questionnaire in case you want to continue filling in later'
     saved: 'Saved'
     welcome: 'Welcome'
@@ -61,6 +61,8 @@ en:
     connection_lost: 'Connection is lost please check your internet connection'
     ok: 'Ok'
     cancel: 'Cancel'
+    search_message: 'Search participant'
+    clise_search: 'Close search list'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
     fail: 'Welcome to StepAhead employee evaluation questionnaire. The ID number you sent is not registered. Send the correct ID again or contact support.'
