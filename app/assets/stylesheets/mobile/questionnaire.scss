@@ -181,8 +181,11 @@
             left: 50%;
             margin-left: -420px;
           }
+          .mobile-employee-text.emp-name-rtl{
+            direction: rtl !important;
+          }
           .mobile-employee-text {
-            direction: rtl;
+            direction: ltr;
             padding-right: 50px;
             box-sizing: border-box;
             z-index: 100;

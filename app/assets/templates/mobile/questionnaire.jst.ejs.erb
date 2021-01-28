@@ -1,13 +1,23 @@
 <div ng-controller="mobileQuestionnaireController" ng-init="init()">
 
   <div ng-if="mobile_app_service.isLangRtl()" class="mobile-header"  dir='rtl'>
-    <div class="mobile-header-title"  ng-bind-html='r.question_title'></div>
+
+
+    <div class="mobile-header" ng-click='toggleFullQuestionView()'>
+      <div class="mobile-header-page-num">
+        {{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}
+      </div>
+      <div class="mobile-header-title"  ng-bind-html='r.question_title'></div>
+    </div>
+
+
+<!--     <div class="mobile-header-title"  ng-bind-html='r.question_title'></div>
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
-    <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
+    <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div> -->
   </div>
 
-  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header">
-    <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div>
+  <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-header" ng-click='toggleFullQuestionView()'>
+    <!-- <div class="mobile_search_click" ng-click='toggleFullQuestionView()'>Q</div> -->
     <div class="mobile-header-page-num">{{mobile_app_service.getIndexOfCurrentQuestion()}}/{{mobile_app_service.getTotalQuestions()}}</div>
     <div class="mobile-header-title" ng-bind-html='r.question_title'></div>
   </div>
@@ -18,7 +28,8 @@
       <div class='question-container' ng-class="show_full_question && 'question-container-display'">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question'></bdi></div>
         <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
-        <div class='close-btn'>{{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %></div>
+        <div class='close-btn close-q-container'>
+          <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div> 
       </div>
       <div class="genericPopUp confirm-box" ng-class="{'confirm-box-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
         <div class="subject">
@@ -33,15 +44,15 @@
 
     </div>
     <div ng-show='!isFinished() && isLoaded()'>
-      <div class="mobile_search_container" ng-if='display_search()'>
+<!--       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
           <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
           <div class="mobile_search_img_container" ng-click='clearSearch()'>
-            <img class='mobile_search_img' alt="clear" src="<%= asset_path 'x.png' %>"/>
+            <img class='mobile_search_img' alt="clear" src="<%#= asset_path 'x.png' %>"/>
           </div>
           <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>
         </div>
-      </div>
+      </div> -->
       <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
         <div ng-repeat="employee_response in tiny_array" value='{{employee_response.employee_id}}' class='slot-machine' ng-if='employeeDoesNotHaveResponseForQuestion(r.question_id, employee_response.employee_id) || searchAdded(employee_response.employee_id)'>
           <div class="employee-item">
@@ -52,7 +63,7 @@
             <div class="mobile-like-btn" prevent-zoom ng-show="employee_response.employee_id == currentlyFocusedEmployeeId" ng-click='onUserResponse(r.question_id, employee_response.employee_id, true, r.employee_details_id)'>
               <div class='v-icon'></div>
             </div>
-            <div class='mobile-employee-text' ng-show="employee_response.employee_id == currentlyFocusedEmployeeId">
+            <div class='mobile-employee-text' ng-class ="{'emp-name-rtl': mobile_app_service.isLangRtl()}" ng-show="employee_response.employee_id == currentlyFocusedEmployeeId">
               <div class="name">{{employeeById(employee_response.employee_details_id).name}}</div>
               <div class="rank">{{employeeById(employee_response.employee_details_id).role}}</div>
             </div>
@@ -107,15 +118,38 @@
     </div>
   </div>
 <div ng-if = "!(isFinished() && isLoaded())">
+<!--         <div class="mobile_search_container">
+        <div class='mobile_search_tab'>
+        </div>
+      </div> -->
+  <div class= 'search-result' ng-if = "search_input.text != ''">
+<!--     {{results.length}} -->
+    <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
+    <div class="search-item" 
+    ng-click ="showConfirmBox(search_node,r.question_id); search_input.text=''" 
+    ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+    ng-repeat="search_node in hhh | filter:{name:search_input.text} as $results track by search_node.id"> 
+      <div class="avatar-search"></div>
+      <div class="search-emp-name">
+        <div class="emp-name">{{search_node.name}}</div>
+        <div>{{search_node.role}}</div>
+      </div>
+    </div>
+  </div>
+
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
-    <div class="mobile-btns-container">
-      <div class="right-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
-        <span ng-show='!state_saved[0]'>{{mobile_app_service.t('continue_later_button')}}<%#=I18n.t('questionnaire.continue_later_button')%> </span>
-        <span ng-show='state_saved[0]'>{{mobile_app_service.t('saved')}}<%#=I18n.t('questionnaire.saved') %></span>
+    <div class="mobile-btns-container rtl">
+      <div class="right-button search-btn" ng-if="display_search() && !searchListOpen" ng-click='toggleSearchInput()'>
+        <span>{{mobile_app_service.t('search_message')}} </span>
+      </div>
+      <div class="right-search-input" ng-if="searchListOpen">
+        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" />
+
+<!--         <input id="jhjhj" type="text" auto-focus  ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""' /> -->
       </div>
      <!--  <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-share"></i></div> -->
 
-      <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
+      <div class="left-button counter-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}'
                 ng-click='minMaxOnFinish()' ng-if='mobile_app_service.isQuestionTypeMinMax()'>
         <i class="fa fa-chevron-left" ng-show='canFinish()'></i>
         <span ng-if='mobile_app_service.isQuestionTypeMinMax() && isLoaded()'>
@@ -131,17 +165,19 @@
     </div>
   </div>
   <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-footer">
-    <div class="mobile-btns-container">
-      <div class="left-button" ng-click='continueLater()' ng-class='{finished: state_saved[0]}'>
-        <span ng-show='!state_saved[0]'>{{mobile_app_service.t('continue_later_button')}}<%#=I18n.t('questionnaire.continue_later_button')%> </span>
-        <span ng-show='state_saved[0]'>{{mobile_app_service.t('saved')}}<%#=I18n.t('questionnaire.saved') %></span>
-      </div>
+    <div class="mobile-btns-container ltr">
 
       <!-- <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div> -->
 
-      <div class="right-button" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
+      <div class="right-button counter-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
         {{numOfAnswers()}} of {{clientMaxReplies()}}
         <i class="fa fa-chevron-right" ng-show='canFinish()'></i>
+      </div>
+      <div class="left-button search-btn" ng-if="display_search() && !searchListOpen" ng-click='toggleSearchInput()'>
+        <span>{{mobile_app_service.t('search_message')}} </span>
+      </div>
+      <div class="right-search-input" ng-if="searchListOpen">
+        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" />
       </div>
     </div>
   </div>
