@@ -292,7 +292,7 @@ angular.module('workships-mobile')
   };
   $scope.getEmployeeImg = function (employee_id) {
     var e = $scope.employeeById(employee_id)
-    if(!e.image_url.match(/missing_user/))
+    if(e.imag_url && !e.image_url.match(/missing_user/))
       return e.image_url;
     return false;
   }
