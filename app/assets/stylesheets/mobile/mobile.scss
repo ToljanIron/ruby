@@ -270,7 +270,7 @@
       position: absolute;
       bottom: 140px;
       display: block;
-      max-height: 55%;
+      max-height: 75%;
       padding-bottom: 3rem;
       margin-bottom: -30px;
       /* top: 91.2031px; */
@@ -285,23 +285,31 @@
       border-radius: 30px 30px 0 0;
       /*z-index: 11;*/
       .search-item{
+        align-items: center;
+        display: flex;
+        flex-direction: row-reverse;
         padding: 2rem;
-        margin: 0 2rem 0 2rem;
+        margin: 0 1rem 0 1rem;
         line-height: 1.5;
         border-bottom: 2px solid gray;
         font-size:35pt;
         /*font-size: 20pt;*/
 /*        font-size: 35pt;*/
         .avatar-search{
-          background-image: image-url('avatar-for-logout-menu.png');
-          background-repeat: no-repeat;
-          background-size: 100%;
-          height: 100px;
-          width: 100px;
+          /*background-image: image-url('avatar-for-logout-menu.png');*/
+          /*background-repeat: no-repeat;*/
+          /*background-size: 100%;*/
+          height: 120px;
+          width: 120px;
           float:right;
+          border-radius: 50%;
+          background-color: yellow;
+          line-height: 120px;
+          text-align: center;
 
         }
         .search-emp-name {
+          margin-right: 1.5rem;
           width: 85%;
           text-align: right;
           .emp-name{
@@ -310,6 +318,7 @@
         }
       }
       .search-item.ltr{
+        flex-direction: row;
         .avatar-search{
           float: left !important;
           margin-right: 2rem !important;

@@ -30,6 +30,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   // var LANGUAGE_DIRECTION = 'rtl';
   var LANGUAGE_DIRECTION = 'ltr';
   var DICT = {};
+  var AVATAR_COLORS = ['#4577A9','#92D050','#BF9000','#00B0F0','#4D4E4E','#FBB03B']
 
   // Questionnaire state
   var s = null;
@@ -234,6 +235,9 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   }
   mobileAppService.setDirection = function(language) {
     LANGUAGE_DIRECTION = (language =='Hebrew' ? 'rtl' : 'ltr');
+  }
+  mobileAppService.get_avatar_colors = function(){
+    return AVATAR_COLORS;
   }
 
   return mobileAppService;

@@ -290,6 +290,50 @@ angular.module('workships-mobile')
     });
     return e;
   };
+  $scope.getEmployeeImg = function (employee_id) {
+    var e = $scope.employeeById(employee_id)
+    if(!e.image_url.match(/missing_user/))
+      return e.image_url;
+    return false;
+  }
+
+  $scope.getCiricleColor = function (index){
+    // var idx = $scope.current_avatar_color;
+    // var my_color
+    // $scope.current_avatar_color ++
+    // if($scope.current_avatar_color ==6)
+    //   $scope.current_avatar_color =0;
+    // var my_color = (mobileAppService.get_avatar_colors()[idx])
+
+
+var my_color;
+// if(index==0) 
+//    my_color = mobileAppService.get_avatar_colors()[0]
+// else 
+  if(index%6==0)
+  my_color = mobileAppService.get_avatar_colors()[5]
+else if(index%5 ==0)
+    my_color= mobileAppService.get_avatar_colors()[4]
+else if(index%4==0)
+  my_color = mobileAppService.get_avatar_colors()[3]
+else if(index%3==0)
+  my_color = mobileAppService.get_avatar_colors()[2]
+else if(index%2==0)
+  my_color = mobileAppService.get_avatar_colors()[1]
+else 
+  my_color = mobileAppService.get_avatar_colors()[0]
+   // return {'background-color': my_color};
+    return {"background-color": my_color};
+  }
+
+  $scope.shortEmpName = function (employee_id){
+    var e = $scope.employeeById(employee_id)
+    return $scope.shortName(e.name)
+  }
+  $scope.shortName = function(name){
+    var s_n = name.split(" ");
+    return s_n[0].charAt(0) + s_n[1].charAt(0) ;
+  }
 
   $scope.onForwardQuestion = function () {
     $log.debug('In onForwardQuestion()');
@@ -491,7 +535,7 @@ angular.module('workships-mobile')
             $scope.show_pupup = true;
           }
           $scope.loaded[0] = true;
-          $scope.hhh = $scope.search_list();
+          //$scope.hhh = $scope.search_list();
         }
       });
     }
@@ -544,9 +588,9 @@ angular.module('workships-mobile')
 
   $scope.toggleSearchInput = function () {
     $scope.searchListOpen = !$scope.searchListOpen;
-    // if( $scope.searchListOpen){
-    //   $scope.hhh = $scope.search_list();
-    // }
+    if( $scope.searchListOpen){
+      $scope.hhh = $scope.search_list();
+    }
   }
 
   $scope.clearScreenOnFinish = function () {
@@ -599,7 +643,7 @@ angular.module('workships-mobile')
 
   }
   $scope.searchFunc = function () {
-    $scope.hhh = $scope.search_list();
+   // $scope.hhh = $scope.search_list();
   }
 
   $scope.onSelect = function () {
@@ -669,6 +713,7 @@ angular.module('workships-mobile')
     $scope.is_chose_by_search = false;
     $scope.chosen_employee = undefined;
     $scope.searchListOpen = false;
+    $scope.current_avatar_color = 0;
 
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;

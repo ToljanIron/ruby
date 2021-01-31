@@ -53,10 +53,15 @@
           <input ng-if="mobile_app_service.isLangRtl()" dir='rtl' class='mobile_search_text_rtl' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>
         </div>
       </div> -->
-      <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
+      <slot-machine-directive height='{{heightOfContainer}}' value='currentlyFocusedEmployeeId' on-select-class="zoom-avatar" swipe='swipe' loaded='isLoaded()' load-more='loadMore'>
         <div ng-repeat="employee_response in tiny_array" value='{{employee_response.employee_id}}' class='slot-machine' ng-if='employeeDoesNotHaveResponseForQuestion(r.question_id, employee_response.employee_id) || searchAdded(employee_response.employee_id)'>
           <div class="employee-item">
-            <img class="mobile-avatars" ng-src='{{employeeById(employee_response.employee_details_id).image_url}}'>
+            <div class = "mobile-avatars" ng-if="!getEmployeeImg(employee_response.employee_details_id)" >
+              <div class ="ciricle-avatar" ng-style = 'getCiricleColor($index)' >
+                <div class = 'emp-short-name'>{{shortEmpName(employee_response.employee_details_id)}}</div>
+              </div>
+            </div>
+            <img class="mobile-avatars" ng-src='{{getEmployeeImg(employee_response.employee_details_id)}}' ng-if="getEmployeeImg(employee_response.employee_details_id)">
             <div class="mobile-dislike-btn" prevent-zoom ng-show="employee_response.employee_id == currentlyFocusedEmployeeId" ng-click='onUserResponse(r.question_id, employee_response.employee_id, false, r.employee_details_id)'>
               <div class='x-icon'></div>
             </div>
@@ -129,7 +134,7 @@
     ng-click ="showConfirmBox(search_node,r.question_id); search_input.text=''" 
     ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
     ng-repeat="search_node in hhh | filter:{name:search_input.text} as $results track by search_node.id"> 
-      <div class="avatar-search"></div>
+      <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>
       <div class="search-emp-name">
         <div class="emp-name">{{search_node.name}}</div>
         <div>{{search_node.role}}</div>
