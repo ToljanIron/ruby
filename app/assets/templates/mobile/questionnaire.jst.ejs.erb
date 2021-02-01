@@ -131,7 +131,7 @@
 <!--     {{results.length}} -->
     <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
     <div class="search-item" 
-    ng-click ="showConfirmBox(search_node,r.question_id); closeSearchResult()" 
+    ng-click ="showConfirmBox(search_node,r.question_id)" 
     ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
     ng-repeat="search_node in hhh | filter:{name:search_input.text} as $results track by search_node.id"> 
       <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>

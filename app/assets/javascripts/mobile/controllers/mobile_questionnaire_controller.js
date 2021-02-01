@@ -595,7 +595,7 @@ else
   };
   $scope.closeSearchResult = function () {
     $scope.toggleSearchInput()
-    $scope.search_input.text = '';
+    // $scope.search_input.text = '';
   }
 
   $scope.toggleSearchInput = function () {
@@ -609,7 +609,7 @@ else
       $scope.search_input.text = '';
       $scope.searchListOpen = false;
       $window.onclick = null;
-      $scope.$apply();
+      $scope.$evalAsync();
     }
   }
 
@@ -653,13 +653,14 @@ else
     $scope.chosen_employee = emp;
     $scope.is_chose_by_search = true;
     $scope.show_popup = true;
+    $scope.closeSearchResult()
 
   }
   $scope.onCancel = function() {
     $scope.chosen_employee = undefined;
     $scope.is_chose_by_search = false;
     $scope.show_popup = false;
-    $scope.searchListOpen = false;
+    // $scope.searchListOpen = false;
 
   }
   $scope.searchFunc = function () {
@@ -690,7 +691,7 @@ else
       $scope.show_popup = false;
       $scope.is_chose_by_search = false;
       $scope.chosen_employee = undefined;
-      $scope.searchListOpen = false;
+      // $scope.searchListOpen = false;
     return;
     // $log.debug('In onSelect()');
     // if (_.any($scope.r.responses, function (r) { return r.employee_details_id === $item.id; })) {
