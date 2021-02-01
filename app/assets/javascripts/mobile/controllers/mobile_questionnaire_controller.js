@@ -38,14 +38,17 @@ angular.module('workships-mobile')
       var res = [];
       _.each($scope.employees, function (emp) {
         if (!emp) { return; }
-       if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
+        if (_.find($scope.r.responses, { employee_details_id: emp.id, selected: true })) { return; }
+        if ($scope.full_search || _.find($scope.r.responses, { employee_details_id: emp.id })) { 
+
        // if (!_.find($scope.tiny_array, {employee_details_id: emp.id}) ) {return;}
-        var role = emp.role === undefined ? 'N/A' : emp.role;
-        res.push({
-          id: emp.id,
-          name: emp.name, 
-          role: role,
-        });
+          var role = emp.role === undefined ? 'N/A' : emp.role;
+          res.push({
+            id: emp.id,
+            name: emp.name, 
+            role: role,
+          });
+        }
       });
       return res;
     };
@@ -459,6 +462,7 @@ else
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
+    // debugger
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
     var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
@@ -467,6 +471,7 @@ else
 
     if (options && options.reset_question) {
       $scope.original_data.replies = resetAllReplies($scope.original_data.replies);
+      console.log($scope.original_data.replies)
       $scope.currentlyFocusedEmployeeId = -1;
     }
     mobileAppService.setIndexOfCurrentQuestion(response.data.current_question_position);
@@ -481,6 +486,8 @@ else
 
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
+    if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
+      $scope.full_search = false;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -735,6 +742,7 @@ else
     $scope.chosen_employee = undefined;
     $scope.searchListOpen = false;
     $scope.current_avatar_color = 0;
+    $scope.full_search = true;
 
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;

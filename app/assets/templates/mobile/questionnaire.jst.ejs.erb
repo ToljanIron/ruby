@@ -147,7 +147,7 @@
 
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container rtl">
-      <div class="right-button search-btn" ng-if="display_search() && !searchListOpen" ng-click='toggleSearchInput()'>
+      <div class="right-button search-btn" ng-if="!searchListOpen" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
@@ -181,7 +181,7 @@
         {{numOfAnswers()}} of {{clientMaxReplies()}}
         <i class="fa fa-chevron-right" ng-show='canFinish()'></i>
       </div>
-      <div class="left-button search-btn" ng-if="display_search() && !searchListOpen" ng-click='toggleSearchInput()'>
+      <div class="left-button search-btn" ng-if="!searchListOpen" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
