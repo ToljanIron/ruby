@@ -62,7 +62,8 @@ en:
     ok: 'Ok'
     cancel: 'Cancel'
     search_message: 'Search participant'
-    clise_search: 'Close search list'
+    close_search: 'Close search list'
+    no_results: 'No results'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
     fail: 'Welcome to StepAhead employee evaluation questionnaire. The ID number you sent is not registered. Send the correct ID again or contact support.'

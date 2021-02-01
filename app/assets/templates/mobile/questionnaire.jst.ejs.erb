@@ -131,7 +131,7 @@
 <!--     {{results.length}} -->
     <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
     <div class="search-item" 
-    ng-click ="showConfirmBox(search_node,r.question_id); search_input.text=''" 
+    ng-click ="showConfirmBox(search_node,r.question_id); closeSearchResult()" 
     ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
     ng-repeat="search_node in hhh | filter:{name:search_input.text} as $results track by search_node.id"> 
       <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>
@@ -139,6 +139,9 @@
         <div class="emp-name">{{search_node.name}}</div>
         <div>{{search_node.role}}</div>
       </div>
+    </div>
+    <div class= "search-item no-results" ng-if="$results.length === 0">
+      {{mobile_app_service.t('no_results')}}
     </div>
   </div>
 
@@ -148,7 +151,7 @@
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
-        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" />
+        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" class="searchInput"/>
 
 <!--         <input id="jhjhj" type="text" auto-focus  ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""' /> -->
       </div>
@@ -182,7 +185,7 @@
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
-        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" />
+        <input type="text" auto-focus  ng-change="searchFunc()" ng-model="search_input.text" autocomplete="off" class="searchInput"/>
       </div>
     </div>
   </div>

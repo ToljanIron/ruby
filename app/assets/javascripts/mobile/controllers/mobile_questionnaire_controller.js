@@ -6,8 +6,8 @@ angular.module('workships-mobile')
         $logProvider.debugEnabled(false);
   }])
   .controller('mobileQuestionnaireController', [
-    '$scope', 'ajaxService', '$q', 'mobileAppService', '$timeout', '$log',
-    function ($scope, ajaxService, $q, mobileAppService, $timeout, $log) {
+    '$scope', 'ajaxService', '$q', 'mobileAppService', '$timeout', '$log','$window',
+    function ($scope, ajaxService, $q, mobileAppService, $timeout, $log, $window) {
 
   var undo_stack = [];
   var mass = mobileAppService.s;
@@ -535,11 +535,23 @@ else
             $scope.show_pupup = true;
           }
           $scope.loaded[0] = true;
-          //$scope.hhh = $scope.search_list();
+          $scope.hhh = $scope.search_list();
         }
       });
     }
   }
+
+  function closeSearchWhenClickingElsewhere(event, callbackOnClose) {
+    var clickedElement = event.target;
+    if (!clickedElement) return;
+    var elementClasses = clickedElement.classList;
+    var clickedOnSearchDrawer = elementClasses.contains('search-btn') || elementClasses.contains('searchInput') || elementClasses.contains('search-result') || (clickedElement.parentElement !== null && (clickedElement.parentElement.classList.contains('search-item') || clickedElement.parentElement.classList.contains('right-search-input') ||  clickedElement.parentElement.classList.contains('search-btn')));
+    if (!clickedOnSearchDrawer) {
+      callbackOnClose();
+      return;
+    }
+  }
+
 
   function updateReplies(params) {
     ajaxService.update_replies(params).then(function(res) {
@@ -590,6 +602,14 @@ else
     $scope.searchListOpen = !$scope.searchListOpen;
     if( $scope.searchListOpen){
       $scope.hhh = $scope.search_list();
+      $window.onclick = function (event) {
+        closeSearchWhenClickingElsewhere(event, $scope.toggleSearchInput);
+      };    
+    }else {
+      $scope.search_input.text = '';
+      $scope.searchListOpen = false;
+      $window.onclick = null;
+      $scope.$apply();
     }
   }
 
