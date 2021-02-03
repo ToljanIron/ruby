@@ -47,7 +47,7 @@ he:
     saved: 'נשמר'
     welcome: 'שלום'
     start: 'התחל'
-    welcome_sentence: 'ברוך הבא לשאלון של <span dir="ltr">StepAhead</span>, לחץ "התחל" וענה על השאלות בדפים הבאים'
+    welcome_sentence: 'ברוכים הבאים לשאלון של <span dir="ltr">StepAhead</span>, לחצו "התחל" וענו על השאלות בדפים הבאים'
     clear_selection: 'נקה בחירה'
     error_answer_for_employees: 'סמן V או X עבור כל האנשים ברשימה על מנת להמשיך'
     success_all_employees_answered: 'ענית על השאלה עבור כל האנשים ברשימה , ניתן להמשיך לשאלה הבאה'
