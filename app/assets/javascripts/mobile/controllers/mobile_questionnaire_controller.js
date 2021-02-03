@@ -462,7 +462,6 @@ else
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
-    // debugger
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
     var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });

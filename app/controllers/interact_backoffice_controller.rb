@@ -596,7 +596,7 @@ class InteractBackofficeController < ApplicationController
       qpid = sanitize_id(params[:qpid])
       qp = QuestionnaireParticipant.find(qpid)
       aq = qp.questionnaire
-      if aq.state != 'sent'
+      if aq.state != 'sent' && aq.state != 'ready'
         raise "Cant reset participant when questionnaire is not active"
       end
       qp.reset_questionnaire
