@@ -252,9 +252,8 @@ angular.module('workships-mobile')
   };
 
   $scope.canFinish = function () {
-    
     if (mass.is_funnel_question) {
-      return mass.num_replies_true >= 15 &&
+      return mass.num_replies_true >= mass.client_min_replies &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;

@@ -282,6 +282,11 @@ class InteractBackofficeController < ApplicationController
 
       if (qq.is_funnel_question)
         InteractBackofficeHelper.update_depends_on(qq.questionnaire_id, qq.id, active)
+      elsif qq.active
+        f_q = QuestionnaireQuestion.where(questionnaire_id: qq.questionnaire_id, active: true, is_funnel_question: true)
+        if f_q
+          qq.update!(depends_on_question: f_q.first.id)
+        end
       end
 
       aq = qq.questionnaire
