@@ -77,6 +77,7 @@ Workships::Application.routes.draw do
   post '/interact_backoffice/questions_delete',         to: 'interact_backoffice#question_delete'
   get  '/interact_backoffice/get_participants',         to: 'interact_backoffice#participants'
   get  '/interact_backoffice/get_participant_status',   to: 'interact_backoffice#participant_status'
+  get  '/interact_backoffice/get_questionnaire_status',   to: 'interact_backoffice#questionnaire_status'
   post '/interact_backoffice/participants_create',      to: 'interact_backoffice#participants_create'
   post '/interact_backoffice/participants_update',      to: 'interact_backoffice#participants_update'
   post '/interact_backoffice/participants_delete',      to: 'interact_backoffice#participants_delete'

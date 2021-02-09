@@ -416,6 +416,15 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def questionnaire_status
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qid = sanitize_id(params['qid'])
+      res = Questionnaire.get_questionnaire_status(qid)
+      [res,nil]
+    end
+  end 
+
   def participants_filter
     authorize :interact, :authorized?
     @active_nav = 'participants'

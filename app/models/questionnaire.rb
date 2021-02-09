@@ -268,6 +268,15 @@ class Questionnaire < ActiveRecord::Base
     return get_questionnaires([qid])
   end
 
+  def self.get_questionnaire_status(qid)
+    statuses = Array.new(4).map{|a| a.to_i}
+    res = Questionnaire.find_by_sql("select count(*) as count,status from questionnaire_participants where questionnaire_id =#{qid} and participant_type != 1 group by status")
+    res.each do |r|
+      statuses[r.status] = r.count
+    end
+    return statuses
+  end
+
   def self.get_questionnaires(qids)
     return [] if qids.empty?
     sqlstr =
