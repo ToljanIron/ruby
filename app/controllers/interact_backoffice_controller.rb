@@ -191,16 +191,26 @@ class InteractBackofficeController < ApplicationController
 
   def questionnaire_close
     authorize :interact, :authorized?
-
     ibo_process_request do
       p = params.permit(:qid)
       qid = sanitize_id(p[:qid])
       aq = Questionnaire.find(qid)
-      InteractBackofficeActionsHelper.close_questionnaire(aq)
-      res_aq = Questionnaire.find(qid).as_json
-      res_aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+      aq.update_attributes!(state: :processing)
+      email = params[:email] || 'gitiyaari@gmail.com'
+      CloseQuestionnaireJob.perform_later(aq,email)
+      res_aq = aq.as_json
+      res_aq['state'] = Questionnaire.state_name_to_number(aq.state)
 
       [{questionnaire: res_aq}, nil]
+
+      # p = params.permit(:qid)
+      # qid = sanitize_id(p[:qid])
+      # aq = Questionnaire.find(qid)
+      # InteractBackofficeActionsHelper.close_questionnaire(aq)
+      # res_aq = Questionnaire.find(qid).as_json
+      # res_aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+
+      # [{questionnaire: res_aq}, nil]
     end
   end
 

@@ -323,14 +323,14 @@ class Questionnaire < ActiveRecord::Base
     puts 'Freezing'
     puts "Working on questionnaire ID: #{id}"
     EventLog.create!(message: "Freezing questionnaire id: #{id}", event_type_id: 1)
-    if state != 'sent'
+    if( state != 'sent' && state != 'processing')
       msg = "Questionnaire in state: #{state} and is not ready to be processed into a snapshot, aboriting."
       puts msg
       EventLog.create!(message: msg, event_type_id: 1)
       return
     end
 
-    update(state: :processing)
+    # update(state: :processing)
     sid = QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
     puts "Working on Snapshot: #{sid}"
     cid = Snapshot.find(sid).company_id
