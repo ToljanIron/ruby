@@ -78,7 +78,7 @@ module QuestionnaireHelper
 
     total_questions = QuestionnaireQuestion
                         .where(questionnaire_id: aq.id, active: true).count
-    employee = Employee.find(qp.employee_id)
+    employee = (qp.employee_id != -1 ? Employee.find(qp.employee_id) : Employee.new)
     language = aq.language_id ? Language.find(aq.language_id).name : 'English'
     return {
       q_state: aq.state,
