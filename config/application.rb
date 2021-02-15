@@ -23,8 +23,8 @@ module Workships
     I18n.enforce_available_locales = false
 
     # when queue_adapter is unset, jobs will run immediately
-    config.active_job.queue_adapter = :delayed_job
-
+    # config.active_job.queue_adapter = :delayed_job
+    config.active_job.queue_adapter = :sidekiq
     Dotenv.overload #if Rails.env.development?
   end
 end

@@ -27,7 +27,8 @@ gem 'nmatrix'
 gem 'tzinfo-data'
 gem 'awesome_print'
 gem 'byebug'
-# gem 'sidekiq', '5.2.9'
+gem 'sidekiq', '5.2.9'
+gem 'redis'
 
 group :production, :onpremise, :development do
   gem 'mail'
