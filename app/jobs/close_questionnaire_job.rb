@@ -1,8 +1,9 @@
 class CloseQuestionnaireJob < ApplicationJob
   queue_as :default
 
-  def perform(aq,email_address)
+  def perform(aq_id,email_address)
   	puts "===================CloseQuestionnaireJob=================="
+    aq = Questionnaire.find(aq_id)
   	q_mode = "Successfuly"
     aq.freeze_questionnaire
     q_mode = "Failed in" if (aq.state != 'completed')
@@ -15,7 +16,7 @@ class CloseQuestionnaireJob < ApplicationJob
 	    email_text = "#{q_mode} close questionnaire: #{aq.name} - #{aq.id}"
 	    em = ExampleMailer.sample_email(email_address,subject,email_from,user_name,link,email_text)
 	    em.deliver
-	end
+	  end
     # Do something later
   end
 end

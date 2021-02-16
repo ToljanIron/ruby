@@ -197,7 +197,7 @@ class InteractBackofficeController < ApplicationController
       aq = Questionnaire.find(qid)
       aq.update_attributes!(state: :processing)
       email = params[:email] || 'gitiyaari@gmail.com'
-      CloseQuestionnaireJob.perform_later(aq,email)
+      CloseQuestionnaireJob.perform_later(aq.id,email)
       res_aq = aq.as_json
       res_aq['state'] = Questionnaire.state_name_to_number(aq.state)
 
