@@ -14,7 +14,7 @@
         </div>
         <div class="interact-page-primary-btn" ng-if="isReferralBtn()" ng_style="{{referralBtnColor()}}">
           <a href="{{referralUrl()}}">
-            {{mobile_app_service.t('click_to_answer_additional_questions')}}
+            {{referralBtnText(mobile_app_service.t('click_to_answer_additional_questions'))}}
             <%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %>
           </a>
           <!-- <a href="https://singuser14e5e99e.fra1.qualtrics.com/jfe/form/SV_8FWy0xomcTfYfTD?id={{getParticipantId()}}"><%#= I18n.t('questionnaire.click_to_answer_additional_questions')  %></a> -->

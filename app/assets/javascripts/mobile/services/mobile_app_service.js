@@ -89,6 +89,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     mobileAppService.s.external_id = _state.external_id;
     mobileAppService.s.close_title = _state.close_title;
     mobileAppService.s.close_sub_title = _state.close_sub_title;
+    mobileAppService.s.referral_btn_text = _state.referral_btn_text;
   };
 
   mobileAppService.displayConnectionLostOverlayBlocker = function (options) {

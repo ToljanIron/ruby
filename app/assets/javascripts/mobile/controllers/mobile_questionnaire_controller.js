@@ -437,6 +437,13 @@ else
       return sub_title;
   };
 
+  $scope.referralBtnText = function (defualt_text) {
+    if(mass.referral_btn_text)
+      return mass.referral_btn_text;
+    else
+      return defualt_text;
+  }
+
   function resetAllReplies(replies) {
     _.each(replies, function (r) {
       r.answer = null;
