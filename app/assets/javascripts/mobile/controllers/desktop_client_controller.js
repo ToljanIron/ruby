@@ -123,6 +123,10 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.dependent_minimum_required = response.data.client_max_replies;
     $scope.external_id = response.data.external_id;
     $scope.referral_btn_url = response.data.referral_btn_url
+    $scope.referral_btn_text = response.data.referral_btn_text
+    $scope.close_title = response.data.close_title
+    $scope.close_sub_title = response.data.close_sub_title
+    $scope.is_referral_btn = response.data.is_referral_btn
     createTopBar($scope.total_questions);
 
     if (continue_questionnair === undefined) {
@@ -361,6 +365,26 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
       ref_url = $scope.referral_btn_url + String($scope.external_id);
     return ref_url;
   };
+
+  $scope.referralBtnText = function (defualt_text) {
+    if($scope.referral_btn_text)
+      return $scope.referral_btn_text;
+    else
+      return defualt_text;
+  }
+
+  $scope.closeTitle = function (defualt_text) {
+    if($scope.close_title)
+      return $scope.close_title;
+    else
+      return defualt_text;
+  }
+  $scope.closeSubTitle = function (defualt_text) {
+    if($scope.close_sub_title)
+      return $scope.close_sub_title;
+    else
+      return defualt_text;
+  }
 
   $scope.init = function (name, token, dict) {
     $scope.token = token;
