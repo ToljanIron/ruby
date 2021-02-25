@@ -140,9 +140,9 @@ module ImportDataHelper
         return nil if (email.nil?)
 
         external_id = format_string(parsed[0])
-        first_name = safe_titleize(parsed[1])
+        first_name = safe_titleize(parsed[1]).strip
         middle_name = safe_titleize(parsed[2]) if !parsed[2].nil?
-        last_name = safe_titleize(parsed[3])
+        last_name = safe_titleize(parsed[3]).strip
         email = format_string(email.downcase)
         role = format_string(parsed[6])
         rank = parsed[7],
@@ -173,7 +173,7 @@ module ImportDataHelper
         job_title = format_string(parsed[6])
         gender = gender
         office_address = format_string(parsed[8])
-        group_name = safe_titleize(parsed[9]).strip
+        group_name = safe_titleize(parsed[9]).strip if !parsed[9].nil?
         phone_number = format_string(parsed[10])
       end
 
