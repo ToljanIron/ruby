@@ -152,7 +152,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
       replies: $scope.response.replies,
       desktop: 'true'
     };
-
+    $scope.selected_workers = []
     // Close the question, then get the next question, and finally check
     //   if we're done.
     ajaxService.close_question(params).then(function () {
