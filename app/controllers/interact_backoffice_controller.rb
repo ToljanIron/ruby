@@ -706,6 +706,20 @@ class InteractBackofficeController < ApplicationController
       type: 'application/vnd.ms-excel')
   end
 
+  def reports_survey
+    authorize :interact, :authorized?
+    qid = sanitize_id(params['qid'])
+    return nil if qid.nil?
+    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    return nil if sid.nil?
+    report_name = InteractBackofficeHelper.survey_report(@cid, sid)
+    send_file(
+      "#{Rails.root}/tmp/#{report_name}",
+      filename: report_name,
+      type: 'application/vnd.ms-excel')
+  end
+
+
   def reports_summary
     authorize :interact, :authorized?
     sid = sanitize_id(params['sid'])

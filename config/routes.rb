@@ -92,6 +92,7 @@ Workships::Application.routes.draw do
   get  '/interact_backoffice/reports',                  to: 'interact_backoffice#reports'
   get  '/interact_backoffice/reports_network',          to: 'interact_backoffice#reports_network'
   get  '/interact_backoffice/reports_measures',         to: 'interact_backoffice#reports_measures'
+  get  '/interact_backoffice/reports_survey',         to: 'interact_backoffice#reports_survey'
   get  '/interact_backoffice/reports_bidirectional_network', to: 'interact_backoffice#reports_bidirectional_network'
   get  '/interact_backoffice/reports_summary',          to: 'interact_backoffice#reports_summary'
 

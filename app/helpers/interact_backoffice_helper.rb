@@ -407,6 +407,140 @@ module InteractBackofficeHelper
     return ws
   end
 ######################################################################################
+  def self.survey_report(cid,sid)
+    report_name = 'new_report.xlsx'
+    nsp = NetworkSnapshotData.select(:network_id).where(snapshot_id: sid).distinct.pluck(:network_id)
+    participants = Employee
+      .select("emps.id,emps.external_id,emps.first_name,emps.last_name,emps.office_id,emps.gender,emps.group_id,emps.rank_id,g.name as group_name,r.name as rank_name")
+      .from("employees emps")
+      .joins("left join groups g on emps.group_id = g.id")
+      .joins("left join ranks r on emps.rank_id = r.id")
+      .where("emps.company_id=#{cid} and  emps.snapshot_id= #{sid}")
+      .order("emps.id")
+    participants_score = {}
+    n = participants.length
+
+    base_mat = []
+    base_mat[0] = Array.new(n+1,0)
+    
+    participants.each_with_index do |val,idx|
+      unless base_mat[idx+1] 
+        base_mat[idx+1] = Array.new(n+1,0)
+      end
+      base_mat[idx+1][0]= val['id']
+      base_mat[0][idx+1]=val['id']
+      participants_score[val['id']] = {
+        idx: idx+1,
+        external_id: val['external_id'],
+        first_name: val['first_name'],
+        last_name: val['last_name'],
+        group_name: val['group_name'],
+        total_selections:  0,
+        office: {name: val['office_id'], selections: 0, sum: 0},
+        gender:  {name: val['gender'], selections: 0, sum: 0},
+        group: {name: val['group_id'], selections: 0, sum: 0}, 
+        rank: {name: val['rank_id'], selections: 0, sum: 0}, 
+      }
+    end
+    networks_score = {} 
+    nsp.each do |nid|
+      mm = participants_score.deep_dup
+      networks_score[nid] = get_network_score(nid,base_mat,mm,n)
+    end
+    wb = create_excel_file(report_name)
+    ws = wb.add_worksheet('Report')
+
+    merge_format = wb.add_format({
+    'align': 'center',
+    'valign': 'vcenter',
+    'fg_color': 'yellow'})
+
+    ws.merge_range("F1:J1", 'Internal Champion',merge_format)
+    ws.write('A2', 'ID')
+    ws.write('B2', 'First Name')
+    ws.write('C2', 'Last Name')
+    ws.write('D2', 'Group')
+    ws.write('E2', 'Q')
+    ws.write('F2', 'General')
+    ws.write('G2', 'Group')
+    ws.write('H2', 'Office')
+    ws.write('I2', 'Gender')
+    ws.write('J2', 'rank')
+
+    i = 3
+    networks_score.each do |network_id,val|
+      val.each do |a,r|
+        ws.write("A#{i}", r[:external_id])
+        ws.write("B#{i}", r[:first_name])
+        ws.write("C#{i}", r[:last_name])
+        ws.write("D#{i}", r[:group_name])
+        ws.write("E#{i}", network_id)
+        ws.write("F#{i}", r[:total_selections].to_f/n.to_f)
+        ws.write("G#{i}", r[:group][:selections].to_f/r[:group][:sum].to_f)
+        ws.write("H#{i}", r[:office][:selections].to_f/r[:office][:sum].to_f)
+        ws.write("I#{i}", r[:gender][:selections].to_f/r[:gender][:sum].to_f)
+        ws.write("J#{i}", r[:rank][:selections].to_f/r[:rank][:sum].to_f)
+        i += 1
+      end
+    end
+    wb.close
+    return report_name
+  end
+
+  def self.get_network_score(nid,base_mat,participants_score,n) 
+    # matA  field contain 1 if emp chosen 
+    matA = base_mat.clone.map(&:clone)
+    nsp = NetworkSnapshotData.where(network_id: nid)
+    nsp.each do |res|
+      if(res['value'] == 1 )
+        matA[participants_score[res['from_employee_id']][:idx]][participants_score[res['to_employee_id']][:idx]] = 1
+      end
+    end
+    # matB  field contain 1 if they are in  same office
+    matB = base_mat.clone.map(&:clone)
+    matC = base_mat.clone.map(&:clone)
+    matD = base_mat.clone.map(&:clone)
+    matE = base_mat.clone.map(&:clone)
+    for i in 1...base_mat.length
+      emp1 = base_mat[i][0]
+      for j in 1...base_mat.length
+          emp2 = base_mat[0][j]
+          matB[i][j] = 1 if participants_score[emp1][:office] == participants_score[emp2][:office]
+          matC[i][j] = 1 if participants_score[emp1][:gender] == participants_score[emp2][:gender]
+          matD[i][j] = 1 if participants_score[emp1][:group] == participants_score[emp2][:group]
+          matE[i][j] = 1 if participants_score[emp1][:rank] == participants_score[emp2][:rank]
+      end
+    end
+    Rails.logger.info 'matB:'
+    Rails.logger.info matB
+    Rails.logger.info 'matC:'
+    Rails.logger.info matC
+    Rails.logger.info 'matD:'
+    Rails.logger.info matD
+    Rails.logger.info 'matE:'
+    Rails.logger.info matE
+
+    for i in 1...base_mat.length
+      emp = base_mat[i][0]
+      for j in 1...base_mat[i].length
+        participants_score[emp][:office][:selections] += matA[i][j] * matB[i][j]
+        participants_score[emp][:office][:sum] += matB[i][j]
+
+        participants_score[emp][:gender][:selections] += matA[i][j] * matC[i][j]
+        participants_score[emp][:gender][:sum] += matC[i][j]
+
+        participants_score[emp][:group][:selections] += matA[i][j] * matD[i][j]
+        participants_score[emp][:group][:sum] += matD[i][j]
+
+        participants_score[emp][:rank][:selections] += matA[i][j] * matE[i][j]
+        participants_score[emp][:rank][:sum] += matE[i][j]
+
+        participants_score[emp][:total_selections] += matA[j][i] # num of participants that choose him
+      end
+    end
+    return participants_score
+  end
+######################################################################################
   def self.measures_report(cid, sid)
     report_name = 'measures_report.xlsx'
 
