@@ -450,22 +450,33 @@ module InteractBackofficeHelper
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
 
-    merge_format = wb.add_format({
+    ic_merge_format = wb.add_format({
     'align': 'center',
     'valign': 'vcenter',
-    'fg_color': 'yellow'})
+    'fg_color': '#ffe699'})
+    iso_merge_format = wb.add_format({
+    'align': 'center',
+    'valign': 'vcenter',
+    'fg_color': '#b4c7e7'})    
+    header_format = wb.add_format({'bold': 1})
 
-    ws.merge_range("F1:J1", 'Internal Champion',merge_format)
-    ws.write('A2', 'ID')
-    ws.write('B2', 'First Name')
-    ws.write('C2', 'Last Name')
-    ws.write('D2', 'Group')
-    ws.write('E2', 'Q')
-    ws.write('F2', 'General')
+    ws.merge_range("F1:J1", 'Internal Champion',ic_merge_format)
+    ws.merge_range("K1:O1", 'Isolated',iso_merge_format)
+    ws.write('A2', 'ID',header_format)
+    ws.write('B2', 'First Name',header_format)
+    ws.write('C2', 'Last Name',header_format)
+    ws.write('D2', 'Group',header_format)
+    ws.write('E2', 'Q',header_format)
+    ws.write('F2', 'General',header_format)
     ws.write('G2', 'Group')
     ws.write('H2', 'Office')
     ws.write('I2', 'Gender')
     ws.write('J2', 'rank')
+    ws.write('K2', 'General',header_format)
+    ws.write('L2', 'Group')
+    ws.write('M2', 'Office')
+    ws.write('N2', 'Gender')
+    ws.write('O2', 'rank')
 
     i = 3
     networks_score.each do |network_id,val|
