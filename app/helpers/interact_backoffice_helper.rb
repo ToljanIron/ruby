@@ -1,4 +1,5 @@
 require 'write_xlsx'
+require 'csv'
 
 module InteractBackofficeHelper
 
@@ -409,7 +410,10 @@ module InteractBackofficeHelper
 ######################################################################################
   def self.survey_report(cid,sid)
     report_name = 'new_report.xlsx'
-    nsp = NetworkSnapshotData.select(:network_id).where(snapshot_id: sid).distinct.pluck(:network_id)
+    q = Questionnaire.find_by_snapshot_id(sid)
+    nsp = QuestionnaireQuestion.find_by_sql("select qq.id, nsp.network_id,qq.order from questionnaire_questions qq left join network_snapshot_data nsp on qq.id=nsp.questionnaire_question_id 
+where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.order order by qq.order")
+    # nsp = NetworkSnapshotData.select(:network_id).where(snapshot_id: sid).distinct.pluck(:network_id)
     participants = Employee
       .select("emps.id,emps.external_id,emps.first_name,emps.last_name,emps.office_id,emps.gender,emps.group_id,emps.rank_id,g.name as group_name,r.name as rank_name")
       .from("employees emps")
@@ -443,13 +447,13 @@ module InteractBackofficeHelper
       }
     end
     networks_score = {} 
-    nsp.each do |nid|
+    nsp.each do |ns|
       mm = participants_score.deep_dup
-      networks_score[nid] = get_network_score(nid,base_mat,mm,n)
+      nid = ns[:network_id]
+      networks_score["Q#{ns[:order]}"] = get_network_score(nid,base_mat,mm,n)
     end
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
-
     ic_merge_format = wb.add_format({
     'align': 'center',
     'valign': 'vcenter',
@@ -459,7 +463,33 @@ module InteractBackofficeHelper
     'valign': 'vcenter',
     'fg_color': '#b4c7e7'})    
     header_format = wb.add_format({'bold': 1})
+    ws = create_new_report_heading(ws,ic_merge_format,iso_merge_format,header_format)
 
+    i = 3
+    networks_score.each do |quest,val|
+      val.each do |a,r|
+        group_score = r[:group][:sum]-1 > 0 ?  (r[:group][:selections].to_f/(r[:group][:sum]-1).to_f) : 0
+        office_score = r[:office][:sum]-1 > 0 ?  (r[:office][:selections].to_f/(r[:office][:sum]-1).to_f) : 0
+        gender_score = r[:gender][:sum]-1 > 0 ?  (r[:gender][:selections].to_f/(r[:gender][:sum]-1).to_f) : 0
+        rank_score = r[:rank][:sum]-1 > 0 ?  (r[:rank][:selections].to_f/(r[:rank][:sum]-1).to_f) : 0
+        ws.write("A#{i}", r[:external_id])
+        ws.write("B#{i}", r[:first_name])
+        ws.write("C#{i}", r[:last_name])
+        ws.write("D#{i}", r[:group_name])
+        ws.write("E#{i}", quest)
+        ws.write("F#{i}", (r[:total_selections].to_f/(n-1).to_f).round(3))
+        ws.write("G#{i}", group_score.round(3))
+        ws.write("H#{i}", office_score.round(3))
+        ws.write("I#{i}", gender_score.round(3))
+        ws.write("J#{i}", rank_score.round(3))
+        i += 1
+      end
+    end
+    wb.close
+    return report_name
+  end
+
+  def self.create_new_report_heading(ws,ic_merge_format,iso_merge_format,header_format)
     ws.merge_range("F1:J1", 'Internal Champion',ic_merge_format)
     ws.merge_range("K1:O1", 'Isolated',iso_merge_format)
     ws.write('A2', 'ID',header_format)
@@ -477,25 +507,7 @@ module InteractBackofficeHelper
     ws.write('M2', 'Office')
     ws.write('N2', 'Gender')
     ws.write('O2', 'rank')
-
-    i = 3
-    networks_score.each do |network_id,val|
-      val.each do |a,r|
-        ws.write("A#{i}", r[:external_id])
-        ws.write("B#{i}", r[:first_name])
-        ws.write("C#{i}", r[:last_name])
-        ws.write("D#{i}", r[:group_name])
-        ws.write("E#{i}", network_id)
-        ws.write("F#{i}", r[:total_selections].to_f/n.to_f)
-        ws.write("G#{i}", r[:group][:selections].to_f/r[:group][:sum].to_f)
-        ws.write("H#{i}", r[:office][:selections].to_f/r[:office][:sum].to_f)
-        ws.write("I#{i}", r[:gender][:selections].to_f/r[:gender][:sum].to_f)
-        ws.write("J#{i}", r[:rank][:selections].to_f/r[:rank][:sum].to_f)
-        i += 1
-      end
-    end
-    wb.close
-    return report_name
+    return ws
   end
 
   def self.get_network_score(nid,base_mat,participants_score,n) 
@@ -530,26 +542,49 @@ module InteractBackofficeHelper
     Rails.logger.info matD
     Rails.logger.info 'matE:'
     Rails.logger.info matE
+    Rails.logger.info 'matA:'
+    Rails.logger.info matA
+      # print_matrix(matA,"matA-#{nid}")
+      # print_matrix(matB,"matB-#{nid}")
+      # print_matrix(matC,"matC-#{nid}")
+      # print_matrix(matD,"matD-#{nid}")
+      # print_matrix(matE,"matE-#{nid}")
 
     for i in 1...base_mat.length
       emp = base_mat[i][0]
       for j in 1...base_mat[i].length
-        participants_score[emp][:office][:selections] += matA[i][j] * matB[i][j]
-        participants_score[emp][:office][:sum] += matB[i][j]
+        participants_score[emp][:office][:selections] += matA[j][i] * matB[j][i]
+        participants_score[emp][:office][:sum] += matB[j][i]
 
-        participants_score[emp][:gender][:selections] += matA[i][j] * matC[i][j]
-        participants_score[emp][:gender][:sum] += matC[i][j]
+        participants_score[emp][:gender][:selections] += matA[j][i] * matC[j][i]
+        participants_score[emp][:gender][:sum] += matC[j][i]
 
-        participants_score[emp][:group][:selections] += matA[i][j] * matD[i][j]
+        participants_score[emp][:group][:selections] += matA[j][i] * matD[j][i]
         participants_score[emp][:group][:sum] += matD[i][j]
 
-        participants_score[emp][:rank][:selections] += matA[i][j] * matE[i][j]
-        participants_score[emp][:rank][:sum] += matE[i][j]
+        participants_score[emp][:rank][:selections] += matA[j][i] * matE[j][i]
+        participants_score[emp][:rank][:sum] += matE[j][i]
 
         participants_score[emp][:total_selections] += matA[j][i] # num of participants that choose him
       end
     end
     return participants_score
+  end
+
+  def self.print_matrix(matx,file_name)
+    file_path = Rails.root.join('public', file_name)
+    begin
+      CSV.open(file_path, "wb") do |csv|
+        csv.to_io.write "\uFEFF"
+        for i in 0...matx.length
+          csv << matx[i]
+        end
+      end
+      return file_path
+    rescue Exception => e
+      Rails.logger.info "ERROR:::  #{e}"
+      return false
+    end
   end
 ######################################################################################
   def self.measures_report(cid, sid)
