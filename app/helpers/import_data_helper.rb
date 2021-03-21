@@ -166,8 +166,8 @@ module ImportDataHelper
         email = parsed[3]
         email = format_string(email.downcase) if (!email.nil?)
         external_id = format_string(parsed[0])
-        first_name = safe_titleize(parsed[1]).strip
-        last_name = safe_titleize(parsed[2]).strip
+        first_name = safe_titleize(parsed[1])
+        last_name = safe_titleize(parsed[2])
         role = format_string(parsed[4])
         rank = parsed[5]
         job_title = format_string(parsed[6])

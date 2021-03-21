@@ -3,7 +3,7 @@ module CdsUtilHelper
 
   def safe_titleize(str)
     return nil if str.nil?
-    str = str.to_s
+    str = str.to_s.strip
     #return str.titleize if !str.match(/^[a-zA-Z \-]*$/).nil?
     return str
   end

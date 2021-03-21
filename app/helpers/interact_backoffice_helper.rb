@@ -426,7 +426,10 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
 
     base_mat = []
     base_mat[0] = Array.new(n+1,0)
-    
+    # offices = {}
+    # genders = {}
+    # groups = {}
+    # ranks = {}
     participants.each_with_index do |val,idx|
       unless base_mat[idx+1] 
         base_mat[idx+1] = Array.new(n+1,0)
@@ -440,17 +443,27 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
         last_name: val['last_name'],
         group_name: val['group_name'],
         total_selections:  0,
-        office: {name: val['office_id'], selections: 0, sum: 0},
-        gender:  {name: val['gender'], selections: 0, sum: 0},
-        group: {name: val['group_id'], selections: 0, sum: 0}, 
-        rank: {name: val['rank_id'], selections: 0, sum: 0}, 
+        bidirectional_total: 0,
+        office: {name: val['office_id'], selections: 0, sum: 0, bidirectional: 0},
+        gender:  {name: val['gender'], selections: 0, sum: 0, bidirectional: 0},
+        group: {name: val['group_id'], selections: 0, sum: 0, bidirectional: 0},
+        rank: {name: val['rank_id'], selections: 0, sum: 0, bidirectional: 0}, 
       }
+      # offices[val['office_id']] ||= 0
+      # groups[val['group_id']] ||= 0
+      # genders[val['gender']] ||= 0
+      # ranks[val['rank_id']] ||= 0
+      # offices[val['office_id']] += 1
+      # genders[val['gender']] += 1
+      # groups[val['group_id']] += 1
+      # ranks[val['rank_id']] += 1
+           
     end
     networks_score = {} 
     nsp.each do |ns|
       mm = participants_score.deep_dup
       nid = ns[:network_id]
-      networks_score["Q#{ns[:order]}"] = get_network_score(nid,base_mat,mm,n)
+      networks_score["Q#{ns[:order]}"] = get_network_score(nid,base_mat,mm,n)#,offices,groups,genders,ranks
     end
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
@@ -461,9 +474,13 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
     iso_merge_format = wb.add_format({
     'align': 'center',
     'valign': 'vcenter',
-    'fg_color': '#b4c7e7'})    
+    'fg_color': '#b4c7e7'})
+    con_merge_format = wb.add_format({
+    'align': 'center',
+    'valign': 'vcenter',
+    'fg_color': '#c5e0b4'})  
     header_format = wb.add_format({'bold': 1})
-    ws = create_new_report_heading(ws,ic_merge_format,iso_merge_format,header_format)
+    ws = create_new_report_heading(ws,ic_merge_format,iso_merge_format,con_merge_format,header_format)
 
     i = 3
     networks_score.each do |quest,val|
@@ -482,6 +499,16 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
         ws.write("H#{i}", office_score.round(3))
         ws.write("I#{i}", gender_score.round(3))
         ws.write("J#{i}", rank_score.round(3))
+        ws.write("K#{i}",(r[:bidirectional_total].to_f/(n-1).to_f).round(3))
+        ws.write("L#{i}", isolated_val(r[:group][:bidirectional]))
+        ws.write("M#{i}", isolated_val(r[:office][:bidirectional]))
+        ws.write("N#{i}", isolated_val(r[:gender][:bidirectional]))
+        ws.write("O#{i}", isolated_val(r[:rank][:bidirectional]))
+        ws.write("P#{i}",'')
+        ws.write("Q#{i}",r[:group][:connectors].round(3))
+        ws.write("R#{i}",r[:office][:connectors].round(3))
+        ws.write("S#{i}",r[:gender][:connectors].round(3))
+        ws.write("T#{i}",r[:rank][:connectors].round(3))
         i += 1
       end
     end
@@ -489,9 +516,14 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
     return report_name
   end
 
-  def self.create_new_report_heading(ws,ic_merge_format,iso_merge_format,header_format)
+  def self.isolated_val(value)
+    return (value == 0 ? 1 : 0)
+  end
+
+  def self.create_new_report_heading(ws,ic_merge_format,iso_merge_format,con_merge_format,header_format)
     ws.merge_range("F1:J1", 'Internal Champion',ic_merge_format)
     ws.merge_range("K1:O1", 'Isolated',iso_merge_format)
+    ws.merge_range("P1:T1", 'Connectors',con_merge_format)
     ws.write('A2', 'ID',header_format)
     ws.write('B2', 'First Name',header_format)
     ws.write('C2', 'Last Name',header_format)
@@ -507,10 +539,15 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
     ws.write('M2', 'Office')
     ws.write('N2', 'Gender')
     ws.write('O2', 'rank')
+    ws.write('P2', 'General',header_format)
+    ws.write('Q2', 'Group')
+    ws.write('R2', 'Office')
+    ws.write('S2', 'Gender')
+    ws.write('T2', 'rank')
     return ws
   end
 
-  def self.get_network_score(nid,base_mat,participants_score,n) 
+  def self.get_network_score(nid,base_mat,participants_score,n) #,offices,groups,genders,ranks
     # matA  field contain 1 if emp chosen 
     matA = base_mat.clone.map(&:clone)
     nsp = NetworkSnapshotData.where(network_id: nid)
@@ -540,7 +577,6 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
     Rails.logger.info matC
     Rails.logger.info 'matD:'
     Rails.logger.info matD
-    Rails.logger.info 'matE:'
     Rails.logger.info matE
     Rails.logger.info 'matA:'
     Rails.logger.info matA
@@ -549,27 +585,69 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
       # print_matrix(matC,"matC-#{nid}")
       # print_matrix(matD,"matD-#{nid}")
       # print_matrix(matE,"matE-#{nid}")
-
+    
     for i in 1...base_mat.length
       emp = base_mat[i][0]
       for j in 1...base_mat[i].length
         participants_score[emp][:office][:selections] += matA[j][i] * matB[j][i]
+        participants_score[emp][:office][:bidirectional] += matA[j][i] * matB[j][i] + matA[i][j] * matB[i][j]
         participants_score[emp][:office][:sum] += matB[j][i]
 
         participants_score[emp][:gender][:selections] += matA[j][i] * matC[j][i]
+        participants_score[emp][:gender][:bidirectional] += matA[j][i] * matC[j][i] + matA[i][j] * matC[i][j]
         participants_score[emp][:gender][:sum] += matC[j][i]
 
         participants_score[emp][:group][:selections] += matA[j][i] * matD[j][i]
+        participants_score[emp][:group][:bidirectional] += matA[j][i] * matD[j][i] + matA[i][j] * matD[i][j]
         participants_score[emp][:group][:sum] += matD[i][j]
 
         participants_score[emp][:rank][:selections] += matA[j][i] * matE[j][i]
+        participants_score[emp][:rank][:bidirectional] += matA[j][i] * matE[j][i] + matA[i][j] * matE[i][j]
         participants_score[emp][:rank][:sum] += matE[j][i]
 
         participants_score[emp][:total_selections] += matA[j][i] # num of participants that choose him
+        participants_score[emp][:bidirectional_total] += matA[i][j] # num of participants that choose him
       end
     end
+    
+    matZ = {}
+    for i in 1...base_mat.length
+      emp = base_mat[i][0]
+      matZ[emp] = {office: {},gender: {},group: {},rank: {}}
+      for j in 1...base_mat[i].length
+        emp2 = participants_score[base_mat[0][j]]
+        matZ[emp][:office][emp2[:office][:name]] ||= 0
+        matZ[emp][:gender][emp2[:gender][:name]] ||= 0
+        matZ[emp][:group][emp2[:group][:name]] ||= 0
+        matZ[emp][:rank][emp2[:rank][:name]] ||= 0
+
+        matZ[emp][:office][emp2[:office][:name]] += 1 if(matA[i][j].to_i == 1 || matA[j][i].to_i == 1)#matA[i][j] + matA[j][i]
+        matZ[emp][:gender][emp2[:gender][:name]] += 1 if(matA[i][j].to_i ==1 || matA[j][i].to_i == 1)#matA[i][j] + matA[j][i]
+        matZ[emp][:group][emp2[:group][:name]] += 1 if(matA[i][j] .to_i ==1|| matA[j][i].to_i == 1)#matA[i][j] + matA[j][i]
+        matZ[emp][:rank][emp2[:rank][:name]] += 1 if(matA[i][j].to_i ==1 || matA[j][i].to_i == 1)#matA[i][j] + matA[j][i]
+      end
+      Rails.logger.info "-------------------------------------------------"
+      Rails.logger.info("Employee: #{emp}, office: (#{matZ[emp][:office].values}), gender: (#{matZ[emp][:gender].values}), group: (#{matZ[emp][:group].values}), rank: (#{matZ[emp][:rank].values})")
+      # office: ([11, 1]), gender: ([7, 5]), group: ([3, 5, 1, 3, 0]), rank: ([7, 5])
+      participants_score[emp][:office][:connectors] = calc_blau_index(matZ[emp][:office],n)
+      participants_score[emp][:gender][:connectors] = calc_blau_index(matZ[emp][:gender],n)
+      participants_score[emp][:group][:connectors] = calc_blau_index(matZ[emp][:group],n)
+      participants_score[emp][:rank][:connectors] = calc_blau_index(matZ[emp][:rank],n)
+    end
+
     return participants_score
   end
+
+  def self.calc_blau_index(vector,n)
+    Rails.logger.info "vector: #{vector}, N: #{n}"
+    calc = 0
+    vector.each do |key,val|
+      calc += ((val.to_f * (val.to_f-1)) / (n * (n -1))).to_f  if n >1
+    end
+    Rails.logger.info 1-calc
+    return (1 - calc)
+  end
+
 
   def self.print_matrix(matx,file_name)
     file_path = Rails.root.join('public', file_name)
