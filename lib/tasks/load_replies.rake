@@ -3,7 +3,7 @@
 
 namespace :db do
 	task :load_replies, [:qid] => :environment do |t, args|
-		qid = 192#args[:qid]
+		qid = 193#args[:qid]
 		q = Questionnaire.find(qid)
 		path = "#{Rails.root}/public/replies2.xlsx"
 		sid = q.snapshot_id
