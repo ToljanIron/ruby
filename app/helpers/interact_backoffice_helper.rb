@@ -408,6 +408,7 @@ module InteractBackofficeHelper
     return ws
   end
 ######################################################################################
+
   def self.survey_report(cid,sid)
     report_name = 'new_report.xlsx'
     q = Questionnaire.find_by_snapshot_id(sid)
@@ -580,11 +581,11 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
     Rails.logger.info matE
     Rails.logger.info 'matA:'
     Rails.logger.info matA
-      # print_matrix(matA,"matA-#{nid}")
-      # print_matrix(matB,"matB-#{nid}")
-      # print_matrix(matC,"matC-#{nid}")
-      # print_matrix(matD,"matD-#{nid}")
-      # print_matrix(matE,"matE-#{nid}")
+      # print_matrix(matA,"mat-selections-#{nid}.csv")
+      # print_matrix(matB,"mat-office-#{nid}.csv")
+      # print_matrix(matC,"mat-gender-#{nid}.csv")
+      # print_matrix(matD,"mat-group-#{nid}.csv")
+      # print_matrix(matE,"mat-rank-#{nid}.csv")
     
     for i in 1...base_mat.length
       emp = base_mat[i][0]
@@ -652,6 +653,11 @@ where questionnaire_id=#{q.id} and active=true group by qq.id,nsp.network_id,qq.
   def self.print_matrix(matx,file_name)
     file_path = Rails.root.join('public', file_name)
     begin
+      for i in 1...matx.length
+        external_id =Employee.find(matx[0][i]).external_id
+        matx[0][i] = external_id
+        matx[i][0] = external_id
+      end
       CSV.open(file_path, "wb") do |csv|
         csv.to_io.write "\uFEFF"
         for i in 0...matx.length

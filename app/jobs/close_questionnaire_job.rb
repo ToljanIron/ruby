@@ -1,5 +1,5 @@
 class CloseQuestionnaireJob < ApplicationJob
-  queue_as :default
+  queue_as :close_questionnaire
 
   def perform(aq_id,email_address)
   	puts "===================CloseQuestionnaireJob=================="
