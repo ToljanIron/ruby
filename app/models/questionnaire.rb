@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 include XlsHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
+require './lib/tasks/modules/precalculate_network_metrics_helper.rb'
 include ActionView::Helpers::SanitizeHelper
 
 class Questionnaire < ActiveRecord::Base
@@ -337,6 +338,7 @@ class Questionnaire < ActiveRecord::Base
     puts 'In precalculate'
     EventLog.create!(message: "Precalculate for compay: #{cid}, snapshot: #{sid}", event_type_id: 1)
     cds_calculate_scores_for_generic_networks(cid, sid)
+    calculate_questionnaire_score(cid,sid)
     puts 'Done with precalculate, clearing cache'
     EventLog.create!(message: 'Clear cache', event_type_id: 1)
     Rails.cache.clear

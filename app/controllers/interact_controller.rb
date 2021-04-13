@@ -44,6 +44,7 @@ class InteractController < ApplicationController
     res_indeg = question_indegree_data(sid, gid, cid, cmid)
     res = {
       indeg: res_indeg,
+      question_scores: question_scores_data(sid,nid,cid),
       collaboration: question_collaboration_score(gid, nid),
       synergy: question_synergy_score(gid, nid),
       centrality: question_centrality_score(gid, nid)

@@ -56,6 +56,12 @@ module InteractHelper
     return res[0]['score'].to_f.round(2)
   end
 
+  def question_scores_data(sid, nid, cid)
+    sqlstr = "select e.first_name ||' '|| e.last_name as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group from questionnaire_algorithms qa left join employees e on e.id= qa.employee_id left join algorithm_types at on qa.algorithm_type_id = at.id where qa.snapshot_id=#{sid} and qa.network_id = #{nid} order by last_name"
+    res = ActiveRecord::Base.connection.select_all(sqlstr)
+    return res
+  end
+
   def question_synergy_score(gid, nid)
     sid = Group.find(gid).snapshot_id
     res = AlgorithmsHelper.density_of_network(sid, gid, -1, nid)

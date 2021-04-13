@@ -712,7 +712,7 @@ class InteractBackofficeController < ApplicationController
     return nil if qid.nil?
     sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
     return nil if sid.nil?
-    report_name = InteractBackofficeHelper.survey_report(@cid, sid)
+    report_name = InteractBackofficeHelper.network_metrics_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
       filename: report_name,
