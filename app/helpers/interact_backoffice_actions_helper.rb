@@ -56,7 +56,7 @@ module InteractBackofficeActionsHelper
 
     quest = Questionnaire.create!(
       company_id: cid,
-      state: 0,
+      state: :questions_ready,
       name: name,
       language_id: language_id,
       sms_text: sms_text,
@@ -138,6 +138,9 @@ module InteractBackofficeActionsHelper
           active: true
         )
         qp.create_token
+      end
+      if pars.length > 0
+        quest.update_attribute(:state, :notstarted)
       end
     end
 
