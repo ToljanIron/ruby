@@ -57,7 +57,9 @@ module InteractHelper
   end
 
   def question_scores_data(sid, nid, cid)
-    sqlstr = "select e.first_name ||' '|| e.last_name as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group from questionnaire_algorithms qa left join employees e on e.id= qa.employee_id left join algorithm_types at on qa.algorithm_type_id = at.id where qa.snapshot_id=#{sid} and qa.network_id = #{nid} order by last_name"
+    sqlstr = "select e.first_name ||' '|| e.last_name || '-' || qa.snapshot_id as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group 
+    from questionnaire_algorithms qa left join employees e on e.id= qa.employee_id left join algorithm_types at on qa.algorithm_type_id = at.id 
+    where qa.snapshot_id=#{sid} and qa.network_id = #{nid} order by last_name"
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     return res
   end

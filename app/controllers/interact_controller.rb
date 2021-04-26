@@ -34,21 +34,34 @@ class InteractController < ApplicationController
       qq = QuestionnaireQuestion.find(qqid)
       qid = qq.questionnaire_id
     end
+    questionnaire = Questionnaire.find(qid)
+    Rails.logger.info "XXXXXXXXXXXXXXXXXXXXXXX"
+    Rails.logger.info questionnaire.state
+    Rails.logger.info "Questionnaire #{questionnaire.name} with id #{qid} IS COMPLETED? #{questionnaire.state == 'completed'}"
+    if(questionnaire.state != 'completed')
+      res = {
+        indeg: [],
+        question_scores: [],
+        collaboration: 0,
+        synergy: 0,
+        centrality: 0
+      }
+    else
+      quest = qq.questionnaire
+      nid = qq.network_id
+      sid = quest.snapshot_id
+      gid = (gid.nil? || gid == 0) ? Group.get_root_questionnaire_group(qid) : gid
+      cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 
-    quest = qq.questionnaire
-    nid = qq.network_id
-    sid = quest.snapshot_id
-    gid = (gid.nil? || gid == 0) ? Group.get_root_questionnaire_group(qid) : gid
-    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
-
-    res_indeg = question_indegree_data(sid, gid, cid, cmid)
-    res = {
-      indeg: res_indeg,
-      question_scores: question_scores_data(sid,nid,cid),
-      collaboration: question_collaboration_score(gid, nid),
-      synergy: question_synergy_score(gid, nid),
-      centrality: question_centrality_score(gid, nid)
-    }
+      res_indeg = question_indegree_data(sid, gid, cid, cmid)
+      res = {
+        indeg: res_indeg,
+        question_scores: question_scores_data(sid,nid,cid),
+        collaboration: question_collaboration_score(gid, nid),
+        synergy: question_synergy_score(gid, nid),
+        centrality: question_centrality_score(gid, nid)
+      }
+    end
     res = Oj.dump(res)
     render json: res
   end
