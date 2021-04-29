@@ -13,11 +13,15 @@ class InteractController < ApplicationController
 
   def get_question_data
     authorize :interact, :view_reports?
-    permitted = params.permit(:qqid, :gid)
+    permitted = params.permit(:qqid, :gids)
 
     qqid = sanitize_id(permitted[:qqid]).try(:to_i)
-    gid = sanitize_id(permitted[:gid]).try(:to_i)
-    raise 'Not authorized' if !current_user.group_authorized?(gid)
+    # gid = sanitize_id(permitted[:gid]).try(:to_i)
+    gids = sanitize_ids(permitted[:gids])
+    # raise 'Not authorized' if !current_user.group_authorized?(gids)
+    gids = current_user.filter_authorized_groups(gids.split(','))
+    Rails.logger.info "bbb"
+    Rails.logger.info gids
     cid = current_user.company_id
 
     qq = nil
@@ -50,16 +54,17 @@ class InteractController < ApplicationController
       quest = qq.questionnaire
       nid = qq.network_id
       sid = quest.snapshot_id
-      gid = (gid.nil? || gid == 0) ? Group.get_root_questionnaire_group(qid) : gid
+      # gid = (gid.nil? || gid == 0) ? Group.get_root_questionnaire_group(qid) : gid
+      gids = (gids.nil? || gids.length == 0) ? [Group.get_root_questionnaire_group(qid)] : gids
       cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
 
-      res_indeg = question_indegree_data(sid, gid, cid, cmid)
+      res_indeg = question_indegree_data(sid, gids, cid, cmid)
       res = {
         indeg: res_indeg,
-        question_scores: question_scores_data(sid,nid,cid),
-        collaboration: question_collaboration_score(gid, nid),
-        synergy: question_synergy_score(gid, nid),
-        centrality: question_centrality_score(gid, nid)
+        question_scores: question_scores_data(sid,gids,nid,cid),
+        collaboration: question_collaboration_score(gids[0], nid),
+        synergy: question_synergy_score(sid,gids,nid),
+        centrality: question_centrality_score(sid,gids, nid)
       }
     end
     res = Oj.dump(res)

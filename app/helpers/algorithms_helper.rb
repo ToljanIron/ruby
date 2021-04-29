@@ -1264,9 +1264,9 @@ module AlgorithmsHelper
   # standard deviation and comparing it with the mean.
   # Centrality is high if close to 1 and low if close to 0.
   ###################################################################################
-  def self.degree_centrality(gid, nid, sid)
+  def self.degree_centrality(gids, nid, sid)
     cid = Snapshot.find(sid).company_id
-    empids = get_members_in_group(-1, gid, sid).sort
+    empids = get_members_in_groups(gids, sid)
     return [] if empids.count == 0
     empsstr = empids.join(',')
 
@@ -1287,12 +1287,20 @@ module AlgorithmsHelper
       a_indegs << e['indeg']
     end
 
-    return 0 if a_indegs.length == 0
+    # return 0 if a_indegs.length == 0
+    return 0 if a_indegs.length <= 1
     stderr = array_sd(a_indegs) /array_mean(a_indegs)
 
     return stderr
   end
 
+  def self.get_members_in_groups(gids,sid)
+    res = Employee
+      .by_snapshot(sid)
+      .where(group_id: gids, active: true)
+      .pluck(:id)
+    return res
+  end
   #################################################################################
   ##
   ## Describes the overall level of internal collaboration in the group.
@@ -1323,6 +1331,27 @@ module AlgorithmsHelper
 
     return [{ group_id: group_id, measure: network_density }]
   end
+
+  def self.density_of_network2(sid, gids, nid)
+    empids = get_members_in_groups(gids, sid)
+    n = empids.length
+    return 0.0 if n <= 3
+
+    s_max_email_traffic   = s_calc_max_traffic_between_two_employees2(sid, nid, empids)
+    s_sum_traffic_network = s_calc_sum_of_matrix2(sid, gids, nid)
+
+    # The number of paires in the groups
+    bin = (n.to_f * (n.to_f - 1)) / 2
+
+    if(s_max_email_traffic.nil?)
+      network_density = 0
+    else
+      network_density = (s_sum_traffic_network.to_f / (bin * s_max_email_traffic)).round(3)
+    end
+
+    return network_density
+  end
+
 
   def self.network_traffic_standard_err(sid, gid, pid, nid)
     group_id = (gid == -1 ? pid : gid)
@@ -1614,10 +1643,23 @@ module AlgorithmsHelper
     return res[:max].to_i
   end
 
+  def self.s_calc_max_traffic_between_two_employees2(sid, nid, empids)
+    return nil if empids.length == 0
+    empsstr = empids.join(',')
+    res =  calc_h_calc_max_traffic_between_two_employees_with_ids(sid, nid, empsstr)
+    return nil if res.nil? || res.empty?
+    return res[:max].to_i
+  end
+
   def self.h_calc_max_traffic_between_two_employees_with_ids(sid, nid, gid = NO_GROUP, pid = NO_PIN)
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
+    calc = calc_h_calc_max_traffic_between_two_employees_with_ids(sid, nid, empsstr)
+    return calc
+  end
+
+  def self.calc_h_calc_max_traffic_between_two_employees_with_ids(sid, nid, empsstr)
     sqlstr = "SELECT emp1, emp2, SUM(value) AS traffic FROM
                 (SELECT from_employee_id AS emp1, to_employee_id AS emp2, value
                    FROM network_snapshot_data AS nsd1
@@ -1647,12 +1689,26 @@ module AlgorithmsHelper
       to:   h_max_traffic['emp2'],
       max:  h_max_traffic['traffic']
     }
+
   end
 
   def self.s_calc_sum_of_matrix(sid, gid = NO_GROUP, pid = NO_PIN, nid = NO_NETWORK)
     emps = get_members_in_group(pid, gid, sid).sort
     return [] if emps.count == 0
     empsstr = emps.join(',')
+    res = calc_s_calc_sum_of_matrix(sid, nid,empsstr)
+    return res
+  end
+
+  def self.s_calc_sum_of_matrix2(sid, gids, nid)
+    emps = get_members_in_groups(gids, sid)
+    return [] if emps.count == 0
+    empsstr = emps.join(',')
+    res = calc_s_calc_sum_of_matrix(sid, nid,empsstr)
+    return res
+  end
+
+  def self.calc_s_calc_sum_of_matrix(sid, nid, empsstr)
     sqlstr = "SELECT COUNT(id)
               FROM network_snapshot_data
               WHERE snapshot_id       = #{sid}
