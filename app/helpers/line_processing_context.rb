@@ -132,6 +132,7 @@ module LineProcessingContextClasses
     end
 
     def create_if_not_existing
+      puts "333333333333"
       begin
         fail 'can not find company_id'  if @attrs[:company_id].nil?
         fail "can not find company with id: #{@attrs[:company_id]}" if Company.where(id: @attrs[:company_id]).empty?
@@ -195,7 +196,8 @@ module LineProcessingContextClasses
       begin
         Rails.logger.info "xxxxxxxxxxxxxxxxxxxxxxx"
         e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
-        return unless eRails.logger.info "333333333333333"
+        return unless e
+        Rails.logger.info "333333333333333"
 
         connect_offices e
         connect_group e
@@ -315,6 +317,7 @@ module LineProcessingContextClasses
   ########################################## V2LineProcessingContext ##########################################
   class NetworkLineProcessingContext < LineProcessingContext
     def create_if_not_existing
+      puts "44444444444444444"
       fail if @attrs[:company_id].nil? || @attrs[:csv_type].nil? || Company.where(id: @attrs[:company_id]).empty?
       use_latest_snapshot = @attrs[:use_latest_snapshot].nil? ? false : @attrs[:use_latest_snapshot]
       e1 = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:from_employee_id])

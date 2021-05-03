@@ -39,7 +39,7 @@ module ImportDataHelper
   VALID_GROUP_CSV_LINE_SIZE      = 5
   VALID_MANAGMENT_RELATION_CSV_LINE_SIZE = 4
   VALID_EMPLOYEE_CSV_LINE_SIZE   = 20
-  VALID_EMPLOYEE_CSV_LINE_SIZE_LEAN = 11
+  VALID_EMPLOYEE_CSV_LINE_SIZE_LEAN = 21
   VALID_NETWORK_CSV_LINE_SIZE    = 4
   VALID_EMAILS_CSV_LINE_SIZE     = 20
 
@@ -82,8 +82,10 @@ module ImportDataHelper
       ii += 1
       puts "Working on context number: #{ii}" if (ii % 50 == 0)
       if co.attrs[:delete]
+        puts "111111111111111111"
         co.delete
       else
+        puts "222222222222222222"
         co.create_if_not_existing
         id = co.connect
         eids << id if co.class == EmployeeLineProcessingContext
