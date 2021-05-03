@@ -34,6 +34,7 @@ group :production, :onpremise, :development do
   gem 'mail'
   gem 'write_xlsx'
   gem 'net-sftp'
+  gem 'nokogiri','1.10.10'
   gem 'roo'
   gem 'roo-xls', '~>1.1.0'
   gem 'dalli'
@@ -42,10 +43,10 @@ group :production, :onpremise, :development do
   gem 'uglifier'
   gem 'ejs'
   gem 'yui-compressor'
-  gem 'sprockets'
+  gem 'sprockets', '3.7.2'
   gem 'sprockets-rails','>= 3.0.0'
   gem 'font-awesome-rails'
-  gem 'twilio-ruby'
+  gem 'twilio-ruby' ,'5.4.5'
   gem "jqcloud-rails"
   gem "daemons"
   gem 'colorize'
@@ -54,8 +55,10 @@ end
 
 group :development, :test do
   gem 'spork'
+  gem 'rspec'
+  gem 'rspec-core'
   gem 'rspec-rails', '~> 3.8'
-  gem 'transpec'
+  # gem 'transpec'
   gem 'seed_dump'
   gem 'puma', '~> 3.7'
 end
