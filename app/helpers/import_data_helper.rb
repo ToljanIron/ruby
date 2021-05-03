@@ -175,6 +175,16 @@ module ImportDataHelper
         office_address = format_string(parsed[8])
         group_name = safe_titleize(parsed[9]).strip if !parsed[9].nil?
         phone_number = format_string(parsed[10])
+        factor_a = format_string(parsed[11])
+        factor_b = format_string(parsed[12])
+        factor_c = format_string(parsed[13])
+        factor_d = format_string(parsed[14])
+        factor_e = format_string(parsed[15])
+        factor_f = format_string(parsed[16])
+        factor_g = format_string(parsed[17])
+        factor_h = format_string(parsed[18])
+        factor_i = format_string(parsed[19])
+        factor_j = format_string(parsed[20])
       end
 
       employee_context.attrs.merge!(
@@ -199,7 +209,17 @@ module ImportDataHelper
         id_number:        id_number,
         phone_number:     phone_number,
         snapshot_id:      sid,
-        delete:           del
+        delete:           del,
+        factor_a:         factor_a,
+        factor_b:         factor_b,
+        factor_c:         factor_c,
+        factor_d:         factor_d,
+        factor_e:         factor_e,
+        factor_f:         factor_f,
+        factor_g:         factor_g,
+        factor_h:         factor_h,
+        factor_i:         factor_i,
+        factor_j:         factor_j,
       )
     rescue => e
       puts "Exception loading employee with email: #{email} with error: #{e.message}"

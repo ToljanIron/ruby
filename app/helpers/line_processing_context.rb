@@ -190,16 +190,23 @@ module LineProcessingContextClasses
     end
 
     def connect
+      Rails.logger.info "vvvvvvvvvvvvvvv"
       e = nil
       begin
+        Rails.logger.info "xxxxxxxxxxxxxxxxxxxxxxx"
         e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
-        return unless e
+        return unless eRails.logger.info "333333333333333"
+
         connect_offices e
         connect_group e
         connect_job_title e
         connect_role e
         connect_rank e
         add_color e
+        factor_tables = ['FactorA','FactorB','FactorC','FactorD','FactorE','FactorF','FactorG']
+        factor_tables.each do |class_name|
+          connect_factors(class_name,employee)
+        end
       rescue => ex
         msg = " unable to create employee with external id #{@attrs[:external_id]} - #{ex}, #{log_suffix}"
         @error_log << ex.message + msg
@@ -215,6 +222,24 @@ module LineProcessingContextClasses
     def delete
       e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
       e.delete if e
+    end
+
+    def connect_factors(class_name,employee)
+      Rails.logger.info '---------CONNECT FACTORS----------'
+      param_name = class_name.foreign_key      # 'factor_a'
+      factor_x = @satellite_tables_attrs[param_name]  # 'abc'
+      Rails.logger.info "VAL = #{factor_x}"
+      Rails.logger.info "VAL2 = #{@satellite_tables_attrs[param_name.to_sym]}"
+      return nil if factor_x == '' || factor_x.nil?
+      factor_instance = class_name.classify.constantize.find_by(name: fdactor_x, company_id: employee.company_id)
+      unless factor_instance.nil?
+        employee.send(param_name+'=', factor_instance.id)
+        employee.save
+        return
+      end
+      new_factor = class_name.classify.constantize.create(name: factor_x, company_id: employee.company_id)
+      employee.send(param_name+'=',new_factor.id)
+      employee.save
     end
 
     def connect_offices(employee)

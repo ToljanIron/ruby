@@ -25,6 +25,14 @@ class Employee < ActiveRecord::Base
 
   has_and_belongs_to_many :team_members, class_name: 'EmployeeManagementRelation', join_table: 'employee_management_relations', foreign_key: :manager_id,  association_foreign_key: :employee_id
 
+  belongs_to :factor_a
+  belongs_to :factor_b
+  belongs_to :factor_c
+  belongs_to :factor_d
+  belongs_to :factor_e
+  belongs_to :factor_f
+  belongs_to :factor_g
+
   before_save      do
     self.email       = email.strip.downcase
     self.first_name  = safe_titleize(first_name.strip)
@@ -191,6 +199,14 @@ class Employee < ActiveRecord::Base
     role = processed_attrs.delete(:role) if  processed_attrs[:role]
     job_title = processed_attrs.delete(:job_title) if  processed_attrs[:job_title]
     office_address = processed_attrs.delete(:office_address) || ''
+
+    factor_a = processed_attrs.delete(:factor_a) || ''
+    factor_b = processed_attrs.delete(:factor_b) || ''
+    factor_c = processed_attrs.delete(:factor_c) || ''
+    factor_d = processed_attrs.delete(:factor_d) || ''
+    factor_e = processed_attrs.delete(:factor_e) || ''
+    factor_f = processed_attrs.delete(:factor_f) || ''
+    factor_g = processed_attrs.delete(:factor_g) || ''
 
     processed_attrs[:work_start_date] = CdsUtilHelper.convert_str_to_date(processed_attrs[:work_start_date]) if valid_attr_field processed_attrs[:work_start_date]
     processed_attrs[:date_of_birth] = CdsUtilHelper.convert_str_to_date(processed_attrs[:date_of_birth]) if valid_attr_field processed_attrs[:alias_emails]

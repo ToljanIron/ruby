@@ -1,0 +1,2 @@
+class CompanyFactorName < ApplicationRecord
+end
