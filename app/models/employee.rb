@@ -200,13 +200,13 @@ class Employee < ActiveRecord::Base
     job_title = processed_attrs.delete(:job_title) if  processed_attrs[:job_title]
     office_address = processed_attrs.delete(:office_address) || ''
 
-    factor_a = processed_attrs.delete(:factor_a) || ''
-    factor_b = processed_attrs.delete(:factor_b) || ''
-    factor_c = processed_attrs.delete(:factor_c) || ''
-    factor_d = processed_attrs.delete(:factor_d) || ''
-    factor_e = processed_attrs.delete(:factor_e) || ''
-    factor_f = processed_attrs.delete(:factor_f) || ''
-    factor_g = processed_attrs.delete(:factor_g) || ''
+    factor_a = processed_attrs.delete(:factor_a) if processed_attrs[:factor_a]
+    factor_b = processed_attrs.delete(:factor_b) if processed_attrs[:factor_b]
+    factor_c = processed_attrs.delete(:factor_c) if processed_attrs[:factor_c]
+    factor_d = processed_attrs.delete(:factor_d) if processed_attrs[:factor_d]
+    factor_e = processed_attrs.delete(:factor_e) if processed_attrs[:factor_e]
+    factor_f = processed_attrs.delete(:factor_f) if processed_attrs[:factor_f]
+    factor_g = processed_attrs.delete(:factor_g) if processed_attrs[:factor_g]
 
     processed_attrs[:work_start_date] = CdsUtilHelper.convert_str_to_date(processed_attrs[:work_start_date]) if valid_attr_field processed_attrs[:work_start_date]
     processed_attrs[:date_of_birth] = CdsUtilHelper.convert_str_to_date(processed_attrs[:date_of_birth]) if valid_attr_field processed_attrs[:alias_emails]
@@ -231,6 +231,13 @@ class Employee < ActiveRecord::Base
       role: role,
       job_title: job_title,
       office_address: office_address,
+      factor_a: factor_a,
+      factor_b: factor_b,
+      factor_c: factor_c,
+      factor_d: factor_d,
+      factor_e: factor_e,
+      factor_f: factor_f,
+      factor_g: factor_g,
       errors:         errors
     }
   end

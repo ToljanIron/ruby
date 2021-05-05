@@ -132,7 +132,6 @@ module LineProcessingContextClasses
     end
 
     def create_if_not_existing
-      puts "333333333333"
       begin
         fail 'can not find company_id'  if @attrs[:company_id].nil?
         fail "can not find company with id: #{@attrs[:company_id]}" if Company.where(id: @attrs[:company_id]).empty?
@@ -191,13 +190,10 @@ module LineProcessingContextClasses
     end
 
     def connect
-      Rails.logger.info "vvvvvvvvvvvvvvv"
       e = nil
       begin
-        Rails.logger.info "xxxxxxxxxxxxxxxxxxxxxxx"
         e = Employee.find_by(company_id: @attrs[:company_id], external_id: @attrs[:external_id], snapshot_id: @attrs[:snapshot_id])
         return unless e
-        Rails.logger.info "333333333333333"
 
         connect_offices e
         connect_group e
@@ -207,7 +203,7 @@ module LineProcessingContextClasses
         add_color e
         factor_tables = ['FactorA','FactorB','FactorC','FactorD','FactorE','FactorF','FactorG']
         factor_tables.each do |class_name|
-          connect_factors(class_name,employee)
+          connect_factors(class_name,e)
         end
       rescue => ex
         msg = " unable to create employee with external id #{@attrs[:external_id]} - #{ex}, #{log_suffix}"
@@ -227,20 +223,18 @@ module LineProcessingContextClasses
     end
 
     def connect_factors(class_name,employee)
-      Rails.logger.info '---------CONNECT FACTORS----------'
-      param_name = class_name.foreign_key      # 'factor_a'
-      factor_x = @satellite_tables_attrs[param_name]  # 'abc'
-      Rails.logger.info "VAL = #{factor_x}"
-      Rails.logger.info "VAL2 = #{@satellite_tables_attrs[param_name.to_sym]}"
+      param_name = (class_name.classify.constantize).model_name.param_key # 'factor_a'
+      param_foreign_key = class_name.foreign_key      # 'factor_a_id'
+      factor_x = @satellite_tables_attrs[param_name.to_sym]  # 'abc'
       return nil if factor_x == '' || factor_x.nil?
-      factor_instance = class_name.classify.constantize.find_by(name: fdactor_x, company_id: employee.company_id)
+      factor_instance = class_name.classify.constantize.find_by(name: factor_x, company_id: employee.company_id)
       unless factor_instance.nil?
-        employee.send(param_name+'=', factor_instance.id)
+        employee.send(param_foreign_key+'=', factor_instance.id)
         employee.save
         return
       end
       new_factor = class_name.classify.constantize.create(name: factor_x, company_id: employee.company_id)
-      employee.send(param_name+'=',new_factor.id)
+      employee.send(param_foreign_key+'=',new_factor.id)
       employee.save
     end
 

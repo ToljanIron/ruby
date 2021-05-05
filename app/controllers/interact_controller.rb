@@ -117,12 +117,13 @@ class InteractController < ApplicationController
     nodes = Employee
       .select("employees.id AS id, first_name || ' ' || last_name AS t, employees.group_id, g.name AS gname,
                cms.score AS d, rank_id, gender, ro.name AS role_name, o.name AS office_name,
-               jt.name AS job_title_name, g.color_id")
+               jt.name AS job_title_name, fa.name as param_a, g.color_id")
       .joins("JOIN groups AS g ON g.id = employees.group_id")
       .joins("JOIN cds_metric_scores as cms ON cms.employee_id = employees.id")
       .joins("LEFT JOIN roles AS ro ON ro.id = employees.role_id")
       .joins("LEFT JOIN offices AS o ON o.id = employees.office_id")
       .joins("LEFT JOIN job_titles as jt ON jt.id = employees.job_title_id")
+      .joins("LEFT JOIN factor_as as fa ON fa.id = employees.factor_a_id")
       .where("employees.company_id = ? AND employees.snapshot_id = ? AND cms.company_metric_id = ?", cid, sid, cmid)
       .where("employees.group_id in (#{gids})" )
 
