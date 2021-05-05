@@ -49,11 +49,8 @@ require 'csv'
       matC = base_mat.clone.map(&:clone)
       matD = base_mat.clone.map(&:clone)
       matE = base_mat.clone.map(&:clone)
-      # print_matrix(matA,"mat-selections-#{nid}.csv")
-      # print_matrix(matB,"mat-office-#{nid}.csv")
-      # print_matrix(matC,"mat-gender-#{nid}.csv")
-      # print_matrix(matD,"mat-group-#{nid}.csv")
-      # print_matrix(matE,"mat-rank-#{nid}.csv")  
+
+
       for i in 1...base_mat.length
         emp1 = base_mat[i][0]
         for j in 1...base_mat.length
@@ -64,6 +61,13 @@ require 'csv'
             matE[i][j] = 1 if participants_score[emp1][:rank][:name] == participants_score[emp2][:rank][:name]
         end
       end
+
+      # print_matrix(matA,"mat-selections-#{q.network_id}.csv")
+      # print_matrix(matB,"mat-office-#{q.network_id}.csv")
+      # print_matrix(matC,"mat-gender-#{q.network_id}.csv")
+      # print_matrix(matD,"mat-group-#{q.network_id}.csv")
+      # print_matrix(matE,"mat-rank-#{q.network_id}.csv")  
+
       for i in 1...base_mat.length
         emp = base_mat[i][0]
         for j in 1...base_mat[i].length
