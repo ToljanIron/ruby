@@ -791,7 +791,7 @@ class InteractBackofficeController < ApplicationController
         sid = aq.snapshot_id
         eids, errors2 = load_excel_sheet(@cid, params[:fileToUpload], sid, true)
         InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
-
+        CompanyFactorName.insert_factors(@cid,sid)
         ## Update the questinnaire's state if needed
         if !InteractBackofficeHelper.test_tab_enabled(aq)
           if QuestionnaireParticipant.where(questionnaire_id: aq.id).count > 1
@@ -809,6 +809,46 @@ class InteractBackofficeController < ApplicationController
       errors << errors2 unless errors2
       errors << errors3 unless errors3
       [{participants: participants, questionnaire: aq}, errors: errors ]
+    end
+  end
+
+  def get_factors
+    authorize :interact, :authorized?
+    ibo_process_request do
+
+      qid = sanitize_id(params['qid'])
+      q = Questionnaire.find(qid)
+      sid = q.snapshot_id
+
+      company_factors =
+        CompanyFactorName
+          .where(snapshot_id: sid, company_id: @cid)
+          .order(id: :asc)
+
+      [{factors: company_factors}, nil]
+    end
+  end
+
+
+  def update_data_mapping
+    authorize :interact, :authorized?
+    ibo_process_request do
+      Rails.logger.info "llllllllllllllllllllllllllllllllllllllllllll"
+      Rails.logger.info params
+      qid = sanitize_id(params[:qid])
+      q =Questionnaire.find(qid)
+      sid = q.snapshot_id
+      params.require(:data_mapping).permit!
+      factor = params[:data_mapping]
+
+      id = sanitize_id(factor['id'])
+      display_name = factor['display_name']
+
+      factor = CompanyFactorName.find(id)
+      factor.update!(
+        display_name: display_name
+      )
+      
     end
   end
 

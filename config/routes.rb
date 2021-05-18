@@ -104,7 +104,9 @@ Workships::Application.routes.draw do
 
   post '/interact_backoffice/simulate_replies',        to: 'interact_backoffice#simulate_results'
 
-   post '/interact_backoffice/remove_participants',      to: 'interact_backoffice#remove_participants'
+  post '/interact_backoffice/remove_participants',      to: 'interact_backoffice#remove_participants'
+  post '/interact_backoffice/save_params',      to: 'interact_backoffice#update_data_mapping'
+  get '/interact_backoffice/get_factors',               to: 'interact_backoffice#get_factors'
 
   ############################ v3 ############################
 

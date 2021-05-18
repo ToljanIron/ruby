@@ -61,6 +61,8 @@ group :development, :test do
   # gem 'transpec'
   gem 'seed_dump'
   gem 'puma', '~> 3.7'
+  #gem 'solargraph'
+  
 end
 
 group :test do

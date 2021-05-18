@@ -117,17 +117,39 @@ class InteractController < ApplicationController
     nodes = Employee
       .select("employees.id AS id, first_name || ' ' || last_name AS t, employees.group_id, g.name AS gname,
                cms.score AS d, rank_id, gender, ro.name AS role_name, o.name AS office_name,
-               jt.name AS job_title_name, fa.name as param_a, g.color_id")
+               jt.name AS job_title_name, g.color_id, 
+               fa.name as param_a,
+               fb.name as param_b,
+               fc.name as param_c,
+               fd.name as param_d,
+               fe.name as param_e,
+               ff.name as param_f,
+               fg.name as param_g,
+               employees.factor_h as param_h,
+               employees.factor_i as param_i,
+               employees.factor_j as param_j")
       .joins("JOIN groups AS g ON g.id = employees.group_id")
       .joins("JOIN cds_metric_scores as cms ON cms.employee_id = employees.id")
       .joins("LEFT JOIN roles AS ro ON ro.id = employees.role_id")
       .joins("LEFT JOIN offices AS o ON o.id = employees.office_id")
       .joins("LEFT JOIN job_titles as jt ON jt.id = employees.job_title_id")
       .joins("LEFT JOIN factor_as as fa ON fa.id = employees.factor_a_id")
+      .joins("LEFT JOIN factor_bs as fb ON fb.id = employees.factor_b_id")
+      .joins("LEFT JOIN factor_cs as fc ON fc.id = employees.factor_c_id")
+      .joins("LEFT JOIN factor_ds as fd ON fd.id = employees.factor_d_id")
+      .joins("LEFT JOIN factor_es as fe ON fe.id = employees.factor_e_id")
+      .joins("LEFT JOIN factor_fs as ff ON ff.id = employees.factor_f_id")
+      .joins("LEFT JOIN factor_gs as fg ON fg.id = employees.factor_g_id")
       .where("employees.company_id = ? AND employees.snapshot_id = ? AND cms.company_metric_id = ?", cid, sid, cmid)
       .where("employees.group_id in (#{gids})" )
 
     eids = nodes.map { |n| n.id }
+    c_factor_names = CompanyFactorName.where(company_id: cid, snapshot_id: sid)
+    factor_names = {}
+    c_factor_names.each do |f|
+      factor_names[f.factor_name] = (!f.display_name.blank? ? f.display_name : f.factor_name)
+    end
+
 
     links = NetworkSnapshotData
       .select("from_employee_id AS id1, to_employee_id AS id2, value AS w")
@@ -142,10 +164,18 @@ class InteractController < ApplicationController
       links: links,
       department: nil,
       questionnaireName: quest.name,
-      questionTitle: qq.title
+      questionTitle: qq.title,
+      factor_names: factor_names
     }
 
     res = Oj.dump(res)
     render json: res
   end
 end
+
+# SELECT ii.column_name,cfn.display_name
+#   FROM information_schema.columns ii
+#   left join company_factor_names cfn
+#   on cfn.factor_name = ii.column_name
+#  WHERE table_name = 'employees'
+#  and ii.column_name in('factor_a_id','factor_b_id');
