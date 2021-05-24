@@ -833,22 +833,14 @@ class InteractBackofficeController < ApplicationController
   def update_data_mapping
     authorize :interact, :authorized?
     ibo_process_request do
-      Rails.logger.info "llllllllllllllllllllllllllllllllllllllllllll"
-      Rails.logger.info params
       qid = sanitize_id(params[:qid])
       q =Questionnaire.find(qid)
       sid = q.snapshot_id
-      params.require(:data_mapping).permit!
-      factor = params[:data_mapping]
-
-      id = sanitize_id(factor['id'])
-      display_name = factor['display_name']
-
-      factor = CompanyFactorName.find(id)
-      factor.update!(
-        display_name: display_name
-      )
-      
+      factors = params[:factors]
+      factors.each do |f|
+        factor = CompanyFactorName.find(f['id'])
+        factor.update!(display_name: f['display_name'])        
+      end
     end
   end
 

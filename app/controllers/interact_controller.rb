@@ -147,7 +147,7 @@ class InteractController < ApplicationController
     c_factor_names = CompanyFactorName.where(company_id: cid, snapshot_id: sid)
     factor_names = {}
     c_factor_names.each do |f|
-      factor_names[f.factor_name] = (!f.display_name.blank? ? f.display_name : f.factor_name)
+      factor_names[f.factor_name.camelize] = (!f.display_name.blank? ? f.display_name : f.factor_name.camelize)
     end
 
 
@@ -165,7 +165,7 @@ class InteractController < ApplicationController
       department: nil,
       questionnaireName: quest.name,
       questionTitle: qq.title,
-      factor_names: factor_names
+      factorNames: factor_names
     }
 
     res = Oj.dump(res)
