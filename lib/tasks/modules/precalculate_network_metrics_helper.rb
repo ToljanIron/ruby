@@ -32,6 +32,16 @@ require 'csv'
         gender:  {name: val['gender'], selections: 0, sum: 0, bidirectional: 0},
         group: {name: val['group_id'], selections: 0, sum: 0, bidirectional: 0},
         rank: {name: val['rank_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_a: {name: val['param_a_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_b: {name: val['param_b_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_c: {name: val['param_c_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_d: {name: val['param_d_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_e: {name: val['param_e_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_f: {name: val['param_f_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_g: {name: val['param_g_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_h: {name: val['param_h'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_i: {name: val['param_i'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_j: {name: val['param_j'], selections: 0, sum: 0, bidirectional: 0}, 
       }
 
     end
