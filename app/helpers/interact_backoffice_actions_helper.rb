@@ -53,10 +53,11 @@ module InteractBackofficeActionsHelper
     test_user_email = questcopy ? oq.test_user_email : 'test@unknown'
     test_user_phone = questcopy ? oq.test_user_phone : '012-3456789'
     prev_questionnaire_id = rerun ? oq.id : nil
+    state = questcopy ? :questions_ready : :created
 
     quest = Questionnaire.create!(
       company_id: cid,
-      state: :questions_ready,
+      state: state,
       name: name,
       language_id: language_id,
       sms_text: sms_text,
