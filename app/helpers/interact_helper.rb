@@ -71,7 +71,7 @@ module InteractHelper
 
   def question_scores_data(sid,gids, nid, cid)
     gids_str = gids.join(',')
-    sqlstr = "select e.first_name ||' '|| e.last_name || '-' || qa.snapshot_id as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group 
+    sqlstr = "select e.first_name ||' '|| e.last_name as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group 
     FROM questionnaire_algorithms qa
     left join employees e on e.id= qa.employee_id 
     JOIN groups g ON g.id=e.group_id
