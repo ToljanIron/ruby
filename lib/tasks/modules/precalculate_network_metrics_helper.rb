@@ -157,10 +157,10 @@ K = 1
     algorithm_id = AlgorithmType.find_by_name('new_connectors').id
     participants_score.each do |emp_id,val|
       general_score = ''
-      group_score = (val[:group][:sum]-1 > 0 ?  ((val[:group][:other_selections].to_f/(n - val[:group][:sum]).to_f) * ( val[:group][:sum] - 1) * K ) : 0).round(3)
-      office_score = (val[:office][:sum]-1 > 0 ?  ((val[:office][:other_selections].to_f/(n - val[:office][:sum]).to_f) * ( val[:office][:sum] - 1) * K ) : 0).round(3)
-      gender_score = (val[:gender][:sum]-1 > 0 ?  ((val[:gender][:other_selections].to_f/(n - val[:gender][:sum]).to_f) * ( val[:gender][:sum] - 1) * K ) : 0).round(3)
-      rank_score = (val[:rank][:sum]-1 > 0 ?  ((val[:rank][:other_selections].to_f/(n - val[:rank][:sum]).to_f) * ( val[:rank][:sum] - 1) * K ) : 0).round(3)
+      group_score = (val[:group][:sum]-1 > 0 && n != val[:group][:sum] ?  ((val[:group][:other_selections].to_f/(n - val[:group][:sum]).to_f) * ( val[:group][:sum] - 1) * K ) : 0).round(3)
+      office_score = (val[:office][:sum]-1 > 0 && n != val[:office][:sum] ?  ((val[:office][:other_selections].to_f/(n - val[:office][:sum]).to_f) * ( val[:office][:sum] - 1) * K ) : 0).round(3)
+      gender_score = (val[:gender][:sum]-1 > 0 && n != val[:gender][:sum] ?  ((val[:gender][:other_selections].to_f/(n - val[:gender][:sum]).to_f) * ( val[:gender][:sum] - 1) * K ) : 0).round(3)
+      rank_score = (val[:rank][:sum]-1 > 0 && n != val[:rank][:sum] ?  ((val[:rank][:other_selections].to_f/(n - val[:rank][:sum]).to_f) * ( val[:rank][:sum] - 1) * K ) : 0).round(3)
 
       QuestionnaireAlgorithm.create!(:employee_id => emp_id,:algorithm_type_id => algorithm_id,:network_id => network_id, :snapshot_id => sid, :general_score => general_score, :group_score => group_score, :office_score => office_score, :gender_score => gender_score, :rank_score => rank_score)
     end
