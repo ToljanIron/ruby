@@ -417,6 +417,8 @@ module InteractBackofficeHelper
     ws.merge_range("F1:J1", 'Internal Champion',ic_merge_format)
     ws.merge_range("K1:O1", 'Isolated',iso_merge_format)
     ws.merge_range("P1:T1", 'Connectors',con_merge_format)
+    ws.merge_range("U1:Y1", 'New Internal Champion', ic_merge_format)
+    ws.merge_range("Z1:AD1", 'New Connectors', con_merge_format)
     ws.write('A2', 'ID',header_format)
     ws.write('B2', 'First Name',header_format)
     ws.write('C2', 'Last Name',header_format)
@@ -437,6 +439,16 @@ module InteractBackofficeHelper
     ws.write('R2', 'Office')
     ws.write('S2', 'Gender')
     ws.write('T2', 'rank')
+    ws.write('U2', 'General',header_format)
+    ws.write('V2', 'Group')
+    ws.write('W2', 'Office')
+    ws.write('X2', 'Gender')
+    ws.write('Y2', 'rank')
+    ws.write('Z2', 'General',header_format)
+    ws.write('AA2', 'Group')
+    ws.write('AB2', 'Office')
+    ws.write('AC2', 'Gender')
+    ws.write('AD2', 'rank')
     return ws 
   end
 
@@ -1047,6 +1059,16 @@ order by qa.network_id, e.external_id")
         ws.write("R#{i}",r['connectors'][:office].to_f)
         ws.write("S#{i}",r['connectors'][:gender].to_f)
         ws.write("T#{i}",r['connectors'][:rank].to_f)
+        ws.write("U#{i}",'')
+        ws.write("V#{i}",r['new_internal_champion'][:group].to_f)
+        ws.write("W#{i}",r['new_internal_champion'][:office].to_f)
+        ws.write("X#{i}",r['new_internal_champion'][:gender].to_f)
+        ws.write("Y#{i}",r['new_internal_champion'][:rank].to_f)
+        ws.write("Z#{i}",'')
+        ws.write("AA#{i}",r['new_connectors'][:group].to_f)
+        ws.write("AB#{i}",r['new_connectors'][:office].to_f)
+        ws.write("AC#{i}",r['new_connectors'][:gender].to_f)
+        ws.write("AD#{i}",r['new_connectors'][:rank].to_f)
         i += 1
       end
     end

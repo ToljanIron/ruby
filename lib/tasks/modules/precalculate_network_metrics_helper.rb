@@ -1,5 +1,6 @@
 module PrecalculateNetworkMetricsHelper
 require 'csv'
+K = 1
 
   def calculate_questionnaire_score(cid,sid)
 
@@ -32,6 +33,7 @@ require 'csv'
     base_mat[0] = Array.new(n+1,0)
     emps_hash = {}
     paramsArr = ['office','gender', 'group','rank','param_a','param_b','param_c','param_d','param_e','param_f','param_g','param_h','param_i','param_j']
+
     participants.each_with_index do |val,idx|
       unless base_mat[idx+1] 
         base_mat[idx+1] = Array.new(n+1,0)
@@ -43,22 +45,21 @@ require 'csv'
         idx: idx+1,
         total_selections:  0,
         bidirectional_total: 0,
-        office: {name: val['office'], selections: 0, sum: 0, bidirectional: 0},
-        gender:  {name: val['gender'], selections: 0, sum: 0, bidirectional: 0},
-        group: {name: val['group'], selections: 0, sum: 0, bidirectional: 0},
-        rank: {name: val['rank'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_a: {name: val['param_a'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_b: {name: val['param_b'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_c: {name: val['param_c'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_d: {name: val['param_d'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_e: {name: val['param_e'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_f: {name: val['param_f'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_g: {name: val['param_g'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_h: {name: val['param_h'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_i: {name: val['param_i'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_j: {name: val['param_j'], selections: 0, sum: 0, bidirectional: 0}, 
+        office: {name: val['office'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0},
+        gender:  {name: val['gender'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0},
+        group: {name: val['group'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0},
+        rank: {name: val['rank'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_a: {name: val['param_a'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_b: {name: val['param_b'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_c: {name: val['param_c'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_d: {name: val['param_d'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_e: {name: val['param_e'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_f: {name: val['param_f'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_g: {name: val['param_g'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_h: {name: val['param_h'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_i: {name: val['param_i'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
+        param_j: {name: val['param_j'], selections: 0, sum: 0, bidirectional: 0, other_selections: 0}, 
       }
-
     end
     qq=QuestionnaireQuestion.where(:questionnaire_id => qid,:active => true)
     qq.each do |q|
@@ -87,8 +88,8 @@ require 'csv'
         end
       end
 
-      # print_matrix(matA,"mat-selections-#{q.network_id}.csv")
-      # print_matrix(matB,"mat-office-#{q.network_id}.csv")
+      # print_matrix(matA,"mat-selections-Q#{q.network_id}-#{Time.now.strftime('%Y-%m-%d %H:%M')}.csv")
+      # print_matrix(matB,"mat-office-Q#{q.network_id}-#{Time.now.strftime('%Y-%m-%d %H:%M')}.csv")
       # print_matrix(matC,"mat-gender-#{q.network_id}.csv")
       # print_matrix(matD,"mat-group-#{q.network_id}.csv")
       # print_matrix(matE,"mat-rank-#{q.network_id}.csv")  
@@ -99,18 +100,30 @@ require 'csv'
           participants_score[emp][:office][:selections] += matA[j][i] * matB[j][i]
           participants_score[emp][:office][:bidirectional] += matA[j][i] * matB[j][i] + matA[i][j] * matB[i][j]
           participants_score[emp][:office][:sum] += matB[j][i]
+          if( matA[j][i] == 1 && matB[j][i] == 0 )
+            participants_score[emp][:office][:other_selections] += 1
+          end
 
           participants_score[emp][:gender][:selections] += matA[j][i] * matC[j][i]
           participants_score[emp][:gender][:bidirectional] += matA[j][i] * matC[j][i] + matA[i][j] * matC[i][j]
           participants_score[emp][:gender][:sum] += matC[j][i]
+          if( matA[j][i] == 1 && matC[j][i] == 0 )
+            participants_score[emp][:gender][:other_selections] += 1
+          end
 
           participants_score[emp][:group][:selections] += matA[j][i] * matD[j][i]
           participants_score[emp][:group][:bidirectional] += matA[j][i] * matD[j][i] + matA[i][j] * matD[i][j]
           participants_score[emp][:group][:sum] += matD[i][j]
+          if( matA[j][i] == 1 && matD[j][i] == 0 )
+            participants_score[emp][:group][:other_selections] += 1
+          end
 
           participants_score[emp][:rank][:selections] += matA[j][i] * matE[j][i]
           participants_score[emp][:rank][:bidirectional] += matA[j][i] * matE[j][i] + matA[i][j] * matE[i][j]
           participants_score[emp][:rank][:sum] += matE[j][i]
+          if( matA[j][i] == 1 && matE[j][i] == 0 )
+            participants_score[emp][:rank][:other_selections] += 1
+          end
 
           participants_score[emp][:total_selections] += matA[j][i] # num of participants that choose him
           participants_score[emp][:bidirectional_total] += matA[i][j] # num of participants that choose him
@@ -118,6 +131,8 @@ require 'csv'
       end
       insert_internal_champions_values(participants_score,q.network_id,sid,n)
       insert_isolated_values(participants_score,q.network_id,sid,n)
+      insert_new_internal_champion(participants_score,q.network_id,sid,n)
+      insert_new_connectors(participants_score,q.network_id,sid,n)
       
       matZ = {}
       for i in 1...base_mat.length
@@ -151,6 +166,33 @@ require 'csv'
   def isolated_val(value)
     return (value == 0 ? 1 : 0)
   end
+
+  def insert_new_internal_champion(participants_score,network_id,sid,n)
+    algorithm_id = AlgorithmType.find_by_name('new_internal_champion').id
+    participants_score.each do |emp_id,val|
+      general_score = ''
+      group_score = (val[:group][:sum]-1 > 0 ?  ((val[:group][:selections].to_f/(val[:group][:sum]-1).to_f) * (n - val[:group][:sum]) * K ) : 0).round(3)
+      office_score = (val[:office][:sum]-1 > 0 ?  ((val[:office][:selections].to_f/(val[:office][:sum]-1).to_f) * (n - val[:office][:sum]) * K ) : 0).round(3)
+      gender_score = (val[:gender][:sum]-1 > 0 ?  ((val[:gender][:selections].to_f/(val[:gender][:sum]-1).to_f) * (n - val[:gender][:sum]) * K ) : 0).round(3)
+      rank_score = (val[:rank][:sum]-1 > 0 ?  ((val[:rank][:selections].to_f/(val[:rank][:sum]-1).to_f) * (n - val[:rank][:sum]) * K ) : 0).round(3)
+
+      QuestionnaireAlgorithm.create!(:employee_id => emp_id,:algorithm_type_id => algorithm_id,:network_id => network_id, :snapshot_id => sid, :general_score => general_score, :group_score => group_score, :office_score => office_score, :gender_score => gender_score, :rank_score => rank_score)
+    end
+  end
+
+  def insert_new_connectors(participants_score,network_id,sid,n)
+    algorithm_id = AlgorithmType.find_by_name('new_connectors').id
+    participants_score.each do |emp_id,val|
+      general_score = ''
+      group_score = (val[:group][:sum]-1 > 0 && n != val[:group][:sum] ?  ((val[:group][:other_selections].to_f/(n - val[:group][:sum]).to_f) * ( val[:group][:sum] - 1) * K ) : 0).round(3)
+      office_score = (val[:office][:sum]-1 > 0 && n != val[:office][:sum] ?  ((val[:office][:other_selections].to_f/(n - val[:office][:sum]).to_f) * ( val[:office][:sum] - 1) * K ) : 0).round(3)
+      gender_score = (val[:gender][:sum]-1 > 0 && n != val[:gender][:sum] ?  ((val[:gender][:other_selections].to_f/(n - val[:gender][:sum]).to_f) * ( val[:gender][:sum] - 1) * K ) : 0).round(3)
+      rank_score = (val[:rank][:sum]-1 > 0 && n != val[:rank][:sum] ?  ((val[:rank][:other_selections].to_f/(n - val[:rank][:sum]).to_f) * ( val[:rank][:sum] - 1) * K ) : 0).round(3)
+
+      QuestionnaireAlgorithm.create!(:employee_id => emp_id,:algorithm_type_id => algorithm_id,:network_id => network_id, :snapshot_id => sid, :general_score => general_score, :group_score => group_score, :office_score => office_score, :gender_score => gender_score, :rank_score => rank_score)
+    end
+  end
+
 
 
   def insert_internal_champions_values(participants_score,network_id,sid,n)
