@@ -7,7 +7,22 @@ require 'csv'
     qid = Questionnaire.where(:snapshot_id => sid).first.id
     base_mat = []
     participants = Employee
-      .select("emps.id,emps.external_id,emps.first_name,emps.last_name,emps.office_id,emps.gender,emps.group_id,emps.rank_id,g.name as group_name,emps.rank_id")
+      .select("emps.id,emps.external_id,emps.first_name,emps.last_name,g.name as group_name,
+      emps.office_id as office,
+      emps.gender,
+      emps.group_id as group,
+      emps.rank_id as rank,
+      emps.param_a_id as param_a,
+      emps.param_b_id as param_b,
+      emps.param_c_id as param_c,
+      emps.param_d_id as param_d,
+      emps.param_e_id as param_e,
+      emps.param_f_id as param_f,
+      emps.param_g_id as param_g,
+      emps.param_h,
+      emps.param_i,
+      emps.param_j,
+      ")
       .from("employees emps")
       .joins("left join groups g on emps.group_id = g.id")
       .where("emps.company_id=#{cid} and  emps.snapshot_id= #{sid}")
@@ -16,7 +31,7 @@ require 'csv'
     n = participants.length
     base_mat[0] = Array.new(n+1,0)
     emps_hash = {}
-    
+    paramsArr = ['office','gender', 'group','rank','param_a','param_b','param_c','param_d','param_e','param_f','param_g','param_h','param_i','param_j']
     participants.each_with_index do |val,idx|
       unless base_mat[idx+1] 
         base_mat[idx+1] = Array.new(n+1,0)
@@ -28,17 +43,17 @@ require 'csv'
         idx: idx+1,
         total_selections:  0,
         bidirectional_total: 0,
-        office: {name: val['office_id'], selections: 0, sum: 0, bidirectional: 0},
+        office: {name: val['office'], selections: 0, sum: 0, bidirectional: 0},
         gender:  {name: val['gender'], selections: 0, sum: 0, bidirectional: 0},
-        group: {name: val['group_id'], selections: 0, sum: 0, bidirectional: 0},
-        rank: {name: val['rank_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_a: {name: val['param_a_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_b: {name: val['param_b_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_c: {name: val['param_c_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_d: {name: val['param_d_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_e: {name: val['param_e_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_f: {name: val['param_f_id'], selections: 0, sum: 0, bidirectional: 0}, 
-        param_g: {name: val['param_g_id'], selections: 0, sum: 0, bidirectional: 0}, 
+        group: {name: val['group'], selections: 0, sum: 0, bidirectional: 0},
+        rank: {name: val['rank'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_a: {name: val['param_a'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_b: {name: val['param_b'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_c: {name: val['param_c'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_d: {name: val['param_d'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_e: {name: val['param_e'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_f: {name: val['param_f'], selections: 0, sum: 0, bidirectional: 0}, 
+        param_g: {name: val['param_g'], selections: 0, sum: 0, bidirectional: 0}, 
         param_h: {name: val['param_h'], selections: 0, sum: 0, bidirectional: 0}, 
         param_i: {name: val['param_i'], selections: 0, sum: 0, bidirectional: 0}, 
         param_j: {name: val['param_j'], selections: 0, sum: 0, bidirectional: 0}, 
