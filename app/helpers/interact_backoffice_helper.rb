@@ -413,44 +413,6 @@ module InteractBackofficeHelper
     return (value == 0 ? 1 : 0)
   end
 
-  def self.create_new_report_heading(ws,ic_merge_format,iso_merge_format,con_merge_format,header_format)
-    ws.merge_range("F1:J1", 'Internal Champion',ic_merge_format)
-    ws.merge_range("K1:O1", 'Isolated',iso_merge_format)
-    ws.merge_range("P1:T1", 'Connectors',con_merge_format)
-    ws.merge_range("U1:Y1", 'New Internal Champion', ic_merge_format)
-    ws.merge_range("Z1:AD1", 'New Connectors', con_merge_format)
-    ws.write('A2', 'ID',header_format)
-    ws.write('B2', 'First Name',header_format)
-    ws.write('C2', 'Last Name',header_format)
-    ws.write('D2', 'Group',header_format)
-    ws.write('E2', 'Q',header_format)
-    ws.write('F2', 'General',header_format)
-    ws.write('G2', 'Group')
-    ws.write('H2', 'Office')
-    ws.write('I2', 'Gender')
-    ws.write('J2', 'rank')
-    ws.write('K2', 'General',header_format)
-    ws.write('L2', 'Group')
-    ws.write('M2', 'Office')
-    ws.write('N2', 'Gender')
-    ws.write('O2', 'rank')
-    ws.write('P2', 'General',header_format)
-    ws.write('Q2', 'Group')
-    ws.write('R2', 'Office')
-    ws.write('S2', 'Gender')
-    ws.write('T2', 'rank')
-    ws.write('U2', 'General',header_format)
-    ws.write('V2', 'Group')
-    ws.write('W2', 'Office')
-    ws.write('X2', 'Gender')
-    ws.write('Y2', 'rank')
-    ws.write('Z2', 'General',header_format)
-    ws.write('AA2', 'Group')
-    ws.write('AB2', 'Office')
-    ws.write('AC2', 'Gender')
-    ws.write('AD2', 'rank')
-    return ws 
-  end
 
 ######################################################################################
   def self.measures_report(cid, sid)
@@ -984,6 +946,8 @@ module InteractBackofficeHelper
   end
 
   def self.network_metrics_report(cid,sid)
+    params = active_params(cid,sid)
+
     cid = Snapshot.find(sid).company_id    
     quest_algorithm = QuestionnaireAlgorithm.find_by_sql("select qa.*,qq.order,e.external_id,e.first_name,e.last_name, g.name as group_name,alt.name as algorithm_name
 from public.questionnaire_algorithms qa 
@@ -1001,78 +965,129 @@ order by qa.network_id, e.external_id")
           :external_id => res.external_id,
           :first_name =>res.first_name,
           :last_name => res.last_name,
-          :group_name => res.group_name,
-          'internal_champion' => {},
-          'connectors' => {},
-          'isolated' => {}
+          :group_name => res.group_name
         }
       end
-      networks[res.network_id][res.employee_id][res.algorithm_name] = {
-        :general => res.general_score, :group => res.group_score, :gender => res.gender_score, :rank => res.rank_score, :office => res.office_score}
-
+      # networks[res.network_id][res.employee_id][res.algorithm_name] = {
+      #   :general => res.general_score, :group => res.group_score, :gender => res.gender_score, :rank => res.rank_score, :office => res.office_score}
+      networks[res.network_id][res.employee_id][res.algorithm_name] = res
     end
     company_name = Company.find(cid).name
+    cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
+    param_names = {}
+    new_params = []
+    cfn.each do |factor|
+      if params.include?(factor.factor_name)
+        param_names[factor.factor_name] = (factor.display_name ? factor.display_name : factor.factor_name)
+        new_params << param_names[factor.factor_name]
+      end
+    end
     report_name = "networkMetricsReport-#{company_name}-#{Time.now.strftime('%Y%m%d')}.xlsx"
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
-    ic_merge_format = wb.add_format({
-    'align': 'center',
-    'valign': 'vcenter',
-    'fg_color': '#ffe699'})
-    iso_merge_format = wb.add_format({
-    'align': 'center',
-    'valign': 'vcenter',
-    'fg_color': '#b4c7e7'})
-    con_merge_format = wb.add_format({
-    'align': 'center',
-    'valign': 'vcenter',
-    'fg_color': '#c5e0b4'})  
-    header_format = wb.add_format({'bold': 1})
-    ws = create_new_report_heading(ws,ic_merge_format,iso_merge_format,con_merge_format,header_format)
+    ws = create_new_report_heading(wb,ws,new_params)
 
     i=3
+    measures = ['internal_champion','isolated','connectors','new_internal_champion','new_connectors']
+    static_params = ['general_score','group_score','office_score','gender_score','rank_score']
+    arr = static_params + params.map{|pa| "#{pa}_score"}
     networks = networks.sort_by { |key| key}.to_h
     idx=0
     networks.each do |quest,val|
+      col = 5
       idx += 1
       val = val.sort_by { |key| key}.to_h
-      # Rails.logger.info "Quest = #{quest}, VAL = #{val}"
       val.each do |a,r|
-        # Rails.logger.info "A = #{a}, R = #{r}"
         ws.write("A#{i}", r[:external_id])
         ws.write("B#{i}", r[:first_name])
         ws.write("C#{i}", r[:last_name])
         ws.write("D#{i}", r[:group_name])
         ws.write("E#{i}", "Q#{idx}")
-        ws.write("F#{i}", r['internal_champion'][:general].to_f)
-        ws.write("G#{i}", r['internal_champion'][:group].to_f)
-        ws.write("H#{i}", r['internal_champion'][:office].to_f)
-        ws.write("I#{i}", r['internal_champion'][:gender].to_f)
-        ws.write("J#{i}", r['internal_champion'][:rank].to_f)
-        ws.write("K#{i}", r['isolated'][:general].to_f)
-        ws.write("L#{i}", r['isolated'][:group].to_f)
-        ws.write("M#{i}", r['isolated'][:office].to_f)
-        ws.write("N#{i}", r['isolated'][:gender].to_f)
-        ws.write("O#{i}", r['isolated'][:rank].to_f)
-        ws.write("P#{i}",'')
-        ws.write("Q#{i}",r['connectors'][:group].to_f)
-        ws.write("R#{i}",r['connectors'][:office].to_f)
-        ws.write("S#{i}",r['connectors'][:gender].to_f)
-        ws.write("T#{i}",r['connectors'][:rank].to_f)
-        ws.write("U#{i}",'')
-        ws.write("V#{i}",r['new_internal_champion'][:group].to_f)
-        ws.write("W#{i}",r['new_internal_champion'][:office].to_f)
-        ws.write("X#{i}",r['new_internal_champion'][:gender].to_f)
-        ws.write("Y#{i}",r['new_internal_champion'][:rank].to_f)
-        ws.write("Z#{i}",'')
-        ws.write("AA#{i}",r['new_connectors'][:group].to_f)
-        ws.write("AB#{i}",r['new_connectors'][:office].to_f)
-        ws.write("AC#{i}",r['new_connectors'][:gender].to_f)
-        ws.write("AD#{i}",r['new_connectors'][:rank].to_f)
-        i += 1
+        measures.each_with_index do |measure,index1|
+          arr.each_with_index do |score, index2|
+            j = col+index2+(arr.length * index1)
+            if r[measure] 
+              ws.write(i-1,j, r[measure][score].to_f)
+            end
+          end
+        end
+          i += 1
       end
     end
     wb.close
     return report_name
+  end
+
+  def self.create_new_report_heading(wb,ws,dynamic_params)
+    ic_merge_format = wb.add_format({
+      'align': 'center',
+      'valign': 'vcenter',
+      'fg_color': '#ffe699'})
+    iso_merge_format = wb.add_format({
+      'align': 'center',
+      'valign': 'vcenter',
+      'fg_color': '#b4c7e7'})
+    con_merge_format = wb.add_format({
+      'align': 'center',
+      'valign': 'vcenter',
+      'fg_color': '#c5e0b4'})  
+    header_format = wb.add_format({'bold': 1})
+  
+    col = 5
+    static_params = ['Group','office','Gender','Rank']
+    cells = 1+static_params.length + dynamic_params.length
+
+    ws.merge_range(0,col,0,col+(cells*1)-1,'Internal Champion',ic_merge_format)
+    ws.merge_range(0,col+(cells*1),0,col+(cells*2)-1,'Isolated',iso_merge_format)
+    ws.merge_range(0,col+(cells*2),0,col+(cells*3)-1, 'Connectors',con_merge_format)
+    ws.merge_range(0,col+(cells*3),0,col+(cells*4)-1, 'New Internal Champion', ic_merge_format)
+    ws.merge_range(0,col+(cells*4),0,col+(cells*5)-1, 'New Connectors', con_merge_format)
+    metrics = ['Internal Champion','Isolated','Connectors','New Internal Champion','New Connectors']
+
+    ws.write('A2', 'ID',header_format)
+    ws.write('B2', 'First Name',header_format)
+    ws.write('C2', 'Last Name',header_format)
+    ws.write('D2', 'Group',header_format)
+    ws.write('E2', 'Q',header_format)
+    col = 5
+    arr = static_params + dynamic_params
+    for i in 0...metrics.length
+      ws.write(1,col,'General',header_format)
+      arr.each do |col_name|
+        col += 1
+        ws.write(1,col, col_name)
+      end
+      col += 1
+    end
+    return ws 
+  end
+
+
+  def self.active_params(cid,sid)
+    actives = []
+    
+    sqlstr = "SELECT COUNT(id) as id,
+                                COUNT(factor_a_id) as param_a,
+                                COUNT(factor_b_id) as param_b,
+                                COUNT(factor_c_id) as param_c,
+                                COUNT(factor_d_id) as param_d,
+                                COUNT(factor_e_id) as param_e,
+                                COUNT(factor_f_id) as param_f,
+                                COUNT(factor_g_id) as param_g,
+                                COUNT(CASE WHEN TRIM(factor_h)=''  THEN NULL ELSE factor_h END) as param_h,
+                                COUNT(CASE WHEN TRIM(factor_i)=''  THEN NULL ELSE factor_i END) as param_i,
+                                COUNT(CASE WHEN TRIM(factor_j)=''  THEN NULL ELSE factor_j END) as param_j 
+                                FROM employees
+                                WHERE snapshot_id=#{sid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    if res[0]
+      n = res[0]['id'] 
+      res[0].each do |key, val|
+        if val == n && key != 'id'
+          actives << key
+        end
+      end
+    end
+    return actives
   end
 end
