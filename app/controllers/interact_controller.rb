@@ -64,7 +64,8 @@ class InteractController < ApplicationController
         question_scores: question_scores_data(sid,gids,nid,cid),
         collaboration: question_collaboration_score(gids[0], nid),
         synergy: question_synergy_score(sid,gids,nid),
-        centrality: question_centrality_score(sid,gids, nid)
+        centrality: question_centrality_score(sid,gids, nid),
+        active_params: question_active_params(cid,sid)
       }
     end
     res = Oj.dump(res)

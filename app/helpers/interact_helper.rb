@@ -71,7 +71,23 @@ module InteractHelper
 
   def question_scores_data(sid,gids, nid, cid)
     gids_str = gids.join(',')
-    sqlstr = "select e.first_name ||' '|| e.last_name as name,at.name as algorithm_name, general_score as general, office_score as office, rank_score as rank, gender_score as gender, group_score as group 
+    sqlstr = "select e.first_name ||' '|| e.last_name as name,
+              at.name as algorithm_name, 
+              general_score as general, 
+              office_score as office, 
+              rank_score as rank, 
+              gender_score as gender, 
+              group_score as group,
+              param_a_score as param_a,
+              param_b_score as param_b,
+              param_c_score as param_c,
+              param_d_score as param_d,
+              param_e_score as param_e,
+              param_f_score as param_f,
+              param_g_score as param_g,
+              param_h_score as param_h,
+              param_i_score as param_i,
+              param_j_score as param_j
     FROM questionnaire_algorithms qa
     left join employees e on e.id= qa.employee_id 
     JOIN groups g ON g.id=e.group_id
@@ -83,6 +99,18 @@ module InteractHelper
     order by last_name"
     res = ActiveRecord::Base.connection.select_all(sqlstr)
     return res
+  end
+
+  def question_active_params(cid,sid)
+    active_params = Employee.active_params(cid,sid)
+    cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
+    param_names = {}
+    cfn.each do |factor|
+      if active_params.include?(factor.factor_name)
+        param_names[factor.factor_name] = (factor.display_name ? factor.display_name : factor.factor_name)
+      end
+    end
+    return param_names
   end
 
   def question_synergy_score(sid,gids, nid)

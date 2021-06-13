@@ -946,7 +946,7 @@ module InteractBackofficeHelper
   end
 
   def self.network_metrics_report(cid,sid)
-    params = active_params(cid,sid)
+    params = Employee.active_params(cid,sid)
 
     cid = Snapshot.find(sid).company_id    
     quest_algorithm = QuestionnaireAlgorithm.find_by_sql("select qa.*,qq.order,e.external_id,e.first_name,e.last_name, g.name as group_name,alt.name as algorithm_name
@@ -974,12 +974,10 @@ order by qa.network_id, e.external_id")
     end
     company_name = Company.find(cid).name
     cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
-    param_names = {}
     new_params = []
     cfn.each do |factor|
       if params.include?(factor.factor_name)
-        param_names[factor.factor_name] = (factor.display_name ? factor.display_name : factor.factor_name)
-        new_params << param_names[factor.factor_name]
+        new_params << (factor.display_name ? factor.display_name : factor.factor_name)
       end
     end
     report_name = "networkMetricsReport-#{company_name}-#{Time.now.strftime('%Y%m%d')}.xlsx"
@@ -1062,32 +1060,4 @@ order by qa.network_id, e.external_id")
     return ws 
   end
 
-
-  def self.active_params(cid,sid)
-    actives = []
-    
-    sqlstr = "SELECT COUNT(id) as id,
-                                COUNT(factor_a_id) as param_a,
-                                COUNT(factor_b_id) as param_b,
-                                COUNT(factor_c_id) as param_c,
-                                COUNT(factor_d_id) as param_d,
-                                COUNT(factor_e_id) as param_e,
-                                COUNT(factor_f_id) as param_f,
-                                COUNT(factor_g_id) as param_g,
-                                COUNT(CASE WHEN TRIM(factor_h)=''  THEN NULL ELSE factor_h END) as param_h,
-                                COUNT(CASE WHEN TRIM(factor_i)=''  THEN NULL ELSE factor_i END) as param_i,
-                                COUNT(CASE WHEN TRIM(factor_j)=''  THEN NULL ELSE factor_j END) as param_j 
-                                FROM employees
-                                WHERE snapshot_id=#{sid}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
-    if res[0]
-      n = res[0]['id'] 
-      res[0].each do |key, val|
-        if val == n && key != 'id'
-          actives << key
-        end
-      end
-    end
-    return actives
-  end
 end

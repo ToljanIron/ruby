@@ -364,4 +364,32 @@ class Employee < ActiveRecord::Base
     return extid2id[extid]
   end
 
+  def self.active_params(cid,sid)
+    actives = []
+    
+    sqlstr = "SELECT COUNT(id) as id,
+                                COUNT(factor_a_id) as param_a,
+                                COUNT(factor_b_id) as param_b,
+                                COUNT(factor_c_id) as param_c,
+                                COUNT(factor_d_id) as param_d,
+                                COUNT(factor_e_id) as param_e,
+                                COUNT(factor_f_id) as param_f,
+                                COUNT(factor_g_id) as param_g,
+                                COUNT(CASE WHEN TRIM(factor_h)=''  THEN NULL ELSE factor_h END) as param_h,
+                                COUNT(CASE WHEN TRIM(factor_i)=''  THEN NULL ELSE factor_i END) as param_i,
+                                COUNT(CASE WHEN TRIM(factor_j)=''  THEN NULL ELSE factor_j END) as param_j 
+                                FROM employees
+                                WHERE snapshot_id=#{sid}"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    if res[0]
+      n = res[0]['id'] 
+      res[0].each do |key, val|
+        if val == n && key != 'id'
+          actives << key
+        end
+      end
+    end
+    return actives
+  end
+
 end
