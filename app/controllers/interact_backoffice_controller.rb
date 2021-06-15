@@ -844,6 +844,16 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def save_k_factor
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qid = sanitize_id(params[:qid])
+      q = Questionnaire.find(qid)
+      k = params[:k_factor]
+      q.update_attributes!(k_factor: k)
+    end
+  end
+
   def simulate_results
     authorize :interact, :admin_only?
     ibo_process_request do

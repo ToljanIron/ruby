@@ -107,6 +107,7 @@ Workships::Application.routes.draw do
   post '/interact_backoffice/remove_participants',      to: 'interact_backoffice#remove_participants'
   post '/interact_backoffice/save_params',      to: 'interact_backoffice#update_data_mapping'
   get '/interact_backoffice/get_factors',               to: 'interact_backoffice#get_factors'
+  post '/interact_backoffice/save_k_factor',    to: 'interact_backoffice#save_k_factor'       
 
   ############################ v3 ############################
 

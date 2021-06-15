@@ -57,15 +57,16 @@ class InteractController < ApplicationController
       # gid = (gid.nil? || gid == 0) ? Group.get_root_questionnaire_group(qid) : gid
       gids = (gids.nil? || gids.length == 0) ? [Group.get_root_questionnaire_group(qid)] : gids
       cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
-
+      k_factor = questionnaire.k_factor
       res_indeg = question_indegree_data(sid, gids, cid, cmid)
       res = {
         indeg: res_indeg,
-        question_scores: question_scores_data(sid,gids,nid,cid),
+        question_scores: question_scores_data(sid,gids,nid,cid,k_factor),
         collaboration: question_collaboration_score(gids[0], nid),
         synergy: question_synergy_score(sid,gids,nid),
         centrality: question_centrality_score(sid,gids, nid),
-        active_params: question_active_params(cid,sid)
+        active_params: question_active_params(cid,sid),
+        slider_val: k_factor
       }
     end
     res = Oj.dump(res)
