@@ -102,8 +102,10 @@ module InteractHelper
     k = k_factor
     affected_measures = ['new_connectors','new_internal_champion']
     a_m = affected_measures.join("','")
-    sqlstr = "select e.first_name ||' '|| e.last_name as name,
-              at.name as algorithm_name, 
+    sqlstr = "select e.first_name ||' '|| e.last_name as name, 
+              g.name AS group_name,
+              at.name as algorithm_name,
+              c.rgb as color,
               CASE WHEN at.name in('#{a_m}') THEN general_score * #{k} ELSE  general_score END AS general, 
               CASE WHEN at.name in('#{a_m}') THEN office_score * #{k} ELSE  office_score END AS office, 
               CASE WHEN at.name in('#{a_m}') THEN rank_score * #{k} ELSE  rank_score END AS rank, 
@@ -122,7 +124,8 @@ module InteractHelper
     FROM questionnaire_algorithms qa
     left join employees e on e.id= qa.employee_id 
     JOIN groups g ON g.id=e.group_id
-    left join algorithm_types at on qa.algorithm_type_id = at.id 
+    left join algorithm_types at on qa.algorithm_type_id = at.id
+    left join colors c on c.id=g.color_id
     where 
     qa.snapshot_id=#{sid} AND 
     qa.network_id = #{nid} AND 
