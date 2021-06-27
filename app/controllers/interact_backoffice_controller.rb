@@ -847,10 +847,22 @@ class InteractBackofficeController < ApplicationController
   def save_k_factor
     authorize :interact, :authorized?
     ibo_process_request do
-      qid = sanitize_id(params[:qid])
+      permitted = params.permit(:qqid, :qid, :k_factor)
+      qid = sanitize_id(permitted[:qid])
+      gids = sanitize_ids(params[:gids])
+      qqid = sanitize_id(permitted[:qqid])
+      k = permitted[:k_factor]
+      Rails.logger.info "qid=#{qid}, gids=#{gids}, qqid=#{qqid}, k=#{k}"
       q = Questionnaire.find(qid)
-      k = params[:k_factor]
-      q.update_attributes!(k_factor: k)
+      sid = q.snapshot_id
+      if q.update_attributes!(k_factor: k)
+        qq = QuestionnaireQuestion.find(qqid)
+        nid = qq.network_id
+        res = QuestionnaireAlgorithm.get_question_score(sid,gids,nid,@cid,k)
+        [{question_scores: res}, nil]
+      else
+        [{err: "error"}, nil]
+      end
     end
   end
 
