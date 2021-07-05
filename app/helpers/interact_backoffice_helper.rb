@@ -644,8 +644,16 @@ module InteractBackofficeHelper
     qp = QuestionnaireParticipant.find(qpid)
     aq = qp.questionnaire
     QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
+    emp = Employee.find(qp.employee_id)
+    emps_in_group = Employee.where(group_id: emp.group_id)
+    if emps_in_group.length == 1
+      Group.find(emp.group_id).destroy
+    end
+    emp.destroy
     qp.try(:delete)
     aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
+    cache_key = "groups-comapny_id-uid-#{current_user.id}-cid-#{aq.company_id}-sid-#{aq.snapshot_id}-qid-#{aq.id}"
+    res = cache_delete(cache_key)
     aq['state'] = Questionnaire.state_name_to_number(aq['state'])
     return aq
   end
@@ -988,6 +996,7 @@ order by qa.network_id, e.external_id")
     i=3
     measures = ['internal_champion','isolated','connectors','new_internal_champion','new_connectors']
     static_params = ['general_score','group_score','office_score','gender_score','rank_score']
+    affected_measures = ['new_connectors','new_internal_champion']
     arr = static_params + params.map{|pa| "#{pa}_score"}
     networks = networks.sort_by { |key| key}.to_h
     idx=0
