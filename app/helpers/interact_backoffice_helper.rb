@@ -100,7 +100,17 @@ module InteractBackofficeHelper
     ws.write('I1', 'office')
     ws.write('J1', 'group')
     ws.write('K1', 'phone')
-
+    ws.write('L1', 'param_a')
+    ws.write('M1', 'param_b')
+    ws.write('N1', 'param_c')
+    ws.write('O1', 'param_d')
+    ws.write('P1', 'paran_e')
+    ws.write('Q1', 'param_f')
+    ws.write('R1', 'param_g')
+    ws.write('S1', 'param_h')
+    ws.write('T1', 'param_i')
+    ws.write('U1', 'param_j')
+ 
     ws.write('A2', '111')
     ws.write('B2', 'Abi')
     ws.write('C2', 'Someone')
@@ -112,6 +122,16 @@ module InteractBackofficeHelper
     ws.write('I2', 'Netanya')
     ws.write('J2', 'R&D Central')
     ws.write('K2', '053-1122333')
+    ws.write('L2', '')
+    ws.write('M2', '')
+    ws.write('N2', '')
+    ws.write('O2', '')
+    ws.write('P2', '')
+    ws.write('Q2', '')
+    ws.write('R2', '')
+    ws.write('S2', '')
+    ws.write('T2', '')
+    ws.write('U2', '')
 
     ws.write('A3', '222')
     ws.write('B3', 'Benny')
@@ -124,6 +144,16 @@ module InteractBackofficeHelper
     ws.write('I3', 'Netanya')
     ws.write('J3', 'R&D Central')
     ws.write('K3', '058-9873457')
+    ws.write('L3', '')
+    ws.write('M3', '')
+    ws.write('N3', '')
+    ws.write('O3', '')
+    ws.write('P3', '')
+    ws.write('Q3', '')
+    ws.write('R3', '')
+    ws.write('S3', '')
+    ws.write('T3', '')
+    ws.write('U3', '')
 
     ws.write('A4', '333')
     ws.write('B4', 'Gadi')
@@ -136,6 +166,16 @@ module InteractBackofficeHelper
     ws.write('I4', 'Ashdod')
     ws.write('J4', 'R&D South')
     ws.write('K4', '052-3141592')
+    ws.write('L4', '')
+    ws.write('M4', '')
+    ws.write('N4', '')
+    ws.write('O4', '')
+    ws.write('P4', '')
+    ws.write('Q4', '')
+    ws.write('R4', '')
+    ws.write('S4', '')
+    ws.write('T4', '')
+    ws.write('U4', '')
 
     ## Groups
     ws = wb.add_worksheet('Groups')
@@ -640,7 +680,7 @@ module InteractBackofficeHelper
     ).create_token
   end
 
-  def self.delete_participant(qpid)
+  def self.delete_participant(qpid,user_id)
     qp = QuestionnaireParticipant.find(qpid)
     aq = qp.questionnaire
     QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
@@ -652,11 +692,21 @@ module InteractBackofficeHelper
     emp.destroy
     qp.try(:delete)
     aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
-    cache_key = "groups-comapny_id-uid-#{current_user.id}-cid-#{aq.company_id}-sid-#{aq.snapshot_id}-qid-#{aq.id}"
-    res = cache_delete(cache_key)
+    cache_key = "groups-comapny_id-uid-#{user_id}-cid-#{aq.company_id}-sid-#{aq.snapshot_id}-qid-#{aq.id}"
+    res = cache_delete(cache_key,'')
     aq['state'] = Questionnaire.state_name_to_number(aq['state'])
     return aq
   end
+
+  def self.remove_questionnaire_participans(qid,user_id)
+    questionnaire = Questionnaire.find(qid)
+    snapshot_id =  questionnaire.snapshot_id
+    QuestionnaireParticipant.where(questionnaire_id: qid).where.not(employee_id: -1).destroy_all
+    Group.where(snapshot_id: snapshot_id).destroy_all
+    Employee.where(snapshot_id: snapshot_id).destroy_all
+    cache_key = "groups-comapny_id-uid-#{user_id}-cid-#{questionnaire.company_id}-sid-#{snapshot_id}-qid-#{questionnaire.id}"
+    cache_delete(cache_key,'')
+ end
 
   def self.create_employee(cid, p, aq)
     qid = aq.id
@@ -732,7 +782,7 @@ module InteractBackofficeHelper
     return errors.join('<br>')
   end
 
-  def self.add_all_employees_as_participants(eids, aq)
+  def self.add_all_employees_as_participants(eids, aq, user_id)
     cid = aq.company_id
     emps = Employee.where(id: eids, active: true, company_id: cid)
     gids = []
@@ -753,6 +803,9 @@ module InteractBackofficeHelper
     gids.each do |gid|
       update_questionnaire_id_in_groups_heirarchy(gid, qid)
     end
+    cache_key = "groups-comapny_id-uid-#{user_id}-cid-#{cid}-sid-#{aq.snapshot_id}-qid-#{aq.id}"
+    res = cache_delete(cache_key,'')
+
   end
 
   ###################### States ########################

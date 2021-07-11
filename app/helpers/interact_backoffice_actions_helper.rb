@@ -148,13 +148,6 @@ module InteractBackofficeActionsHelper
     return nil
   end
 
-  def self.remove_questionnaire_participans(qid)
-    questionnaire = Questionnaire.find(qid)
-    snapshot_id =  questionnaire.snapshot_id
-    QuestionnaireParticipant.where(questionnaire_id: qid).where.not(employee_id: -1).destroy_all
-    Group.where(snapshot_id: snapshot_id).destroy_all
-    Employee.where(snapshot_id: snapshot_id).destroy_all
-  end
 
   ################## Send questionnaire ###############################
   def self.send_test_questionnaire(aq)

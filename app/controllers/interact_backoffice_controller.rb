@@ -101,7 +101,7 @@ class InteractBackofficeController < ApplicationController
     ibo_process_request do
       qid = params[:qid]
       q = Questionnaire.find(qid)
-      errors = InteractBackofficeActionsHelper.remove_questionnaire_participans(qid)
+      errors = InteractBackofficeHelper.remove_questionnaire_participans(qid,current_user.id)
       [{participants: [], questionnaire: q}, errors: [] ]
     end
   end
@@ -573,7 +573,7 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
-      aq = InteractBackofficeHelper.delete_participant(qpid)
+      aq = InteractBackofficeHelper.delete_participant(qpid,current_user.id)
       participants, errors = prepare_data(aq[:id])
       [{participants: participants, questionnaire: aq}, errors]
     end
@@ -790,7 +790,7 @@ class InteractBackofficeController < ApplicationController
       if !emps_excel.nil?
         sid = aq.snapshot_id
         eids, errors2 = load_excel_sheet(@cid, params[:fileToUpload], sid, true)
-        InteractBackofficeHelper.add_all_employees_as_participants(eids, aq)
+        InteractBackofficeHelper.add_all_employees_as_participants(eids, aq, current_user.id)
         CompanyFactorName.insert_factors(@cid,sid)
         ## Update the questinnaire's state if needed
         if !InteractBackofficeHelper.test_tab_enabled(aq)
