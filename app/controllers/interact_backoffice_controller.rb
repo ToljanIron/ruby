@@ -102,6 +102,8 @@ class InteractBackofficeController < ApplicationController
       qid = params[:qid]
       q = Questionnaire.find(qid)
       errors = InteractBackofficeHelper.remove_questionnaire_participans(qid,current_user.id)
+      q = q.as_json
+      q['state'] = Questionnaire.state_name_to_number(q['state'])     
       [{participants: [], questionnaire: q}, errors: [] ]
     end
   end
@@ -575,6 +577,8 @@ class InteractBackofficeController < ApplicationController
       qpid = sanitize_id(params[:qpid])
       aq = InteractBackofficeHelper.delete_participant(qpid,current_user.id)
       participants, errors = prepare_data(aq[:id])
+      aq = aq.as_json
+      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
       [{participants: participants, questionnaire: aq}, errors]
     end
   end
