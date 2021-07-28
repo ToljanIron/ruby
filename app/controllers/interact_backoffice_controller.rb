@@ -100,11 +100,9 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
     ibo_process_request do
       qid = params[:qid]
-      q = Questionnaire.find(qid)
       errors = InteractBackofficeHelper.remove_questionnaire_participans(qid,current_user.id)
-      q = q.as_json
-      q['state'] = Questionnaire.state_name_to_number(q['state'])     
-      [{participants: [], questionnaire: q}, errors: [] ]
+      q = Questionnaire.get_questionnaires([qid])
+      [{participants: [], questionnaire: q.first}, errors: [] ]
     end
   end
 
@@ -575,11 +573,11 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
-      aq = InteractBackofficeHelper.delete_participant(qpid,current_user.id)
+      qp = QuestionnaireParticipant.find(qpid)
+      aq = InteractBackofficeHelper.delete_participant(qp,current_user.id)
       participants, errors = prepare_data(aq[:id])
-      aq = aq.as_json
-      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
-      [{participants: participants, questionnaire: aq}, errors]
+      q = Questionnaire.get_questionnaires([aq.id])
+      [{participants: participants, questionnaire: q.first}, errors]
     end
   end
 
@@ -634,13 +632,9 @@ class InteractBackofficeController < ApplicationController
 
   def participants_get_emps
     authorize :interact, :authorized?
-    sid = Employee
-      .where(company_id: @cid)
-      .select(:snapshot_id)
-      .distinct
-      .pluck(:snapshot_id)
-      .sort
-      .last
+    qid = sanitize_id(params[:qid])
+    q = Questionnaire.find(qid)
+    sid = q.snapshot_id
     file_name = InteractBackofficeHelper.download_employees(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
@@ -804,15 +798,13 @@ class InteractBackofficeController < ApplicationController
         end
       end
 
-      aq = aq.as_json
-      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
-
+      aq = Questionnaire.get_questionnaires([qid])
       participants, errors3 = prepare_data(qid)
       errors = []
       errors << errors1 unless errors1
       errors << errors2 unless errors2
       errors << errors3 unless errors3
-      [{participants: participants, questionnaire: aq}, errors: errors ]
+      [{participants: participants, questionnaire: aq.first}, errors: errors ]
     end
   end
 

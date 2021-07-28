@@ -214,16 +214,43 @@ module InteractBackofficeHelper
     ws.write('I1', 'office')
     ws.write('J1', 'group')
     ws.write('K1', 'phone')
+    ws.write('L1', 'param_a')
+    ws.write('M1', 'param_b')
+    ws.write('N1', 'param_c')
+    ws.write('O1', 'param_d')
+    ws.write('P1', 'paran_e')
+    ws.write('Q1', 'param_f')
+    ws.write('R1', 'param_g')
+    ws.write('S1', 'param_h')
+    ws.write('T1', 'param_i')
+    ws.write('U1', 'param_j')
 
     emps = Employee
       .select("emps.external_id, first_name, last_name, email, ro.name AS role,
                emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
-               g.name AS group, phone_number")
+               g.name AS group, phone_number,
+               fa.name as param_a,
+               fb.name as param_b,
+               fc.name as param_c,
+               fd.name as param_d,
+               fe.name as param_e,
+               ff.name as param_f,
+               fg.name as param_g,
+               emps.factor_h as param_h,
+               emps.factor_i as param_i,
+               emps.factor_j as param_j")
       .from('employees AS emps')
       .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
       .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
       .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
       .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
+      .joins("LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id")
+      .joins("LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id")
+      .joins("LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id")
+      .joins("LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id")
+      .joins("LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id")
+      .joins("LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id")
+      .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
       .where('emps.company_id = ?', cid)
       .where('emps.snapshot_id = ?', sid)
       .order('emps.email')
@@ -242,6 +269,16 @@ module InteractBackofficeHelper
       ws.write("I#{ii}", e['office'])
       ws.write("J#{ii}", e['group'])
       ws.write("K#{ii}", e['phone_number'])
+      ws.write("L#{ii}", e['param_a'])
+      ws.write("M#{ii}", e['param_b'])
+      ws.write("N#{ii}", e['param_c'])
+      ws.write("O#{ii}", e['param_d'])
+      ws.write("P#{ii}", e['param_e'])
+      ws.write("Q#{ii}", e['param_f'])
+      ws.write("R#{ii}", e['param_g'])
+      ws.write("S#{ii}", e['param_h'])
+      ws.write("T#{ii}", e['param_i'])
+      ws.write("U#{ii}", e['param_j'])
     end
 
     ## Groups
@@ -680,8 +717,7 @@ module InteractBackofficeHelper
     ).create_token
   end
 
-  def self.delete_participant(qpid,user_id)
-    qp = QuestionnaireParticipant.find(qpid)
+  def self.delete_participant(qp,user_id)
     aq = qp.questionnaire
     QuestionReply.where(questionnaire_participant_id: qp.id).delete_all
     emp = Employee.find(qp.employee_id)
@@ -691,10 +727,9 @@ module InteractBackofficeHelper
     end
     emp.destroy
     qp.try(:delete)
-    aq.update!(state: :notstarted) if !test_tab_enabled(qp.questionnaire)
+    aq.update!(state: :notstarted) if !test_tab_enabled(aq)
     cache_key = "groups-comapny_id-uid-#{user_id}-cid-#{aq.company_id}-sid-#{aq.snapshot_id}-qid-#{aq.id}"
     res = cache_delete(cache_key,'')
-    aq['state'] = Questionnaire.state_name_to_number(aq['state'])
     return aq
   end
 

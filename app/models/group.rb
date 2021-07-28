@@ -249,14 +249,15 @@ class Group < ActiveRecord::Base
   def self.create_snapshot(cid, prev_sid, sid, force_create=false)
     return if Group.where(snapshot_id: sid).count > 0 unless force_create
     prev_sid = -1 if Group.where(snapshot_id: prev_sid).count == 0
-
+    q = Questionnaire.where(snapshot_id: sid)
+    qid = q.length > 0 ? q.first.id : 'null'
     ActiveRecord::Base.transaction do
       sqlstr =
         "INSERT INTO groups
            (name, company_id, parent_group_id, color_id, created_at, updated_at,
             external_id, english_name, snapshot_id, questionnaire_id, nsleft, nsright)
            SELECT name, company_id, parent_group_id, color_id, created_at, updated_at,
-                  external_id, english_name, #{sid}, questionnaire_id, nsleft, nsright
+                  external_id, english_name, #{sid}, #{qid}, nsleft, nsright
            FROM groups
            WHERE
              snapshot_id = #{prev_sid} AND
