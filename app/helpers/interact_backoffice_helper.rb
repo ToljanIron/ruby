@@ -338,7 +338,7 @@ module InteractBackofficeHelper
         puts "Did not find employee with id: #{r['tid']}"
         next
       end
-      network = h_networks[r['nid']]
+      network = h_networks[r['nid'].to_s]
       ws = network_report_write_row(ws, network, femp, temp, row)
       row += 1
     end
@@ -434,10 +434,16 @@ module InteractBackofficeHelper
       h_emps[e['id'].to_s] = e
     end
 
-    networks = NetworkName.all
+    # networks = NetworkName.all
+    # h_networks = {}
+    # networks.each do |n|
+    #   h_networks[n.id.to_s] = n.name
+    # end
+    questionaire_questions = Questionnaire.where(snapshot_id: sid).first
+    .questionnaire_questions.where(active: true)
     h_networks = {}
-    networks.each do |n|
-      h_networks[n.id.to_s] = n.name
+    questionaire_questions.each do |qq|
+      h_networks[qq.network_id.to_s] = qq.title
     end
 
     sqlstr =
@@ -499,12 +505,13 @@ module InteractBackofficeHelper
       "SELECT
          first_name || ' ' || last_name AS emp_name, emps.external_id AS emp_id, ro.name AS role, ra.name AS rank,
          g.name AS group, o.name AS office, emps.gender, jt.name AS job_title,
-         al.name AS algo_direction, nn.name AS metric_name, cds.score
+         al.name AS algo_direction, qq.title AS metric_name, cds.score
        FROM cds_metric_scores AS cds
        JOIN employees AS emps ON emps.id = cds.employee_id
        JOIN company_metrics AS cm ON cm.id = cds.company_metric_id
        JOIN algorithms AS al ON al.id = cm.algorithm_id
        JOIN network_names AS nn ON nn.id = cm.network_id
+       JOIN questionnaire_questions qq ON qq.network_id = nn.id
        LEFT JOIN roles AS ro ON ro.id = emps.role_id
        LEFT JOIN ranks AS ra ON ra.id = emps.rank_id
        LEFT JOIN groups AS g ON g.id = cds.group_id
