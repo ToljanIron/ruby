@@ -27,7 +27,7 @@
       <div class='full-question-blocker-show' ng-class="(!show_full_question && !show_popup) && 'full-question-blocker-hide'"></div>
       <div class='question-container' ng-class="show_full_question && 'question-container-display'">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question'></bdi></div>
-        <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
+        <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question' dir="rtl"></bdi></div>
         <div class='close-btn close-q-container'>
           <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div> 
       </div>
