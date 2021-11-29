@@ -745,15 +745,28 @@ class InteractBackofficeController < ApplicationController
       emp = Employee.find_by(email: empident, snapshot_id: sid)
       emp = Employee.find_by(phone_number: empident, snapshot_id: sid) if emp.nil?
       err = []
+      success = false
       if emp.nil?
         err << "No participant with email or phone: #{empident}"
       else
         eid = emp.id
-        err << InteractBackofficeActionsHelper.upload_employee_img(file, eid)
-        ret, err2 = prepare_data(qid)
-        err.concat(err2) if !err2.nil?
+        result = InteractBackofficeActionsHelper.upload_employee_img(file, eid) 
+        err << result unless result.nil?
+        # ret, err2 = prepare_data(qid)
+        success=true
+        # err.concat(err2) if !err2.nil?
       end
-      [ret, err]
+      # [{participants: ret}, err]
+      [{img: file_name,success: success},err]
+    end
+  end
+
+  def participants_refresh
+    authorize :interact, :authorized?
+    ibo_process_request do
+      qid = sanitize_id(params[:qid])
+      ret, err = prepare_data(qid)
+      [{participants: ret}, err]
     end
   end
 

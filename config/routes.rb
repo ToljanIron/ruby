@@ -101,6 +101,7 @@ Workships::Application.routes.draw do
   get  '/interact_backoffice/actions_download_sample' ,to: 'interact_backoffice#download_sample'
   get  '/interact_backoffice/actions_participants_status' ,to: 'interact_backoffice#download_participants_status'
   post '/interact_backoffice/actions_upload_participants' ,to: 'interact_backoffice#upload_participants'
+  get '/interact_backoffice/participants_refresh' ,to: 'interact_backoffice#participants_refresh'
 
   post '/interact_backoffice/simulate_replies',        to: 'interact_backoffice#simulate_results'
 
