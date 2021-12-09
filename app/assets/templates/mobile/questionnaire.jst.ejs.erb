@@ -23,26 +23,40 @@
   </div>
   
   <div class='mobile-content' id="main_container" ng-class="{'finish-question': isFinished() && isLoaded()}">
-    <div class='question-instruction-tooltip' ng-click='hidePopup()'>
-      <div class='full-question-blocker-show' ng-class="(!show_full_question && !show_popup) && 'full-question-blocker-hide'"></div>
-      <div class='question-container' ng-class="show_full_question && 'question-container-display'">
+    <div class='question-instruction-tooltip' ng-click="hidePopup()">
+      <div class='full-question-blocker-show' ng-class="{'full-question-blocker-hide': (!show_full_question && !show_popup)}"></div>
+      <div class='question-container' ng-class="{'question-container-display': show_full_question}">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question' dir="rtl"></bdi></div>
         <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
         <div class='close-btn close-q-container'>
           <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div> 
-      </div>
-      <div class="genericPopUp confirm-box" ng-class="{'confirm-box-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
-        <div class="subject">
-          <span>{{mobile_app_service.t('are_you_sure')}}<%#= I18n.t('questionnaire.are_you_sure')%></span>
-          <span>{{getChosenEmployee()}}? </span>
         </div>
-        <div class="popup-buttons">
-          <div class= "actions-btn ok-btn" ng-click="onSelect()">{{mobile_app_service.t('ok')}}<%#= I18n.t('questionnaire.ok')%></div>
-          <div class="actions-btn cancel-btn" ng-click="onCancel()">{{mobile_app_service.t('cancel')}}<%#= I18n.t('questionnaire.cancel')%></div>
+        <div class="genericPopUp confirm-box" ng-class="{'genericPopUp-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
+          <div class="subject">
+            <span>{{mobile_app_service.t('are_you_sure')}}<%#= I18n.t('questionnaire.are_you_sure')%></span>
+            <span>{{getChosenEmployee()}}? </span>
+          </div>
+          <div class="popup-buttons">
+            <div class= "actions-btn ok-btn" ng-click="onSelect()">{{mobile_app_service.t('ok')}}<%#= I18n.t('questionnaire.ok')%></div>
+            <div class="actions-btn cancel-btn" ng-click="onCancel()">{{mobile_app_service.t('cancel')}}<%#= I18n.t('questionnaire.cancel')%></div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div class="genericPopUp" ng-class="{'genericPopUp-display': isDisplaySafariMsg(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
+          <div class="x-cancel" ng-click="onCancelSafariMsg()"></div>
+          <div class="subject">
+            <span>{{mobile_app_service.t('hi')}} {{mobile_app_service.getUserName()}}</span>
+            <!-- <span></span> -->
+          </div>
+          <div class="genericPopup-content"><span>{{mobile_app_service.t('safari_msg')}}</span></div>
+          <div class="popup-buttons"  style="margin-top: 0;">
+            <!-- <div class= "actions-btn ok-btn" ng-click="onSelect()">{{mobile_app_service.t('ok')}}<%#= I18n.t('questionnaire.ok')%></div> -->
+            <div class="actions-btn copy-btn" ng-click="copyLink()">{{mobile_app_service.t('copy_link')}}</div>
+          </div>
+          <div class="link_copied" ng-class="{'link_copied_display': link_copied}"><span>{{mobile_app_service.t('link_copied')}}</span></div>
+        </div>
+
+      </div>
     <div ng-show='!isFinished() && isLoaded()'>
 <!--       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
@@ -190,4 +204,7 @@
     </div>
   </div>
 </div>
+
+
+
 </div>

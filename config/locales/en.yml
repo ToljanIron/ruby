@@ -64,6 +64,9 @@ en:
     search_message: 'Search participant'
     close_search: 'Close search list'
     no_results: 'No results'
+    safari_msg: 'In order to enjoy the best experience when filling out the questionnaire, we recommend opening the survey in the Chrome browser'
+    copy_link: 'Copy link'
+    link_copied: 'copied'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
     fail: 'Welcome to StepAhead employee evaluation questionnaire. The ID number you sent is not registered. Send the correct ID again or contact support.'

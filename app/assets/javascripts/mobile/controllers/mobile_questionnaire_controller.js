@@ -389,11 +389,15 @@ else
 
   $scope.toggleFullQuestionView = function () {
     $scope.show_full_question = !$scope.show_full_question;
+    $scope.show_popup = !$scope.show_popup;
   };
   $scope.hidePopup = function (popup) {
-    if($scope.show_full_question){
+    if($scope.show_popup && $scope.show_full_question){
       $scope.show_popup = false;
       $scope.show_full_question = false;
+    }
+    else{
+      $scope.show_popup = true;
     }
   };
   $scope.logoSrc = function () {
@@ -543,8 +547,9 @@ else
           $scope.tiny_array = $scope.r.responses.slice(0, 10);
           $scope.currentlyFocusedEmployeeId = $scope.tiny_array[0].employee_id;
           if (!options.reset_question) {
-            $scope.show_full_question = true;
-            $scope.show_pupup = true;
+            $scope.show_popup = true;
+            if(!($scope.isDisplaySafariMsg(navigator.userAgent)))
+              $scope.show_full_question = true;
           }
           $scope.loaded[0] = true;
           $scope.hhh = $scope.search_list();
@@ -733,6 +738,26 @@ else
       return false;
     return true;
   };
+  $scope.isDisplaySafariMsg = function () {
+    var ua = (navigator.userAgent)
+   if(mobileAppService.is_display_safari_msg() && mobileAppService.isSafari(ua))
+      return true
+    return false
+  }
+  $scope.onCancelSafariMsg = function() {
+    mobileAppService.not_display_safari_msg()
+    $scope.show_popup = false;
+    $scope.show_full_question = true
+
+  }
+
+  $scope.copyLink = function() {
+    $scope.link_copied = true
+    navigator.clipboard.writeText(window.location.href)
+    $timeout(function () {
+      $scope.link_copied = false;
+    }, 1500);
+  }
 
   $scope.init = function (next_question_params, options) {
     $scope._ = _;
@@ -748,6 +773,7 @@ else
     $scope.searchListOpen = false;
     $scope.current_avatar_color = 0;
     $scope.full_search = true;
+    $scope.link_copied = false
 
     setTimeout(function () {
       $scope.heightOfContainer = document.getElementById('main_container').getBoundingClientRect().height;

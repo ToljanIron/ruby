@@ -31,6 +31,8 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   var LANGUAGE_DIRECTION = 'ltr';
   var DICT = {};
   var AVATAR_COLORS = ['#4577A9','#92D050','#BF9000','#00B0F0','#4D4E4E','#FBB03B']
+  var DISPLAY_SAFARI_MSG = true;
+  // var SAFARI_BROWSER = /^((?!chrome|android).)*safari/i
 
   // Questionnaire state
   var s = null;
@@ -239,6 +241,18 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   }
   mobileAppService.get_avatar_colors = function(){
     return AVATAR_COLORS;
+  }
+  mobileAppService.not_display_safari_msg = function(){
+    DISPLAY_SAFARI_MSG = false
+  }
+  mobileAppService.is_display_safari_msg = function(){
+    return DISPLAY_SAFARI_MSG
+  }
+  mobileAppService.isSafari = function(user_agent){
+    var iOS = !!user_agent.match(/iPad/i) || !!user_agent.match(/iPhone/i);
+    var webkit = !!user_agent.match(/WebKit/i);
+    var iOSSafari = iOS && webkit && !user_agent.match(/CriOS/i);
+    return iOSSafari
   }
 
   return mobileAppService;

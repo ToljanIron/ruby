@@ -62,7 +62,7 @@
       }
     }
   }
-  .genericPopUp.confirm-box-display{
+  .genericPopUp.genericPopUp-display{
     display:block;
   }
   .genericPopUp.genericPopUp-rtl{
@@ -81,12 +81,41 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
+    .x-cancel{
+      background-image: image-url('modal_x.png');
+      background-repeat: no-repeat;
+      background-size: 100%;
+      height: 50px;
+      width: 50px;
+      float: left;
+
+    }
+    .copy-btn{
+      background-color: orange;
+      font-weight: bold;
+    }
+    .link_copied{
+      display: none;
+      text-align: center;
+      width: 100%;
+      font-size: 30pt;
+    }
+    .link_copied_display{
+      display: block !important;
+      margin-top:-1rem;
+    }
     .subject{
       line-height: 1.5;
       font-weight: bold;
       margin-top: 10%;
       text-align: center;
     }
+    .genericPopup-content{
+      line-height: 1.5;
+      font-size: 30pt;
+      font-weight: bold;
+      text-align: center;
+      }
     .popup-buttons{
       display: flex;
       flex-direction: row;
