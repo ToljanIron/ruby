@@ -17,7 +17,8 @@ class UsersController < ApplicationController
         password_update_interval: company.password_update_interval,
         max_login_attempts: company.max_login_attempts,
         required_chars_in_password: company.get_required_password_chars,
-        product_type: company.product_type
+        product_type: company.product_type,
+        is_allowed_create_questionnaire: user.is_allowed_create_questionnaire
       }
     render json: ret, status: 200
   end

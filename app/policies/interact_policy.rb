@@ -20,4 +20,9 @@ class InteractPolicy < ApplicationPolicy
     end
     return false
   end
+
+  def create_questionnaire?
+    return user.is_allowed_create_questionnaire
+  end
+
 end

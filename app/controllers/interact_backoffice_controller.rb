@@ -7,13 +7,41 @@ class InteractBackofficeController < ApplicationController
   include SimulatorHelper
 
   before_action :before_interact_backoffice
-
+  before_action :require_authoration, only: [:get_questions, :participants,:participant_status,
+                :questionnaire_status,:participants_get_emps, :reports_network,:reports_bidirectional_network,
+                :reports_measures, :reports_survey,:participants_refresh,:download_sample,:download_participants_status,
+                :get_factors]
+  before_action :require_admin_authoration, only: [:questionnaire_update, :remove_participants,:questionnaire_run,:questionnaire_close,:update_test_participant,
+                :questions_reorder,:question_update,:question_delete,:question_create,:participants_update,:participants_create,:participants_delete,:participant_resend,
+                :close_participant_questionnaire, :set_active_questionnaire_question,:participant_reset,:img_upload,:upload_participants,
+                :update_data_mapping,:save_k_factor]
+  
   #################### Questionnaire #######################
   def before_interact_backoffice
     @cid = current_user.company_id
     @company_name = Company.find(@cid).name
     @user_name = "#{current_user.first_name} #{current_user.last_name}"
     @showErrors = 'none'
+  end
+
+  def require_admin_authoration
+    # begin
+      qid = sanitize_id(params['qid'])
+      @aq =  Questionnaire.find(qid)
+      authorize @aq, :admin?
+    # rescue Exception => e
+      # raise "Questionnaire: #{qid} - #{e.message}"
+    # end
+  end
+
+  def require_authoration
+    # begin
+      qid = sanitize_id(params['qid'])
+      @aq =  Questionnaire.find(qid)
+      authorize @aq, :viewer?
+    # rescue Exception => e
+      # raise "Questionnaire: #{qid} - #{e.message}"
+    # end
   end
 
   def questionnaire
@@ -63,58 +91,60 @@ class InteractBackofficeController < ApplicationController
   def get_questionnaires
     authorize :interact, :authorized?
     ibo_process_request do
-      quests = Questionnaire.get_all_questionnaires(@cid)
+       quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [quests, nil]
     end
   end
 
   def questionnaire_create
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    authorize :interact, :create_questionnaire?
     ibo_process_request do
       err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
-      quests = Questionnaire.get_all_questionnaires(@cid)
+      quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [quests, err]
     end
   end
 
   def questionnaire_delete
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    authorize :interact, :create_questionnaire?
     ibo_process_request do
       qid = sanitize_id(params['qid'])
       err = Questionnaire.find(qid).delete
-      quests = Questionnaire.get_all_questionnaires(@cid)
+      quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [quests, err]
     end
   end
 
   def questionnaire_update
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       aq = update_questionnaire_properties
-      quests = Questionnaire.get_all_questionnaires(@cid)
+      quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [{quests: quests, activeQuest: aq}, nil]
     end
   end
   
   def remove_participants
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
-      qid = params[:qid]
-      errors = InteractBackofficeHelper.remove_questionnaire_participans(qid,current_user.id)
-      q = Questionnaire.get_questionnaires([qid])
+      errors = InteractBackofficeHelper.remove_questionnaire_participans(@aq.id,current_user.id)
+      q = Questionnaire.get_questionnaires([@aq.id],current_user.id)
       [{participants: [], questionnaire: q.first}, errors: [] ]
     end
   end
 
   def questionnaire_copy
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    authorize :interact, :create_questionnaire?
     ibo_process_request do
 
       qid = sanitize_id(params['qid'])
       rerun = sanitize_boolean(params['rerun'])
 
       err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid, rerun)
-      quests = Questionnaire.get_all_questionnaires(@cid)
+      quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [quests, err]
     end
   end
@@ -176,30 +206,28 @@ class InteractBackofficeController < ApplicationController
   end
 
   def questionnaire_run
-    authorize :interact, :authorized?
-
+    # authorize :interact, :authorized?
     ibo_process_request do
-      qid = sanitize_id(params[:qid])
-      aq = Questionnaire.find(qid)
-      InteractBackofficeActionsHelper.run_questionnaire(aq)
-      res_aq = Questionnaire.find(qid).as_json
-      res_aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+      InteractBackofficeActionsHelper.run_questionnaire(@aq)
+      res_aq = @aq.as_json
+      res_aq['state'] = Questionnaire.state_name_to_number(@aq['state'])
 
       [{questionnaire: res_aq}, nil]
     end
   end
 
   def questionnaire_close
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    # p = params.permit(:qid)
+    # qid = sanitize_id(p[:qid])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
-      p = params.permit(:qid)
-      qid = sanitize_id(p[:qid])
-      aq = Questionnaire.find(qid)
-      aq.update_attributes!(state: :processing)
-      email = params[:email] || 'gitiyaari@gmail.com'
-      CloseQuestionnaireJob.perform_later(aq.id,email)
-      res_aq = aq.as_json
-      res_aq['state'] = Questionnaire.state_name_to_number(aq.state)
+      @aq.update_attributes!(state: :processing)
+      email = params[:email]
+      CloseQuestionnaireJob.perform_later(@aq.id,email)
+      res_aq = @aq.as_json
+      res_aq['state'] = Questionnaire.state_name_to_number(@aq.state)
 
       [{questionnaire: res_aq}, nil]
 
@@ -215,41 +243,42 @@ class InteractBackofficeController < ApplicationController
   end
 
   def update_test_participant
-    authorize :interact, :authorized?
-
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(quest[:id])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
       quest = params[:questionnaire]
-      qid           = sanitize_id(quest[:id])
       testUserName  = sanitize_alphanumeric_with_space(quest[:test_user_name])
       testUserEmail = sanitize_alphanumeric(quest[:test_user_email])
       testUserPhone = sanitize_alphanumeric(quest[:test_user_phone])
 
-      aq = Questionnaire.find(qid)
-      aq.update!(
+      @aq.update!(
         test_user_name: testUserName,
         test_user_email: testUserEmail,
         test_user_phone: testUserPhone
       )
-      aq.update!(state: :ready) if !InteractBackofficeHelper.test_tab_enabled(aq)
+      @aq.update!(state: :ready) if !InteractBackofficeHelper.test_tab_enabled(@aq)
 
-      InteractBackofficeActionsHelper.send_test_questionnaire(aq)
-      testUserUrl = create_new_test(aq)
-      aq = aq.as_json
-      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
-      [{questionnaire: aq, test_user_url: testUserUrl}, nil]
+      InteractBackofficeActionsHelper.send_test_questionnaire(@aq)
+      testUserUrl = create_new_test(@aq)
+      @aq = @aq.as_json
+      @aq['state'] = Questionnaire.state_name_to_number(@aq['state'])
+      [{questionnaire: @aq, test_user_url: testUserUrl}, nil]
     end
   end
 
   #################### Question #######################
   def get_questions
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
-
-      qid = sanitize_id(params['qid'])
-
-      questions =
+    # qid = sanitize_id(params['qid'])
+    questions =
         QuestionnaireQuestion
-          .where(questionnaire_id: qid)
+          .where(questionnaire_id: @aq.id)
           .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
           .order(is_funnel_question: :desc, active: :desc, order: :asc)
 
@@ -258,7 +287,7 @@ class InteractBackofficeController < ApplicationController
   end
 
   def questions_reorder
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       questions = params[:questions]
       questions.each do |q|
@@ -269,19 +298,22 @@ class InteractBackofficeController < ApplicationController
     end
   end
   def question_update
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
       params.require(:question).permit!
       question = params[:question]
 
-      qid = sanitize_id(question['id'])
+      qqid = sanitize_id(question['id'])
       title = question['title']
       body = question['body']
       min = sanitize_number(question['min'])
       max = sanitize_number(question['max'])
       active = sanitize_boolean(question['active'])
 
-      qq = QuestionnaireQuestion.find(qid)
+      qq = QuestionnaireQuestion.find(qqid)
       qq.update!(
         title: title,
         body: body,
@@ -299,19 +331,22 @@ class InteractBackofficeController < ApplicationController
         end
       end
 
-      aq = qq.questionnaire
-      aq.update!(state: :questions_ready) if !participants_tab_enabled(aq)
-      aq = aq.as_json
-      aq['state'] = Questionnaire.state_name_to_number(aq['state'])
+      # aq = qq.questionnaire
+      @aq.update!(state: :questions_ready) if !participants_tab_enabled(@aq)
+      @aq = @aq.as_json
+      @aq['state'] = Questionnaire.state_name_to_number(@aq['state'])
 
-      [{questionnaire: aq}, nil]
+      [{questionnaire: @aq}, nil]
     end
   end
 
   def question_delete
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
-      id = sanitize_id(params['qid'])
+      id = sanitize_id(params['qqid'])
       qq = QuestionnaireQuestion.find(id)
       qq.network_name.delete
       qq.delete
@@ -326,12 +361,15 @@ class InteractBackofficeController < ApplicationController
   end
 
   def question_create
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # aq = Questionnaire.find(qid)
+    # authorize aq, :admin?
     ibo_process_request do
       params.require(:question).permit!
       question = params[:question]
-      qid = params[:qid]
-      cid = Questionnaire.find(qid).try(:company_id)
+      # qid = params[:qid]
+      cid = Questionnaire.find(@aq.id).try(:company_id)
 
       if (cid != @cid)
         raise "Not allowed"
@@ -349,7 +387,7 @@ class InteractBackofficeController < ApplicationController
         order = question['order']
       end
 
-      InteractBackofficeHelper.create_new_question(@cid, qid, question, order)
+      InteractBackofficeHelper.create_new_question(@cid, @aq.id, question, order)
       ['ok', nil]
     end
   end
@@ -357,12 +395,12 @@ class InteractBackofficeController < ApplicationController
   ################# Participants #######################
 
   def participants
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
-      qid =        sanitize_id(params['qid'])
+      # qid =        sanitize_id(params['qid'])
       page =       sanitize_number(params['page'])
       searchText = sanitize_alphanumeric(params['searchText'])
-     ret, errors = prepare_data(qid, page, searchText)
+     ret, errors = prepare_data(@aq.id, page, searchText)
      [ret, errors]
     end
   end
@@ -371,7 +409,7 @@ class InteractBackofficeController < ApplicationController
   ## Return details about a particpant's progress in the qustionnaire
   ##
   def participant_status
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params['qpid'])
 
@@ -380,7 +418,7 @@ class InteractBackofficeController < ApplicationController
       current_question = qp.current_questiannair_question_id
       emp = qp.employee
       name = "#{emp.first_name} #{emp.last_name}"
-      qid = qp.questionnaire_id
+      # qid = qp.questionnaire_id
 
       sqlstr = "
       SELECT qq.title, qq.order, qq.id AS questionnaire_question_id,
@@ -401,9 +439,9 @@ class InteractBackofficeController < ApplicationController
       ## is it the number the particpant has selected.
       ## otherwise it's the number of participants in the questionnaire
       funnel_question = QuestionnaireQuestion
-        .where(questionnaire_id: qid, active: true, order: 0).last
+        .where(questionnaire_id: @aq.id, active: true, order: 0).last
       qps_per_question = QuestionnaireParticipant
-        .where(questionnaire_id: qid).count - 1
+        .where(questionnaire_id: @aq.id).count - 1
       if !funnel_question.nil?
         qps_per_question = QuestionReply
           .where(questionnaire_question_id: funnel_question.id,
@@ -536,33 +574,33 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participants_update
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       params.require(:participant).permit!
       par = params[:participant]
-      qid = sanitize_id(par[:questionnaire_id])
-      InteractBackofficeHelper.update_employee(@cid, par, qid)
-      participants, errors = prepare_data(qid)
-      aq = Questionnaire.find(qid)
-      if !InteractBackofficeHelper.test_tab_enabled(aq)
-        aq.update!(state: :notstarted)
+      # qid = sanitize_id(par[:questionnaire_id])
+      InteractBackofficeHelper.update_employee(@cid, par, @aq.id)
+      participants, errors = prepare_data(@aq.id)
+      # aq = Questionnaire.find(qid)
+      if !InteractBackofficeHelper.test_tab_enabled(@aq)
+        @aq.update!(state: :notstarted)
       end
 
-      [{participants: participants, questionnaire: aq}, errors]
+      [{participants: participants, questionnaire: @aq}, errors]
     end
   end
 
   def participants_create
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       params.require(:participant).permit!
       par = params[:participant]
-      qid = sanitize_id(par[:questionnaire_id])
-      aq = Questionnaire.find(qid)
-      InteractBackofficeHelper.create_employee(@cid, par, aq)
-      participants, errors = prepare_data(qid)
-      if !InteractBackofficeHelper.test_tab_enabled(aq)
-        aq.update!(state: :notstarted)
+      # qid = sanitize_id(par[:questionnaire_id])
+      # aq = Questionnaire.find(qid)
+      InteractBackofficeHelper.create_employee(@cid, par, @aq)
+      participants, errors = prepare_data(@aq.id)
+      if !InteractBackofficeHelper.test_tab_enabled(@aq)
+        @aq.update!(state: :notstarted)
       end
 
       [{participants: participants, questionnaire: aq}, errors]
@@ -570,33 +608,33 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participants_delete
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
       qp = QuestionnaireParticipant.find(qpid)
       aq = InteractBackofficeHelper.delete_participant(qp,current_user.id)
       participants, errors = prepare_data(aq[:id])
-      q = Questionnaire.get_questionnaires([aq.id])
+      q = Questionnaire.get_questionnaires([aq.id],current_user.id)
       [{participants: participants, questionnaire: q.first}, errors]
     end
   end
 
   def participant_resend
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
       qp = QuestionnaireParticipant.find(qpid)
-      aq = qp.questionnaire
-      if aq.state != 'sent'
+      # aq = qp.questionnaire
+      if @aq.state != 'sent'
         raise "Cant send messages to participants when questionnaire is not active"
       end
-      InteractBackofficeActionsHelper.send_live_questionnaire(aq, qp)
+      InteractBackofficeActionsHelper.send_live_questionnaire(@aq, qp)
       [{}, nil]
     end
   end
 
   def close_participant_questionnaire
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
       qp = QuestionnaireParticipant.find(qpid)
@@ -606,7 +644,7 @@ class InteractBackofficeController < ApplicationController
   end
 
   def set_active_questionnaire_question
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qqid = sanitize_id(params[:qqid])
       qpid = sanitize_id(params[:qpid])
@@ -617,11 +655,11 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participant_reset
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       qpid = sanitize_id(params[:qpid])
       qp = QuestionnaireParticipant.find(qpid)
-      aq = qp.questionnaire
+      # aq = qp.questionnaire
       # if aq.state != 'sent' && aq.state != 'ready' && aq.state != 'notstarted'
       #   raise "Cant reset participant when questionnaire is not active - it is #{aq.state}"
       # end
@@ -631,10 +669,10 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participants_get_emps
-    authorize :interact, :authorized?
-    qid = sanitize_id(params[:qid])
-    q = Questionnaire.find(qid)
-    sid = q.snapshot_id
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params[:qid])
+    # q = Questionnaire.find(qid)
+    sid = @aq.snapshot_id
     file_name = InteractBackofficeHelper.download_employees(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
@@ -666,11 +704,12 @@ class InteractBackofficeController < ApplicationController
   end
 
   def reports_network
-    authorize :interact, :authorized?
-    qid = sanitize_id(params['qid'])
-    return nil if qid.nil?
-    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
-    return nil if sid.nil?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # return nil if qid.nil?
+    # sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    # return nil if sid.nil?
+    sid = @aq.snapshot_id
     report_name = InteractBackofficeHelper.network_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
@@ -679,11 +718,12 @@ class InteractBackofficeController < ApplicationController
   end
 
   def reports_bidirectional_network
-    authorize :interact, :authorized?
-    qid = sanitize_id(params['qid'])
-    return nil if qid.nil?
-    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
-    return nil if sid.nil?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # return nil if qid.nil?
+    # sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    # return nil if sid.nil?
+    sid = @aq.snapshot_id
     report_name = InteractBackofficeHelper.bidirectional_network_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
@@ -692,11 +732,12 @@ class InteractBackofficeController < ApplicationController
   end
 
   def reports_measures
-    authorize :interact, :authorized?
-    qid = sanitize_id(params['qid'])
-    return nil if qid.nil?
-    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
-    return nil if sid.nil?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # return nil if qid.nil?
+    # sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    # return nil if sid.nil?
+    sid = @aq.snapshot_id
     report_name = InteractBackofficeHelper.measures_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
@@ -705,11 +746,12 @@ class InteractBackofficeController < ApplicationController
   end
 
   def reports_survey
-    authorize :interact, :authorized?
-    qid = sanitize_id(params['qid'])
-    return nil if qid.nil?
-    sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
-    return nil if sid.nil?
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params['qid'])
+    # return nil if qid.nil?
+    # sid = Questionnaire.find_by(id: qid).try(:snapshot_id)
+    # return nil if sid.nil?
+    sid = @aq.snapshot_id
     report_name = InteractBackofficeHelper.network_metrics_report(@cid, sid)
     send_file(
       "#{Rails.root}/tmp/#{report_name}",
@@ -730,7 +772,7 @@ class InteractBackofficeController < ApplicationController
 
   ################## Actions #########################################
   def img_upload
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
 
       # file = sanitize_alphanumeric(params[:file_name])
@@ -738,9 +780,9 @@ class InteractBackofficeController < ApplicationController
       file_name = file.original_filename
       empident = file_name[0..-5]
 
-      qid = sanitize_id(params[:qid])
-      quest = Questionnaire.find(qid)
-      sid = quest.snapshot_id
+      # qid = sanitize_id(params[:qid])
+      # quest = Questionnaire.find(qid)
+      sid = @aq.snapshot_id
 
       emp = Employee.find_by(email: empident, snapshot_id: sid)
       emp = Employee.find_by(phone_number: empident, snapshot_id: sid) if emp.nil?
@@ -762,16 +804,16 @@ class InteractBackofficeController < ApplicationController
   end
 
   def participants_refresh
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
-      qid = sanitize_id(params[:qid])
-      ret, err = prepare_data(qid)
+      # qid = sanitize_id(params[:qid])
+      ret, err = prepare_data(@aq.id)
       [{participants: ret}, err]
     end
   end
 
   def download_sample
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     file_name = InteractBackofficeHelper.create_example_excel
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
@@ -780,9 +822,9 @@ class InteractBackofficeController < ApplicationController
   end
 
   def download_participants_status
-    authorize :interact, :authorized?
-    qid = sanitize_id(params[:qid])
-    file_name = InteractBackofficeHelper.create_status_excel(qid)
+    # authorize :interact, :authorized?
+    # qid = sanitize_id(params[:qid])
+    file_name = InteractBackofficeHelper.create_status_excel(@aq.id)
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
       filename: file_name,
@@ -791,43 +833,43 @@ class InteractBackofficeController < ApplicationController
 
   ## Load employees from excel
   def upload_participants
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
 
     ibo_process_request do
       emps_excel = params[:fileToUpload]
-      qid = sanitize_id(params[:qid])
-      aq = Questionnaire.find(qid)
+      # qid = sanitize_id(params[:qid])
+      # aq = Questionnaire.find(qid)
       errors1 = ['No excel file uploaded']
       if !emps_excel.nil?
-        sid = aq.snapshot_id
+        sid = @aq.snapshot_id
         eids, errors2 = load_excel_sheet(@cid, params[:fileToUpload], sid, true)
-        InteractBackofficeHelper.add_all_employees_as_participants(eids, aq, current_user.id)
+        InteractBackofficeHelper.add_all_employees_as_participants(eids, @aq, current_user.id)
         CompanyFactorName.insert_factors(@cid,sid)
         ## Update the questinnaire's state if needed
-        if !InteractBackofficeHelper.test_tab_enabled(aq)
-          if QuestionnaireParticipant.where(questionnaire_id: aq.id).count > 1
-            aq.update!(state: :notstarted)
+        if !InteractBackofficeHelper.test_tab_enabled(@aq)
+          if QuestionnaireParticipant.where(questionnaire_id: @aq.id).count > 1
+            @aq.update!(state: :notstarted)
           end
         end
       end
 
-      aq = Questionnaire.get_questionnaires([qid])
-      participants, errors3 = prepare_data(qid)
+      @q = Questionnaire.get_questionnaires([@aq.id],current_user.id)
+      participants, errors3 = prepare_data(@aq.id)
       errors = []
       errors << errors1 unless errors1
       errors << errors2 unless errors2
       errors << errors3 unless errors3
-      [{participants: participants, questionnaire: aq.first}, errors: errors ]
+      [{participants: participants, questionnaire: @q.first}, errors: errors ]
     end
   end
 
   def get_factors
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
 
-      qid = sanitize_id(params['qid'])
-      q = Questionnaire.find(qid)
-      sid = q.snapshot_id
+      # qid = sanitize_id(params['qid'])
+      # q = Questionnaire.find(qid)
+      sid = @aq.snapshot_id
 
       company_factors =
         CompanyFactorName
@@ -840,11 +882,11 @@ class InteractBackofficeController < ApplicationController
 
 
   def update_data_mapping
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
-      qid = sanitize_id(params[:qid])
-      q =Questionnaire.find(qid)
-      sid = q.snapshot_id
+      # qid = sanitize_id(params[:qid])
+      # q =Questionnaire.find(qid)
+      sid = @aq.snapshot_id
       factors = params[:factors]
       factors.each do |f|
         factor = CompanyFactorName.find(f['id'])
@@ -854,17 +896,17 @@ class InteractBackofficeController < ApplicationController
   end
 
   def save_k_factor
-    authorize :interact, :authorized?
+    # authorize :interact, :authorized?
     ibo_process_request do
       permitted = params.permit(:qqid, :qid, :k_factor)
-      qid = sanitize_id(permitted[:qid])
+      # qid = sanitize_id(permitted[:qid])
       gids = sanitize_ids(params[:gids])
       qqid = sanitize_id(permitted[:qqid])
       k = permitted[:k_factor]
-      Rails.logger.info "qid=#{qid}, gids=#{gids}, qqid=#{qqid}, k=#{k}"
-      q = Questionnaire.find(qid)
-      sid = q.snapshot_id
-      if q.update_attributes!(k_factor: k)
+      Rails.logger.info "qid=#{@aq.id}, gids=#{gids}, qqid=#{qqid}, k=#{k}"
+      # q = Questionnaire.find(qid)
+      sid = @aq.snapshot_id
+      if @aq.update_attributes!(k_factor: k)
         qq = QuestionnaireQuestion.find(qqid)
         nid = qq.network_id
         res = QuestionnaireAlgorithm.get_question_score(sid,gids,nid,@cid,k)

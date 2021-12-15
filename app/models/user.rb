@@ -8,6 +8,9 @@ class User < ActiveRecord::Base
 
   attr_accessor :undigest_token
 
+  has_many :questionnaire_permissions
+  belongs_to :company
+
   before_save { self.email = email.downcase }
   before_create :create_remember_token
 

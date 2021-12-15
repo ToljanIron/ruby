@@ -123,7 +123,8 @@ class SessionsController < ApplicationController
         session_timeout: company.session_timeout,
         password_update_interval: company.password_update_interval,
         max_login_attempts: company.max_login_attempts,
-        required_chars_in_password: company.get_required_password_chars
+        required_chars_in_password: company.get_required_password_chars,
+        is_allowed_create_questionnaire: user.is_allowed_create_questionnaire
       }
     }
   end
