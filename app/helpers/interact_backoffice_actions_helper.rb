@@ -145,7 +145,7 @@ module InteractBackofficeActionsHelper
       end
     end
 
-    return nil
+    return quest #nil
   end
 
 

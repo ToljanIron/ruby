@@ -100,9 +100,12 @@ class InteractBackofficeController < ApplicationController
     # authorize :interact, :authorized?
     authorize :interact, :create_questionnaire?
     ibo_process_request do
-      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
+      aq = InteractBackofficeActionsHelper.create_new_questionnaire(@cid)
+      unless aq.nil?
+        QuestionnairePermission.create!(user_id: current_user.id, questionnaire_id: aq.id, company_id: @cid, level: :admin)
+      end
       quests = Questionnaire.get_all_questionnaires(@cid,current_user)
-      [quests, err]
+      [quests, nil]
     end
   end
 
@@ -143,9 +146,12 @@ class InteractBackofficeController < ApplicationController
       qid = sanitize_id(params['qid'])
       rerun = sanitize_boolean(params['rerun'])
 
-      err = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid, rerun)
+      aq = InteractBackofficeActionsHelper.create_new_questionnaire(@cid, qid, rerun)
+      unless aq.nil?
+        QuestionnairePermission.create!(user_id: current_user.id, questionnaire_id: aq.id, company_id: @cid, level: :admin)
+      end
       quests = Questionnaire.get_all_questionnaires(@cid,current_user)
-      [quests, err]
+      [quests, nil]
     end
   end
 
