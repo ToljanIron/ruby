@@ -757,7 +757,7 @@ module InteractBackofficeHelper
     last_name = p['last_name']
     email = p['email']
     phone_number = p['phone']
-    group_name = p['group']
+    group_name = p['group_name']
     office = p['office']
     role = p['role']
     rank = p['rank']
