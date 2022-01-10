@@ -168,7 +168,7 @@ module InteractBackofficeActionsHelper
         aq,
         qp,
         email,
-        email
+        aq.test_user_name
       )
     end
   end
