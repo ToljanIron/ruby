@@ -23,7 +23,7 @@
   </div>
   
   <div class='mobile-content' id="main_container" ng-class="{'finish-question': isFinished() && isLoaded()}">
-    <div class='question-instruction-tooltip' ng-click="hidePopup()">
+    <div class='question-instruction-tooltip' ng-click="hidePopup($event)">
       <div class='full-question-blocker-show' ng-class="{'full-question-blocker-hide': (!show_full_question && !show_popup)}"></div>
       <div class='question-container' ng-class="{'question-container-display': show_full_question}">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question' dir="rtl"></bdi></div>
