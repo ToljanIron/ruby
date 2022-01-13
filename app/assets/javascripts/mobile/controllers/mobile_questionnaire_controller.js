@@ -391,14 +391,22 @@ else
     $scope.show_full_question = !$scope.show_full_question;
     $scope.show_popup = !$scope.show_popup;
   };
-  $scope.hidePopup = function (popup) {
-    if($scope.show_popup && $scope.show_full_question){
+  $scope.hidePopup = function (event) {
+    var clickedElement = event.target;
+    if (clickedElement)
+    {
+      var elementClasses = clickedElement.classList;
+      var clickedOnPopup = (elementClasses.contains('genericPopUp') || (clickedElement.parentElement !== null && clickedElement.parentElement.classList.contains('genericPopUp')));
+      if (clickedOnPopup) return;
+    }
+
+    if($scope.show_full_question){
       $scope.show_popup = false;
       $scope.show_full_question = false;
     }
-    else{
-      $scope.show_popup = true;
-    }
+    // else{
+    //   $scope.show_popup = true;
+    // }
   };
   $scope.logoSrc = function () {
     if(mass.logo_url)
