@@ -514,7 +514,7 @@ module InteractBackofficeHelper
        JOIN questionnaire_questions qq ON qq.network_id = nn.id
        LEFT JOIN roles AS ro ON ro.id = emps.role_id
        LEFT JOIN ranks AS ra ON ra.id = emps.rank_id
-       LEFT JOIN groups AS g ON g.id = cds.group_id
+       LEFT JOIN groups AS g ON g.id = emps.group_id
        LEFT JOIN offices AS o ON o.id = emps.office_id
        LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
        where
