@@ -39,7 +39,7 @@ class InteractController < ApplicationController
       qid = qq.questionnaire_id
     end
     questionnaire = Questionnaire.find(qid)
-    authorize questionnaire :viewer?
+    authorize questionnaire, :viewer?
     Rails.logger.info "XXXXXXXXXXXXXXXXXXXXXXX"
     Rails.logger.info questionnaire.state
     Rails.logger.info "Questionnaire #{questionnaire.name} with id #{qid} IS COMPLETED? #{questionnaire.state == 'completed'}"
