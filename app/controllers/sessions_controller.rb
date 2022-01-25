@@ -99,6 +99,8 @@ class SessionsController < ApplicationController
   end
 
   def payload(user)
+    puts "sSSSSSSSSSSSSSSSSSSSSSSSSSS"
+    puts user.role
     return nil unless user and user.id
 
     company = Company.find(user.company_id)
@@ -162,7 +164,7 @@ class SessionsController < ApplicationController
 
   def check_user_role(user)
     # _TODO: domain check is dead code, should we remove it? US-12195
-    if user.admin?
+    if user.super_admin?
       services = services_with_missing_token(user)
       if services.length == 1
         redirect_to controller: 'clients', action: 'request_google_access', domain_id: services.first[:domain_id]
@@ -171,7 +173,7 @@ class SessionsController < ApplicationController
       else
         redirect_to admin_page_path
       end
-    elsif user.hr?
+    elsif user.admin?
       redirect_to root_path
     else
       redirect_to employee_page_path

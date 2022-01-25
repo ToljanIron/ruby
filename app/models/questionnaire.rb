@@ -13,7 +13,7 @@ class Questionnaire < ActiveRecord::Base
   has_many :questionnaire_participant
   has_many :employees, through: :questionnaire_participant
   has_many :group
-  has_many :questionnaire_permissions
+  has_many :questionnaire_permissions, dependent: :destroy
 
   belongs_to :language
 
@@ -262,13 +262,17 @@ class Questionnaire < ActiveRecord::Base
   # Get all questionnaires with number of particpants in each statge
   #####################################################################
   def self.get_all_questionnaires(cid,user)
-    authorized_questionnaires = user.questionnaire_permissions.pluck(:questionnaire_id)
-    qids = Questionnaire.where(company_id: cid, id: authorized_questionnaires).pluck(:id)
-    return get_questionnaires(qids,user.id)
+    if user.super_admin? || user.admin?
+      qids = Questionnaire.where(company_id: cid).pluck(:id)
+    else
+      authorized_questionnaires = user.questionnaire_permissions.pluck(:questionnaire_id)
+      qids = Questionnaire.where(company_id: cid, id: authorized_questionnaires).pluck(:id)
+    end
+    return get_questionnaires(qids,user)
   end
 
   def self.get_one_questionnaire(qid)
-    return get_questionnaires([qid,user.id])
+    return get_questionnaires([qid,user])
   end
 
   def self.get_questionnaire_status(qid)
@@ -280,24 +284,26 @@ class Questionnaire < ActiveRecord::Base
     return statuses
   end
 
-  def self.get_questionnaires(qids, user_id)
+  def self.get_questionnaires(qids, user)
     return [] if qids.empty?
-    user_permission = "AND permis.user_id = #{user_id}"
+    q_level_select = (user.super_admin? || user.admin? ) ? "0 as user_questionnaire_level, #{user.id} as user_id" : "permis.level AS user_questionnaire_level,permis.user_id as user_id"
+    q_level_join = (user.super_admin? || user.admin? ) ? "" : "LEFT JOIN questionnaire_permissions permis ON permis.questionnaire_id = q.id AND permis.user_id = #{user.id}"
     sqlstr =
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id,
-              qp.participant_type, q.snapshot_id,permis.level AS user_questionnaire_level,permis.user_id
+              qp.participant_type, q.snapshot_id,#{q_level_select}
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
-       LEFT JOIN questionnaire_permissions permis ON permis.questionnaire_id = q.id AND permis.user_id = #{user_id}
+       #{q_level_join}
        WHERE
          q.id IN ( #{qids.join(',')})
        GROUP BY qp.status, q.id, q.name, q.sent_date, q.delivery_method,
                 q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
                 q.test_user_phone, q.test_user_email, q.state, q.language_id,
-                qp.participant_type, q.snapshot_id,permis.level,permis.user_id
+                qp.participant_type, q.snapshot_id,user_questionnaire_level,user_id
        ORDER BY q.created_at DESC"
+       puts sqlstr
 
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     ret = []

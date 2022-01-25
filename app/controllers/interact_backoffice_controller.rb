@@ -18,7 +18,7 @@ class InteractBackofficeController < ApplicationController
   
   #################### Questionnaire #######################
   def before_interact_backoffice
-    @cid = current_user.company_id
+    @cid = InteractBackofficeHelper.get_user_company(current_user)  #current_user.company_id
     @company_name = Company.find(@cid).name
     @user_name = "#{current_user.first_name} #{current_user.last_name}"
     @showErrors = 'none'
@@ -133,7 +133,7 @@ class InteractBackofficeController < ApplicationController
     # authorize :interact, :authorized?
     ibo_process_request do
       errors = InteractBackofficeHelper.remove_questionnaire_participans(@aq.id,current_user.id)
-      q = Questionnaire.get_questionnaires([@aq.id],current_user.id)
+      q = Questionnaire.get_questionnaires([@aq.id],current_user)
       [{participants: [], questionnaire: q.first}, errors: [] ]
     end
   end
@@ -620,7 +620,7 @@ class InteractBackofficeController < ApplicationController
       qp = QuestionnaireParticipant.find(qpid)
       aq = InteractBackofficeHelper.delete_participant(qp,current_user.id)
       participants, errors = prepare_data(aq[:id])
-      q = Questionnaire.get_questionnaires([aq.id],current_user.id)
+      q = Questionnaire.get_questionnaires([aq.id],current_user)
       [{participants: participants, questionnaire: q.first}, errors]
     end
   end
@@ -812,7 +812,6 @@ class InteractBackofficeController < ApplicationController
   def participants_refresh
     # authorize :interact, :authorized?
     ibo_process_request do
-      # qid = sanitize_id(params[:qid])
       ret, err = prepare_data(@aq.id)
       [{participants: ret}, err]
     end
@@ -859,7 +858,7 @@ class InteractBackofficeController < ApplicationController
         end
       end
 
-      @q = Questionnaire.get_questionnaires([@aq.id],current_user.id)
+      @q = Questionnaire.get_questionnaires([@aq.id],current_user)
       participants, errors3 = prepare_data(@aq.id)
       errors = []
       errors << errors1 unless errors1
@@ -932,6 +931,48 @@ class InteractBackofficeController < ApplicationController
       ['ok', errors: nil ]
     end
   end
+
+  def company_create
+    authorize :interact, :super_admin?
+    ibo_process_request do
+      company_name = params[:company_name]
+      company = InteractBackofficeHelper.create_new_company(company_name)
+      [{company: company}, nil]
+    end
+  end
+
+  def user_create
+    authorize :interact, :manage_users?
+    ibo_process_request do
+      user = InteractBackofficeHelper.create_new_user(@cid)
+     # users = InteractBackofficeActionsHelper.get_company_users(@cid,current_user)
+    end
+  end
+
+  def user_update
+    authorize :interact, :manage_users?
+    ibo_process_request do
+      user = InteractBackofficeActionsHelper.update_user(@cid)
+      users = Company.users
+    end
+  end
+
+  def user_delete
+    authorize :interact, :manage_users?
+    ibo_process_request do
+      user = InteractBackofficeActionsHelper.delete_user(@cid)
+      users = Company.users
+    end
+  end
+
+  def update_user_questionnaire_permissions
+    authorize :interact, :manage_users?
+    ibo_process_request do
+      user = InteractBackofficeActionsHelper.create_new_user(@cid)
+      users = Company.users
+    end
+  end
+
   ################## Some utilities ###################################
 
   def ibo_error_handler

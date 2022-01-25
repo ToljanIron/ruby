@@ -1164,4 +1164,50 @@ order by qa.network_id, e.external_id")
     return ws 
   end
 
+    # id: nil, first_name: nil, email: nil, password_digest: nil, remember_token: nil, created_at: nil, updated_at: nil, company_id: nil, role: nil, 
+  # last_name: nil, active: true, password_reset_token: nil, password_reset_token_expiry: nil, tmp_password: nil, tmp_password_expiry: nil, 
+  # remember_digest: nil, document_encryption_password: nil, number_of_recent_login_attempts: 0, time_of_last_login_attempt: nil, 
+  # is_locked_due_to_max_attempts: false, permissible_group: nil, is_limited: false, is_allowed_create_questionnaire: true, level: 2
+  def self.create_new_user(cid,params)
+    first_name = params['first_name']
+    email = params['email']
+    password = params['password']
+    last_name = params['last_name']
+
+    user = User.create!({
+      company_id: cid,
+      first_name: first_name,
+      email: email,
+      password: password,
+      role: :regular,
+      last_name: last_name,
+      active: true
+    })
+    return user
+  end
+
+  def self.get_company_users(cid,user)
+    users = User
+      .select('select first_name,last_name,email,role,is_allowed_create_questionnaire,is_allowed_add_users,q_per.questionnaire_id as ')
+      .joins('quuestionnaire_permissions q_per on users.id = q_per.user_id and ')
+    .joinwhere(company_id: cid)
+  end
+
+  def self.get_user_company(user)
+    if user.super_admin?
+      company_id = get_company_from_session
+    else
+      company_id = user.company_id
+    end
+    return company_id
+  end
+
+  def self.create_new_company(name)
+    company = Company.create!({
+      name: name,
+      product_type: :questionnaire_only
+    })
+    return company
+  end
+
 end

@@ -12,14 +12,19 @@ class GroupsController < ApplicationController
     sid = sanitize_id(params[:sid]).to_i
     sid = sid == 0 ? Snapshot.last_snapshot_of_company(cid) : sid
     qid = sanitize_id(params[:qid])
-
+    questionnaire = Questionnaire.where(snapshot_id: sid).first
+    group_ids = []
+    # authorize questionnaire, :viewer?
+    
     cache_key = "groups-comapny_id-uid-#{current_user.id}-cid-#{cid}-sid-#{sid}-qid-#{qid}"
     Rails.logger.info "cache_key = #{cache_key}"
     res = cache_read(cache_key)
-    if res.nil?
+    if res.nil? && !questionnaire.nil? 
+      authorize questionnaire, :viewer?
       puts 'Retrieving all groups. Replace with authorized groups only'
-      groups_ids = Group.by_snapshot(sid).pluck(:id) if qid.nil?
-      groups_ids = Group.by_snapshot(sid).where(questionnaire_id: qid.to_i).pluck(:id) if !qid.nil?
+      groups_ids = Group.by_snapshot(sid).pluck(:id)
+      # groups_ids = Group.by_snapshot(sid).pluck(:id) if qid.nil?
+      # groups_ids = Group.by_snapshot(sid).where(questionnaire_id: qid.to_i).pluck(:id) if !qid.nil?
       if groups_ids.empty?
         res = []
       else
