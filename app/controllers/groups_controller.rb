@@ -22,9 +22,9 @@ class GroupsController < ApplicationController
     if res.nil? && !questionnaire.nil? 
       authorize questionnaire, :viewer?
       puts 'Retrieving all groups. Replace with authorized groups only'
-      groups_ids = Group.by_snapshot(sid).pluck(:id)
-      # groups_ids = Group.by_snapshot(sid).pluck(:id) if qid.nil?
-      # groups_ids = Group.by_snapshot(sid).where(questionnaire_id: qid.to_i).pluck(:id) if !qid.nil?
+      # groups_ids = Group.by_snapshot(sid).pluck(:id)
+      groups_ids = Group.by_snapshot(sid).pluck(:id) if qid.nil?
+      groups_ids = Group.by_snapshot(sid).where(questionnaire_id: qid.to_i).pluck(:id) if !qid.nil?
       if groups_ids.empty?
         res = []
       else
