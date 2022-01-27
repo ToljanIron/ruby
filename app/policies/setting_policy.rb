@@ -4,7 +4,7 @@ class SettingPolicy < ApplicationPolicy
   end
 
   def update?
-    true if user.admin? || user.super_admin?
+    true if user.admin? || user.super_admin? || user.regular?
   end
 
   def admin?
