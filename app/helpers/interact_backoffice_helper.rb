@@ -315,10 +315,12 @@ module InteractBackofficeHelper
   def self.network_report(cid, sid)
     report_name = 'network_report.xlsx'
     res, h_emps, h_networks = network_report_queries(cid, sid)
+    params = Employee.active_params(cid,sid)
+    dynamic_params = names_of_active_params(cid,sid,params)
 
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
-    ws = create_network_heading(ws)
+    ws = create_network_heading(ws,dynamic_params)
 
     ii = 2
     row = 2
@@ -339,7 +341,7 @@ module InteractBackofficeHelper
         next
       end
       network = h_networks[r['nid'].to_s]
-      ws = network_report_write_row(ws, network, femp, temp, row)
+      ws = network_report_write_row(ws, network, femp, temp, row,params)
       row += 1
     end
 
@@ -354,10 +356,13 @@ module InteractBackofficeHelper
   def self.bidirectional_network_report(cid, sid)
     report_name = 'bidirectional_network_report.xlsx'
     res, h_emps, h_networks, rels = network_report_queries(cid, sid)
+    params = Employee.active_params(cid,sid)
+    dynamic_params = names_of_active_params(cid,sid,params)
+
 
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
-    ws = create_network_heading(ws)
+    ws = create_network_heading(ws,dynamic_params)
 
     ii = 2
     row = 2
@@ -381,7 +386,7 @@ module InteractBackofficeHelper
       end
       network = h_networks[r['nid'].to_s]
 
-      ws = network_report_write_row(ws, network, femp, temp, row)
+      ws = network_report_write_row(ws, network, femp, temp, row,params)
       row += 1
     end
 
@@ -389,28 +394,63 @@ module InteractBackofficeHelper
     return report_name
   end
 
-  def self.network_report_write_row(ws, network, femp, temp, row)
-    ws.write("A#{row}", network)
-    ws.write("B#{row}", "#{femp['first_name']} #{femp['last_name']}")
-    ws.write("C#{row}", femp['email'])
-    ws.write("D#{row}", femp['phone_number'])
-    ws.write("E#{row}", femp['id_number'])
-    ws.write("F#{row}", femp['external_id'])
-    ws.write("G#{row}", femp['job_title'])
-    ws.write("H#{row}", femp['rank_id'])
-    ws.write("I#{row}", femp['role'])
-    ws.write("J#{row}", femp['office'])
-    ws.write("K#{row}", femp['group'])
-    ws.write("L#{row}", "#{temp['first_name']} #{temp['last_name']}")
-    ws.write("M#{row}", temp['email'])
-    ws.write("N#{row}", temp['phone_number'])
-    ws.write("O#{row}", temp['id_number'])
-    ws.write("P#{row}", temp['external_id'])
-    ws.write("Q#{row}", temp['job_title'])
-    ws.write("R#{row}", temp['rank_id'])
-    ws.write("S#{row}", temp['role'])
-    ws.write("T#{row}", temp['office'])
-    ws.write("U#{row}", temp['group'])
+  def self.network_report_write_row(ws, network, femp, temp, row, active_params)
+    dynamic_params = ['param_a','param_b','param_c','param_d','param_e','param_f','param_g','param_h','param_i','param_j']
+    values = [network,
+                  "#{femp['first_name']} #{femp['last_name']}",
+                  femp['email'],
+                  femp['phone_number'],
+                  femp['id_number'],
+                  femp['external_id'],
+                  femp['job_title'],
+                  femp['rank_id'],
+                  femp['role'],
+                  femp['office'],
+                  femp['group']
+    ]
+    dynamic_params.each do |param| 
+      values << femp[param] if active_params.include?(param)
+    end
+    values.concat ["#{temp['first_name']} #{femp['last_name']}",
+                      temp['email'],
+                      temp['phone_number'],
+                      temp['id_number'],
+                      temp['external_id'],
+                      temp['job_title'],
+                      temp['rank_id'],
+                      temp['role'],
+                      temp['office'],
+                      temp['group']
+    ]
+    dynamic_params.each do |param| 
+      values << temp[param] if active_params.include?(param)
+    end
+    values.each_with_index do |val,col|
+      ws.write(row-1,col,val)
+    end
+
+
+    # ws.write("A#{row}", network)
+    # ws.write("B#{row}", "#{femp['first_name']} #{femp['last_name']}")
+    # ws.write("C#{row}", femp['email'])
+    # ws.write("D#{row}", femp['phone_number'])
+    # ws.write("E#{row}", femp['id_number'])
+    # ws.write("F#{row}", femp['external_id'])
+    # ws.write("G#{row}", femp['job_title'])
+    # ws.write("H#{row}", femp['rank_id'])
+    # ws.write("I#{row}", femp['role'])
+    # ws.write("J#{row}", femp['office'])
+    # ws.write("K#{row}", femp['group'])
+    # ws.write("L#{row}", "#{temp['first_name']} #{temp['last_name']}")
+    # ws.write("M#{row}", temp['email'])
+    # ws.write("N#{row}", temp['phone_number'])
+    # ws.write("O#{row}", temp['id_number'])
+    # ws.write("P#{row}", temp['external_id'])
+    # ws.write("Q#{row}", temp['job_title'])
+    # ws.write("R#{row}", temp['rank_id'])
+    # ws.write("S#{row}", temp['role'])
+    # ws.write("T#{row}", temp['office'])
+    # ws.write("U#{row}", temp['group'])
     return ws
   end
 
@@ -418,13 +458,31 @@ module InteractBackofficeHelper
 
     sqlstr =
       "SELECT emps.id, email, first_name, last_name, ro.name AS role, rank_id, gender,
-              g.name AS group, o.name AS office, jt.name AS job_title, id_number,
-              emps.external_id AS external_id, emps.phone_number
+              g.name AS group, o.name AS office, jt.name AS job_title,
+              fa.name as param_a,
+              fb.name as param_b,
+              fc.name as param_c,
+              fd.name as param_d,
+              fe.name as param_e,
+              ff.name as param_f,
+              fg.name as param_g,
+              emps.factor_h as param_h,
+              emps.factor_i as param_i,
+              emps.factor_j as param_j,
+              id_number, emps.external_id AS external_id, emps.phone_number
        FROM employees as emps
        LEFT JOIN groups AS g ON g.id = emps.group_id
        LEFT JOIN offices AS o ON o.id = emps.office_id
        LEFT JOIN roles AS ro ON ro.id = emps.role_id
        LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
+       LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id
+       LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id
+       LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id
+       LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id
+       LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id
+       LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id
+       LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id
+ 
        WHERE
          emps.snapshot_id = #{sid}"
     emps = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
@@ -466,28 +524,36 @@ module InteractBackofficeHelper
     return [res, h_emps, h_networks, rels]
   end
 
-  def self.create_network_heading(ws)
-    ws.write('A1', 'Network')
-    ws.write('B1', 'From name')
-    ws.write('C1', 'From email')
-    ws.write('D1', 'From phone')
-    ws.write('E1', 'From ID number')
-    ws.write('F1', 'From external id')
-    ws.write('G1', 'From job title')
-    ws.write('H1', 'From rank')
-    ws.write('I1', 'From role')
-    ws.write('J1', 'From office')
-    ws.write('K1', 'From group')
-    ws.write('L1', 'To name')
-    ws.write('M1', 'To email')
-    ws.write('N1', 'To phone')
-    ws.write('O1', 'To ID number')
-    ws.write('P1', 'To external id')
-    ws.write('Q1', 'To job title')
-    ws.write('R1', 'To rank')
-    ws.write('S1', 'To role')
-    ws.write('T1', 'To office')
-    ws.write('U1', 'To group')
+  def self.create_network_heading(ws,dynamic_params)
+    puts "dynamic params ==   #{dynamic_params}"
+    header = ['Network','From name','From email','From phone','From ID number','From external id','From job title','From rank','From role','From office','From group']
+    dynamic_params.each{|param| header << "From #{param}"}
+    header.concat ['To name','To email','To phone','To ID number','To external id','To job title','To rank','To role','To office','To group']
+    dynamic_params.each{|param| header << "To #{param}"}
+    header.each_with_index do |val,col|
+      ws.write(0,col,val)
+    end
+    # ws.write('A1', 'Network')
+    # ws.write('B1', 'From name')
+    # ws.write('C1', 'From email')
+    # ws.write('D1', 'From phone')
+    # ws.write('E1', 'From ID number')
+    # ws.write('F1', 'From external id')
+    # ws.write('G1', 'From job title')
+    # ws.write('H1', 'From rank')
+    # ws.write('I1', 'From role')
+    # ws.write('J1', 'From office')
+    # ws.write('K1', 'From group')
+    # ws.write('L1', 'To name')
+    # ws.write('M1', 'To email')
+    # ws.write('N1', 'To phone')
+    # ws.write('O1', 'To ID number')
+    # ws.write('P1', 'To external id')
+    # ws.write('Q1', 'To job title')
+    # ws.write('R1', 'To rank')
+    # ws.write('S1', 'To role')
+    # ws.write('T1', 'To office')
+    # ws.write('U1', 'To group')
     return ws
   end
 ######################################################################################
@@ -505,6 +571,16 @@ module InteractBackofficeHelper
       "SELECT
          first_name || ' ' || last_name AS emp_name, emps.external_id AS emp_id, ro.name AS role, ra.name AS rank,
          g.name AS group, o.name AS office, emps.gender, jt.name AS job_title,
+         fa.name as param_a,
+         fb.name as param_b,
+         fc.name as param_c,
+         fd.name as param_d,
+         fe.name as param_e,
+         ff.name as param_f,
+         fg.name as param_g,
+         emps.factor_h as param_h,
+         emps.factor_i as param_i,
+         emps.factor_j as param_j,
          al.name AS algo_direction, qq.title AS metric_name, cds.score
        FROM cds_metric_scores AS cds
        JOIN employees AS emps ON emps.id = cds.employee_id
@@ -517,40 +593,77 @@ module InteractBackofficeHelper
        LEFT JOIN groups AS g ON g.id = emps.group_id
        LEFT JOIN offices AS o ON o.id = emps.office_id
        LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id
+       LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id
+       LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id
+       LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id
+       LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id
+       LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id
+       LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id
+       LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id
        where
          emps.snapshot_id = #{sid}"
     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    params = Employee.active_params(cid,sid)
+    dynamic_params = names_of_active_params(cid,sid,params)
 
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
 
     ## Create heading
-    ws.write('A1', 'Name')
-    ws.write('B1', 'ID')
-    ws.write('C1', 'Role')
-    ws.write('D1', 'Rank')
-    ws.write('E1', 'Group')
-    ws.write('F1', 'Office')
-    ws.write('G1', 'Gender')
-    ws.write('H1', 'Job title')
-    ws.write('I1', 'Direction')
-    ws.write('J1', 'Network name')
-    ws.write('K1', 'Score')
+    heading = ['Name','ID','Role','Rank','Group','Office','Gender','Job title']
+    heading.concat(dynamic_params)
+    heading.concat(['Direction','Network name','Score'])
+    ws.write_row("A1",heading)
+    # ws.write('A1', 'Name')
+    # ws.write('B1', 'ID')
+    # ws.write('C1', 'Role')
+    # ws.write('D1', 'Rank')
+    # ws.write('E1', 'Group')
+    # ws.write('F1', 'Office')
+    # ws.write('G1', 'Gender')
+    # ws.write('H1', 'Job title')
+    # ws.write('I1', 'Direction')
+    # ws.write('J1', 'Network name')
+    # ws.write('K1', 'Score')
 
     ## Populate results
-    ii = 2
+    # ii = 2
+    # res.each do |r|
+    #   ws.write("A#{ii}", r['emp_name'])
+    #   ws.write("B#{ii}", r['emp_id'])
+    #   ws.write("C#{ii}", r['role'])
+    #   ws.write("D#{ii}", r['rank'])
+    #   ws.write("E#{ii}", r['group'])
+    #   ws.write("F#{ii}", r['office'])
+    #   ws.write("G#{ii}", r['gender'])
+    #   ws.write("H#{ii}", r['job_title'])
+    #   ws.write("I#{ii}", r['algo_direction'])
+    #   ws.write("J#{ii}", r['metric_name'])
+    #   ws.write("K#{ii}", r['score'])
+    #   ii += 1
+    # end
+    all_params = ['param_a','param_b','param_c','param_d','param_e','param_f','param_g','param_h','param_i','param_j']
+    ii = 1
     res.each do |r|
-      ws.write("A#{ii}", r['emp_name'])
-      ws.write("B#{ii}", r['emp_id'])
-      ws.write("C#{ii}", r['role'])
-      ws.write("D#{ii}", r['rank'])
-      ws.write("E#{ii}", r['group'])
-      ws.write("F#{ii}", r['office'])
-      ws.write("G#{ii}", r['gender'])
-      ws.write("H#{ii}", r['job_title'])
-      ws.write("I#{ii}", r['algo_direction'])
-      ws.write("J#{ii}", r['metric_name'])
-      ws.write("K#{ii}", r['score'])
+      values = [ 
+        r['emp_name'],
+        r['emp_id'],
+        r['role'],
+        r['rank'],
+        r['group'],
+        r['office'],
+        r['gender'],
+        r['job_title']
+      ]
+      all_params.each do |param| 
+        values << r[param] if params.include?(param)
+      end
+      values.concat([
+        r['algo_direction'],
+        r['metric_name'],
+        r['score']
+      ])
+      ws.write_row(ii,0,values)
       ii += 1
     end
 
@@ -1048,6 +1161,17 @@ module InteractBackofficeHelper
       .update(depends_on_question: funnel_question_id)
   end
 
+  def self.names_of_active_params(cid,sid,params)
+   cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
+    new_params = []
+    cfn.each do |factor|
+      if params.include?(factor.factor_name)
+        new_params << (factor.display_name ? factor.display_name : factor.factor_name)
+      end
+    end
+    return new_params
+  end
+
   def self.network_metrics_report(cid,sid)
     params = Employee.active_params(cid,sid)
 
@@ -1076,13 +1200,14 @@ order by qa.network_id, e.external_id")
       networks[res.network_id][res.employee_id][res.algorithm_name] = res
     end
     company_name = Company.find(cid).name
-    cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
-    new_params = []
-    cfn.each do |factor|
-      if params.include?(factor.factor_name)
-        new_params << (factor.display_name ? factor.display_name : factor.factor_name)
-      end
-    end
+    new_params = names_of_active_params(cid,sid,params)
+    # cfn = CompanyFactorName.where(company_id: cid,snapshot_id: sid).order(:id)
+    # new_params = []
+    # cfn.each do |factor|
+    #   if params.include?(factor.factor_name)
+    #     new_params << (factor.display_name ? factor.display_name : factor.factor_name)
+    #   end
+    # end
     report_name = "networkMetricsReport-#{company_name}-#{Time.now.strftime('%Y%m%d')}.xlsx"
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
