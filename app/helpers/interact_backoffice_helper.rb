@@ -411,7 +411,7 @@ module InteractBackofficeHelper
     dynamic_params.each do |param| 
       values << femp[param] if active_params.include?(param)
     end
-    values.concat ["#{temp['first_name']} #{femp['last_name']}",
+    values.concat ["#{temp['first_name']} #{temp['last_name']}",
                       temp['email'],
                       temp['phone_number'],
                       temp['id_number'],
