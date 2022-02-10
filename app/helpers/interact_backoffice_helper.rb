@@ -1207,10 +1207,8 @@ order by qa.network_id, e.external_id")
   def self.get_user_company(user,company_id=nil)
     if user.super_admin?
       if (!company_id.nil?)
-        puts "@@@@@@@@@@@@@@@@@@@@@@   "
         cid = company_id
       else
-        puts "gggggggggggggggggggggg"
         cid = Company.where(active: true).last.id
       end
     else
