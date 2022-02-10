@@ -1186,6 +1186,17 @@ order by qa.network_id, e.external_id")
     return user
   end
 
+  def self.get_companies
+    sqlstr = "select c.id, c.name, COALESCE(count(q.id),0)as survey_num,  COALESCE(sum(p_num),0) as participants_num
+    from companies c left join questionnaires q on c.id=q.company_id
+    left join (select questionnaire_id, count(*) as p_num from questionnaire_participants where employee_id != -1 group by questionnaire_id ) sp
+    on sp.questionnaire_id=q.id
+    group by c.id,c.name
+    order by c.id desc"
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return res
+  end
+
   def self.get_company_users(cid,user)
     users = User
       .select('select first_name,last_name,email,role,is_allowed_create_questionnaire,is_allowed_add_users,q_per.questionnaire_id as ')
@@ -1193,13 +1204,19 @@ order by qa.network_id, e.external_id")
     .joinwhere(company_id: cid)
   end
 
-  def self.get_user_company(user)
+  def self.get_user_company(user,company_id=nil)
     if user.super_admin?
-      company_id = get_company_from_session
+      if (!company_id.nil?)
+        puts "@@@@@@@@@@@@@@@@@@@@@@   "
+        cid = company_id
+      else
+        puts "gggggggggggggggggggggg"
+        cid = Company.where(active: true).last.id
+      end
     else
-      company_id = user.company_id
+      cid = user.company_id
     end
-    return company_id
+    return cid
   end
 
   def self.create_new_company(name)

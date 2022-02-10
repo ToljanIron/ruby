@@ -78,10 +78,6 @@ end
 
 def log_in(user)
   session[:user_id] = user.id
-  if user.super_admin?
-    session[:company_id] = Company.last.id
-  end
-  return session[:user_id]
 end
 
 def current_user
@@ -128,8 +124,4 @@ def log_out
   forget(current_user)
   session.delete(:user_id)
   @current_user = nil
-end
-
-def get_company_from_session
-  return session[:company_id]
 end

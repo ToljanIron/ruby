@@ -5,6 +5,7 @@ class InteractBackofficeController < ApplicationController
   include InteractBackofficeHelper
   include ImportDataHelper
   include SimulatorHelper
+  include SessionsHelper
 
   before_action :before_interact_backoffice
   before_action :require_authoration, only: [:get_questions, :participants,:participant_status,
@@ -18,7 +19,10 @@ class InteractBackofficeController < ApplicationController
   
   #################### Questionnaire #######################
   def before_interact_backoffice
-    @cid = InteractBackofficeHelper.get_user_company(current_user)  #current_user.company_id
+    qid = sanitize_id(params['qid'])
+    company_id = sanitize_id(params[:company_id])
+    @cid = InteractBackofficeHelper.get_user_company(current_user,company_id)  #current_user.company_id
+    
     @company_name = Company.find(@cid).name
     @user_name = "#{current_user.first_name} #{current_user.last_name}"
     @showErrors = 'none'
@@ -37,8 +41,12 @@ class InteractBackofficeController < ApplicationController
   def require_authoration
     # begin
       qid = sanitize_id(params['qid'])
-      @aq =  Questionnaire.find(qid)
-      authorize @aq, :viewer?
+      if qid.to_i != -1 && !qid.nil?
+        @aq =  Questionnaire.find(qid)
+        authorize @aq, :viewer?
+      else
+        authorize :interact, :authorized?
+      end
     # rescue Exception => e
       # raise "Questionnaire: #{qid} - #{e.message}"
     # end
@@ -89,6 +97,9 @@ class InteractBackofficeController < ApplicationController
   end
 
   def get_questionnaires
+    if current_user.super_admin?
+      @cid = sanitize_id(params[:comapny_id]) unless params[:comapny_id].nil?
+    end
     authorize :interact, :authorized?
     ibo_process_request do
        quests = Questionnaire.get_all_questionnaires(@cid,current_user)
@@ -281,14 +292,14 @@ class InteractBackofficeController < ApplicationController
     # aq = Questionnaire.find(qid)
     # authorize aq, :admin?
     ibo_process_request do
-    # qid = sanitize_id(params['qid'])
-    questions =
-        QuestionnaireQuestion
-          .where(questionnaire_id: @aq.id)
-          .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
-          .order(is_funnel_question: :desc, active: :desc, order: :asc)
+      qid = sanitize_id(params['qid'])
+      questions =
+          QuestionnaireQuestion
+            .where(questionnaire_id: qid)
+            .joins("join network_names as nn on nn.id = questionnaire_questions.network_id")
+            .order(is_funnel_question: :desc, active: :desc, order: :asc)
 
-      [{questions: questions}, nil]
+        [{questions: questions}, nil]
     end
   end
 
@@ -932,14 +943,47 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+  def get_companies
+    authorize :interact, :super_admin?
+    ibo_process_request do
+      companies = InteractBackofficeHelper.get_companies
+      puts companies
+      # companies = [{'id': 132,'name': 'companyA', 'surveyNum': 50, 'participantsNum': 1800},
+      # {'id': 213,'name': 'companyB', 'surveyNum': 15, 'participantsNum': 80}]
+      [{companies: companies}, nil]
+    end
+  end
+
   def company_create
     authorize :interact, :super_admin?
     ibo_process_request do
       company_name = params[:company_name]
       company = InteractBackofficeHelper.create_new_company(company_name)
-      [{company: company}, nil]
+      # [{company: company}, nil]
+      companies = InteractBackofficeHelper.get_companies
+      [{companies: companies}, nil]
     end
   end
+
+  def company_update
+    authorize :interact, :super_admin?
+    ibo_process_request do
+      params.require(:company).permit!
+      company = params[:company]
+      id = sanitize_id(company['id'])
+      name = company['name']
+      c = Company.find(id)
+      c.update_attributes!(name: name)
+      # errors=nil
+      # unless c.update_attributes(name: name)
+      #   errors = c.errors
+      # end
+      # puts errors
+      companies = InteractBackofficeHelper.get_companies
+      [{companies: companies}, nil]
+    end
+  end
+
 
   def user_create
     authorize :interact, :manage_users?

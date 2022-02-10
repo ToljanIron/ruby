@@ -18,7 +18,7 @@ class UsersController < ApplicationController
         max_login_attempts: company.max_login_attempts,
         required_chars_in_password: company.get_required_password_chars,
         product_type: company.product_type,
-        is_allowed_create_questionnaire: user.is_allowed_create_questionnaire
+        is_allowed_create_questionnaire: user.is_allowed_create_questionnaire || user.super_admin?
       }
     render json: ret, status: 200
   end
