@@ -1,7 +1,7 @@
 class SnapshotPolicy < ApplicationPolicy
 
   def index?
-    true if user.admin? || user.super_admin? || user.manager? || user.regular?
+    true if user.admin? || user.super_admin? || user.manager? || user.editor?
   end
 
   class Scope < Scope

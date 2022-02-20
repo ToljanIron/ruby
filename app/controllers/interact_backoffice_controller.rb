@@ -983,29 +983,46 @@ class InteractBackofficeController < ApplicationController
       [{companies: companies}, nil]
     end
   end
-
+  
+  def get_users
+    authorize :interact, :manage_users?
+    ibo_process_request do
+      users = InteractBackofficeHelper.get_company_users(@cid,current_user)
+      quests = Questionnaire.select(:id,:name).where(company_id: @cid)
+      [{users: users,questionnaires: quests.as_json}, nil]
+    end
+  end
 
   def user_create
     authorize :interact, :manage_users?
     ibo_process_request do
-      user = InteractBackofficeHelper.create_new_user(@cid)
-     # users = InteractBackofficeActionsHelper.get_company_users(@cid,current_user)
-    end
+      params.require(:user).permit!
+      user = params[:user]
+      u = InteractBackofficeHelper.create_new_user(@cid,user)
+      users = InteractBackofficeHelper.get_company_users(@cid,current_user)
+      [{users: users}, nil]
+   end
   end
 
   def user_update
     authorize :interact, :manage_users?
     ibo_process_request do
-      user = InteractBackofficeActionsHelper.update_user(@cid)
-      users = Company.users
+      params.require(:user).permit!
+      user = params[:user]
+      u = InteractBackofficeHelper.update_user(@cid,user)
+      users = InteractBackofficeHelper.get_company_users(@cid,current_user)
+      [{users: users}, nil]
     end
   end
 
   def user_delete
     authorize :interact, :manage_users?
     ibo_process_request do
-      user = InteractBackofficeActionsHelper.delete_user(@cid)
-      users = Company.users
+      id = sanitize_id(params['uid'])
+      user = User.find(id)
+      user.destroy
+      users = InteractBackofficeHelper.get_company_users(@cid,current_user)
+      [{users: users}, nil]
     end
   end
 

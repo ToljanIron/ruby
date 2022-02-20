@@ -1164,27 +1164,6 @@ order by qa.network_id, e.external_id")
     return ws 
   end
 
-    # id: nil, first_name: nil, email: nil, password_digest: nil, remember_token: nil, created_at: nil, updated_at: nil, company_id: nil, role: nil, 
-  # last_name: nil, active: true, password_reset_token: nil, password_reset_token_expiry: nil, tmp_password: nil, tmp_password_expiry: nil, 
-  # remember_digest: nil, document_encryption_password: nil, number_of_recent_login_attempts: 0, time_of_last_login_attempt: nil, 
-  # is_locked_due_to_max_attempts: false, permissible_group: nil, is_limited: false, is_allowed_create_questionnaire: true, level: 2
-  def self.create_new_user(cid,params)
-    first_name = params['first_name']
-    email = params['email']
-    password = params['password']
-    last_name = params['last_name']
-
-    user = User.create!({
-      company_id: cid,
-      first_name: first_name,
-      email: email,
-      password: password,
-      role: :regular,
-      last_name: last_name,
-      active: true
-    })
-    return user
-  end
 
   def self.get_companies
     sqlstr = "select c.id, c.name, COALESCE(count(q.id),0)as survey_num,  COALESCE(sum(p_num),0) as participants_num
@@ -1198,10 +1177,24 @@ order by qa.network_id, e.external_id")
   end
 
   def self.get_company_users(cid,user)
-    users = User
-      .select('select first_name,last_name,email,role,is_allowed_create_questionnaire,is_allowed_add_users,q_per.questionnaire_id as ')
-      .joins('quuestionnaire_permissions q_per on users.id = q_per.user_id and ')
-    .joinwhere(company_id: cid)
+    users = User.where(company_id: cid)
+    user_list = []
+    users.each do |u|
+      permitted_quests = QuestionnairePermission.select(:id,:user_id,:questionnaire_id,:level).where(user_id: u.id)
+      user = {
+        id: u.id,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        email: u.email,
+        password: u.password_digest,
+        user_type: u.role,
+        is_allowed_create_questionnaire: u.is_allowed_create_questionnaire,
+        is_allowed_add_users: u.is_allowed_add_users,
+        permitted_quests: permitted_quests.as_json
+      }
+      user_list << user
+    end
+    return user_list
   end
 
   def self.get_user_company(user,company_id=nil)
@@ -1223,6 +1216,61 @@ order by qa.network_id, e.external_id")
       product_type: :questionnaire_only
     })
     return company
+  end
+
+  def self.create_new_user(cid,user)
+    first_name = user['first_name']
+    email = user['email']
+    password = user['password']
+    last_name = user['last_name']
+    user_type = user['user_type']
+    is_allowed_add_users = (user_type == 'admin' ? user['is_allowed_add_users'] : false)
+    is_allowed_create_questionnaire = (user_type == 'admin' ? user['is_allowed_create_questionnaire'] : false)
+
+    u = User.create!({
+      company_id: cid,
+      first_name: first_name,
+      email: email,
+      password: password,
+      role: user_type,
+      last_name: last_name,
+      is_allowed_add_users: is_allowed_add_users,
+      is_allowed_create_questionnaire: is_allowed_create_questionnaire,
+      active: true
+    })
+    if u.role != 'admin'
+        user['permitted_quests'].each do |permit|
+          QuestionnairePermission.create!(questionnaire_id: permit['item_id'],user_id: u.id,company_id:cid,level: 'admin')
+        end
+      end
+    
+    return u
+  end
+
+  def self.update_user(cid,user)
+    u = User.find(user['id'])
+    # password = (user['password'] ==  u.password_digest ? u.password : user['password'])
+    user_type = user['user_type']
+    is_allowed_add_users = (user_type == 'admin' ? user['is_allowed_add_users'] : false)
+    is_allowed_create_questionnaire = (user_type == 'admin' ? user['is_allowed_create_questionnaire'] : false)
+    u.update_attributes!(
+      first_name: user['first_name'],
+      last_name: user['last_name'],
+      email: user['email'],
+      role: user_type,
+      is_allowed_add_users: is_allowed_add_users,
+      is_allowed_create_questionnaire: is_allowed_create_questionnaire
+      )
+    if (user['password'] !=  u.password_digest)
+      u.update!(password: user['password'])
+    end
+    if u.role != 'admin'
+      u.questionnaire_permissions.destroy_all
+      user['permitted_quests'].each do |permit|
+        QuestionnairePermission.create!(questionnaire_id: permit['item_id'],user_id: u.id,company_id:cid,level: 'admin')
+      end
+    end
+    return u
   end
 
 end

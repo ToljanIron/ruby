@@ -112,6 +112,10 @@ Workships::Application.routes.draw do
   get '/interact_backoffice/get_companies',     to: 'interact_backoffice#get_companies'
   post '/interact_backoffice/company_update',    to: 'interact_backoffice#company_update'
   post '/interact_backoffice/company_create',    to: 'interact_backoffice#company_create'
+  get '/interact_backoffice/get_users',     to: 'interact_backoffice#get_users'
+  post '/interact_backoffice/user_update',   to: 'interact_backoffice#user_update'
+  post '/interact_backoffice/user_create',   to: 'interact_backoffice#user_create'
+  post '/interact_backoffice/user_delete',   to: 'interact_backoffice#user_delete'
   ############################ v3 ############################
 
   post 'v3/setting/update_user_info'         ,to: 'settings#update_user_info'

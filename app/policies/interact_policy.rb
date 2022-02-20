@@ -1,14 +1,14 @@
 class InteractPolicy < ApplicationPolicy
 
   def authorized?
-    if user.admin? || user.super_admin? || user.manager? || user.regular?
+    if user.admin? || user.super_admin? || user.manager? || user.editor?
       return true
     end
     return false
   end
 
   def view_reports?
-    if user.admin? || user.super_admin? || user.manager? || user.regular?
+    if user.admin? || user.super_admin? || user.manager? || user.editor?
       return true
     end
     return false
