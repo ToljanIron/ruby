@@ -126,7 +126,8 @@ class SessionsController < ApplicationController
         password_update_interval: company.password_update_interval,
         max_login_attempts: company.max_login_attempts,
         required_chars_in_password: company.get_required_password_chars,
-        is_allowed_create_questionnaire: user.is_allowed_create_questionnaire || user.super_admin?
+        is_allowed_create_questionnaire: user.super_admin? || (user.is_allowed_create_questionnaire && user.admin?),
+        is_allowed_add_users: user.super_admin? || (user.is_allowed_add_users && user.admin?)
       }
     }
   end
