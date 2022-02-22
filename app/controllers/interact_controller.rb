@@ -4,6 +4,7 @@ require 'oj_mimic_json'
 
 include SessionsHelper
 include CdsUtilHelper
+include InteractBackofficeHelper
 
 class InteractController < ApplicationController
   include InteractHelper
@@ -22,7 +23,9 @@ class InteractController < ApplicationController
     gids = current_user.filter_authorized_groups(gids.split(','))
     Rails.logger.info "bbb"
     Rails.logger.info gids
-    cid = current_user.company_id
+    # cid = current_user.company_id
+    company_id = sanitize_id(params[:company_id])
+    cid = InteractBackofficeHelper.get_user_company(current_user,company_id)
 
     qq = nil
     qid = nil
@@ -85,7 +88,9 @@ class InteractController < ApplicationController
     gids = sanitize_gids(permitted[:gids])
     gids = current_user.filter_authorized_groups(gids.split(','))
     gids = gids.join(',')
-    cid  = current_user.company_id
+    company_id = sanitize_id(params[:company_id])
+    cid = InteractBackofficeHelper.get_user_company(current_user,company_id)
+    # cid  = current_user.company_id
 
     qq = nil
     if qqid == -1
