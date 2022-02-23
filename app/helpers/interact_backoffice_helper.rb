@@ -1267,7 +1267,8 @@ order by qa.network_id, e.external_id")
     if u.role != 'admin'
       u.questionnaire_permissions.destroy_all
       user['permitted_quests'].each do |permit|
-        QuestionnairePermission.create!(questionnaire_id: permit['item_id'],user_id: u.id,company_id:cid,level: 'admin')
+        level = (permit['level'].blank? ? 'admin' : permit['level'])
+        QuestionnairePermission.create!(questionnaire_id: permit['item_id'],user_id: u.id,company_id:cid,level: level)
       end
     end
     return u
