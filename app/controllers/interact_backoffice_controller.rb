@@ -103,7 +103,7 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :authorized?
     ibo_process_request do
        quests = Questionnaire.get_all_questionnaires(@cid,current_user)
-      [quests, nil]
+      [{quests: quests,company_id: @cid}, nil]
     end
   end
 
@@ -556,7 +556,6 @@ class InteractBackofficeController < ApplicationController
         .order("#{@sort_field_name} #{@sort_dir}")
         .limit(20)
         .offset(page)
-
     ret = []
     errors = nil
     qps.each do |qp|
@@ -950,7 +949,7 @@ class InteractBackofficeController < ApplicationController
       puts companies
       # companies = [{'id': 132,'name': 'companyA', 'surveyNum': 50, 'participantsNum': 1800},
       # {'id': 213,'name': 'companyB', 'surveyNum': 15, 'participantsNum': 80}]
-      [{companies: companies}, nil]
+      [{companies: companies,company_id: @cid}, nil]
     end
   end
 
