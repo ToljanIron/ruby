@@ -1,7 +1,7 @@
 class OfficePolicy < ApplicationPolicy
 
   def index?
-    true if user.admin? or user.hr?
+    true if user.admin? or user.super_admin?
   end
 
   class Scope < Scope
@@ -11,7 +11,7 @@ class OfficePolicy < ApplicationPolicy
     end
 
     def resolve
-      return scope.where(company_id: user.company_id) if user.admin? || user.hr?
+      return scope.where(company_id: user.company_id) if user.admin? || user.super_admin?
     end
   end
 end

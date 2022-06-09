@@ -4,6 +4,7 @@ require 'oj_mimic_json'
 
 include SessionsHelper
 include CdsUtilHelper
+include InteractBackofficeHelper
 
 class InteractController < ApplicationController
   include InteractHelper
@@ -22,7 +23,9 @@ class InteractController < ApplicationController
     gids = current_user.filter_authorized_groups(gids.split(','))
     Rails.logger.info "bbb"
     Rails.logger.info gids
-    cid = current_user.company_id
+    # cid = current_user.company_id
+    company_id = sanitize_id(params[:company_id])
+    cid = InteractBackofficeHelper.get_user_company(current_user,company_id)
 
     qq = nil
     qid = nil
@@ -39,6 +42,7 @@ class InteractController < ApplicationController
       qid = qq.questionnaire_id
     end
     questionnaire = Questionnaire.find(qid)
+    authorize questionnaire, :viewer?
     Rails.logger.info "XXXXXXXXXXXXXXXXXXXXXXX"
     Rails.logger.info questionnaire.state
     Rails.logger.info "Questionnaire #{questionnaire.name} with id #{qid} IS COMPLETED? #{questionnaire.state == 'completed'}"
@@ -84,7 +88,9 @@ class InteractController < ApplicationController
     gids = sanitize_gids(permitted[:gids])
     gids = current_user.filter_authorized_groups(gids.split(','))
     gids = gids.join(',')
-    cid  = current_user.company_id
+    company_id = sanitize_id(params[:company_id])
+    cid = InteractBackofficeHelper.get_user_company(current_user,company_id)
+    # cid  = current_user.company_id
 
     qq = nil
     if qqid == -1
@@ -98,8 +104,8 @@ class InteractController < ApplicationController
     else
       qq = QuestionnaireQuestion.find(qqid)
     end
-
     quest = qq.questionnaire
+    authorize quest, :viewer?
     nid = qq.network_id
     sid = quest.snapshot_id
     if (gids.nil? || gids == [] || gids == '')

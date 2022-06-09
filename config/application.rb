@@ -26,5 +26,6 @@ module Workships
     # config.active_job.queue_adapter = :delayed_job
     config.active_job.queue_adapter = :sidekiq
     Dotenv.overload #if Rails.env.development?
+    config.action_dispatch.rescue_responses["Pundit::NotAuthorizedError"] = :forbidden
   end
 end

@@ -1,6 +1,6 @@
 class EmployeePolicy < ApplicationPolicy
   def index?
-    true if user.admin? || user.hr? || user.manager?
+    true if user.admin? || user.super_admin? || user.manager?
   end
 
   def self.is_user_allowed_to_view_emp(emp_id, user_gid)
@@ -14,7 +14,7 @@ class EmployeePolicy < ApplicationPolicy
     end
 
     def resolve
-      if (!user.admin? && !user.hr?)
+      if (!user.admin? && !user.super_admin?)
         return Group.find(user['group_id']).extract_employees_records
       end
       return scope.all

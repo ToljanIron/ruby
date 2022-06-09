@@ -8,6 +8,9 @@ class User < ActiveRecord::Base
 
   attr_accessor :undigest_token
 
+  has_many :questionnaire_permissions
+  belongs_to :company
+
   before_save { self.email = email.downcase }
   before_create :create_remember_token
 
@@ -19,7 +22,8 @@ class User < ActiveRecord::Base
   validates :first_name, length: { maximum: 50 }
   validates :last_name, length: { maximum: 40 }
 
-  enum role: [:admin, :hr, :emp, :manager]
+  enum role: [:super_admin, :admin, :emp, :manager, :editor]  #enum role: [:admin, :hr, :emp, :manager]
+  # enum level: [:super_admin, :adminn, :editor]
 
   validates :permissible_group, presence: true, if: :is_manager?
 
@@ -164,7 +168,7 @@ class User < ActiveRecord::Base
   end
 
   def filter_authorized_groups(gids_arr)
-    return gids_arr if (role == 'admin' || role == 'hr')
+    return gids_arr if (role == 'admin' || role == 'super_admin' || role == 'editor')
     return nil if (role != 'manager')
 
     sid = Group.find(gids_arr.first).snapshot_id
@@ -174,7 +178,7 @@ class User < ActiveRecord::Base
   end
 
   def group_authorized?(gid)
-    return true  if (role == 'admin' || role == 'hr')
+    return true  if (role == 'admin' || role == 'super_admin'|| role == 'editor')
     return false if (role != 'manager')
     group = Group.find(gid)
     sid = group.snapshot_id

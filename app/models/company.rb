@@ -8,7 +8,7 @@ class Company < ActiveRecord::Base
   has_many :company_configuration_tables
   has_many :employees
   has_many :questionnaire_questions
-  has_many :questionnaire
+  has_many :questionnaires
   has_many :snapshots
   has_many :alerts
   has_many :jobs

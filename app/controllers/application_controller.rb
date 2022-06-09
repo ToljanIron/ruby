@@ -8,6 +8,9 @@ include Asspects
 require 'yaml'
 
 class ApplicationController < ActionController::Base
+
+  # rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
   DYNAMIC_LOCALE = false
 
   if false
@@ -15,6 +18,7 @@ class ApplicationController < ActionController::Base
   end
 
   around_action :global_error_handler
+ # skip_around_action :global_error_handler, :only => [:user_not_authorized]
 
   #before_action :set_locale, except: [:signin, :api_signin]
 
@@ -118,6 +122,10 @@ class ApplicationController < ActionController::Base
     path = Rails.root.join("config/locales", "#{locale.to_s}.yml").to_s
     dict = YAML.load_file(path)
     return dict[locale.to_s].to_json
+  end
+
+  def user_not_authorized
+    Rails.logger.info "You are not authorized to perform this action." 
   end
 
 end

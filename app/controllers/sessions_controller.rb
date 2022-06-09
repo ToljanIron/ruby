@@ -99,6 +99,8 @@ class SessionsController < ApplicationController
   end
 
   def payload(user)
+    puts "sSSSSSSSSSSSSSSSSSSSSSSSSSS"
+    puts user.role
     return nil unless user and user.id
 
     company = Company.find(user.company_id)
@@ -123,7 +125,9 @@ class SessionsController < ApplicationController
         session_timeout: company.session_timeout,
         password_update_interval: company.password_update_interval,
         max_login_attempts: company.max_login_attempts,
-        required_chars_in_password: company.get_required_password_chars
+        required_chars_in_password: company.get_required_password_chars,
+        is_allowed_create_questionnaire: user.super_admin? || (user.is_allowed_create_questionnaire && user.admin?),
+        is_allowed_add_users: user.super_admin? || (user.is_allowed_add_users && user.admin?)
       }
     }
   end
@@ -161,7 +165,7 @@ class SessionsController < ApplicationController
 
   def check_user_role(user)
     # _TODO: domain check is dead code, should we remove it? US-12195
-    if user.admin?
+    if user.super_admin?
       services = services_with_missing_token(user)
       if services.length == 1
         redirect_to controller: 'clients', action: 'request_google_access', domain_id: services.first[:domain_id]
@@ -170,7 +174,7 @@ class SessionsController < ApplicationController
       else
         redirect_to admin_page_path
       end
-    elsif user.hr?
+    elsif user.admin?
       redirect_to root_path
     else
       redirect_to employee_page_path
