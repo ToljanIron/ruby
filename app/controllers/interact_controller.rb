@@ -82,7 +82,8 @@ class InteractController < ApplicationController
   ###############################################
   def get_map
     authorize :interact, :view_reports?
-    permitted = params.permit(:qqid, :gids)
+    permitted = params.permit(:qqid, :gids, :user_map)
+    user_map = permitted[:user_map].to_i
 
     qqid = sanitize_id(permitted[:qqid]).try(:to_i)
     gids = sanitize_gids(permitted[:gids])
@@ -115,7 +116,8 @@ class InteractController < ApplicationController
                .pluck(:id).join(',')
     end
 
-    cmid = CompanyMetric.where(network_id: nid, algorithm_id: 601).last.id
+    cm = CompanyMetric.where(network_id: nid, algorithm_id: 601).last
+    cmid = cm ? cm.id : nil
 
     groups = Group
       .select("groups.id AS gid, name, parent_group_id AS parentId, color_id")
@@ -157,15 +159,20 @@ class InteractController < ApplicationController
     c_factor_names.each do |f|
       factor_names[f.factor_name.camelize] = (!f.display_name.blank? ? f.display_name : f.factor_name.camelize)
     end
-
-
-    links = NetworkSnapshotData
-      .select("from_employee_id AS id1, to_employee_id AS id2, value AS w")
-      .where(company_id: cid, snapshot_id: sid, network_id: nid)
-      .where("value > 0")
-      .where(from_employee_id: eids)
-      .where(to_employee_id: eids)
-
+    if(user_map && eids.include?(user_map))
+      links = NetworkSnapshotData
+        .select("from_employee_id AS id1, to_employee_id AS id2, value AS w")
+        .where(company_id: cid, snapshot_id: sid, network_id: nid)
+        .where("value > 0")
+        .where('from_employee_id=? OR to_employee_id=?', user_map, user_map)
+    else
+      links = NetworkSnapshotData
+        .select("from_employee_id AS id1, to_employee_id AS id2, value AS w")
+        .where(company_id: cid, snapshot_id: sid, network_id: nid)
+        .where("value > 0")
+        .where(from_employee_id: eids)
+        .where(to_employee_id: eids)
+    end
     res = {
       groups: groups,
       nodes: nodes,
