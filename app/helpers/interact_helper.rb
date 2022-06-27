@@ -103,16 +103,14 @@ module InteractHelper
     nodes_ids = []
     unlinked_nodes = []
     links.map {|link| nodes_ids.push(link.id1,link.id2) }
-    nodes.each do |node|
+    nodes = nodes.sort_by {|node| -node.d.to_i}
+    nodes.each_with_index do |node, idx|
       if nodes_ids.include?(node.id)
         linked_nodes << node
-      else
+      elsif idx < 10
         unlinked_nodes << node
       end
     end
-    unlinked_nodes = unlinked_nodes.sort_by {|node| -node.d.to_i}
-    unlinked_nodes.each do |node|
-    end
-    return linked_nodes + unlinked_nodes[0..9]
+    return linked_nodes + unlinked_nodes
   end
 end
