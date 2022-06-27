@@ -123,7 +123,6 @@ class InteractController < ApplicationController
       .select("groups.id AS gid, name, parent_group_id AS parentId, color_id")
       .where(snapshot_id: sid)
       .where("groups.id in (#{gids})")
-
     nodes = Employee
       .select("employees.id AS id, first_name || ' ' || last_name AS t, employees.group_id, g.name AS gname,
                cms.score AS d, rank_id, gender, ro.name AS role_name, o.name AS office_name,
@@ -165,6 +164,7 @@ class InteractController < ApplicationController
         .where(company_id: cid, snapshot_id: sid, network_id: nid)
         .where("value > 0")
         .where('from_employee_id=? OR to_employee_id=?', user_map, user_map)
+      nodes = top_indegree_unconnected_nodes(links,nodes)
     else
       links = NetworkSnapshotData
         .select("from_employee_id AS id1, to_employee_id AS id2, value AS w")
