@@ -97,4 +97,20 @@ module InteractHelper
     res = AlgorithmsHelper.degree_centrality(gids, nid, sid)
     return res
   end
+
+  def top_indegree_unconnected_nodes(links, nodes)
+    linked_nodes = []
+    nodes_ids = []
+    unlinked_nodes = []
+    links.map {|link| nodes_ids.push(link.id1,link.id2) }
+    nodes = nodes.sort_by {|node| -node.d.to_i}
+    nodes.each_with_index do |node, idx|
+      if nodes_ids.include?(node.id)
+        linked_nodes << node
+      elsif idx < 10
+        unlinked_nodes << node
+      end
+    end
+    return linked_nodes + unlinked_nodes
+  end
 end
