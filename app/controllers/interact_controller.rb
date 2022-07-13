@@ -187,10 +187,3 @@ class InteractController < ApplicationController
     render json: res
   end
 end
-
-# SELECT ii.column_name,cfn.display_name
-#   FROM information_schema.columns ii
-#   left join company_factor_names cfn
-#   on cfn.factor_name = ii.column_name
-#  WHERE table_name = 'employees'
-#  and ii.column_name in('factor_a_id','factor_b_id');
