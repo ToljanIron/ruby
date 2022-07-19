@@ -21,7 +21,7 @@ class InteractBackofficeController < ApplicationController
   def before_interact_backoffice
     qid = sanitize_id(params['qid'])
     company_id = sanitize_id(params[:company_id])
-    @cid = InteractBackofficeHelper.get_user_company(current_user,company_id)  #current_user.company_id
+    @cid = InteractBackofficeHelper.get_user_company(current_user,company_id,qid)  #current_user.company_id
     
     @company_name = Company.find(@cid).name
     @user_name = "#{current_user.first_name} #{current_user.last_name}"
@@ -125,7 +125,9 @@ class InteractBackofficeController < ApplicationController
     authorize :interact, :create_questionnaire?
     ibo_process_request do
       qid = sanitize_id(params['qid'])
-      err = Questionnaire.find(qid).delete
+      q = Questionnaire.find(qid)
+      Snapshot.drop_snapshot(q.snapshot_id)
+      err = q.delete
       quests = Questionnaire.get_all_questionnaires(@cid,current_user)
       [quests, err]
     end

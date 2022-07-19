@@ -1322,17 +1322,16 @@ order by qa.network_id, e.external_id")
     return user_list
   end
 
-  def self.get_user_company(user,company_id=nil)
+  def self.get_user_company(user,company_id=nil,qid=nil)
     if user.super_admin?
-      if (!company_id.nil?)
-        cid = company_id
-      else
-        cid = Company.where(active: true).last.id
+      return  company_id unless company_id.nil?
+      if qid
+        q = Questionnaire.find(qid)
+        return  q.company_id if q
       end
-    else
-      cid = user.company_id
+      return Company.where(active: true).last.id
     end
-    return cid
+    return user.company_id
   end
 
   def self.create_new_company(name)

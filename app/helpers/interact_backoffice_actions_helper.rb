@@ -34,7 +34,6 @@ module InteractBackofficeActionsHelper
   ##   - create test participant
   ############################################################
   def self.create_new_questionnaire(cid, qid=nil, rerun=false)
-
     questcopy = !qid.nil?
     oq = questcopy ? Questionnaire.find(qid) : nil
 
@@ -43,7 +42,7 @@ module InteractBackofficeActionsHelper
     sid = snapshot.id
 
     ## Create questionnaire
-    name = questcopy ? "#{oq.name} copy" : "Q-#{cid}-#{sid}-#{Time.now.strftime('%Y%m%d-%M')}"
+    name = questcopy ? "#{oq.name} copy-#{sid}" : "Q-#{cid}-#{sid}-#{Time.now.strftime('%Y%m%d-%M')}"
     language_id = questcopy ? oq.language_id : 2
     sms_text = questcopy ? oq.sms_text : SMS_TEXT
     email_text = questcopy ? oq.email_from : EMAIL_TEXT
@@ -76,9 +75,13 @@ module InteractBackofficeActionsHelper
 
     if questcopy
       Group
-        .where(questionnaire_id: qid)
         .where(snapshot_id: sid)
         .update_all(questionnaire_id: quest.id)
+
+      # Group
+      #   .where(questionnaire_id: qid)
+      #   .where(snapshot_id: sid)
+      #   .update_all(questionnaire_id: quest.id)
     end
 
     ## Copy over template questions
