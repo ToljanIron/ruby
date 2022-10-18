@@ -1176,7 +1176,7 @@ module InteractBackofficeHelper
     params = Employee.active_params(cid,sid)
 
     cid = Snapshot.find(sid).company_id    
-    quest_algorithm = QuestionnaireAlgorithm.find_by_sql("select qa.*,qq.order,e.external_id,e.first_name,e.last_name, g.name as group_name,alt.name as algorithm_name
+    quest_algorithm = QuestionnaireAlgorithm.find_by_sql("select qa.*,qq.order,qq.title as q_title,e.external_id,e.first_name,e.last_name, g.name as group_name,alt.name as algorithm_name
 from public.questionnaire_algorithms qa 
 left join questionnaire_questions qq on qq.network_id=qa.network_id
 left join employees e on e.id=qa.employee_id
@@ -1192,7 +1192,8 @@ order by qa.network_id, e.external_id")
           :external_id => res.external_id,
           :first_name =>res.first_name,
           :last_name => res.last_name,
-          :group_name => res.group_name
+          :group_name => res.group_name,
+          :question_title => res.q_title
         }
       end
       # networks[res.network_id][res.employee_id][res.algorithm_name] = {
@@ -1208,7 +1209,7 @@ order by qa.network_id, e.external_id")
     #     new_params << (factor.display_name ? factor.display_name : factor.factor_name)
     #   end
     # end
-    report_name = "networkMetricsReport-#{company_name}-#{Time.now.strftime('%Y%m%d')}.xlsx"
+    report_name = "network_metrics_report.xlsx"
     wb = create_excel_file(report_name)
     ws = wb.add_worksheet('Report')
     ws = create_new_report_heading(wb,ws,new_params)
@@ -1229,7 +1230,7 @@ order by qa.network_id, e.external_id")
         ws.write("B#{i}", r[:first_name])
         ws.write("C#{i}", r[:last_name])
         ws.write("D#{i}", r[:group_name])
-        ws.write("E#{i}", "Q#{idx}")
+        ws.write("E#{i}", r[:question_title])
         measures.each_with_index do |measure,index1|
           arr.each_with_index do |score, index2|
             j = col+index2+(arr.length * index1)
