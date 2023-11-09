@@ -69,6 +69,7 @@ group :test do
   gem 'factory_bot', '~> 4.11', '>= 4.11.1'
   gem 'database_cleaner'
   gem 'jasmine-rails'
+  gem 'simplecov'
 end
 
 group :production do
