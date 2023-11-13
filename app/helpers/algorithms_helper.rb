@@ -387,8 +387,9 @@ module AlgorithmsHelper
     nid = NetworkSnapshotData.emails(cid)
 
     puts "Getting the graph"
+    puts "123"
     sagraph = get_sagraph(sid, nid, gid)
-
+    puts "456"
     a = sagraph[:adjacencymat]
     dim = a.shape[0]
     ones     = get_ones_vector(dim)
