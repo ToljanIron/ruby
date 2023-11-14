@@ -43,7 +43,7 @@ group :production, :onpremise, :development do
   gem 'sassc-rails'
   gem 'uglifier'
   gem 'ejs'
-  gem 'yui-compressor'
+  #gem 'yui-compressor'
   gem 'sprockets'
   gem 'sprockets-rails'
   gem 'font-awesome-rails'
