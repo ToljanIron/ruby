@@ -24,7 +24,7 @@ Workships::Application.configure do
 
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = Uglifier.new(mangle: false, compress: { unsafe: false, hoist_vars: true })
-  config.assets.css_compressor = :yui
+  #config.assets.css_compressor = :yui
 
   # Disable debug mode that falls back on uncompressed assets
   config.assets.debug = false
