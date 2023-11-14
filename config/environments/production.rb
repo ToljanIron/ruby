@@ -32,7 +32,7 @@ Workships::Application.configure do
   # UglifyJS for JavaScript compression (requires ngmin-rails gem to avoid DI issues)
 
   # YUI compressor for CSS
-  config.assets.css_compressor = :yui
+  #config.assets.css_compressor = :yui
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
