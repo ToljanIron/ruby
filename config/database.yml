@@ -51,8 +51,8 @@ test:
 
 # for on premise installtion
 production:
-  database: workships_app
-  host: <%= ENV['POSTGRES_PORT_5432_TCP_ADDR'] || 'localhost' %>
+  database: d3ho9e6omr0n2b
+  host: <%= ENV['POSTGRES_PORT_5432_TCP_ADDR'] %>
   username: postgres
   password: postgres
   port: 5432
