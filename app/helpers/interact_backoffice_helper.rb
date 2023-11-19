@@ -1292,7 +1292,7 @@ order by qa.network_id, e.external_id")
 
 
   def self.get_companies
-    sqlstr = "select c.id, c.name, COALESCE(count(q.id),0)as survey_num,  COALESCE(sum(p_num),0) as participants_num
+    sqlstr = "select c.id, c.name, COALESCE(count(q.id),0)as survey_num,  COALESCE(cast(sum(p_num) as INT),0) as participants_num
     from companies c left join questionnaires q on c.id=q.company_id
     left join (select questionnaire_id, count(*) as p_num from questionnaire_participants where employee_id != -1 group by questionnaire_id ) sp
     on sp.questionnaire_id=q.id
