@@ -42,7 +42,7 @@ module InteractBackofficeHelper
          LEFT JOIN employees AS mans ON mans.id = emr.manager_id
          WHERE
            questionnaire_id = #{qid};"
-      res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+      res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
       sqlstr =
         "DROP TABLE statconvs;"
@@ -485,7 +485,7 @@ module InteractBackofficeHelper
  
        WHERE
          emps.snapshot_id = #{sid}"
-    emps = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    emps = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     h_emps = {}
     emps.each do |e|
@@ -514,7 +514,7 @@ module InteractBackofficeHelper
          o.snapshot_id = #{sid} AND
          femps.id <> temps.id AND
          o.value = 1"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     rels = {}
     res.each do |r|
@@ -602,7 +602,7 @@ module InteractBackofficeHelper
        LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id
        where
          emps.snapshot_id = #{sid}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     params = Employee.active_params(cid,sid)
     dynamic_params = names_of_active_params(cid,sid,params)
 
@@ -1298,7 +1298,8 @@ order by qa.network_id, e.external_id")
     on sp.questionnaire_id=q.id
     group by c.id,c.name
     order by c.id desc"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_a
+
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return res
   end
 

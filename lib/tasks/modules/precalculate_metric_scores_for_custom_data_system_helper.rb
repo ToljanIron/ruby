@@ -237,7 +237,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
 
               parent_skew_direction = CompanyMetric.find(l3.company_metric_id).algorithm.meaningful_sqew_value
               scores.each { |s|
-                hs = s.to_h
+                hs = s.to_hash
                 coordinted_z_score = hs['z_score'].to_f  ## find_flag_gauge_if_exists(s, cid, g, sid, hs)
                 son_skew_direction = Algorithm.find(hs['algorithm_id']).meaningful_sqew_value
                 coordinted_z_score = recalculate_score_for_central_and_negative_algorithms(coordinted_z_score, parent_skew_direction, son_skew_direction)
@@ -298,7 +298,7 @@ module PrecalculateMetricScoresForCustomDataSystemHelper
                         cd.company_metric_id in (#{ll_metric_ids}) and group_id = #{g.id} and snapshot_id = #{sid}"
             scores = ActiveRecord::Base.connection.select_all(sqlstr)
             scores.each { |s|
-              hs = s.to_h
+              hs = s.to_hash
               son_skew_direction = hs['meaningful_sqew']
               score = recalculate_score_for_central_and_negative_algorithms(hs['score'].to_f, parent_skew_direction, son_skew_direction)
               aggregate_score += (hs['weight'].to_f * score)

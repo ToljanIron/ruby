@@ -69,7 +69,7 @@ module ReportHelper
       where a.algorithm_type_id = 6 and s.company_id = #{cid} and a.id < 500
       order by gid, aid, sid"
 
-      return ActiveRecord::Base.connection.select_all(sqlstr).to_h
+      return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
   end
 
   ######################## Employees Report #################################
@@ -144,7 +144,7 @@ module ReportHelper
          gatekeepers           numeric,
          sinks                 numeric)"
 
-      return ActiveRecord::Base.connection.select_all(sqlstr).to_h
+      return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
   end
 
   ######################## Interact Report #################################
@@ -180,7 +180,7 @@ module ReportHelper
          cms.company_id  = #{cid} AND
          cms.snapshot_id = #{sid}"
 
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
 
     puts "name,email,group_name,metric_name,office,role, rank,gender,job_title,score,\n"
     ii = 0
@@ -233,7 +233,7 @@ module ReportHelper
        LIMIT #{limit}
        "
 
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return res
   end
 
@@ -387,7 +387,7 @@ module ReportHelper
       emp.snapshot_id = #{sid}
       ORDER BY snapshot_id, group_name, algorithm_name, score"
 
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     puts "Found #{ret.count} records"
     file = File.open('employee_scores_report.csv', 'w')
     file.write("emp_name,group_name,algorithm_name,snapshot_id,snapshot_date,score\n")

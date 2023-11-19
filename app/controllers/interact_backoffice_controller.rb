@@ -452,7 +452,7 @@ class InteractBackofficeController < ApplicationController
       WHERE qq.active = true AND questionnaire_id = #{qp.questionnaire_id}
       ORDER BY qq.order"
 
-      questions = ActiveRecord::Base.connection.exec_query(sqlstr).to_h
+      questions = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
 
       ## If there is a funnel question then the number of particpants per question
       ## is it the number the particpant has selected.

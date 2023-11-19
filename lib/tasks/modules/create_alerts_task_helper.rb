@@ -121,7 +121,7 @@ module CreateAlertsTaskHelper
        outg.snapshot_id = #{sid}
        ORDER BY flag_proportion #{dir}
        LIMIT 1"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
     return nil if res.length == 0
     return nil if res[0]['flag_proportion'] == 0.0
     return res[0]['outer_gid']
