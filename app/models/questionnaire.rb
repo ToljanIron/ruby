@@ -305,7 +305,7 @@ class Questionnaire < ActiveRecord::Base
        ORDER BY q.created_at DESC"
        puts sqlstr
 
-    res = ActiveRecord::Base.connection.select_all(sqlstr).a
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     ret = []
     res.each do |r|
       quest = ret.find {|e| e['id'] == r['id'] }
