@@ -20,7 +20,7 @@ module InteractAlgorithmsHelper
        WHERE emp.id IN (#{emps.join(',')}) AND
              emp.snapshot_id = #{sid}
        GROUP BY emp.id"
-    indeg = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    indeg = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     indeg
   end
 
@@ -43,7 +43,7 @@ module InteractAlgorithmsHelper
        WHERE emp.id IN (#{emps.join(',')}) AND
              emp.snapshot_id = #{sid}
        GROUP BY emp.id"
-    outdeg = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    outdeg = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     outdeg
   end
 end

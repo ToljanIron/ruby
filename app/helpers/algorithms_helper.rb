@@ -195,7 +195,7 @@ module AlgorithmsHelper
               AND snapshot_id           = #{sid}
               AND network_id            = #{network}
               GROUP BY from_employee_id"
-    sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     array_of_values, limit = find_limit(sent_emails)
     counter = 0
     array_of_values.each do |number|
@@ -216,7 +216,7 @@ module AlgorithmsHelper
               AND snapshot_id         = #{sid}
               AND network_id          = #{network}
               GROUP BY to_employee_id"
-    sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sent_emails = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     array_of_values, limit = find_limit(sent_emails)
     counter = 0
     array_of_values.each do |number|
@@ -260,7 +260,7 @@ module AlgorithmsHelper
     return res
   end
 
-  def self.json_to_hash_table(arr)
+  def self.json_to_h_table(arr)
     json_to_return = {}
     arr.each do |object|
       json_to_return[object['from_employee_id'] + '_' + object['to_employee_id']] = object['emails_sum'].to_f
@@ -301,7 +301,7 @@ module AlgorithmsHelper
 
     sqlstr = "select employee_from_id, sum(#{length_str}(subject)) as subject_length from email_subject_snapshot_data where employee_from_id in (#{emps.join(',')}) group by employee_from_id"
 
-    subjects = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    subjects = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     array_of_subject_length = json_to_array_for_subject subjects
     return [{ group_id: group_id, measure: 0 }] if emps.count < 3 || array_of_subject_length.empty?
     q4 = find_q3_min(array_of_subject_length)
@@ -336,11 +336,11 @@ module AlgorithmsHelper
               AND to_type=          #{to_type}
               AND from_employee_id  IN (#{emps})
               AND to_employee_id    IN (#{emps})"
-    nonesum = ActiveRecord::Base.connection.select_all(sqlstr)[0].to_hash
+    nonesum = ActiveRecord::Base.connection.select_all(sqlstr)[0].to_h
     return nonesum['emails_sum'].to_f
   end
 
-  def self.list_to_hash(list)
+  def self.list_to_h(list)
     hash = {}
     list.each do |emp|
       hash[emp['from_employee_id'].to_i] = emp['emails_sum'].to_i
@@ -594,7 +594,7 @@ module AlgorithmsHelper
             snapshot_id = #{sid} AND
             network_id = #{nid}
           GROUP BY message_id) AS in1"
-     res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+     res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
 
      res = res.map { |r| r['cnt'] }
      med = array_mean(res)
@@ -825,7 +825,7 @@ module AlgorithmsHelper
               WHERE network_id      = #{network}
               AND snapshot_id       = #{sid}
               AND to_employee_id  IN (#{emps.join(',')})"
-    sum = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sum = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     avg_emails = sum[0]['emails_sum'].to_f / emps.count.to_f if emps.count.to_f > 0
     avg_emails = 0 if emps.count.to_f == 0
     sqlstr = "SELECT to_employee_id,
@@ -841,7 +841,7 @@ module AlgorithmsHelper
               AND to_employee_id  IN (#{emps.join(',')})
               AND to_employee_id<>from_employee_id
               GROUP BY to_employee_id"
-    indegrees = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    indegrees = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     count_degs = 0
     indegrees.each do |deg|
       count_degs += 1 if deg['emails_sum'].to_f <= (1.to_f / 3.to_f).to_f
@@ -1404,7 +1404,7 @@ module AlgorithmsHelper
                       AND network_id        = #{network}
                       AND snapshot_id       = #{sid}
                       GROUP BY to_employee_id"
-      bcc = ActiveRecord::Base.connection.select_all(sqlstrdenom).to_hash
+      bcc = ActiveRecord::Base.connection.select_all(sqlstrdenom).to_h
 
       sqlstrnumer = "SELECT COUNT(id) AS all_count, to_employee_id
                       FROM network_snapshot_data
@@ -1413,7 +1413,7 @@ module AlgorithmsHelper
                       AND network_id        = #{network}
                       AND snapshot_id       = #{sid}
                       GROUP BY to_employee_id"
-      all = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_hash
+      all = ActiveRecord::Base.connection.select_all(sqlstrnumer).to_h
 
       bcc_hash = {}
       bcc.each { |e| bcc_hash[e['to_employee_id']] = e['bcc_count'] }
@@ -1682,7 +1682,7 @@ module AlgorithmsHelper
               LIMIT 1"
 
     max_traffic = ActiveRecord::Base.connection.exec_query(sqlstr)
-    h_max_traffic = max_traffic.to_hash[0]
+    h_max_traffic = max_traffic.to_h[0]
 
     return nil if h_max_traffic.nil?
     return {
@@ -2191,7 +2191,7 @@ module AlgorithmsHelper
         WHERE emps.id in (#{emps.join(',')}) AND
               emps.snapshot_id = #{sid}
         ORDER BY emps.id"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_h
 
     ratios = []
 
@@ -2432,7 +2432,7 @@ module AlgorithmsHelper
                 meeting_type = 1
               GROUP BY empid"
 
-    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_h
 
     ret = []
     res.each do |r|
@@ -2458,7 +2458,7 @@ module AlgorithmsHelper
               response = #{DECLINE}
               GROUP BY empid"
 
-    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.exec_query(sqlstr).to_h
 
     ret = []
     res.each do |r|
@@ -2524,7 +2524,7 @@ module AlgorithmsHelper
   def handle_raw_snapshot_data(raw_object_array, employee_ids)
     array = []
 
-    raw_object_array.each{|obj| array << obj.to_hash}
+    raw_object_array.each{|obj| array << obj.to_h}
     # array = integerify_hash_arr(array)
     array = integerify_hash_arr_all(array)
 

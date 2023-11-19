@@ -380,7 +380,7 @@ class Employee < ActiveRecord::Base
                                 COUNT(CASE WHEN TRIM(factor_j)=''  THEN NULL ELSE factor_j END) as param_j 
                                 FROM employees
                                 WHERE snapshot_id=#{sid}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     if res[0]
       n = res[0]['id'] 
       res[0].each do |key, val|

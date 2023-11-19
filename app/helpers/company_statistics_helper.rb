@@ -286,7 +286,7 @@ module CompanyStatisticsHelper
               FROM network_snapshot_data 
               WHERE snapshot_id = #{sid} 
               AND network_id    = #{network}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     s = res.first['sum'].to_i
     return s/emps.count
   end
@@ -360,7 +360,7 @@ module CompanyStatisticsHelper
               FROM network_snapshot_data
               WHERE snapshot_id = #{sid}
               AND network_id    = #{network}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
     sum = res.first['sum'].to_i
     return sum
   end
