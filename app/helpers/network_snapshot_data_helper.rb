@@ -175,7 +175,7 @@ module NetworkSnapshotDataHelper
     sqlstr = "#{sqlstr} #{groupby}" unless groupby.nil?
     sqlstr = "#{sqlstr} ORDER BY vol DESC LIMIT #{limit}" unless limit.nil?
 
-    return ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    return ActiveRecord::Base.connection.select_all(sqlstr).to_a
   end
 
   ##################### Map for Dynamics ##################################
@@ -356,7 +356,7 @@ module NetworkSnapshotDataHelper
         #{extids_cond} AND
         topg.snapshot_id = #{sid} AND
         g.snapshot_id = #{sid}"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     l2_map = {}
     res.each do |r|

@@ -51,7 +51,7 @@ module MeasuresHelper
                 #{groups_wherepart} AND
                 cds.algorithm_id = #{TIME_SPENT_IN_MEETINGS_AID}
               GROUP BY period"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     res = []
     sqlres.each do |entry|
@@ -104,7 +104,7 @@ module MeasuresHelper
                 #{groups_wherepart} AND
                 cds.algorithm_id = #{EMAILS_VOLUME_AID}
               GROUP BY period"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     sqlres.each do |r|
       r['score'] = r['score_sum'].to_f / num_of_emps
@@ -231,7 +231,7 @@ module MeasuresHelper
                 g.external_id IN ('#{group_extids.join('\',\'')}') AND
                 cds.algorithm_id = #{aid}
               GROUP BY period"
-    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    sqlres = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     min = 0
     # If retreiving z-scores - they can be negative. Shift them up by the minimum

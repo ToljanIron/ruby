@@ -225,7 +225,7 @@ module CalculateMeasureForCustomDataSystemHelper
       ORDER BY score DESC
       LIMIT 20"
 
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     return ret
   end
@@ -367,7 +367,7 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY outmost.gextid, outmost.group_name, outmost.algorithm_id, outmost.algorithm_name
       ORDER BY group_hierarchy_avg DESC"
 
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return ret
   end
 
@@ -422,7 +422,7 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY group_external_id
       ORDER BY sum DESC
       LIMIT 200"
-    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return cds_scores.map do |s|
       s['group_external_id']
     end
@@ -443,7 +443,7 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY algorithm_id
       ORDER BY sum DESC
       LIMIT 10"
-    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return cds_scores.map do |s|
       s['algorithm_id']
     end
@@ -465,7 +465,7 @@ module CalculateMeasureForCustomDataSystemHelper
       GROUP BY off.id
       ORDER BY sum DESC
       LIMIT 10"
-    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     office_ids = cds_scores.map do |s|
       s['office_id']
     end
@@ -491,7 +491,7 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (601, 602)
       ORDER BY snapshot_id, company_metric_id, score DESC"
 
-    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_a
 
     res = {}
     cds_scores.each do |cds_score|
@@ -547,7 +547,7 @@ module CalculateMeasureForCustomDataSystemHelper
         cds.algorithm_id IN (#{algorithms_ids.join(',')})
       ORDER BY snapshot_id, company_metric_id, score DESC"
 
-    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    cds_scores = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     res = {}
     cds_scores.each do |cds_score|
       metric_name    = cds_score['metric_name']
@@ -761,7 +761,7 @@ module CalculateMeasureForCustomDataSystemHelper
           cds.algorithm_id = #{aid}
         GROUP BY snid) inneragg"
 
-    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    ret = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return ret[0]['avg'].to_f.round(2)
   end
 
