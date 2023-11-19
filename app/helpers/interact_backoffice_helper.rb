@@ -1299,7 +1299,7 @@ order by qa.network_id, e.external_id")
     group by c.id,c.name
     order by c.id desc"
 
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_hash
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return res
   end
 
