@@ -1298,7 +1298,7 @@ order by qa.network_id, e.external_id")
     on sp.questionnaire_id=q.id
     group by c.id,c.name
     order by c.id desc"
-    res = ActiveRecord::Base.connection.select_all(sqlstr).to_h
+    res = ActiveRecord::Base.connection.select_all(sqlstr).to_a
     return res
   end
 
