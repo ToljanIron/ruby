@@ -80,6 +80,10 @@ module ImportDataHelper
     eids = []
     context_list.each do |co|
       ii += 1
+      puts('*********************************')
+      puts(co)
+      puts('*********************************')
+
       puts "Working on context number: #{ii}" if (ii % 50 == 0)
       if co.attrs[:delete]
         puts "111111111111111111"
@@ -104,7 +108,7 @@ module ImportDataHelper
       if xls_line_number > 0
         ret = process_xls_employee(xls_line, cid, xls_line, xls_line_number, sid, lean) if sht_type == 'emps'
         ret = process_xls_groups(xls_line, cid, xls_line, xls_line_number, sid, lean) if sht_type == 'groups'
-      end
+      endx``
       ret
     end
     ret = context_list.flatten
