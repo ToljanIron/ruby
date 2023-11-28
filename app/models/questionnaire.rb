@@ -292,7 +292,7 @@ class Questionnaire < ActiveRecord::Base
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id,
-              qp.participant_type, q.snapshot_id,#{q_level_select}
+              qp.participant_type, q.snapshot_id,#{q_level_select},is_snowball_q::int
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
        #{q_level_join}
