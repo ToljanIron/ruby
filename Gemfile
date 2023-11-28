@@ -61,6 +61,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 6.0', '>= 6.0.3'  # gem 'transpec'
   gem 'seed_dump'
   gem 'puma', '~> 3.7'
+  gem 'byebug'
   #gem 'solargraph'
   
 end
