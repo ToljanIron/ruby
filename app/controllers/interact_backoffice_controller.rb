@@ -581,7 +581,7 @@ class InteractBackofficeController < ApplicationController
           job_title: sanitize( qp['job_title'] ),
           phone_number: sanitize( qp['phone_number'] ),
           email: qp['email'],
-          is_verified: qp['is_verified']
+          is_verified: qp['is_verified'],
           active: active
         }
       rescue => e
