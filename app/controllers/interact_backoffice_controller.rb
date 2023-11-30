@@ -182,7 +182,6 @@ class InteractBackofficeController < ApplicationController
     smsText =      quest['sms_text']
     emailText =    quest['email_text']
     emailSubject = quest['email_subject']
-    isSnowball = quest['is_snowball_q']
 
     language_id = sanitize_id(quest['language_id'])
     aq.update!(
@@ -192,8 +191,7 @@ class InteractBackofficeController < ApplicationController
       sms_text: smsText,
       email_text: emailText,
       email_subject: emailSubject,
-      language_id: language_id,
-      is_snowball_q: isSnowball
+      language_id: language_id
     )
 
     ret = CompanyConfigurationTable.where(comp_id: @cid, key: CompanyConfigurationTable::HIDE_EMPLOYEES).last
@@ -545,7 +543,7 @@ class InteractBackofficeController < ApplicationController
         .select("qp.id as pid, e.id as eid, e.first_name, e.last_name, e.external_id, e.img_url,
                  g.name as group_name, qp.status as status, ro.name as role, rank_id as rank ,
                  o.name as office, e.gender, jt.name as job_title, e.phone_number, e.email,
-                 qp.active, qp.is_verified")
+                 qp.active")
         .from("employees as e")
         .joins("left join groups as g on g.id = e.group_id and g.snapshot_id = e.snapshot_id")
         .joins("left join roles as ro on ro.id = e.role_id")
@@ -581,7 +579,6 @@ class InteractBackofficeController < ApplicationController
           job_title: sanitize( qp['job_title'] ),
           phone_number: sanitize( qp['phone_number'] ),
           email: qp['email'],
-          is_verified: qp['is_verified'],
           active: active
         }
       rescue => e

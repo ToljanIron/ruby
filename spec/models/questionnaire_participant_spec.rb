@@ -210,10 +210,4 @@ describe QuestionnaireParticipant, type: :model do
       expect(url).to match(/^http.*questionnaire\?token=[0-9a-zA-Z]+$/)
     end
   end
-  describe 'default participant' do
-    it 'should be verified' do
-      qp = QuestionnaireParticipant.new
-      expect(qp.is_verified).to be(true)
-    end
-  end
 end
