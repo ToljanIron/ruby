@@ -546,7 +546,7 @@ class InteractBackofficeController < ApplicationController
         .select("qp.id as pid, e.id as eid, e.first_name, e.last_name, e.external_id, e.img_url,
                  g.name as group_name, qp.status as status, ro.name as role, rank_id as rank ,
                  o.name as office, e.gender, jt.name as job_title, e.phone_number, e.email,
-                 qp.active")
+                 qp.active, qp.is_verified")
         .from("employees as e")
         .joins("left join groups as g on g.id = e.group_id and g.snapshot_id = e.snapshot_id")
         .joins("left join roles as ro on ro.id = e.role_id")
@@ -582,6 +582,7 @@ class InteractBackofficeController < ApplicationController
           job_title: sanitize( qp['job_title'] ),
           phone_number: sanitize( qp['phone_number'] ),
           email: qp['email'],
+          is_verified: qp['is_verified']
           active: active
         }
       rescue => e
