@@ -185,7 +185,7 @@ class InteractBackofficeController < ApplicationController
     isSnowball = quest['is_snowball_q']
 
     language_id = sanitize_id(quest['language_id'])
-    byebug
+    
     aq.update!(
       name: name,
       state: questState,
