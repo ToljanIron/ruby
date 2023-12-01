@@ -92,7 +92,7 @@ class QuestionnaireController < ApplicationController
     
     unv_employee=res[:employee]
     unv_participant_id=res[:qpid]
-    res = (res[:msg].empty? ? {status: 'ok',id:unv_employee.id, name:[unv_employee.first_name,unv_employee.last_name].join(" "),qp_id:unv_participant_id, image_url:nil}: {status: 'fail', reason: msg});
+    res = (res[:msg].empty? ? {status: 'ok',id:unv_employee.id, name:[unv_employee.first_name,unv_employee.last_name].join(" "),qpid:unv_participant_id, image_url:nil}: {status: 'fail', reason: msg});
     res = Oj.dump(res)
     
     render json: res
