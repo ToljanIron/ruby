@@ -13,7 +13,7 @@ describe Questionnaire, type: :model do
     @question = Question.create(company_id: @comp.id, title: 'this is a test question', body: 'sdfasdf', active: true)
     
     @questionnair_question = QuestionnaireQuestion.create(questionnaire_id: @questionnaire.id, question_id: @question.id, company_id: @comp.id, title: 'this is a test question', body: 'sdfasdf', active: true)
-    @question_recipient1 = QuestionnaireParticipant.create!(employee_id: @e1.id, questionnaire_id: @questionnaire.id, status: :completed)
+    @qpid = QuestionnaireParticipant.create!(employee_id: @e1.id, questionnaire_id: @questionnaire.id, status: :completed)
     @question_recipient2 = QuestionnaireParticipant.create!(employee_id: @e2.id, questionnaire_id: @questionnaire.id, status: :completed)
     @question_recipient3 = QuestionnaireParticipant.create!(employee_id: @e3.id, questionnaire_id: @questionnaire.id, active: false)
     
@@ -40,6 +40,16 @@ describe Questionnaire, type: :model do
       
       expect( res[1]['is_snowball_q'] ).to eq(0)
 
+    end
+  end
+  describe 'create_unverified_participant_employee' do
+    it 'should work' do
+      params={qpid:@sbquestion_recipient1.id,e_group:'sales',e_first_name:'joe',e_last_name:'smith'}
+      res = Questionnaire.create_unverified_participant_employee(params)
+      expect(res[:msg]).to be_empty
+      expect(res[:employee][:first_name]) == ('joe')
+      expect(res[:employee][:last_name])==('smith')
+      expect QuestionnaireParticipant.last.snowballer_employee_id== @sbquestion_recipient1.id
     end
   end
 end
