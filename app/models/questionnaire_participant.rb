@@ -7,7 +7,7 @@ class QuestionnaireParticipant < ActiveRecord::Base
 
   BIG_NUMBER = 1000
 
-  enum status: [:notstarted, :entered, :in_process, :completed]
+  enum status: [:notstarted, :entered, :in_process, :completed,:unverified]
   enum participant_type: [:participant, :tester]
 
   def create_link
@@ -239,6 +239,8 @@ class QuestionnaireParticipant < ActiveRecord::Base
     return 'Entered'     if stat == 'entered'    || stat == 1
     return 'In Progress' if stat == 'in_process' || stat == 2
     return 'Completed'   if stat == 'completed'  || stat == 3
+    return 'Unverified'   if stat == 'completed'  || stat == 4
+
     return 'NA'
   end
 
