@@ -84,7 +84,7 @@ class QuestionnaireController < ApplicationController
   def add_unverfied_participant
     
     authorize :application, :passthrough
-    token = sanitize_alphanumeric(params[:data][:token])
+    token = sanitize_alphanumeric(params[:token])
    raise "No such token" if token.nil?
     permitted = request.params
     
