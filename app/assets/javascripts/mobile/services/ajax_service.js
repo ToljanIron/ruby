@@ -64,6 +64,17 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       return getPromise(method, url, params);
     }
 
+    function createUnverifiedEmployee(_params) {
+      var method = 'POST';
+      var url = '/add_unverfied_participant';
+      var params = _params;
+      return getPromise(method, url, params);
+    }
+
+    ajaxService.createUnverifiedEmployee = function (params) {
+      return createUnverifiedEmployee(params);
+    }
+
     ajaxService.getOverlayEntityConfiguration = function () {
       return loadOverlayEntityConfiguration();
     };
