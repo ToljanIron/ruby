@@ -142,20 +142,19 @@
   position: fixed;
   z-index: 20;
   left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  top: 20%;
+  margin: 11% 8%;
+  width: 84%;
+  //height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  padding-top: 400px;
 }
 
   .modal-content {
     background-color: #fefefe;
-    margin: 11% auto;
+    //margin: 11% auto;
     padding: 30px;
     border: 1px solid #888;
-    width: 67%;
+    //width: 71%;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
   }
 

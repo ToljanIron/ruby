@@ -726,30 +726,10 @@ else
   $scope.addEmployeeModalFunc = function() {
     $scope.splitOrAddSearchResultToForm()
     $scope.showModal = !$scope.showModal;
-    //$document.on('click', handleOutsideClick);
   };
-
-  function handleOutsideClick(event) {
-    var modalContent = document.querySelector('.modal-content');
-    console.log(event.target.classList.contains('fa'));
-    console.log(!modalContent.contains(event.target));
-    console.log(event.target)
-    console.log(modalContent)
-    if (modalContent && !modalContent.contains(event.target) && !event.target.classList.contains('fa')) {
-      $scope.$apply(function() {
-        $scope.closeModalFunc();
-      });
-    }
-  }
-
-  $scope.$on('$destroy', function() {
-    $document.off('click', handleOutsideClick);
-  });
 
   $scope.closeModalFunc = function() {
     $scope.showModal = !$scope.showModal;
-    //$scope.$apply();
-    //$document.off('click', handleOutsideClick);
   };
 
   // Creating Employee
