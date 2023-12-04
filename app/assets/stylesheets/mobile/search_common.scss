@@ -8,20 +8,49 @@
     width: 0 !important;;
     height: 0 !important;;
 }
-.right-button {
+.ltr .right-button {
   width: 20% !important;
 }
 
-.add-unverified-employee {
+.rtl .right-button {
+  width: 60% !important;
+}
+
+.rtl .left-button {
+  border: 2px solid #6f7990;
+  background-color: #1a1e2c;
+  width: 22% !important;
+  margin-left: 1rem;
+  height: 100%;
+}
+
+.ltr .left-button {
+  border: 2px solid #6f7990;
+  background-color: #1a1e2c;
+  //width: 50% !important;
+  margin-left: 1rem;
+  height: 100%;
+}
+
+.rtl .add-unverified-employee {
   top: 14%;
   position: absolute;
-  left: 43.6rem;
+  left: 18.6rem;
+  //border: gray;
+  background: black;
+}
+
+.ltr .add-unverified-employee {
+  top: 14%;
+  position: absolute;
+  left: 43.7rem;
   border: gray;
   background: black;
 }
 .add-unverified-employee .fa {
   color: white;
 }
+
 
 .search-tab {
   margin-left: 15px;
@@ -179,6 +208,17 @@
     border-radius: 5px;
   }
 
+  .rtl input[type="text"] {
+    direction: rtl;
+    width: 96%;
+    font-size: 33px;
+    height: 50px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
 
   .save-button {
     margin-top: 50px;
@@ -207,6 +247,14 @@
     font-weight: bold;
   }
 
+  .rtl .close-button {
+    color: #aaaaaa;
+    float: left;
+    margin-top: 10px;
+    font-size: 65px;
+    font-weight: bold;
+  }
+
   .close-button:hover,
   .close-button:focus {
     color: black;
@@ -223,10 +271,28 @@
     font-size: 29px;
   }
 
+  .rtl input[type="text"]::placeholder {
+    direction: rtl;
+    color: gray;
+    font-style: normal;
+    font-weight: 100;
+    font-family: 'OpenSans', sans-serif !important;
+    line-height: 20px;
+    font-size: 29px;
+  }
+
   label {
     font-size: 29px;
     display: block;
     margin-bottom: 15px;
+  }
+
+  .rtl label {
+    direction: rtl;
+    font-size: 29px;
+    display: block;
+    margin-bottom: 15px;
+    margin-right: 10px;
   }
 
   .modal-backdrop {
