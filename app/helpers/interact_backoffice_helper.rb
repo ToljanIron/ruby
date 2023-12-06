@@ -196,106 +196,8 @@ module InteractBackofficeHelper
   #################################################################
   # Create and excel file in a format that can be readily uploaded
   #################################################################
-  def self.download_employees(cid, sid,status)
-    
-    case status
-    when 'all':
-      report_name = 'employees.xlsx'
-      emps = Employee
-      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
-               emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
-               g.name AS group, phone_number,
-               fa.name as param_a,
-               fb.name as param_b,
-               fc.name as param_c,
-               fd.name as param_d,
-               fe.name as param_e,
-               ff.name as param_f,
-               fg.name as param_g,
-               emps.factor_h as param_h,
-               emps.factor_i as param_i,
-               emps.factor_j as param_j")
-      .from('employees AS emps')
-      .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
-      .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
-      .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
-      .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
-      .joins("LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id")
-      .joins("LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id")
-      .joins("LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id")
-      .joins("LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id")
-      .joins("LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id")
-      .joins("LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id")
-      .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
-      .where('emps.company_id = ?', cid)
-      .where('emps.snapshot_id = ?', sid)
-      .order('emps.email')
-    when 'unverified':
-      report_name = 'employees.xlsx'
-      emps = Employee
-      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
-               emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
-               g.name AS group, phone_number,
-               fa.name as param_a,
-               fb.name as param_b,
-               fc.name as param_c,
-               fd.name as param_d,
-               fe.name as param_e,
-               ff.name as param_f,
-               fg.name as param_g,
-               emps.factor_h as param_h,
-               emps.factor_i as param_i,
-               emps.factor_j as param_j")
-      .from('employees AS emps')
-      .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
-      .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
-      .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
-      .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
-      .joins("LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id")
-      .joins("LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id")
-      .joins("LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id")
-      .joins("LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id")
-      .joins("LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id")
-      .joins("LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id")
-      .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
-      .where('emps.company_id = ?', cid)
-      .where('emps.snapshot_id = ?', sid)
-      .where('emps.is_verified = ?', false)
-      .order('emps.email')
-
-    when 'verified':
-      report_name = 'employees.xlsx'
-      emps = Employee
-      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
-               emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
-               g.name AS group, phone_number,
-               fa.name as param_a,
-               fb.name as param_b,
-               fc.name as param_c,
-               fd.name as param_d,
-               fe.name as param_e,
-               ff.name as param_f,
-               fg.name as param_g,
-               emps.factor_h as param_h,
-               emps.factor_i as param_i,
-               emps.factor_j as param_j")
-      .from('employees AS emps')
-      .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
-      .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
-      .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
-      .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
-      .joins("LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id")
-      .joins("LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id")
-      .joins("LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id")
-      .joins("LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id")
-      .joins("LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id")
-      .joins("LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id")
-      .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
-      .where('emps.company_id = ?', cid)
-      .where('emps.snapshot_id = ?', sid)
-      .where('emps.is_verified = ?', true)
-      .order('emps.email')
-
+  def self.download_employees(cid, sid)
+    report_name = 'employees.xlsx'
     wb = create_excel_file(report_name)
 
     ## Employees
@@ -323,7 +225,35 @@ module InteractBackofficeHelper
     ws.write('T1', 'param_i')
     ws.write('U1', 'param_j')
 
-    
+    emps = Employee
+      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
+               emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
+               g.name AS group, phone_number,
+               fa.name as param_a,
+               fb.name as param_b,
+               fc.name as param_c,
+               fd.name as param_d,
+               fe.name as param_e,
+               ff.name as param_f,
+               fg.name as param_g,
+               emps.factor_h as param_h,
+               emps.factor_i as param_i,
+               emps.factor_j as param_j")
+      .from('employees AS emps')
+      .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
+      .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
+      .joins('LEFT JOIN offices AS o ON o.id = emps.office_id')
+      .joins('LEFT JOIN groups AS g ON g.id = emps.group_id')
+      .joins("LEFT JOIN factor_as as fa ON fa.id = emps.factor_a_id")
+      .joins("LEFT JOIN factor_bs as fb ON fb.id = emps.factor_b_id")
+      .joins("LEFT JOIN factor_cs as fc ON fc.id = emps.factor_c_id")
+      .joins("LEFT JOIN factor_ds as fd ON fd.id = emps.factor_d_id")
+      .joins("LEFT JOIN factor_es as fe ON fe.id = emps.factor_e_id")
+      .joins("LEFT JOIN factor_fs as ff ON ff.id = emps.factor_f_id")
+      .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
+      .where('emps.company_id = ?', cid)
+      .where('emps.snapshot_id = ?', sid)
+      .order('emps.email')
 
     ii = 1
     emps.each do |e|
