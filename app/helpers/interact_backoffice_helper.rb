@@ -747,6 +747,8 @@ module InteractBackofficeHelper
       ret = 'Incomplete'
     when 3
       ret = 'Completed'
+    when 4
+      ret = 'Unverified'  
     else
       ret = 'Not started'
     end
