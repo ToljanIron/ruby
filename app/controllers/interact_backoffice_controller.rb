@@ -692,8 +692,9 @@ class InteractBackofficeController < ApplicationController
     # authorize :interact, :authorized?
     # qid = sanitize_id(params[:qid])
     # q = Questionnaire.find(qid)
+    status=params[:status] || 'all'
     sid = @aq.snapshot_id
-    file_name = InteractBackofficeHelper.download_employees(@cid, sid)
+    file_name = InteractBackofficeHelper.download_employees(@cid, sid,status)
     send_file(
       "#{Rails.root}/tmp/#{file_name}",
       filename: file_name,
