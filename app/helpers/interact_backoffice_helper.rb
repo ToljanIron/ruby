@@ -196,8 +196,8 @@ module InteractBackofficeHelper
   #################################################################
   # Create and excel file in a format that can be readily uploaded
   #################################################################
-  def self.download_employees(cid, sid)
-    report_name = 'employees.xlsx'
+  def self.download_employees(cid, sid,status)
+    report_name = [status,'employees.xlsx'].join('_')
     wb = create_excel_file(report_name)
 
     ## Employees
@@ -226,7 +226,7 @@ module InteractBackofficeHelper
     ws.write('U1', 'param_j')
 
     emps = Employee
-      .select("emps.external_id, first_name, last_name, email, ro.name AS role,
+      .select("emps.external_id, first_name, last_name, email, is_verified, ro.name AS role,
                emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
                g.name AS group, phone_number,
                fa.name as param_a,
@@ -253,6 +253,7 @@ module InteractBackofficeHelper
       .joins("LEFT JOIN factor_gs as fg ON fg.id = emps.factor_g_id")
       .where('emps.company_id = ?', cid)
       .where('emps.snapshot_id = ?', sid)
+      .where('is_verified '+(status=='verified' ? '=' : '!=')+'true')
       .order('emps.email')
 
     ii = 1
@@ -747,6 +748,8 @@ module InteractBackofficeHelper
       ret = 'Incomplete'
     when 3
       ret = 'Completed'
+    when 4
+      ret = 'Unverified'  
     else
       ret = 'Not started'
     end

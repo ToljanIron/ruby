@@ -381,4 +381,23 @@ class Questionnaire < ActiveRecord::Base
     end
     return ret
   end
+
+  def self.create_unverified_participant_employee(permitted)
+    
+    snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee.id
+    company=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire.company
+    questionnaire=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire
+    group=Group.find_or_create_by!(company:company,name:permitted[:e_group],snapshot_id:questionnaire.snapshot_id)
+
+    raise "No such company" if company.nil?
+    raise "No such questionnaire" if questionnaire.nil?
+    temp_email=['unveified',company.name,Time.now.utc.strftime("%Y%m%d%H%M%S")].join('-')+'@stepahead.com' 
+    unverified_employee=Employee.create!(snapshot_id:questionnaire.snapshot_id,is_verified:false,group:group,email:temp_email,company_id:company.id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],external_id:Time.now.utc.strftime("%Y%m%d%H%M%S"))
+    byebug
+    unverified_participant=QuestionnaireParticipant.create!(snowballer_employee_id:snowballed_by,employee_id:unverified_employee.id,questionnaire_id:questionnaire.id,status:4,active:true)
+
+    msg=(unverified_employee.errors.full_messages+unverified_participant.errors.full_messages).flatten.join(',')
+    data={msg:msg,employee:unverified_employee,qpid:unverified_participant.try(:id)}
+    return data
+  end
 end

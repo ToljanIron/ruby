@@ -6,8 +6,8 @@ angular.module('workships-mobile')
         $logProvider.debugEnabled(false);
   }])
   .controller('mobileQuestionnaireController', [
-    '$scope', 'ajaxService', '$q', 'mobileAppService', '$timeout', '$log','$window',
-    function ($scope, ajaxService, $q, mobileAppService, $timeout, $log, $window) {
+    '$scope', 'ajaxService', '$q', 'mobileAppService', '$timeout', '$log','$window', '$document',
+    function ($scope, ajaxService, $q, mobileAppService, $timeout, $log, $window, $document) {
 
   var undo_stack = [];
   var mass = mobileAppService.s;
@@ -76,6 +76,7 @@ angular.module('workships-mobile')
   $scope.responsesForQuestion = function (question_id) {
     $log.debug('In ponsesForQuestion()');
     var r = $scope.responses[question_id];
+    //console.log(r);
     if (!r) {
       return;
     }
@@ -286,7 +287,7 @@ angular.module('workships-mobile')
     return _.keys($scope.responses).length;
   };
 
-  $scope.employeeById = function (employee_id) {
+  $scope.employeeById = function (employee_id)  { // sometimes it's not employee id it's employee_detail_id
     var e =  _.find($scope.employees, {
       id: employee_id
     });
@@ -294,6 +295,7 @@ angular.module('workships-mobile')
   };
   $scope.getEmployeeImg = function (employee_id) {
     var e = $scope.employeeById(employee_id)
+    //console.log(e);
     if(e.image_url && !e.image_url.match(/missing_user/))
       return e.image_url;
     return false;
@@ -329,6 +331,8 @@ else
   }
 
   $scope.shortEmpName = function (employee_id){
+    // console.log(employee_id)
+    // console.log($scope.employees)
     var e = $scope.employeeById(employee_id)
     return $scope.shortName(e.name)
   }
@@ -480,6 +484,7 @@ else
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
+    $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
     var employees_for_question = _.filter($scope.employees, function (e) { return _.include(employee_ids_in_question, e.id); });
@@ -691,6 +696,92 @@ else
   $scope.searchFunc = function () {
    // $scope.hhh = $scope.search_list();
   }
+
+  $scope.employee = {
+    firstname: '',
+    lastname: '',
+    department: ''
+  };
+
+  $scope.clearEmployeeObject = function () {
+    $scope.employee.firstname = '';
+    $scope.employee.lastname = '';
+    $scope.employee.department = '';
+  }
+
+  $scope.splitOrAddSearchResultToForm = function () {
+    if ($scope.search_input.text && $scope.search_input.text.trim() !== '') {
+      if ($scope.search_input.text.includes(' ')) {
+        var wordsArray = $scope.search_input.text.split(' ');
+        $scope.employee.firstname = wordsArray[0]
+        $scope.employee.lastname = wordsArray[1]
+      } else {
+        $scope.employee.firstname = $scope.search_input.text;
+      }
+    }
+  }
+
+  $scope.showModal = false;
+
+  $scope.addEmployeeModalFunc = function() {
+    $scope.splitOrAddSearchResultToForm()
+    $scope.showModal = !$scope.showModal;
+  };
+
+  $scope.closeModalFunc = function() {
+    $scope.showModal = !$scope.showModal;
+  };
+
+  // Creating Employee
+
+  $scope.submitUnverifiedEmployeeForm = function() {
+    var data = {
+      e_first_name: $scope.employee.firstname,
+      e_last_name: $scope.employee.lastname,
+      e_group: $scope.employee.department,
+      qpid : $scope.original_data.qpid,
+      token : $scope.params.token
+    };
+    console.log($scope.responses.undefined)
+    console.log($scope.tiny_array)
+
+    ajaxService.createUnverifiedEmployee(data).then(function(response) {
+      console.log("Response:", response.data);
+      // For some reason question_id is undefined;
+      var newUserResponse = {
+        employee_details_id: response.data.e_id,
+        employee_id: response.data.qpid,
+        response: null
+      };
+      var newEmployeeObject = {
+        id: response.data.e_id,
+        name: response.data.name,
+        qp_id:response.data.qpid,
+        role: "Employee",
+        image_url: response.data.image_url
+      }
+      var newUserDataRepliesResponse = {
+        e_id: response.data.qpid,
+        employee_details_id: response.data.e_id,
+        response: null
+      };
+      // Here we modify all arrays and objects for display new employee
+      $scope.employees.push(newEmployeeObject)
+      $scope.tiny_array.push(newUserResponse)
+      $scope.responses.undefined.responses.push(newUserResponse);
+      $scope.original_data.replies.push(newUserDataRepliesResponse)
+
+      $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(undefined, response.data.qpid);
+      $scope.clearEmployeeObject();
+      $scope.closeModalFunc()
+      console.log($scope.original_data.replies)
+      console.log($scope.employees)
+      console.log($scope.currentlyFocusedEmployeeId);
+    }).catch(function(error) {
+      console.error("Error:", error);
+    });
+  };
+
 
   $scope.onSelect = function () {
     var emp = $scope.chosen_employee;
