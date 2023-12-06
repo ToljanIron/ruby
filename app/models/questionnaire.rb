@@ -391,7 +391,7 @@ class Questionnaire < ActiveRecord::Base
 
     raise "No such company" if company.nil?
     raise "No such questionnaire" if questionnaire.nil?
-    temp_email=['unveified',company.name,Time.now.utc.strftime("%Y%m%d%H%M%S")].join('-')+'@stepahead.com' 
+    temp_email=['unveified',company.name.gusb(' ',''),Time.now.utc.strftime("%Y%m%d%H%M%S")].join('-')+'@stepahead.com' 
     unverified_employee=Employee.create!(snapshot_id:questionnaire.snapshot_id,is_verified:false,group:group,email:temp_email,company_id:company.id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],external_id:Time.now.utc.strftime("%Y%m%d%H%M%S"))
     byebug
     unverified_participant=QuestionnaireParticipant.create!(snowballer_employee_id:snowballed_by,employee_id:unverified_employee.id,questionnaire_id:questionnaire.id,status:4,active:true)
