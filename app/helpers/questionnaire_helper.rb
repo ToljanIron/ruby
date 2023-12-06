@@ -246,7 +246,7 @@ module QuestionnaireHelper
   #############################################################################
   # This is the structure that's conssumed by th client, so do not change.
   #############################################################################
-  def hash_employees_of_company_by_token(token)
+  def hash_employees_of_company_by_token(token, only_verified=false)
     qp_ids = QuestionnaireParticipant
                .find_by(token: token)
                .questionnaire
@@ -255,7 +255,7 @@ module QuestionnaireHelper
     return if qp_ids.nil? || qp_ids.empty?
     query = "select emp.id as id,
             (#{CdsUtilHelper.sql_concat('emp.first_name', 'emp.last_name')}) as name,
-            emp.img_url as image_url,
+            emp.img_url as image_url, emp.is_verified as is_verified,
             #{role_origin_field} as role,
             qp.id as qp_id
             from employees as emp
@@ -263,6 +263,9 @@ module QuestionnaireHelper
             left join roles on emp.role_id = roles.id
             left join job_titles on emp.job_title_id = job_titles.id
             where qp.id in (#{qp_ids.join(',')})"
+    if only_verified
+      query+=' AND emp.is_verified=true'
+    end
     res = ActiveRecord::Base.connection.select_all(query)
     res = res.to_json
     return res
