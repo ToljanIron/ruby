@@ -124,7 +124,7 @@
     width: 20px;
   }
   .dropdown-menu {
-    background-color: #fefeff;
+    //background-color: #fefeff;
     font-size: 14px;
     left: 3px;
     overflow: hidden;
@@ -360,5 +360,21 @@
     cursor: pointer;
     height: 55px;
     font-size: x-large;
+    font-weight: bold;
+  }
+
+  .desktop.modal .close-button {
+    color: #aaaaaa;
+    float: right;
+    margin-top: 2px;
+    font-size: 50px;
+    font-weight: bold;
+  }
+
+  .rtl.desktop.modal .close-button {
+    color: #aaaaaa;
+    float: left;
+    margin-top: 2px;
+    font-size: 50px;
     font-weight: bold;
   }

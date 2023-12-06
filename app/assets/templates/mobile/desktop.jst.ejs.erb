@@ -213,8 +213,56 @@
         <div class='selected-title'>{{mobile_app_service.t("selected")}}<%#= I18n.t("questionnaire.selected") %></div>
         <div class='search-tab search-desktop' ng-if='display_search()'>
           <img class='search-img-rtl' ng-click='clearSearch()' alt="clear" src="<%= asset_path 'clear_search.png' %>"/>
-          <input class='search-input-field' placeholder="  {{mobile_app_service.t('search')}}..." type='text' ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | nameStartWith:$viewValue | limitTo:10"  typeahead-on-select='select_worker($item, true)'/>
+          <input class='search-input-field' ng-change="checkIfUserExists(search_input.text)" placeholder="  {{mobile_app_service.t('search')}}..." type='text' ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | nameStartWith:$viewValue | limitTo:10"  typeahead-on-select='select_worker($item, true)'/>
+          <ul class="dropdown-menu"
+              ng-show="!userExists"
+              ng-style="{top: '356.2px', left: '568.2px'}"
+              role="listbox"
+              aria-hidden="false"
+          >
+            <!-- 'Add Unverified Employee' -->
+            <li ng-click="showModalForAddUnverifiedEmployee()"
+                role="option"
+                style="cursor: pointer"
+                class="ng-scope active">
+              <a tabindex="-1" class="ng-scope ng-binding">
+                Add Unverified Employee
+              </a>
+            </li>
+          </ul>
+
+          <div class="modal-backdrop" ng-click="closeModalFunc()" ng-show="showModal"></div>
+          <div class="rtl desktop modal" ng-show="showModal">
+            <div class="modal-content" >
+              <span class="close-button" ng-click="closeModalFunc()">×</span>
+
+              <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">
+                <div class="form-group">
+                  <div class="modal-input-wrapper">
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="modal-input-wrapper">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="modal-input-wrapper">
+                    <label for="department">Department</label>
+                    <input type="text" id="department" class="modal-input" name="department" ng-model="employee.department" placeholder="Enter department" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="save-button">Save</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
+
         <div class='selected-employees'>
           <div class='pillbox-wrapper' ng-repeat='worker in replies'>
             <pillbox ng-if="worker.selected === true" name="getEmployee(worker.employee_details_id).name" on-remove='select_worker(getEmployee(worker.employee_details_id), false)'></pillbox>
