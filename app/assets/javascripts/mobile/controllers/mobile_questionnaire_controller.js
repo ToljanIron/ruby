@@ -505,7 +505,7 @@ else
     }
 
     $scope.questions_to_answer = format_questions_to_answer(response.data);
-
+    $scope.getGroups();
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
     if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
@@ -781,6 +781,14 @@ else
       console.error("Error:", error);
     });
   };
+  
+  $scope.getGroups = function () {
+    console.log($scope.questionnaire_id)
+    var param = {qid : $scope.questionnaire_id, token: mobileAppService.getToken()}
+    ajaxService.getGroups(param).then(function(response) {
+      console.log(response.data)
+    })
+  }
 
 
   $scope.onSelect = function () {

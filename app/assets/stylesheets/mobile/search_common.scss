@@ -124,7 +124,7 @@
     width: 20px;
   }
   .dropdown-menu {
-    background-color: #fefeff;
+    //background-color: #fefeff;
     font-size: 14px;
     left: 3px;
     overflow: hidden;
@@ -198,7 +198,7 @@
     margin-bottom: 15px;
   }
 
-  input[type="text"] {
+  .modal-input {
     width: 96%;
     font-size: 33px;
     height: 50px;
@@ -208,7 +208,7 @@
     border-radius: 5px;
   }
 
-  .rtl input[type="text"] {
+  .rtl .modal-input {
     direction: rtl;
     width: 96%;
     font-size: 33px;
@@ -262,7 +262,7 @@
     cursor: pointer;
   }
 
-  input[type="text"]::placeholder {
+  .modal-input::placeholder {
     color: gray;
     font-style: normal;
     font-weight: 100;
@@ -271,7 +271,7 @@
     font-size: 29px;
   }
 
-  .rtl input[type="text"]::placeholder {
+  .rtl .modal-input::placeholder {
     direction: rtl;
     color: gray;
     font-style: normal;
@@ -304,4 +304,77 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 10;
+  }
+
+  // Desktop version of modal
+
+  .desktop.modal {
+    position: fixed;
+    z-index: 20;
+    left: 0;
+    top: 0%;
+    margin: 3% 29% 23% 31%;
+    width: 40%;
+    overflow: auto;
+  }
+
+  .desktop.modal .modal-form {
+    margin-top: 4rem;
+    //height: 40%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .desktop.modal .modal-input-wrapper .modal-input {
+    width: 94%;
+    font-size: 24px;
+    height: 20px;
+    padding: 13px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .desktop.modal .modal-input-wrapper .modal-input::placeholder {
+    color: gray;
+    font-style: normal;
+    font-weight: 100;
+    font-family: 'OpenSans', sans-serif !important;
+    line-height: 16px;
+    font-size: 20px;
+  }
+
+  .desktop.modal .modal-input-wrapper label {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .desktop.modal .save-button {
+    margin-top: 20px;
+    padding: 10px 10px;
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    height: 55px;
+    font-size: x-large;
+    font-weight: bold;
+  }
+
+  .desktop.modal .close-button {
+    color: #aaaaaa;
+    float: right;
+    margin-top: 2px;
+    font-size: 50px;
+    font-weight: bold;
+  }
+
+  .rtl.desktop.modal .close-button {
+    color: #aaaaaa;
+    float: left;
+    margin-top: 2px;
+    font-size: 50px;
+    font-weight: bold;
   }
