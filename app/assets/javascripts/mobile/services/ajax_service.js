@@ -77,7 +77,7 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
 
     function getGroups(_params) {
       var method = 'GET';
-      var url = 'get_questionnaire_groups';
+      var url = '/v3/get_groups';
       var params = _params;
       return getPromise(method, url, params);
     }

@@ -355,6 +355,35 @@
     flex-direction: column;
   }
 
+  .desktop.modal .modal-input-select {
+    width: 98.9%;
+    font-size: 24px;
+    height: auto;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .desktop.modal .modal-input-select option {
+    max-width: 100px !important;
+    font-size: 24px;
+    background-color: white;
+    color: black;
+  }
+
+  .rtl.desktop.modal .modal-input-select option {
+    direction: rtl;
+    font-size: 24px;
+    max-width: 100px !important;
+    background-color: white;
+    color: black;
+  }
+
+  .rtl.desktop select {
+    direction: rtl;
+  }
+
   .desktop.modal .modal-input-wrapper .modal-input {
     width: 94%;
     font-size: 24px;
@@ -383,7 +412,7 @@
   .desktop.modal .save-button {
     margin-top: 20px;
     padding: 10px 10px;
-    width: 100%;
+    width: 99%;
     background-color: #007bff;
     color: white;
     border: none;
