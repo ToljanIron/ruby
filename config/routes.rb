@@ -23,6 +23,8 @@ Workships::Application.routes.draw do
   get   '/mobile',                     to: 'mobile/companies#show'
   get   '/questionnaire',              to: 'application#show_mobile'
   get   'get_questionnaire_employees', to: 'questionnaire#all_employees'
+  get   'get_questionnaire_groups', to: 'questionnaire#all_groups'
+
   post  'get_next_question',           to: 'questionnaire#get_next_question'
   post  'close_question',              to: 'questionnaire#close_question'
   post  'add_unverfied_participant',   to: 'questionnaire#add_unverfied_participant'
@@ -54,12 +56,14 @@ Workships::Application.routes.draw do
   get  '/sa_setup/it_done',                 to: 'sa_setup#it_done'
   get  '/sa_setup/system_definitions',      to: 'sa_setup#upload_company'
   post '/sa_setup/employees_excel',         to: 'sa_setup#employees_excel'
+  post '/sa_setup/validate_unverified',         to: 'sa_setup#validate_unverified_employees'
   get  '/sa_setup/standby_or_push',         to: 'sa_setup#standby_or_push'
   get  '/sa_setup/goto_system',             to: 'sa_setup#goto_system'
   get  '/sa_setup/collect_now',             to: 'sa_setup#collect_now'
   get  '/sa_setup/push',                    to: 'sa_setup#push'
   get  '/sa_setup/retry_push',              to: 'sa_setup#collect_again'
   get  '/sa_setup/get_push_state',          to: 'sa_setup#get_push_state'
+
 
   ############## Interact ##########################################
   get  '/interact_backoffice',                          to: 'interact_backoffice#questionnaire'
