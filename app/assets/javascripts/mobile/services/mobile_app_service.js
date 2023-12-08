@@ -227,7 +227,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   };
 
   mobileAppService.isLangRtl = function() {
-    LANGUAGE_DIRECTION = 'rtl'
+    //LANGUAGE_DIRECTION = 'rtl'
     return LANGUAGE_DIRECTION == 'rtl'
     //return false;
   };
