@@ -175,7 +175,7 @@
   margin: 11% 8%;
   width: 84%;
   //height: 100%;
-  overflow: auto;
+  overflow: hidden;
 }
 
   .modal-content {
@@ -197,6 +197,36 @@
   .form-group {
     margin-bottom: 15px;
   }
+
+  .modal-input-select {
+    width: 98.8%;
+    font-size: 33px;
+    height: 71.6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .modal-input-select option {
+    max-width: 100px !important;
+    font-size: 10px;
+    background-color: white;
+    color: black;
+  }
+
+  .rtl .modal-input-select option {
+    direction: rtl;
+    font-size: 10px;
+    max-width: 100px !important;
+    background-color: white;
+    color: black;
+  }
+
+  .rtl select {
+    direction: rtl;
+  }
+
 
   .modal-input {
     width: 96%;
@@ -223,7 +253,7 @@
   .save-button {
     margin-top: 50px;
     padding: 10px 20px;
-    width: 100%;
+    width: 99%;
     background-color: #007bff;
     color: white;
     border: none;

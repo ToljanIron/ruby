@@ -205,7 +205,12 @@
           </div>
           <div class="form-group">
             <label for="department">Department</label>
-            <input type="text" class="modal-input" id="department" name="department" ng-model="employee.department" placeholder="Enter department" required>
+            <select id="department" class="modal-input-select" name="department"
+                    ng-model="employee.department"
+                    ng-options="dept.id as dept.name for dept in departments"
+                    required>
+              <option value="">Select department</option>
+            </select>
           </div>
           <div class="form-group">
             <button type="submit" class="save-button">Save</button>
@@ -249,7 +254,12 @@
           </div>
           <div class="form-group">
             <label for="department">Department</label>
-            <input type="text" id="department" class="modal-input" name="department" ng-model="employee.department" placeholder="Enter department" required>
+            <select id="department" class="modal-input-select" name="department"
+                    ng-model="employee.department"
+                    ng-options="dept.id as dept.name for dept in departments"
+                    required>
+              <option value="">Select department</option>
+            </select>
           </div>
           <div class="form-group">
             <button type="submit" class="save-button">Save</button>

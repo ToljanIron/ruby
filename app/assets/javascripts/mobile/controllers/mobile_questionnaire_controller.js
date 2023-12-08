@@ -703,6 +703,12 @@ else
     department: ''
   };
 
+  // Depatments custom dropdown part
+
+  $scope.departments = [{id: 1, name: 'Department1'}, {id: 2, name: 'Department2'}] // For now it's manual values
+
+  //Departments dropdown part end
+
   $scope.clearEmployeeObject = function () {
     $scope.employee.firstname = '';
     $scope.employee.lastname = '';
@@ -729,6 +735,7 @@ else
   };
 
   $scope.closeModalFunc = function() {
+    console.log($scope.employee)
     $scope.showModal = !$scope.showModal;
   };
 
@@ -786,7 +793,8 @@ else
     console.log($scope.questionnaire_id)
     var param = {qid : $scope.questionnaire_id, token: mobileAppService.getToken()}
     ajaxService.getGroups(param).then(function(response) {
-      console.log(response.data)
+      console.log(response.data.groups)
+      $scope.departments = response.data.groups;
     })
   }
 
