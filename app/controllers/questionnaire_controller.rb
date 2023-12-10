@@ -30,6 +30,14 @@ class QuestionnaireController < ApplicationController
     end
   end
 
+  def all_groups
+    authorize :application, :passthrough
+    permitted = params.permit(:token)
+    token = sanitize_alphanumeric(permitted[:token])
+    raise "No such token" if token.nil?
+     hash_groups_of_company_by_token(token,true)
+    
+  end 
 
 
   
