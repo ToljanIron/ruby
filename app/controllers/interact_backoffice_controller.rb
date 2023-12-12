@@ -883,6 +883,42 @@ class InteractBackofficeController < ApplicationController
     end
   end
 
+
+    ## Load employees from excel
+    def validate_unverified_participants
+      # authorize :interact, :authorized?
+      total_participants={}
+      errors = []
+      ibo_process_request do
+        emps_excel = params[:fileToUpload]
+        # qid = sanitize_id(params[:qid])
+        # aq = Questionnaire.find(qid)
+       
+        errors1 = ['No excel file uploaded']
+
+        if !emps_excel.nil?
+          sid = params[:qid]
+          @q=Questionnaire.find(sid)
+          @cid=Questionnaire.find(sid).company.id
+          errors2=validate_unverified_by_excel_sheet(@cid, params[:fileToUpload], sid)
+          errors << errors1 unless errors1
+          errors << errors2 unless errors2
+          #InteractBackofficeHelper.add_all_employees_as_participants(eids, @aq, current_user.id)
+          #CompanyFactorName.insert_factors(@cid,sid)
+          ## Update the questinnaire's state if needed
+          #if !InteractBackofficeHelper.test_tab_enabled(@aq)
+          #  if QuestionnaireParticipant.where(questionnaire_id: @aq.id).count > 1
+          #    @aq.update!(state: :notstarted)
+          #  end
+          end
+          total_participants=@q.questionnaire_participant
+        end
+  
+       
+        [{participants: total_participants, questionnaire: @q}, errors: errors ]
+      
+    end
+
   def get_factors
     # authorize :interact, :authorized?
     ibo_process_request do

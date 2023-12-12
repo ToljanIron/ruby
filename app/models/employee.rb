@@ -62,6 +62,8 @@ class Employee < ActiveRecord::Base
     Employee.where(snapshot_id: sid, active: true).where.not(email: 'other@mail.com')
   }
 
+  scope :unverified, -> { where("is_verified = false") }
+
   enum gender: [:male, :female]
 
   def managers

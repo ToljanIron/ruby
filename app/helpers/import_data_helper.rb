@@ -59,6 +59,28 @@ module ImportDataHelper
     puts "Done"
   end
 
+ def validate_unverified_by_excel_sheet(cid,spreadsheet,sid)
+  ex = Roo::Excelx.new(spreadsheet.path)
+  emps_sht = ex.sheet('Employees')
+
+  context_list = lift_excel_to_context_list(cid, emps_sht, 'emps', sid)
+  
+  context_list.each do |co|
+    #ii += 1
+    #puts "Working on context number: #{ii}" if (ii % 50 == 0)
+    
+    
+    if co.attrs[:delete]
+      puts "111111111111111111"
+      co.delete
+    else
+      puts "222222222222222222"
+      co.validate_employee
+      #id = co.connect
+      #eids << id if co.class == EmployeeLineProcessingContext
+    end
+  end
+ end
   ######################### Import Excel  #########################################
 
   ## This loader can use two formats, one full, with 20 fields, and the other
@@ -98,7 +120,7 @@ module ImportDataHelper
     return [eids, errors]
   end
 
-  def lift_excel_to_context_list(cid, xls, sht_type, sid, lean)
+  def lift_excel_to_context_list(cid, xls, sht_type, sid, lean=true)
     context_list = xls.each_with_index.map do |xls_line, xls_line_number|
       ret = nil
       if xls_line_number > 0
@@ -187,6 +209,14 @@ module ImportDataHelper
         factor_h = format_string(parsed[18])
         factor_i = format_string(parsed[19])
         factor_j = format_string(parsed[20])
+        
+        unless (parsed[21].nil?)
+          existing_id=format_string(parsed[21])
+        else
+          existing_id=nil
+        end
+        del = (parsed[22]=='D')
+
       end
 
       employee_context.attrs.merge!(
@@ -222,7 +252,11 @@ module ImportDataHelper
         factor_h:         factor_h,
         factor_i:         factor_i,
         factor_j:         factor_j,
+        
       )
+      unless (parsed[21].nil?)
+        employee_context.attrs.merge!(existing_id: existing_id)
+      end
     rescue => e
       puts "Exception loading employee with email: #{email} with error: #{e.message}"
       puts e.backtrace[0..20]
