@@ -219,7 +219,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
 
   $scope.checkIfUserExists = function(inputText) {
     //console.log($scope.userExists);
-    const lowerCaseInputText = inputText.toLowerCase();
+    lowerCaseInputText = inputText.toLowerCase();
 
     $scope.userExists = $scope.search_list().some(user =>
         user.name.toLowerCase().includes(lowerCaseInputText)
