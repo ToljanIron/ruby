@@ -108,6 +108,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     }
     $scope.is_contain_funnel_question = response.data.is_contain_funnel_question
     $scope.is_funnel_question = response.data.is_funnel_question
+    $scope.is_snowball_q = response.data.is_snowball_q;
     $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
@@ -128,7 +129,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.close_sub_title = response.data.close_sub_title
     $scope.is_referral_btn = response.data.is_referral_btn
     createTopBar($scope.total_questions);
-
+    $scope.getGroups();
     if (continue_questionnair === undefined) {
       initFromParams(response.data);
     }
@@ -201,6 +202,8 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
 
   $scope.userExists = true;
   $scope.showModal = false;
+
+  $scope.departments = [{id: 1, name: 'Department1'}, {id: 2, name: 'Department2'}] // For now it's manual values
 
   $scope.employee = {
     firstname: '',
@@ -294,6 +297,15 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
       console.error("Error:", error);
     });
   };
+
+  $scope.getGroups = function () {
+    console.log($scope.response.data.qpid)
+    var param = {qid : $scope.response.data.qpid, token: mobileAppService.getToken()}
+    ajaxService.getGroups(param).then(function(response) {
+      console.log(response.data.groups)
+      $scope.departments = response.data.groups;
+    })
+  }
 
   // end of "Add unverified employee" part
 

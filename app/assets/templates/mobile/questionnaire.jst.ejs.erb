@@ -57,7 +57,7 @@
         </div>
 
       </div>
-    <div ng-show='!isFinished() && isLoaded()'>
+    <div ng-show='!isFinished() && isLoaded() && !is_snowball_q'>
 <!--       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
           <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
@@ -161,10 +161,10 @@
 
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container rtl">
-      <button class="add-unverified-employee" ng-click="addEmployeeModalFunc()">
-        <i class="fa fa-plus fa-5x"></i>
+      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q" ng-click='minMaxOnFinish()'>
+        <span class="continue">המשך</span>
       </button>
-      <div class="right-button search-btn" ng-if="!searchListOpen" ng-click='toggleSearchInput()'>
+      <div class="right-button search-btn" ng-if="!searchListOpen && !is_snowball_q" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
@@ -185,29 +185,34 @@
       <div class="left-button" ng-class='{finished: canFinish(), disabled: !canFinish()}'
                 ng-click='clearScreenOnFinish()' ng-if='!mobile_app_service.isQuestionTypeMinMax()'>
         <i class="fa fa-chevron-left" ng-show='canFinish()'></i>
-        {{numOfAnswers()}} of {{clientMaxReplies()}}
+        {{numOfAnswers()}} / {{clientMaxReplies()}}
       </div>
     </div>
     <!-- Modal window rtl -->
-    <div class="modal-backdrop" ng-click="closeModalFunc()" ng-show="showModal"></div>
+    <div class="modal-backdrop mobile" ng-show="showModal"></div>
     <div class="modal" ng-show="showModal">
       <div class="rtl modal-content" >
-        <span class="close-button" ng-click="closeModalFunc()">×</span>
+<!--        <span class="close-button" ng-click="closeModalFunc()">×</span>-->
 
         <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">
-          <div class="form-group">
-            <label for="firstname">First Name</label>
+          <div class="header">
+            <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
+          </div>
+          <div class="form-group mobile">
             <input type="text" class="modal-input" id="firstname" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
           </div>
-          <div class="form-group">
-            <label for="lastname">Last Name</label>
+          <div class="form-group mobile">
             <input type="text" class="modal-input" id="lastname" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
           </div>
-          <div class="form-group">
-            <label for="department">Department</label>
-            <input type="text" class="modal-input" id="department" name="department" ng-model="employee.department" placeholder="Enter department" required>
+          <div class="form-group mobile">
+            <select id="department" class="modal-input-select" name="department"
+                    ng-model="employee.department"
+                    ng-options="dept.id as dept.name for dept in departments"
+                    required>
+              <option value="">Select department</option>
+            </select>
           </div>
-          <div class="form-group">
+          <div class="form-group mobile">
             <button type="submit" class="save-button">Save</button>
           </div>
         </form>
@@ -217,15 +222,15 @@
   </div>
   <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-footer">
     <div class="mobile-btns-container ltr">
-      <button class="add-unverified-employee" ng-click="addEmployeeModalFunc()">
-        <i class="fa fa-plus fa-5x"></i>
+      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q" ng-click='minMaxOnFinish()'>
+        <span class="continue">המשך</span>
       </button>
       <!-- <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div> -->
       <div class="right-button counter-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-click='clearScreenOnFinish()'>
-        {{numOfAnswers()}} of {{clientMaxReplies()}}
+        {{numOfAnswers()}} / {{clientMaxReplies()}}
         <i class="fa fa-chevron-right" ng-show='canFinish()'></i>
       </div>
-      <div class="left-button search-btn ltr" ng-if="!searchListOpen" ng-click='toggleSearchInput()'>
+      <div class="left-button search-btn ltr" ng-if="!searchListOpen && !is_snowball_q" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
@@ -233,25 +238,29 @@
       </div>
     </div>
 
-    <div class="modal-backdrop" ng-click="closeModalFunc()" ng-show="showModal"></div>
+    <div class="modal-backdrop mobile" ng-click="closeModalFunc()" ng-show="showModal"></div>
     <div class="modal" ng-show="showModal">
       <div class="modal-content" >
-        <span class="close-button" ng-click="closeModalFunc()">×</span>
-
+<!--        <span class="close-button" ng-click="closeModalFunc()">×</span>-->
         <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">
-          <div class="form-group">
-            <label for="firstname">First Name</label>
+          <div class="header">
+            <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
+          </div>
+          <div class="form-group mobile">
             <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
           </div>
-          <div class="form-group">
-            <label for="lastname">Last Name</label>
+          <div class="form-group mobile">
             <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
           </div>
-          <div class="form-group">
-            <label for="department">Department</label>
-            <input type="text" id="department" class="modal-input" name="department" ng-model="employee.department" placeholder="Enter department" required>
+          <div class="form-group mobile">
+            <select id="department" class="modal-input-select" name="department"
+                    ng-model="employee.department"
+                    ng-options="dept.id as dept.name for dept in departments"
+                    required>
+              <option value="">Select department</option>
+            </select>
           </div>
-          <div class="form-group">
+          <div class="form-group mobile">
             <button type="submit" class="save-button">Save</button>
           </div>
         </form>
