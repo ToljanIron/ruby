@@ -108,6 +108,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     }
     $scope.is_contain_funnel_question = response.data.is_contain_funnel_question
     $scope.is_funnel_question = response.data.is_funnel_question
+    $scope.is_snowball_q = response.data.is_snowball_q;
     $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
