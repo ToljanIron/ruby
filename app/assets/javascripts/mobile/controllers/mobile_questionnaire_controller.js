@@ -129,6 +129,8 @@ angular.module('workships-mobile')
   }
 
   $scope.onUserResponse = function (question_id, employee_id, response, employee_details_id, needToFocus) {
+    // console.log($scope);
+    // console.log(question_id, employee_id, response, employee_details_id, needToFocus)
     $log.debug('In onUserResponse()');
     $scope.state_saved[0] = false;
     var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
@@ -253,11 +255,13 @@ angular.module('workships-mobile')
   };
 
   $scope.canFinish = function () {
-    if (mass.is_funnel_question) {
+    if (mass.is_funnel_question && !mass.is_snowball_q) {
       return mass.num_replies_true >= mass.client_min_replies &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;
+
+    if (mass.is_snowball_q) return num_reps === mass.max;
     // console.log('&&&&&&&&&&&&&&&&&&&&&&&')
     // console.log(mass)
     // console.log('num_reps: ', num_reps, ', mass.client_max_replies: ', mass.client_max_replies)
@@ -401,6 +405,9 @@ else
     {
       var elementClasses = clickedElement.classList;
       var clickedOnPopup = (elementClasses.contains('genericPopUp') || (clickedElement.parentElement !== null && clickedElement.parentElement.classList.contains('genericPopUp')));
+      if ($scope.is_snowball_q){
+        if (!$scope.showModal) $scope.showModal = !$scope.showModal
+      }
       if (clickedOnPopup) return;
     }
 
@@ -484,6 +491,7 @@ else
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
+    $scope.is_snowball_q = response.data.is_snowball_q;
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
@@ -505,7 +513,7 @@ else
     }
 
     $scope.questions_to_answer = format_questions_to_answer(response.data);
-
+    $scope.getGroups();
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
     if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
@@ -615,6 +623,8 @@ else
 
   $scope.minMaxOnFinish = function () {
     $log.debug('In minMaxOnFinish()');
+    // console.log($scope.clicked_on_next)
+    // console.log($scope.canFinish())
     if (!$scope.canFinish()) {
       $scope.clicked_on_next[0] = true;
     } else {
@@ -703,6 +713,12 @@ else
     department: ''
   };
 
+  // Depatments custom dropdown part
+
+  $scope.departments = [{id: 1, name: 'Department1'}, {id: 2, name: 'Department2'}] // For now it's manual values
+
+  //Departments dropdown part end
+
   $scope.clearEmployeeObject = function () {
     $scope.employee.firstname = '';
     $scope.employee.lastname = '';
@@ -729,6 +745,7 @@ else
   };
 
   $scope.closeModalFunc = function() {
+    console.log($scope.employee)
     $scope.showModal = !$scope.showModal;
   };
 
@@ -773,7 +790,8 @@ else
 
       $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(undefined, response.data.qpid);
       $scope.clearEmployeeObject();
-      $scope.closeModalFunc()
+      //$scope.closeModalFunc()
+      $scope.onUserResponse(undefined, newUserResponse.employee_id, true, newUserResponse.employee_details_id)
       console.log($scope.original_data.replies)
       console.log($scope.employees)
       console.log($scope.currentlyFocusedEmployeeId);
@@ -781,6 +799,15 @@ else
       console.error("Error:", error);
     });
   };
+  
+  $scope.getGroups = function () {
+    console.log($scope.questionnaire_id)
+    var param = {qid : $scope.questionnaire_id, token: mobileAppService.getToken()}
+    ajaxService.getGroups(param).then(function(response) {
+      console.log(response.data.groups)
+      $scope.departments = response.data.groups;
+    })
+  }
 
 
   $scope.onSelect = function () {

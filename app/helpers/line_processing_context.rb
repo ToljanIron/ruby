@@ -184,6 +184,87 @@ module LineProcessingContextClasses
       @error_log << "unable to create employee with external id #{@attrs[:external_id]}, #{log_suffix}"
     end
 
+    def validate_employee
+      begin
+        fail 'can not find company_id'  if @attrs[:company_id].nil?
+        fail "can not find company with id: #{@attrs[:company_id]}" if Company.where(id: @attrs[:company_id]).empty?
+
+        if @attrs[:email].nil? || @attrs[:email].empty?
+          @error_log << "#{log_prefix} email is empty"
+          return
+        end
+
+        if @attrs[:external_id].nil? || @attrs[:external_id].empty?
+          @error_log << "#{log_prefix} external_id is empty"
+          return
+        end
+
+        if @attrs[:group_name].nil? || @attrs[:group_name].empty?
+          @error_log << "#{log_prefix} group_name is empty"
+          return
+        end
+
+        unless @attrs[:date_of_birth].nil? || @attrs[:date_of_birth].empty?
+          unless check_date(@attrs[:date_of_birth])
+           puts "ERROR: date_of_birth: #{@attrs[:date_of_birth]} is invalid"
+           @attrs.delete(:date_of_birth)
+          end
+        end
+        unless @attrs[:work_start_date].nil? || @attrs[:work_start_date].empty?
+          unless check_date(@attrs[:work_start_date])
+            puts 'ERROR: work_start_date is invalid'
+            @attrs.delete(:work_start_date)
+          end
+        end
+        
+        employee=Employee.unverified.find(@attrs[:existing_id])
+        role=Role.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:role])
+        #rank=Rank.find_or_create_by(name:@attrs[:rank])
+        job_title=JobTitle.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:job_title])
+        office=Office.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:office_address])
+        factor_a=FactorA.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_a])
+        factor_b=FactorB.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_b])
+        factor_c=FactorC.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_c])
+        factor_d=FactorD.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_d])
+        factor_e=FactorE.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_e])
+        factor_f=FactorF.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_f])
+        factor_g=FactorG.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_g])
+        #factor_h=FactorH.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_h])
+        #factor_i=FactorI.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_i])
+        #factor_j=FactorJ.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:factor_j])
+        @attrs[:role]=role
+        #@attrs[:rank]=rank
+        @attrs[:job_title]=job_title
+        @attrs[:office_id ]=office.id
+        
+        @attrs[:factor_a ]=factor_a
+        @attrs[:factor_b ]=factor_b
+        @attrs[:factor_c ]=factor_c
+        @attrs[:factor_d ]=factor_d 
+        @attrs[:factor_e ]=factor_e  
+        @attrs[:factor_f ]=factor_f
+        @attrs[:factor_g ]=factor_g
+        #@attrs[:factor_h ]=factor_h
+        #@attrs[:factor_i ]=factor_i
+        @attrs[:is_verified]=true                   
+        [:rank,:company_id,:existing_id,:delete,:office_address].each do |attr|
+          @attrs.delete(attr)
+        end
+        
+        
+        res=employee.update!(@attrs)
+    
+        #hash = Employee.build_from_hash(@attrs)
+      rescue => ex
+       
+        @error_log << ex.message + " unable to create employee with external id #{@attrs[:external_id]} - #{ex}, #{log_suffix}"
+        puts ex.backtrace
+        return
+      end
+
+
+    end
+
     def check_date(date)
       date_regex = /(19\d{2}|20[0-5]\d)-(0\d{1}|1[0-2]|[1-9])-[0-3]*\d/
       return (date =~ date_regex) == 0

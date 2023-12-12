@@ -271,6 +271,26 @@ module QuestionnaireHelper
     return res
   end
 
+
+  def hash_groups_of_company_by_token(token, only_verified=false)
+    qp = QuestionnaireParticipant
+               .find_by(token: token)
+               
+               
+    return if qp.nil? 
+    
+    cid = qp.employee.company_id
+    
+    sid =Snapshot.last_snapshot_of_company(cid)
+    qid = QuestionnaireParticipant.find_by(token: token).questionnaire
+    questionnaire = Questionnaire.where(snapshot_id: sid).first
+    groups= Group.by_snapshot(sid).map{|x| {name:x.name,id:x.id}}
+    res = { groups: groups }
+    render plain: Oj.dump(res), status: 200
+  end
+
+    
+  
   #############################################################################
   # Update the participant's replies
   #############################################################################

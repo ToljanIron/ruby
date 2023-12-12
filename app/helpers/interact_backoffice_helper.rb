@@ -224,7 +224,11 @@ module InteractBackofficeHelper
     ws.write('S1', 'param_h')
     ws.write('T1', 'param_i')
     ws.write('U1', 'param_j')
-
+    if(status=='unverified')
+      ws.write('V1','stepahead_id')
+      ws.write('W1', 'action')
+    end  
+    
     emps = Employee
       .select("emps.external_id, first_name, last_name, email, is_verified, ro.name AS role,
                emps.rank_id AS rank, jt.name AS job_title, gender, o.name AS office,
@@ -238,7 +242,7 @@ module InteractBackofficeHelper
                fg.name as param_g,
                emps.factor_h as param_h,
                emps.factor_i as param_i,
-               emps.factor_j as param_j")
+               emps.factor_j as param_j,emps.id")
       .from('employees AS emps')
       .joins('LEFT JOIN roles AS ro ON ro.id = emps.role_id')
       .joins('LEFT JOIN job_titles AS jt ON jt.id = emps.job_title_id')
@@ -280,8 +284,10 @@ module InteractBackofficeHelper
       ws.write("S#{ii}", e['param_h'])
       ws.write("T#{ii}", e['param_i'])
       ws.write("U#{ii}", e['param_j'])
+      if(status=='unverified')
+        ws.write("V#{ii}",e['id'])
+      end
     end
-
     ## Groups
     ws = wb.add_worksheet('Groups')
 

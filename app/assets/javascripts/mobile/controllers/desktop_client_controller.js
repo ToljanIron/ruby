@@ -108,6 +108,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     }
     $scope.is_contain_funnel_question = response.data.is_contain_funnel_question
     $scope.is_funnel_question = response.data.is_funnel_question
+    $scope.is_snowball_q = response.data.is_snowball_q;
     $scope.selected_workers = []
     $scope.replies = response.data.replies;
     $scope.response = response;
@@ -128,7 +129,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     $scope.close_sub_title = response.data.close_sub_title
     $scope.is_referral_btn = response.data.is_referral_btn
     createTopBar($scope.total_questions);
-
+    $scope.getGroups();
     if (continue_questionnair === undefined) {
       initFromParams(response.data);
     }
@@ -196,6 +197,117 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     });
     return _.last($scope.replies);
   }
+
+  // start of "Add unverified employee" part
+
+  $scope.userExists = true;
+  $scope.showModal = false;
+
+  $scope.departments = [{id: 1, name: 'Department1'}, {id: 2, name: 'Department2'}] // For now it's manual values
+
+  $scope.employee = {
+    firstname: '',
+    lastname: '',
+    department: ''
+  };
+
+  $scope.clearEmployeeObject = function () {
+    $scope.employee.firstname = '';
+    $scope.employee.lastname = '';
+    $scope.employee.department = '';
+  }
+
+  $scope.checkIfUserExists = function(inputText) {
+    //console.log($scope.userExists);
+    const lowerCaseInputText = inputText.toLowerCase();
+
+    $scope.userExists = $scope.search_list().some(user =>
+        user.name.toLowerCase().includes(lowerCaseInputText)
+    );
+    console.log($scope.userExists);
+    //return $scope.userExists
+  };
+
+  $scope.splitOrAddSearchResultToForm = function () {
+    if ($scope.search_input.text && $scope.search_input.text.trim() !== '') {
+      if ($scope.search_input.text.includes(' ')) {
+        var wordsArray = $scope.search_input.text.split(' ');
+        $scope.employee.firstname = wordsArray[0]
+        $scope.employee.lastname = wordsArray[1]
+      } else {
+        $scope.employee.firstname = $scope.search_input.text;
+      }
+    }
+  }
+
+  $scope.showModalForAddUnverifiedEmployee = function() {
+    console.log($scope)
+    $scope.userExists = !$scope.userExists
+    $scope.splitOrAddSearchResultToForm()
+    $scope.search_input.text = ''
+    $scope.showModal = !$scope.showModal;
+  };
+
+  $scope.closeModalFunc = function() {
+    $scope.showModal = !$scope.showModal;
+  };
+
+  $scope.submitUnverifiedEmployeeForm = function() {
+    var data = {
+      e_first_name: $scope.employee.firstname,
+      e_last_name: $scope.employee.lastname,
+      e_group: $scope.employee.department,
+      qpid : $scope.response.data.qpid,
+      token : $scope.token
+    };
+
+    ajaxService.createUnverifiedEmployee(data).then(function(response) {
+      console.log("Response:", response.data);
+      // For some reason question_id is undefined;
+      var newUserResponse = {
+        employee_details_id: response.data.e_id,
+        employee_id: response.data.qpid,
+        response: null
+      }; //
+      var newEmployeeObject = {
+        id: response.data.e_id,
+        name: response.data.name,
+        qp_id: response.data.qpid,
+        role: "Employee",
+        image_url: response.data.image_url
+      } // workers
+      var newUserDataRepliesResponse = {
+        e_id: response.data.qpid,
+        employee_details_id: response.data.e_id,
+        answer: true,
+        selected: true
+      }; // replies
+      // Here we modify all arrays and objects for display new employee
+      $scope.workers.push(newEmployeeObject)
+      //$scope.tiny_array.push(newUserResponse)
+      //$scope.responses.undefined.responses.push(newUserResponse);
+      $scope.replies.push(newUserDataRepliesResponse)
+      $scope.selected_workers.push(response.data.e_id)
+      $scope.numOfReplies();
+      //$scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(undefined, response.data.qpid);
+      $scope.clearEmployeeObject();
+      $scope.closeModalFunc()
+      console.log($scope)
+    }).catch(function(error) {
+      console.error("Error:", error);
+    });
+  };
+
+  $scope.getGroups = function () {
+    console.log($scope.response.data.qpid)
+    var param = {qid : $scope.response.data.qpid, token: mobileAppService.getToken()}
+    ajaxService.getGroups(param).then(function(response) {
+      console.log(response.data.groups)
+      $scope.departments = response.data.groups;
+    })
+  }
+
+  // end of "Add unverified employee" part
 
   $scope.numOfReplies = function() {
     return  _.filter($scope.replies, function(r) {
@@ -407,6 +519,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     var params = { token: token,
                    desktop: 'true' };
     ajaxService.get_employees(params).then(function (response) {
+      console.log(response.data)
       $scope.workers = response.data;
       $scope.search_list = getSearchList();
       _.forEach($scope.workers, function (worker) { $scope.names[worker.id] = worker.name + ', ' + worker.role; });

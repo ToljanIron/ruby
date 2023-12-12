@@ -24,10 +24,20 @@ describe QuestionnaireHelper, type: :helper do
     @qq1 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 11, active: true, order: 1, min: 2, max: 4)
     @qq2 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 12, active: true, order: 2)
     @qq3 = QuestionnaireQuestion.create!(company_id: 1, questionnaire_id: @q.id, network_id: 13, active: true, order: 3)
+    @g1=Group.create!(name:'testgroup0',company:@c)
+    @g2=Group.create!(name:'testgroup1',company:@c)
+
   end
 
   after do
     DatabaseCleaner.clean_with(:truncation)
+  end
+
+  describe 'get all groups' do
+    it 'should work' do
+      hash_groups_of_company_by_token(@qp1.token,@q.id).should eq("{\"groups\":[{\"name\":\"testgroup0\",\"id\":1},{\"name\":\"testgroup1\",\"id\":2}]}")
+    end
+
   end
 
   describe 'find_and_fix_cold_questionnaires' do
