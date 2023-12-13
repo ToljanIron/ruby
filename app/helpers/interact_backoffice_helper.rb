@@ -259,7 +259,6 @@ module InteractBackofficeHelper
       .where('emps.snapshot_id = ?', sid)
       .where('is_verified '+(status=='verified' ? '=' : '!=')+'true')
       .order('emps.email')
-
     ii = 1
     emps.each do |e|
       ii += 1
@@ -885,7 +884,7 @@ module InteractBackofficeHelper
     rank = p['rank']
     job_title = p['job_title']
     gender = p['gender']
-
+    is_verified = p['is_verified'].nil? ? true : p['is_verified']
     ## Group
     ## If no group was given the the default group is the root group. If a group name was
     ## given then look for, and if it doesn't exist create it.
@@ -917,7 +916,7 @@ module InteractBackofficeHelper
 
     ## Job title
     jtid = job_title.nil? ? nil : JobTitle.find_or_create_by!(name: job_title, company_id: cid).id
-
+    
     e = Employee.create!(
       email: email,
       company_id: cid,
@@ -931,7 +930,8 @@ module InteractBackofficeHelper
       job_title_id: jtid,
       rank_id: rank,
       gender: gender,
-      snapshot_id: sid
+      snapshot_id: sid,
+      is_verified: is_verified
     )
 
     QuestionnaireParticipant.create!(

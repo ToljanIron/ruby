@@ -1,6 +1,10 @@
 require 'spec_helper'
 require './spec/spec_factory'
+require './app/helpers/line_processing_context.rb'
+require './app/helpers/import_data_helper.rb'
+
 include CompanyWithMetricsFactory
+include ImportDataHelper
 
 describe InteractBackofficeHelper, type: :helper do
   before do
@@ -28,7 +32,7 @@ describe InteractBackofficeHelper, type: :helper do
         'last_name' => 'l',
         'email' => 'mail@qqq.com',
         'phone' => '052-2233445',
-        'group' => 'L3-1'
+        'group_name' => 'L3-1'
       }
       InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
       expect(Group.find_by(name: 'L3-1', snapshot_id: 2).questionnaire_id).to eq(1)
@@ -45,10 +49,10 @@ describe InteractBackofficeHelper, type: :helper do
         'last_name' => 'l',
         'email' => 'mail@qqq.com',
         'phone' => '052-2233445',
-        'group' => 'L3-1'
+        'group_name' => 'L3-1'
       }
       InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
-      p['group'] = 'L3-3'
+      p['group_name'] = 'L3-3'
       p['id'] = Employee.last.id
       InteractBackofficeHelper.update_employee(1, p, Questionnaire.last.id)
 
@@ -59,5 +63,28 @@ describe InteractBackofficeHelper, type: :helper do
       expect(Group.find_by(name: 'Root', snapshot_id: 2).questionnaire_id).to eq(1)
     end
 
+  end
+
+  describe 'validate employee' do
+    it 'works' do
+      InteractBackofficeActionsHelper.create_new_questionnaire(1)
+      p = {
+        'first_name' => 'f',
+        'last_name' => 'l',
+        'email' => 'mail1@qqq.com',
+        'phone' => '052-2233445',
+        'group_name' => 'L3-1',
+        'is_verified'=>false
+      }
+      
+      InteractBackofficeHelper.create_employee(1, p, Questionnaire.last)
+      num_qps=QuestionnaireParticipant.count
+      expect(Employee.last.is_verified).to eq(false)
+      xls=InteractBackofficeHelper.download_employees(1,Employee.last.snapshot_id,'unverified')
+
+      validate_unverified_by_excel_sheet(1,File.open('./tmp/'+xls), Questionnaire.last.id)
+      expect(Employee.last.is_verified).to eq(true)
+      expect(num_qps).to eq(QuestionnaireParticipant.count)
+    end
   end
 end

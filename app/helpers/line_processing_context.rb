@@ -217,7 +217,13 @@ module LineProcessingContextClasses
           end
         end
         
+        
         employee=Employee.unverified.find(@attrs[:existing_id])
+        #also fix questionnaire participant status
+        
+        qp=QuestionnaireParticipant.find_by(questionnaire_id:@attrs[:snapshot_id],employee_id:employee.id)
+        qp.status='notstarted'
+        @attrs[:snapshot_id]=employee.snapshot_id
         role=Role.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:role])
         #rank=Rank.find_or_create_by(name:@attrs[:rank])
         job_title=JobTitle.find_or_create_by(company_id:@attrs[:company_id],name:@attrs[:job_title])
@@ -251,9 +257,8 @@ module LineProcessingContextClasses
           @attrs.delete(attr)
         end
         
-        
         res=employee.update!(@attrs)
-    
+        qp.save!
         #hash = Employee.build_from_hash(@attrs)
       rescue => ex
        

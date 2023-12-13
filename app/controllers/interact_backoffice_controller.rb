@@ -14,7 +14,7 @@ class InteractBackofficeController < ApplicationController
                 :get_factors]
   before_action :require_admin_authoration, only: [:questionnaire_update, :remove_participants,:questionnaire_run,:questionnaire_close,:update_test_participant,
                 :questions_reorder,:question_update,:question_delete,:question_create,:participants_update,:participants_create,:participants_delete,:participant_resend,
-                :close_participant_questionnaire, :set_active_questionnaire_question,:participant_reset,:img_upload,:upload_participants,
+                :close_participant_questionnaire, :set_active_questionnaire_question,:participant_reset,:img_upload,:upload_participants,:validate_unverified_participants,
                 :update_data_mapping,:save_k_factor]
   
   #################### Questionnaire #######################
@@ -884,6 +884,7 @@ class InteractBackofficeController < ApplicationController
 
     ## Load employees from excel
     def validate_unverified_participants
+      
       # authorize :interact, :authorized?
       total_participants={}
       errors = []
@@ -899,6 +900,7 @@ class InteractBackofficeController < ApplicationController
           @q=Questionnaire.find(sid)
           @cid=Questionnaire.find(sid).company.id
           errors2=validate_unverified_by_excel_sheet(@cid, params[:fileToUpload], sid)
+          
           errors << errors1 unless errors1
           errors << errors2 unless errors2
           #InteractBackofficeHelper.add_all_employees_as_participants(eids, @aq, current_user.id)
@@ -908,13 +910,11 @@ class InteractBackofficeController < ApplicationController
           #  if QuestionnaireParticipant.where(questionnaire_id: @aq.id).count > 1
           #    @aq.update!(state: :notstarted)
           #  end
-          end
-          total_participants=@q.questionnaire_participant
+          
+          participants, errors3 = prepare_data(@aq.id)
+          [{participants: participants, questionnaire: @q}, errors: errors ]
         end
-  
-       
-        [{participants: total_participants, questionnaire: @q}, errors: errors ]
-      
+        end
     end
 
   def get_factors
@@ -1102,5 +1102,6 @@ class InteractBackofficeController < ApplicationController
       err = ["Error: #{msg}"]
     end
     render json: Oj.dump({data: res, err: err}), status: 200
+    return
   end
 end
