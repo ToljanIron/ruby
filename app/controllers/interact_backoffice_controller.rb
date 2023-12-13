@@ -913,8 +913,8 @@ class InteractBackofficeController < ApplicationController
           #    @aq.update!(state: :notstarted)
           #  end
           
-          total_participants=@q.questionnaire_participant
-          [{participants: total_participants, questionnaire: @q}, errors: errors ]
+          participants, errors3 = prepare_data(@aq.id)
+          [{participants: participants, questionnaire: @q}, errors: errors ]
         end
         end
     end
