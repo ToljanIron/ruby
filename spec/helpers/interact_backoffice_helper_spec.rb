@@ -83,8 +83,6 @@ describe InteractBackofficeHelper, type: :helper do
       xls=InteractBackofficeHelper.download_employees(1,Employee.last.snapshot_id,'unverified')
 
       validate_unverified_by_excel_sheet(1,File.open('./tmp/'+xls), Questionnaire.last.id)
-      #@attrs={company_id:1,email:'joe@test.com',first_name:'joe',last_name:'smith'}
-      #csv_line=['20231211133248','joe','schmoe','joe@test.com','a','b','c','male','r','123','123','','','','','','','','',21936]
       expect(Employee.last.is_verified).to eq(true)
       expect(num_qps).to eq(QuestionnaireParticipant.count)
     end
