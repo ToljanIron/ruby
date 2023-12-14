@@ -67,6 +67,13 @@ en:
     safari_msg: 'In order to enjoy the best experience when filling out the questionnaire, we recommend opening the survey in the Chrome browser'
     copy_link: 'Copy link'
     link_copied: 'copied'
+    first_name: 'First name'
+    last_name: 'Last name'
+    department: 'Department'
+    select_department: 'Select department'
+    enter_first_name : 'Enter first name'
+    enter_last_name : 'Enter last name'
+    save : 'Save'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
     fail: 'Welcome to StepAhead employee evaluation questionnaire. The ID number you sent is not registered. Send the correct ID again or contact support.'

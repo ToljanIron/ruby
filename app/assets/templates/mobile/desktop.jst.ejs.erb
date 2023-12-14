@@ -101,24 +101,24 @@
               <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="firstname">First Name</label>
-                    <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
+                    <label for="firstname">{{mobile_app_service.t('first_name')}}</label>
+                    <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="lastname">Last Name</label>
-                    <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
+                    <label for="lastname">{{mobile_app_service.t('last_name')}}</label>
+                    <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="department">Department</label>
+                    <label for="department">{{mobile_app_service.t('department')}}</label>
                     <select id="department" class="modal-input-select" name="department"
                             ng-model="employee.department"
                             ng-options="dept.id as dept.name for dept in departments"
                             required>
-                      <option value="">Select department</option>
+                      <option value="">{{mobile_app_service.t('select_department')}}</option>
                     </select>
                   </div>
                 </div>
@@ -244,29 +244,29 @@
               <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="firstname">First Name</label>
-                    <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
+                    <label for="firstname">{{mobile_app_service.t('first_name')}}</label>
+                    <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="lastname">Last Name</label>
-                    <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
+                    <label for="lastname">{{mobile_app_service.t('last_name')}}</label>
+                    <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <div class="modal-input-wrapper">
-                    <label for="department">Department</label>
+                    <label for="department">{{mobile_app_service.t('department')}}</label>
                     <select id="department" class="modal-input-select" name="department"
                             ng-model="employee.department"
                             ng-options="dept.id as dept.name for dept in departments"
                             required>
-                      <option value="">Select department</option>
+                      <option value="">{{mobile_app_service.t('select_department')}}</option>
                     </select>
                   </div>
                 </div>
                 <div class="form-group">
-                  <button type="submit" class="save-button">Save</button>
+                  <button type="submit" class="save-button">{{mobile_app_service.t('save')}}</button>
                 </div>
               </form>
             </div>

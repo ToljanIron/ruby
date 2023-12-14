@@ -199,21 +199,21 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="firstname" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
+            <input type="text" class="modal-input" id="firstname" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="lastname" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
+            <input type="text" class="modal-input" id="lastname" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
                     ng-model="employee.department"
                     ng-options="dept.id as dept.name for dept in departments"
                     required>
-              <option value="">Select department</option>
+              <option value="">{{mobile_app_service.t('select_department')}}</option>
             </select>
           </div>
           <div class="form-group mobile">
-            <button type="submit" class="save-button">Save</button>
+            <button type="submit" class="save-button">{{mobile_app_service.t('save')}}</button>
           </div>
         </form>
       </div>
@@ -247,21 +247,21 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>
+            <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
           <div class="form-group mobile">
-            <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>
+            <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
                     ng-model="employee.department"
                     ng-options="dept.id as dept.name for dept in departments"
                     required>
-              <option value="">Select department</option>
+              <option value="">{{mobile_app_service.t('select_department')}}</option>
             </select>
           </div>
           <div class="form-group mobile">
-            <button type="submit" class="save-button">Save</button>
+            <button type="submit" class="save-button">{{mobile_app_service.t('save')}}</button>
           </div>
         </form>
       </div>
