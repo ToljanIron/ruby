@@ -23,7 +23,7 @@ class QuestionnaireController < ApplicationController
     permitted = params.permit(:token)
     token = sanitize_alphanumeric(permitted[:token])
     raise "No such token" if token.nil?
-    emps = hash_employees_of_company_by_token(token,true)
+    emps = hash_employees_of_company_by_token(token,false)
     if emps
       render json: emps, status: 200
     else
