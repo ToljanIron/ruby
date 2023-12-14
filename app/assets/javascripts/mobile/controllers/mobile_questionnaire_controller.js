@@ -565,6 +565,7 @@ else
           mobileAppService.setFinishView();
         } else {
           $scope.r = $scope.responses[_.keys($scope.responses)[0]];
+          console.log($scope.responses)
           $scope.tiny_array = $scope.r.responses.slice(0, 10);
           $scope.currentlyFocusedEmployeeId = $scope.tiny_array[0].employee_id;
           if (!options.reset_question) {
@@ -804,7 +805,7 @@ else
     console.log($scope.questionnaire_id)
     var param = {qid : $scope.questionnaire_id, token: mobileAppService.getToken()}
     ajaxService.getGroups(param).then(function(response) {
-      console.log(response.data.groups)
+      console.log(response.data)
       $scope.departments = response.data.groups;
     })
   }
