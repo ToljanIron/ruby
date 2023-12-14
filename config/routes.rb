@@ -89,6 +89,7 @@ Workships::Application.routes.draw do
   post '/interact_backoffice/participants_delete',      to: 'interact_backoffice#participants_delete'
   post '/interact_backoffice/participant_reset',        to: 'interact_backoffice#participant_reset'
   post '/interact_backoffice/participant_resend',       to: 'interact_backoffice#participant_resend'
+  post '/interact_backoffice/resend_to_unanswered',       to: 'interact_backoffice#resend_to_unanswered'
   post '/interact_backoffice/close_participant_questionnaire',       to: 'interact_backoffice#close_participant_questionnaire'
   post '/interact_backoffice/set_active_questionnaire_question', to: 'interact_backoffice#set_active_questionnaire_question'
   get  '/interact_backoffice/participants_filter',      to: 'interact_backoffice#participants_filter'
