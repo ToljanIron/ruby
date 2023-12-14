@@ -7,6 +7,7 @@ class QuestionnaireController < ApplicationController
   protect_from_forgery with: :exception, except:[:add_unverfied_participant]
   before_action :authenticate_user, except: [:show_mobile,
                                              :all_employees,
+                                             :all_groups,
                                              :get_next_question,
                                              :close_question,
                                              :update_question_replies,
