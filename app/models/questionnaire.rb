@@ -322,7 +322,7 @@ class Questionnaire < ActiveRecord::Base
         quest['test_user_name']  = sanitize(quest['test_user_name'])
         quest['test_user_phone'] = sanitize(quest['test_user_phone'])
         quest['test_user_email'] = sanitize(quest['test_user_email'])
-
+        quest['is_snowball_q'] = quest['is_snowball_q']
         ret << quest
       end
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
