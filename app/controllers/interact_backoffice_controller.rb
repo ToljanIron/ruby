@@ -171,7 +171,7 @@ class InteractBackofficeController < ApplicationController
   def update_questionnaire_properties
     quest = params['questionnaire']
     aq = Questionnaire.find( sanitize_id(quest['id']))
-
+    
     questState = aq.state == 'created' ? 'delivery_method_ready' : aq.state
     questState = sanitize_alphanumeric(questState)
     deliveryMethod = quest['delivery_method']
@@ -210,7 +210,6 @@ class InteractBackofficeController < ApplicationController
     else
       ret.delete if !ret.nil?
     end
-
     aq
   end
 
