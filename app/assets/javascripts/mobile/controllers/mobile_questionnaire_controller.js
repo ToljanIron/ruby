@@ -76,7 +76,6 @@ angular.module('workships-mobile')
   $scope.responsesForQuestion = function (question_id) {
     $log.debug('In ponsesForQuestion()');
     var r = $scope.responses[question_id];
-    //console.log(r);
     if (!r) {
       return;
     }
@@ -130,7 +129,6 @@ angular.module('workships-mobile')
 
   $scope.onUserResponse = function (question_id, employee_id, response, employee_details_id, needToFocus) {
     // console.log($scope);
-    // console.log(question_id, employee_id, response, employee_details_id, needToFocus)
     $log.debug('In onUserResponse()');
     $scope.state_saved[0] = false;
     var r = $scope.responseForQuestionAndEmployee(question_id, employee_id);
@@ -491,7 +489,14 @@ else
   //  Handle results returning from the get_next_question API
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
-    $scope.is_snowball_q = response.data.is_snowball_q;
+    $scope.current_question_position = response.data.current_question_position;
+    if (response.data.current_question_position == 1 && response.data.is_snowball_q) {
+      $scope.is_snowball_q = response.data.is_snowball_q;
+    } else {
+      $scope.is_snowball_q = false;
+      $scope.showModal = false;
+    }
+    console.log($scope.is_snowball_q);
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
@@ -760,8 +765,6 @@ else
       qpid : $scope.original_data.qpid,
       token : $scope.params.token
     };
-    console.log($scope.responses.undefined)
-    console.log($scope.tiny_array)
 
     ajaxService.createUnverifiedEmployee(data).then(function(response) {
       console.log("Response:", response.data);
@@ -787,15 +790,11 @@ else
       $scope.employees.push(newEmployeeObject)
       $scope.tiny_array.push(newUserResponse)
       $scope.responses.undefined.responses.push(newUserResponse);
-      $scope.original_data.replies.push(newUserDataRepliesResponse)
+      $scope.original_data.replies.push(newUserDataRepliesResponse);
 
       $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(undefined, response.data.qpid);
       $scope.clearEmployeeObject();
-      //$scope.closeModalFunc()
       $scope.onUserResponse(undefined, newUserResponse.employee_id, true, newUserResponse.employee_details_id)
-      console.log($scope.original_data.replies)
-      console.log($scope.employees)
-      console.log($scope.currentlyFocusedEmployeeId);
     }).catch(function(error) {
       console.error("Error:", error);
     });
