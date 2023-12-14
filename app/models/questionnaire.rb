@@ -387,7 +387,7 @@ class Questionnaire < ActiveRecord::Base
     snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee.id
     company=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire.company
     questionnaire=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire
-    group=Group.find_or_create_by!(company:company,name:permitted[:e_group],snapshot_id:questionnaire.snapshot_id)
+    group=Group.find(permitted[:e_group])
 
     raise "No such company" if company.nil?
     raise "No such questionnaire" if questionnaire.nil?
