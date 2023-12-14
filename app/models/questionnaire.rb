@@ -322,7 +322,7 @@ class Questionnaire < ActiveRecord::Base
         quest['test_user_name']  = sanitize(quest['test_user_name'])
         quest['test_user_phone'] = sanitize(quest['test_user_phone'])
         quest['test_user_email'] = sanitize(quest['test_user_email'])
-
+        quest['is_snowball_q'] = quest['is_snowball_q']
         ret << quest
       end
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
@@ -387,7 +387,7 @@ class Questionnaire < ActiveRecord::Base
     snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee.id
     company=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire.company
     questionnaire=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire
-    group=Group.find_or_create_by!(company:company,name:permitted[:e_group],snapshot_id:questionnaire.snapshot_id)
+    group=Group.find(permitted[:e_group])
 
     raise "No such company" if company.nil?
     raise "No such questionnaire" if questionnaire.nil?

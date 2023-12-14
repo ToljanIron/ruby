@@ -15,7 +15,7 @@ class InteractBackofficeController < ApplicationController
   before_action :require_admin_authoration, only: [:questionnaire_update, :remove_participants,:questionnaire_run,:questionnaire_close,:update_test_participant,
                 :questions_reorder,:question_update,:question_delete,:question_create,:participants_update,:participants_create,:participants_delete,:participant_resend,
                 :close_participant_questionnaire, :set_active_questionnaire_question,:participant_reset,:img_upload,:upload_participants,:validate_unverified_participants,
-                :update_data_mapping,:save_k_factor]
+                :update_data_mapping,:save_k_factor,:resend_to_unanswered]
   
   #################### Questionnaire #######################
   def before_interact_backoffice
@@ -171,7 +171,7 @@ class InteractBackofficeController < ApplicationController
   def update_questionnaire_properties
     quest = params['questionnaire']
     aq = Questionnaire.find( sanitize_id(quest['id']))
-
+    
     questState = aq.state == 'created' ? 'delivery_method_ready' : aq.state
     questState = sanitize_alphanumeric(questState)
     deliveryMethod = quest['delivery_method']
@@ -210,7 +210,6 @@ class InteractBackofficeController < ApplicationController
     else
       ret.delete if !ret.nil?
     end
-
     aq
   end
 
@@ -651,6 +650,14 @@ class InteractBackofficeController < ApplicationController
       InteractBackofficeActionsHelper.send_live_questionnaire(@aq, qp)
       [{}, nil]
     end
+  end
+
+  def resend_to_unanswered
+    qps = @aq.questionnaire_participant.select{|x|x.status=='notstarted' && x.employee_id!=-1}
+    qps.each do |qp|
+      InteractBackofficeActionsHelper.send_live_questionnaire(@aq, qp)
+    end
+    [{msg:['Re-sent to ',qps.count,'participants'].join(' ')}, nil]
   end
 
   def close_participant_questionnaire
