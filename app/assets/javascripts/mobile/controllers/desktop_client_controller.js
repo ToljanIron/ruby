@@ -135,6 +135,7 @@ angular.module('workships-mobile').controller('desktopClientController', ['$scop
     }
 
     $scope.is_dependent = response.data.is_dependent;
+    console.log($scope.replies)
     $scope.dependent_selected_worker = $scope.replies[0].employee_details_id;
     $scope.reset_messages = false;
   }
