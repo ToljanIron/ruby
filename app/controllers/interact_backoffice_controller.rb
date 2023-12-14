@@ -182,6 +182,7 @@ class InteractBackofficeController < ApplicationController
     smsText =      quest['sms_text']
     emailText =    quest['email_text']
     emailSubject = quest['email_subject']
+    isSnowball = quest['is_snowball_q']
 
     language_id = sanitize_id(quest['language_id'])
     
@@ -192,7 +193,8 @@ class InteractBackofficeController < ApplicationController
       sms_text: smsText,
       email_text: emailText,
       email_subject: emailSubject,
-      language_id: language_id
+      language_id: language_id,
+      is_snowball_q: isSnowball
     )
 
     ret = CompanyConfigurationTable.where(comp_id: @cid, key: CompanyConfigurationTable::HIDE_EMPLOYEES).last
