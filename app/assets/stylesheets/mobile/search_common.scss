@@ -586,3 +586,23 @@
     padding: 0px 15px 0 25px;
     border-left: none;
   }
+
+  .mobile-btns-container.ltr .right-search-input input {
+    border: 1px solid white;
+    background-color: black;
+    height: 100%;
+    color: white;
+    width: 103% !important;
+    font-size: 35pt;
+    direction: ltr;
+    padding-left: 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .mobile-wrapper .mobile-container .mobile-footer .mobile-btns-container.ltr .right-search-input {
+    background-color: black;
+    float: left;
+    width: 59%;
+    margin-left: 0.2rem !important;
+    height: 100%;
+  }

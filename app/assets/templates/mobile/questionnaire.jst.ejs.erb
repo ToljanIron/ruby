@@ -57,7 +57,7 @@
         </div>
 
       </div>
-    <div ng-show='!isFinished() && isLoaded() && !is_snowball_q'>
+    <div ng-show='!isFinished() && isLoaded() && !is_snowball_q_first_step'>
 <!--       <div class="mobile_search_container" ng-if='display_search()'>
         <div class='mobile_search_tab'>
           <input ng-if="!mobile_app_service.isLangRtl()" class='mobile_search_text' type='text' placeholder="{{mobile_app_service.t('search')}}" ng-model="search_input.text" typeahead="search_node.name for search_node in search_list() | filter:$viewValue |  limitTo:5" typeahead-on-select='showConfirmBox($item,r.question_id); search_input.text=""'/>        
@@ -161,10 +161,10 @@
 
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container rtl">
-      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q" ng-click='minMaxOnFinish()'>
+      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q_first_step" ng-click='minMaxOnFinish()'>
         <span class="continue">המשך</span>
       </button>
-      <div class="right-button search-btn" ng-if="!searchListOpen && !is_snowball_q" ng-click='toggleSearchInput()'>
+      <div class="right-button search-btn" ng-if="!searchListOpen && !is_snowball_q_first_step" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">
@@ -222,7 +222,7 @@
   </div>
   <div ng-if="!mobile_app_service.isLangRtl()" class="mobile-footer">
     <div class="mobile-btns-container ltr">
-      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q" ng-click='minMaxOnFinish()'>
+      <button class="right-button search-btn" ng-class='{finished: canFinish(), disabled: !canFinish()}' ng-show="is_snowball_q_first_step" ng-click='minMaxOnFinish()'>
         <span class="continue">המשך</span>
       </button>
       <!-- <div class="mobile-undo" prevent-zoom ng-click= "onUndo()" ng-class='{disabled: isUndoDisabled()}'><i class="fa fa-reply"></i></div> -->
@@ -230,7 +230,7 @@
         {{numOfAnswers()}} / {{clientMaxReplies()}}
         <i class="fa fa-chevron-right" ng-show='canFinish()'></i>
       </div>
-      <div class="left-button search-btn ltr" ng-if="!searchListOpen && !is_snowball_q" ng-click='toggleSearchInput()'>
+      <div class="left-button search-btn ltr" ng-if="!searchListOpen && !is_snowball_q_first_step" ng-click='toggleSearchInput()'>
         <span>{{mobile_app_service.t('search_message')}} </span>
       </div>
       <div class="right-search-input" ng-if="searchListOpen">

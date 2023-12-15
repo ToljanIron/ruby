@@ -91,6 +91,9 @@ angular.module('workships-mobile')
     if (employee_response.length !== 1) {
       return;
     }
+    if ($scope.is_snowball_q && employee_response.length !== 1) {
+      console.log('here')
+    }
     return employee_response[0];
   };
 
@@ -403,7 +406,7 @@ else
     {
       var elementClasses = clickedElement.classList;
       var clickedOnPopup = (elementClasses.contains('genericPopUp') || (clickedElement.parentElement !== null && clickedElement.parentElement.classList.contains('genericPopUp')));
-      if ($scope.is_snowball_q){
+      if ($scope.is_snowball_q_first_step){
         if (!$scope.showModal) $scope.showModal = !$scope.showModal
       }
       if (clickedOnPopup) return;
@@ -490,12 +493,16 @@ else
   /////////////////////////////////////////////////////////////////////////////
   function handleGetNextQuestionResult(response, options) {
     $scope.current_question_position = response.data.current_question_position;
+
     if (response.data.current_question_position == 1 && response.data.is_snowball_q) {
-      $scope.is_snowball_q = response.data.is_snowball_q;
+      $scope.is_snowball_q_first_step = true;
     } else {
-      $scope.is_snowball_q = false;
+      $scope.is_snowball_q_first_step = false;
       $scope.showModal = false;
     }
+
+    $scope.current_employee_id = response.data.current_employee_id;
+    $scope.is_snowball_q = response.data.is_snowball_q;
     console.log($scope.is_snowball_q);
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
@@ -516,9 +523,9 @@ else
     } else {
       mobileAppService.setQuestionTypeMinMax(response.data.min, response.data.max);
     }
-
     $scope.questions_to_answer = format_questions_to_answer(response.data);
     $scope.getGroups();
+    //console.log($scope)
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
     if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
