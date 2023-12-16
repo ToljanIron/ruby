@@ -253,7 +253,7 @@ module QuestionnaireHelper
                .questionnaire_participant
                .pluck(:id)
     return if qp_ids.nil? || qp_ids.empty?
-    query = "select emp.id as id,
+    query = "select emp.id as id, qp.snowballer_employee_id,
             (#{CdsUtilHelper.sql_concat('emp.first_name', 'emp.last_name')}) as name,
             emp.img_url as image_url, emp.is_verified as is_verified,
             #{role_origin_field} as role,
