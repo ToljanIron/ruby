@@ -2,6 +2,7 @@
 include XlsHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
 require './lib/tasks/modules/precalculate_network_metrics_helper.rb'
+include PrecalculateNetworkMetricsHelper
 include ActionView::Helpers::SanitizeHelper
 
 class Questionnaire < ActiveRecord::Base
@@ -292,7 +293,7 @@ class Questionnaire < ActiveRecord::Base
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id,
-              qp.participant_type, q.snapshot_id,#{q_level_select}
+	      qp.participant_type, q.snapshot_id,#{q_level_select},is_snowball_q::int
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
        #{q_level_join}
@@ -322,7 +323,7 @@ class Questionnaire < ActiveRecord::Base
         quest['test_user_name']  = sanitize(quest['test_user_name'])
         quest['test_user_phone'] = sanitize(quest['test_user_phone'])
         quest['test_user_email'] = sanitize(quest['test_user_email'])
-
+        quest['is_snowball_q'] = quest['is_snowball_q']
         ret << quest
       end
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
@@ -331,6 +332,7 @@ class Questionnaire < ActiveRecord::Base
   end
 
   def freeze_questionnaire
+  
     puts 'Freezing'
     puts "Working on questionnaire ID: #{id}"
     EventLog.create!(message: "Freezing questionnaire id: #{id}", event_type_id: 1)
@@ -342,6 +344,7 @@ class Questionnaire < ActiveRecord::Base
     end
 
     # update(state: :processing)
+    
     sid = QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
     puts "Working on Snapshot: #{sid}"
     cid = Snapshot.find(sid).company_id
@@ -380,5 +383,23 @@ class Questionnaire < ActiveRecord::Base
         raise "Unknown state: #{state}"
     end
     return ret
+  end
+
+  def self.create_unverified_participant_employee(permitted)
+    
+    snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee.id
+    company=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire.company
+    questionnaire=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire
+    group=Group.find(permitted[:e_group])
+
+    raise "No such company" if company.nil?
+    raise "No such questionnaire" if questionnaire.nil?
+    temp_email=['unveified',Time.now.utc.strftime("%Y%m%d%H%M%S")].join('-')+'@stepahead.com' 
+    unverified_employee=Employee.create!(snapshot_id:questionnaire.snapshot_id,is_verified:false,group:group,email:temp_email,company_id:company.id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],external_id:Time.now.utc.strftime("%Y%m%d%H%M%S"))
+    unverified_participant=QuestionnaireParticipant.create!(snowballer_employee_id:snowballed_by,employee_id:unverified_employee.id,questionnaire_id:questionnaire.id,status:4,active:true)
+
+    msg=(unverified_employee.errors.full_messages+unverified_participant.errors.full_messages).flatten.join(',')
+    data={msg:msg,employee:unverified_employee,qpid:unverified_participant.try(:id)}
+    return data
   end
 end
