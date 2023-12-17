@@ -2,6 +2,7 @@
 include XlsHelper
 require './lib/tasks/modules/precalculate_metric_scores_for_custom_data_system_helper.rb'
 require './lib/tasks/modules/precalculate_network_metrics_helper.rb'
+include PrecalculateNetworkMetricsHelper
 include ActionView::Helpers::SanitizeHelper
 
 class Questionnaire < ActiveRecord::Base
@@ -331,6 +332,7 @@ class Questionnaire < ActiveRecord::Base
   end
 
   def freeze_questionnaire
+  
     puts 'Freezing'
     puts "Working on questionnaire ID: #{id}"
     EventLog.create!(message: "Freezing questionnaire id: #{id}", event_type_id: 1)
@@ -342,6 +344,7 @@ class Questionnaire < ActiveRecord::Base
     end
 
     # update(state: :processing)
+    
     sid = QuestionnaireHelper.freeze_questionnaire_replies_in_snapshot(id)
     puts "Working on Snapshot: #{sid}"
     cid = Snapshot.find(sid).company_id
