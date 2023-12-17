@@ -243,7 +243,7 @@ class InteractBackofficeController < ApplicationController
     # aq = Questionnaire.find(qid)
     # authorize aq, :admin?
     ibo_process_request do
-      @aq.update_attributes!(state: :processing)
+      @aq.update!(state: :processing)
       email = params[:email]
       CloseQuestionnaireJob.perform_later(@aq.id,email)
       res_aq = @aq.as_json
@@ -969,7 +969,7 @@ class InteractBackofficeController < ApplicationController
       Rails.logger.info "qid=#{@aq.id}, gids=#{gids}, qqid=#{qqid}, k=#{k}"
       # q = Questionnaire.find(qid)
       sid = @aq.snapshot_id
-      if @aq.update_attributes!(k_factor: k)
+      if @aq.update!(k_factor: k)
         qq = QuestionnaireQuestion.find(qqid)
         nid = qq.network_id
         res = QuestionnaireAlgorithm.get_question_score(sid,gids,nid,@cid,k)
@@ -1020,9 +1020,9 @@ class InteractBackofficeController < ApplicationController
       id = sanitize_id(company['id'])
       name = company['name']
       c = Company.find(id)
-      c.update_attributes!(name: name)
+      c.update!(name: name)
       # errors=nil
-      # unless c.update_attributes(name: name)
+      # unless c.update(name: name)
       #   errors = c.errors
       # end
       # puts errors
