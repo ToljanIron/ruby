@@ -1379,7 +1379,7 @@ order by qa.network_id, e.external_id")
     user_type = user['user_type']
     is_allowed_add_users = (user_type == 'admin' ? user['is_allowed_add_users'] : false)
     is_allowed_create_questionnaire = (user_type == 'admin' ? user['is_allowed_create_questionnaire'] : false)
-    u.update_attributes!(
+    u.update!(
       first_name: user['first_name'],
       last_name: user['last_name'],
       email: user['email'],
