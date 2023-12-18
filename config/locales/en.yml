@@ -74,6 +74,14 @@ en:
     enter_first_name : 'Enter first name'
     enter_last_name : 'Enter last name'
     save : 'Save'
+    hello : 'Hello'
+    text_snowball_1: 'As part of the network mapping process, you are presented with a short interactive questionnaire.'
+    text_snowball_2: 'On the first question, we ask you to answer by typing the names of people according to the question.'
+    text_snowball_3: 'In the following questions, we will ask about the people you mentioned in the first question.'
+    text_snowball_4: 'Swipe right to answer yes.'
+    text_snowball_5: 'Swipe left to answer no.'
+    text_snowball_6: 'Please note,
+                      By clicking continue, you confirm that your details will be stored in the StepAhead system until the process is completed.'
   sms:
     success: 'Welcome to StepAhead employee evaluation questionnaire. Click on the following link to start the questionnaire:'
     fail: 'Welcome to StepAhead employee evaluation questionnaire. The ID number you sent is not registered. Send the correct ID again or contact support.'

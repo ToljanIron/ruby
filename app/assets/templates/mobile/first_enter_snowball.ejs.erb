@@ -1,0 +1,78 @@
+<div ng-if="mobile_app_service.isLangRtl()" ng-controller="firstEnterController"  ng-init="init()" >
+  <div class='mobile-content' id="main_container" >
+    <div class='page_content'>
+      <div class="welcome-message" style='height: {{container_height}}'>
+        <h1 class='page_title' dir='rtl' >{{mobile_app_service.t('hello')}}<%#= I18n.t('questionnaire.hi') %> {{mobile_app_service.getUserName()}}</h1>
+        <div class="text snowball" dir='rtl' ng-bind-html="mobile_app_service.t('text_snowball_1')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="text snowball" dir='rtl' style="margin-top: 2rem" ng-bind-html="mobile_app_service.t('text_snowball_2')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="gestures" style="display: flex;
+          justify-content: center; margin-top: 2rem">
+          <img class="gesture_img_right" style="width: 400px; height: 300px" src="<%= asset_path 'snowball_form.png' %>" alt="swipe">
+        </div>
+        <div class="text snowball" dir='rtl' style="margin-top: 8rem" ng-bind-html="mobile_app_service.t('text_snowball_3')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="gestures" style="margin-top: 1rem">
+          <div class="gesture-line">
+            <img class="gesture_img_right" src="<%= asset_path 'gestures_swipe.png' %>" alt="swipe">
+            <div dir='rtl' class="rtl swipe-block">
+              <div class="gesture_text_left swipe" dir='rtl' ng-bind-html="mobile_app_service.t('text_snowball_4')"><%#= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+              <div style="margin-top: 6rem;" dir='rtl' class="gesture_text_left swipe" ng-bind-html="mobile_app_service.t('text_snowball_5')"><%#= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+            </div>
+          </div>
+        </div>
+        <div class="text snowball" style=" text-align: right; margin-top: 6rem" dir='rtl' ng-bind-html="mobile_app_service.t('text_snowball_6')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class='center-button' ng-click='mobile_app_service.setQuestionnaireView()'>{{mobile_app_service.t('continue_button')}}<%#= I18n.t('questionnaire.continue_button') %> </div>
+    </div>
+  </div>
+</div>
+<div ng-if="!mobile_app_service.isLangRtl()" ng-controller="firstEnterController" ng-init="init()" >
+  <div class='mobile-content' id="main_container" >
+    <div class='page_content'>
+      <div class="welcome-message" style='height: {{container_height}}'>
+        <h1 class='page_title' >{{mobile_app_service.t('hello')}}<%#= I18n.t('questionnaire.hi') %> {{mobile_app_service.getUserName()}}</h1>
+        <div class="text snowball" ng-bind-html="mobile_app_service.t('text_snowball_1')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="text snowball" style="margin-top: 2rem" ng-bind-html="mobile_app_service.t('text_snowball_2')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="gestures" style="display: flex;
+          justify-content: center; margin-top: 2rem">
+          <img class="gesture_img_right" style="width: 400px; height: 300px" src="<%= asset_path 'snowball_form.png' %>" alt="swipe">
+        </div>
+        <div class="text snowball" style="margin-top: 8rem" ng-bind-html="mobile_app_service.t('text_snowball_3')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+        <div class="gestures" style="margin-top: 1rem">
+          <div class="gesture-line">
+            <img class="gesture_img_right" src="<%= asset_path 'gestures_swipe.png' %>" alt="swipe">
+            <div class="swipe-block">
+              <div class="gesture_text_left swipe" ng-bind-html="mobile_app_service.t('text_snowball_4')"><%#= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+              <div style="margin-top: 4rem;" class="gesture_text_left swipe" ng-bind-html="mobile_app_service.t('text_snowball_5')"><%#= I18n.t('questionnaire.how_to_swipe_html') %> </div>
+            </div>
+          </div>
+        </div>
+        <div class="text snowball" style="margin-top: 6rem" ng-bind-html="mobile_app_service.t('text_snowball_6')">
+          <%#= I18n.t('questionnaire.how_to_answer_html') %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class='mobile-footer'>
+    <div class='mobile-btns-container'>
+      <div class='center-button' ng-click='mobile_app_service.setQuestionnaireView()'>{{mobile_app_service.t('continue_button')}}<%#= I18n.t('questionnaire.continue_button') %> </div>
+    </div>
+  </div>
+</div>

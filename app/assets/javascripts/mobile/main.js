@@ -35,4 +35,5 @@ angular.module('workships-mobile').run(function ($templateCache) {
   $templateCache.put('first_enter', JST['mobile/first_enter']());
   $templateCache.put('desktop', JST['mobile/desktop']());
   $templateCache.put('desktop_dependent', JST['mobile/desktop_dependent']());
+  $templateCache.put('first_enter_snowball', JST['mobile/first_enter_snowball']());
 });
