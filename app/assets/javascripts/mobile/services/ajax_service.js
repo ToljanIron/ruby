@@ -65,8 +65,8 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
     }
 
     function getAutoCompleteData(_params){
-      var method = 'POST';
-      var url = '/questionnaiare/participant_automcomplete';
+      var method = 'GET';
+      var url = 'participant_automcomplete';
       var params = _params;
       return getPromise(method, url, params);
     }

@@ -217,11 +217,41 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="firstname" name="firstname" ng-change="searchFunc()" ng-model="search_input.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
+            <input type="text" id="firstname" ng-click="showAutoCompleteList('firstname')" ng-change="searchAutocompleteFunc('firstname')" ng-model="search_input.firstname" class="modal-input" name="firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
+          <!-- AutoComplete Snowball by Firstname and LastName -->
+          <div class= 'search-result snowball-firstname' ng-if = "showFirstNameList">
+            <div class="search-item"
+                 ng-click ="chooseAndHide(search_node,'firstname')"
+                 ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+                 ng-repeat="search_node in autocomplete.firstnames">
+              <div class="search-emp-name">
+                <div class="emp-name">{{search_node}}</div>
+              </div>
+            </div>
+            <div class= "search-item no-results" ng-if="autocomplete.firstnames.length === 0">
+              {{mobile_app_service.t('no_results')}}
+            </div>
+          </div>
+          <!-- AutoComplete Snowball  -->
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="lastname" name="lastname" ng-change="searchFunc()" ng-model="search_input.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
+            <input type="text" class="modal-input" id="lastname" name="lastname" ng-click="showAutoCompleteList('lastname')" ng-change="searchAutocompleteFunc('lastname')" ng-model="search_input.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
+          <!-- AutoComplete Snowball by Firstname and LastName -->
+          <div class= 'search-result snowball-lastname' ng-if = "showLastNameList">
+            <div class="search-item"
+                 ng-click ="chooseAndHide(search_node,'lastname')"
+                 ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+                 ng-repeat="search_node in autocomplete.lastnames">
+              <div class="search-emp-name">
+                <div class="emp-name">{{search_node}}</div>
+              </div>
+            </div>
+            <div class= "search-item no-results" ng-if="autocomplete.lastnames.length === 0">
+              {{mobile_app_service.t('no_results')}}
+            </div>
+          </div>
+          <!-- AutoComplete Snowball  -->
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
                     ng-model="employee.department"
@@ -265,39 +295,37 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" id="firstname" ng-change="searchFunc()" ng-model="search_input.firstname" class="modal-input" name="firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
+            <input type="text" id="firstname" ng-click="showAutoCompleteList('firstname')" ng-change="searchAutocompleteFunc('firstname')" ng-model="search_input.firstname" class="modal-input" name="firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
           <!-- AutoComplete Snowball by Firstname and LastName -->
-          <div class= 'search-result snowball-firstname' ng-if = "search_input.firstname != '' && search_input.lastname == ''">
+          <div class= 'search-result snowball-firstname' ng-if = "showFirstNameList">
             <div class="search-item"
-                 ng-click ="showConfirmBox(search_node,r.question_id)"
+                 ng-click ="chooseAndHide(search_node,'firstname')"
                  ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
-                 ng-repeat="search_node in hhh | filter:{name:search_input.firstname} as $results track by search_node.id">
+                 ng-repeat="search_node in autocomplete.firstnames">
               <div class="search-emp-name">
-                <div class="emp-name">{{search_node.name}}</div>
-                <div>{{search_node.role}}</div>
+                <div class="emp-name">{{search_node}}</div>
               </div>
             </div>
-            <div class= "search-item no-results" ng-if="$results.length === 0">
+            <div class= "search-item no-results" ng-if="autocomplete.firstnames.length === 0">
               {{mobile_app_service.t('no_results')}}
             </div>
           </div>
           <!-- AutoComplete Snowball  -->
           <div class="form-group mobile">
-            <input type="text" id="lastname" ng-change="searchFunc()" ng-model="search_input.lastname" class="modal-input" name="lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
+            <input type="text" id="lastname" ng-click="showAutoCompleteList('lastname')" ng-change="searchAutocompleteFunc('lastname')" ng-model="search_input.lastname" class="modal-input" name="lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
           <!-- AutoComplete Snowball by Firstname and LastName -->
-          <div class= 'search-result snowball-lastname' ng-if = "search_input.lastname != '' && search_input.firstname == ''">
+          <div class= 'search-result snowball-lastname' ng-if = "showLastNameList">
             <div class="search-item"
-                 ng-click ="showConfirmBox(search_node,r.question_id)"
+                 ng-click ="chooseAndHide(search_node,'lastname')"
                  ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
-                 ng-repeat="search_node in hhh | filter:{name:search_input.lastname} as $results track by search_node.id">
+                 ng-repeat="search_node in autocomplete.lastnames">
               <div class="search-emp-name">
-                <div class="emp-name">{{search_node.name}}</div>
-                <div>{{search_node.role}}</div>
+                <div class="emp-name">{{search_node}}</div>
               </div>
             </div>
-            <div class= "search-item no-results" ng-if="$results.length === 0">
+            <div class= "search-item no-results" ng-if="autocomplete.lastnames.length === 0">
               {{mobile_app_service.t('no_results')}}
             </div>
           </div>

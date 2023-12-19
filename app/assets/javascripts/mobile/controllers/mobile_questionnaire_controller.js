@@ -528,6 +528,9 @@ else
     $scope.questions_to_answer = format_questions_to_answer(response.data);
     $scope.getGroups();
     console.log($scope)
+    $scope.paramsForAutoCompliteFirstName = {sid : $scope.questionnaire_id, field : 'f', term : '', token : mobileAppService.getToken()};
+    $scope.paramsForAutoCompliteLastName = {sid : $scope.questionnaire_id, field : 'l', term : '', token : mobileAppService.getToken()};
+    //$scope.getAutoCompleteList($scope.paramsForAutoCompliteFirstName);
 
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
@@ -723,7 +726,8 @@ else
 
   }
   $scope.searchFunc = function () {
-    console.log($scope.hhh)
+    console.log($scope.autocomplete.firstnames)
+    console.log($scope.autocomplete.lastnames)
     if ($scope.search_input.lastname === undefined){
       $scope.search_input.lastname = ''
     }
@@ -731,6 +735,36 @@ else
       $scope.search_input.firstname = ''
     }
    // $scope.hhh = $scope.search_list();
+  }
+
+  $scope.showAutoCompleteList = function (field) {
+    if (field == 'firstname' && $scope.search_input.firstname.length > 0) $scope.showFirstNameList = !$scope.showFirstNameList
+    if (field == 'lastname' &&  $scope.search_input.lastname.length > 0) $scope.showLastNameList = !$scope.showLastNameList
+  }
+
+  $scope.chooseAndHide = function (name, field) {
+    if (field == 'firstname')  $scope.search_input.firstname = name ; $scope.showFirstNameList = false;
+    if (field == 'lastname')  $scope.search_input.lastname = name ; $scope.showLastNameList = false;
+    console.log($scope.showFirstNameList)
+  }
+
+  $scope.searchAutocompleteFunc = function (field) {
+    console.log($scope.showFirstNameList)
+    if (field == 'firstname') {
+      $scope.paramsForAutoCompliteFirstName.term = $scope.search_input.firstname
+      $scope.getAutoCompleteList($scope.paramsForAutoCompliteFirstName).then(function(data) {
+        $scope.autocomplete.firstnames = data;
+        $scope.showFirstNameList = true;
+      });
+    } else {
+      $scope.paramsForAutoCompliteLastName.term = $scope.search_input.lastname
+      $scope.getAutoCompleteList($scope.paramsForAutoCompliteLastName).then(function(data) {
+        $scope.autocomplete.lastnames = data;
+        $scope.showLastNameList = true;
+        console.log($scope.autocomplete.lastnames);
+      });
+    }
+
   }
 
   $scope.employee = {
@@ -746,9 +780,13 @@ else
   //Departments dropdown part end
 
   // Autcomplete data for first/lastnames
+
+  $scope.showFirstNameList = false;
+  $scope.showLastNameList = false;
+
   $scope.autocomplete = {};
-  $scope.autocomplete.firstname = [{name : 'Denis'},{ name : 'Ben'}]
-  $scope.autocomplete.lastnames = [{name : 'Kalinin'},{name : 'Keving'}]
+  $scope.autocomplete.firstnames = {}
+  $scope.autocomplete.lastnames = {}
 
   $scope.clearEmployeeObject = function () {
     $scope.employee.firstname = '';
@@ -833,6 +871,12 @@ else
     ajaxService.getGroups(param).then(function(response) {
       console.log(response.data)
       $scope.departments = response.data.groups;
+    })
+  }
+
+  $scope.getAutoCompleteList = function (params) {
+    return ajaxService.getAutoCompleteData(params).then( function (response) {
+      return response.data.data
     })
   }
 
