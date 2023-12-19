@@ -1,4 +1,6 @@
 class AlertsJob
+  queue_as :alerts
+
   def perform
     puts 'create_alerts job started'
     EventLog.log_event(message: 'create_alerts job started', event_type_name: 'ALERTS_JOB' )
