@@ -110,6 +110,20 @@ class QuestionnaireController < ApplicationController
     render json: res
   end
 
+  def participant_automcomplete
+    @token = JSON.parse(params[:data])['token']
+    employee = Employee.find_by(token: @token)
+    
+    if employee
+      #search all employees
+      field=params[:field]=='l' ? :last_name   :  :first_name
+      byebug
+      res= emlpoyee.compamny.employees.order(field).where("#{field} like ? ","%#{params[:term]}%")
+      render json: { data: res }, status: 200
+
+    end
+  end
+
   def show_home
     goto_home
     redirect_to ''
