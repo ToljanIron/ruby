@@ -18,7 +18,7 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
     function loadEmployeesFromServer(_params) {
       var method = 'GET';
       var url = '/get_questionnaire_employees';
-      var params = {token: _params.token};
+      var params = {token: _params.token, is_snowball : _params.is_snowball};
       return getPromise(method, url, params);
     }
 

@@ -71,6 +71,8 @@ angular.module('workships-mobile')
 
   $scope.clearSearch = function () {
     $scope.search_input.text = '';
+    $scope.search_input.lastname = '';
+    $scope.search_input.firstname = '';
   };
 
   $scope.responsesForQuestion = function (question_id) {
@@ -503,7 +505,7 @@ else
 
     $scope.current_employee_id = response.data.current_employee_id;
     $scope.is_snowball_q = response.data.is_snowball_q;
-    console.log($scope.is_snowball_q);
+    //сonsole.log($scope.is_snowball_q);
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
@@ -525,7 +527,8 @@ else
     }
     $scope.questions_to_answer = format_questions_to_answer(response.data);
     $scope.getGroups();
-    //console.log($scope)
+    console.log($scope)
+
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
     if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
@@ -654,12 +657,15 @@ else
   $scope.toggleSearchInput = function () {
     $scope.searchListOpen = !$scope.searchListOpen;
     if( $scope.searchListOpen){
+      console.log('here')
       $scope.hhh = $scope.search_list();
       $window.onclick = function (event) {
         closeSearchWhenClickingElsewhere(event, $scope.toggleSearchInput);
       };    
     }else {
       $scope.search_input.text = '';
+      $scope.search_input.firstname = '';
+      $scope.search_input.lastname = '';
       $scope.searchListOpen = false;
       $window.onclick = null;
       $scope.$evalAsync();
@@ -717,6 +723,13 @@ else
 
   }
   $scope.searchFunc = function () {
+    console.log($scope.hhh)
+    if ($scope.search_input.lastname === undefined){
+      $scope.search_input.lastname = ''
+    }
+    if ($scope.search_input.firstname === undefined){
+      $scope.search_input.firstname = ''
+    }
    // $scope.hhh = $scope.search_list();
   }
 
@@ -736,6 +749,8 @@ else
     $scope.employee.firstname = '';
     $scope.employee.lastname = '';
     $scope.employee.department = '';
+    $scope.search_input.firstname = '';
+    $scope.search_input.lastname = '';
   }
 
   $scope.splitOrAddSearchResultToForm = function () {
@@ -766,8 +781,8 @@ else
 
   $scope.submitUnverifiedEmployeeForm = function() {
     var data = {
-      e_first_name: $scope.employee.firstname,
-      e_last_name: $scope.employee.lastname,
+      e_first_name: $scope.search_input.firstname,
+      e_last_name: $scope.search_input.lastname,
       e_group: $scope.employee.department,
       qpid : $scope.original_data.qpid,
       token : $scope.params.token
@@ -838,6 +853,10 @@ else
       }
       $scope.onUserResponse(undefined, emp.qp_id, true, undefined,false);
     // }
+      console.log('here on Select')
+      if ($scope.is_snowball_q_first_step){
+        $scope.hhh = $scope.search_list();
+      }
       $scope.show_popup = false;
       $scope.is_chose_by_search = false;
       $scope.chosen_employee = undefined;
@@ -925,7 +944,7 @@ else
       close_question: (options.close_question === true ? true : false)
     };
     syncDataWithServer($scope.params, opts);
-    $scope.search_input = { text: ''};
+    $scope.search_input = { text: '', lastname: '', firstname: ''};
 
     $scope.workers = null;
     $scope.unselected_workers = null;

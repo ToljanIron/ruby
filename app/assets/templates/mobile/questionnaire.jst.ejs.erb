@@ -142,7 +142,6 @@
         </div>
       </div> -->
   <div class= 'search-result' ng-if = "search_input.text != ''">
-<!--     {{results.length}} -->
     <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
     <div class="search-item" 
     ng-click ="showConfirmBox(search_node,r.question_id)" 
@@ -158,6 +157,25 @@
       {{mobile_app_service.t('no_results')}}
     </div>
   </div>
+
+  <!-- AutoComplete Snowball by Firstname and LastName -->
+  <div class= 'search-result' ng-if = "search_input.firstname != '' || search_input.lastname != ''">
+    <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
+    <div class="search-item"
+         ng-click ="showConfirmBox(search_node,r.question_id)"
+         ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+         ng-repeat="search_node in hhh | fullnameFilter:search_input as $results track by search_node.id">
+      <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>
+      <div class="search-emp-name">
+        <div class="emp-name">{{search_node.name}}</div>
+        <div>{{search_node.role}}</div>
+      </div>
+    </div>
+    <div class= "search-item no-results" ng-if="$results.length === 0">
+      {{mobile_app_service.t('no_results')}}
+    </div>
+  </div>
+  <!-- AutoComplete Snowball  -->
 
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
     <div class="mobile-btns-container rtl">
@@ -199,10 +217,10 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="firstname" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
+            <input type="text" class="modal-input" id="firstname" name="firstname" ng-change="searchFunc()" ng-model="search_input.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
           <div class="form-group mobile">
-            <input type="text" class="modal-input" id="lastname" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
+            <input type="text" class="modal-input" id="lastname" name="lastname" ng-change="searchFunc()" ng-model="search_input.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
@@ -247,10 +265,10 @@
             <span class="header-text">הקלידו את השם הפרטי ושם המשפחה ובחרו את  היחידה</span>
           </div>
           <div class="form-group mobile">
-            <input type="text" id="firstname" class="modal-input" name="firstname" ng-model="employee.firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
+            <input type="text" id="firstname" ng-change="searchFunc()" ng-model="search_input.firstname" class="modal-input" name="firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
           <div class="form-group mobile">
-            <input type="text" id="lastname" class="modal-input" name="lastname" ng-model="employee.lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
+            <input type="text" id="lastname" ng-change="searchFunc()" ng-model="search_input.lastname" class="modal-input" name="lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
@@ -267,30 +285,6 @@
       </div>
     </div>
   </div>
-<!--  <div class="modal-backdrop" ng-show="showModal"></div>-->
-<!--  <div class="modal" ng-show="showModal">-->
-<!--    <div class="modal-content" >-->
-<!--      <span class="close-button" ng-click="closeModalFunc()">×</span>-->
-
-<!--      <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">-->
-<!--        <div class="form-group">-->
-<!--          <label for="firstname">First Name</label>-->
-<!--          <input type="text" id="firstname" name="firstname" ng-model="employee.firstname" placeholder="Enter first name" required>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--          <label for="lastname">Last Name</label>-->
-<!--          <input type="text" id="lastname" name="lastname" ng-model="employee.lastname" placeholder="Enter last name" required>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--          <label for="department">Department</label>-->
-<!--          <input type="text" id="department" name="department" ng-model="employee.department" placeholder="Enter department" required>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--          <button type="submit" class="save-button">Save</button>-->
-<!--        </div>-->
-<!--      </form>-->
-<!--    </div>-->
-<!--  </div>-->
 </div>
 
 
