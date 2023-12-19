@@ -1,6 +1,6 @@
 development:
   host: <%= ENV['POSTGRES_PORT_5432_TCP_ADDR'] || 'localhost' %>
-  database: workships_sndcom
+  database: postgres
   username: postgres
   password: postgres
   port: 5432
