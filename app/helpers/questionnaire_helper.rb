@@ -289,6 +289,16 @@ module QuestionnaireHelper
     render plain: Oj.dump(res), status: 200
   end
 
+  def hash_groups_of_questionnaire_by_token(token, only_verified=false)
+    @token = (sanitize_alphanumeric(params[:token]))
+    qd = get_questionnaire_details(@token)
+    return if qd.nil? 
+    
+    questionnaire = Questionnaire.find(qd[:questionnaire_id])
+    groups= questionnaire.group
+    res = { groups: groups }
+    render plain: Oj.dump(res), status: 200
+  end
     
   
   #############################################################################

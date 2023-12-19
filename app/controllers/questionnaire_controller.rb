@@ -13,7 +13,7 @@ class QuestionnaireController < ApplicationController
                                              :update_question_replies,
                                              :keep_alive,
                                              :show_quest,
-                                             :autosave,:add_unverfied_participant]
+                                             :autosave,:add_unverfied_participant,:participant_automcomplete]
   # before_action :set_locale
 
 
@@ -36,7 +36,7 @@ class QuestionnaireController < ApplicationController
     permitted = params.permit(:token)
     token = sanitize_alphanumeric(permitted[:token])
     raise "No such token" if token.nil?
-     hash_groups_of_company_by_token(token,true)
+    hash_groups_of_questionnaire_by_token(token,true)
     
   end 
 
@@ -108,6 +108,25 @@ class QuestionnaireController < ApplicationController
     res = Oj.dump(res)
     
     render json: res
+  end
+
+  def participant_automcomplete
+    authorize :application, :passthrough
+    
+    @token = (sanitize_alphanumeric(params[:token]))
+    qd = get_questionnaire_details(@token)
+    
+    employee = Employee.find(QuestionnaireParticipant.find(qd[:qpid]).employee.id)
+    
+    if employee
+      #search all employees
+      field=params[:field]=='l' ? :last_name   :  :first_name
+      
+      res= Company.find(employee.company_id).employees.order(field).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
+      
+      render json: { data: res}, status: 200
+
+    end
   end
 
   def show_home
