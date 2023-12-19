@@ -3,4 +3,4 @@ development:
 production:
   :concurrency: 2
 :queues:
-  - default
+  - close_questionnaire
