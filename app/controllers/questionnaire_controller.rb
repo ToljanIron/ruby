@@ -13,7 +13,7 @@ class QuestionnaireController < ApplicationController
                                              :update_question_replies,
                                              :keep_alive,
                                              :show_quest,
-                                             :autosave,:add_unverfied_participant]
+                                             :autosave,:add_unverfied_participant,:participant_automcomplete]
   # before_action :set_locale
 
 
@@ -111,15 +111,20 @@ class QuestionnaireController < ApplicationController
   end
 
   def participant_automcomplete
-    @token = JSON.parse(params[:data])['token']
-    employee = Employee.find_by(token: @token)
+    authorize :application, :passthrough
+    
+    @token = (sanitize_alphanumeric(params[:token]))
+    qd = get_questionnaire_details(@token)
+    
+    employee = Employee.find(QuestionnaireParticipant.find(qd[:qpid]).employee.id)
     
     if employee
       #search all employees
       field=params[:field]=='l' ? :last_name   :  :first_name
-      byebug
-      res= emlpoyee.compamny.employees.order(field).where("#{field} like ? ","%#{params[:term]}%")
-      render json: { data: res }, status: 200
+      
+      res= Company.find(employee.company_id).employees.order(field).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
+      
+      render json: { data: res}, status: 200
 
     end
   end
