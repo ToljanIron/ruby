@@ -61,10 +61,19 @@ class Employee < ActiveRecord::Base
     raise 'snapshot_id cant be nil' if sid.nil?
     Employee.where(snapshot_id: sid, active: true).where.not(email: 'other@mail.com')
   }
+  default_scope lambda { where(is_verified: true) }
 
-  scope :unverified, -> { where("is_verified = false") }
-
+  
   enum gender: [:male, :female]
+
+  def self.unverified
+   self.unscoped.where("is_verified = false") 
+  end
+
+  def self.with_unverified
+    self.unscoped
+   end
+ 
 
   def managers
     manids = EmployeeManagementRelation
