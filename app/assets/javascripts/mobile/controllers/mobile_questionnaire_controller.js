@@ -71,6 +71,8 @@ angular.module('workships-mobile')
 
   $scope.clearSearch = function () {
     $scope.search_input.text = '';
+    $scope.search_input.lastname = '';
+    $scope.search_input.firstname = '';
   };
 
   $scope.responsesForQuestion = function (question_id) {
@@ -256,13 +258,12 @@ angular.module('workships-mobile')
   };
 
   $scope.canFinish = function () {
-    if (mass.is_funnel_question && !mass.is_snowball_q) {
+    if (mass.is_funnel_question) {
       return mass.num_replies_true >= mass.client_min_replies &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;
 
-    if (mass.is_snowball_q) return num_reps === mass.max;
     // console.log('&&&&&&&&&&&&&&&&&&&&&&&')
     // console.log(mass)
     // console.log('num_reps: ', num_reps, ', mass.client_max_replies: ', mass.client_max_replies)
@@ -503,7 +504,7 @@ else
 
     $scope.current_employee_id = response.data.current_employee_id;
     $scope.is_snowball_q = response.data.is_snowball_q;
-    console.log($scope.is_snowball_q);
+    //сonsole.log($scope.is_snowball_q);
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
@@ -525,7 +526,11 @@ else
     }
     $scope.questions_to_answer = format_questions_to_answer(response.data);
     $scope.getGroups();
-    //console.log($scope)
+    console.log($scope)
+    $scope.paramsForAutoCompliteFirstName = {sid : $scope.questionnaire_id, field : 'f', term : '', token : mobileAppService.getToken()};
+    $scope.paramsForAutoCompliteLastName = {sid : $scope.questionnaire_id, field : 'l', term : '', token : mobileAppService.getToken()};
+    //$scope.getAutoCompleteList($scope.paramsForAutoCompliteFirstName);
+
     buildQuestionResponseStructs();
     mobileAppService.updateState(response.data);
     if(response.data.is_contain_funnel_question && !response.data.is_funnel_question)
@@ -654,12 +659,15 @@ else
   $scope.toggleSearchInput = function () {
     $scope.searchListOpen = !$scope.searchListOpen;
     if( $scope.searchListOpen){
+      console.log('here')
       $scope.hhh = $scope.search_list();
       $window.onclick = function (event) {
         closeSearchWhenClickingElsewhere(event, $scope.toggleSearchInput);
       };    
     }else {
       $scope.search_input.text = '';
+      $scope.search_input.firstname = '';
+      $scope.search_input.lastname = '';
       $scope.searchListOpen = false;
       $window.onclick = null;
       $scope.$evalAsync();
@@ -717,7 +725,45 @@ else
 
   }
   $scope.searchFunc = function () {
+    console.log($scope.autocomplete.firstnames)
+    console.log($scope.autocomplete.lastnames)
+    if ($scope.search_input.lastname === undefined){
+      $scope.search_input.lastname = ''
+    }
+    if ($scope.search_input.firstname === undefined){
+      $scope.search_input.firstname = ''
+    }
    // $scope.hhh = $scope.search_list();
+  }
+
+  $scope.showAutoCompleteList = function (field) {
+    if (field == 'firstname' && $scope.search_input.firstname.length > 0) $scope.showFirstNameList = !$scope.showFirstNameList
+    if (field == 'lastname' &&  $scope.search_input.lastname.length > 0) $scope.showLastNameList = !$scope.showLastNameList
+  }
+
+  $scope.chooseAndHide = function (name, field) {
+    if (field == 'firstname')  $scope.search_input.firstname = name ; $scope.showFirstNameList = false;
+    if (field == 'lastname')  $scope.search_input.lastname = name ; $scope.showLastNameList = false;
+    console.log($scope.showFirstNameList)
+  }
+
+  $scope.searchAutocompleteFunc = function (field) {
+    console.log($scope.showFirstNameList)
+    if (field == 'firstname') {
+      $scope.paramsForAutoCompliteFirstName.term = $scope.search_input.firstname
+      $scope.getAutoCompleteList($scope.paramsForAutoCompliteFirstName).then(function(data) {
+        $scope.autocomplete.firstnames = data;
+        $scope.showFirstNameList = true;
+      });
+    } else {
+      $scope.paramsForAutoCompliteLastName.term = $scope.search_input.lastname
+      $scope.getAutoCompleteList($scope.paramsForAutoCompliteLastName).then(function(data) {
+        $scope.autocomplete.lastnames = data;
+        $scope.showLastNameList = true;
+        console.log($scope.autocomplete.lastnames);
+      });
+    }
+
   }
 
   $scope.employee = {
@@ -732,10 +778,21 @@ else
 
   //Departments dropdown part end
 
+  // Autcomplete data for first/lastnames
+
+  $scope.showFirstNameList = false;
+  $scope.showLastNameList = false;
+
+  $scope.autocomplete = {};
+  $scope.autocomplete.firstnames = {}
+  $scope.autocomplete.lastnames = {}
+
   $scope.clearEmployeeObject = function () {
     $scope.employee.firstname = '';
     $scope.employee.lastname = '';
     $scope.employee.department = '';
+    $scope.search_input.firstname = '';
+    $scope.search_input.lastname = '';
   }
 
   $scope.splitOrAddSearchResultToForm = function () {
@@ -766,8 +823,8 @@ else
 
   $scope.submitUnverifiedEmployeeForm = function() {
     var data = {
-      e_first_name: $scope.employee.firstname,
-      e_last_name: $scope.employee.lastname,
+      e_first_name: $scope.search_input.firstname,
+      e_last_name: $scope.search_input.lastname,
       e_group: $scope.employee.department,
       qpid : $scope.original_data.qpid,
       token : $scope.params.token
@@ -816,6 +873,12 @@ else
     })
   }
 
+  $scope.getAutoCompleteList = function (params) {
+    return ajaxService.getAutoCompleteData(params).then( function (response) {
+      return response.data.data
+    })
+  }
+
 
   $scope.onSelect = function () {
     var emp = $scope.chosen_employee;
@@ -838,6 +901,10 @@ else
       }
       $scope.onUserResponse(undefined, emp.qp_id, true, undefined,false);
     // }
+      console.log('here on Select')
+      if ($scope.is_snowball_q_first_step){
+        $scope.hhh = $scope.search_list();
+      }
       $scope.show_popup = false;
       $scope.is_chose_by_search = false;
       $scope.chosen_employee = undefined;
@@ -894,6 +961,7 @@ else
 
   $scope.init = function (next_question_params, options) {
     $scope._ = _;
+    console.log(mobileAppService.getIsSnowball())
     $scope.search_added_emps = [];
     options = options || {};
     $scope.undo_worker_stack = [];
@@ -925,7 +993,7 @@ else
       close_question: (options.close_question === true ? true : false)
     };
     syncDataWithServer($scope.params, opts);
-    $scope.search_input = { text: ''};
+    $scope.search_input = { text: '', lastname: '', firstname: ''};
 
     $scope.workers = null;
     $scope.unselected_workers = null;
