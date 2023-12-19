@@ -606,3 +606,32 @@
     margin-left: 0.2rem !important;
     height: 100%;
   }
+
+
+  // first enter snowball styles
+
+  .mobile-wrapper .mobile-container .mobile-content .page_content .text.snowball {
+    font-size: 44px;
+    font-weight: 500;
+    margin: 0 auto;
+    margin-top: 50px;
+    text-align: center;
+    line-height: 40px;
+  }
+
+  .swipe-block {
+    left: -1%;
+    position: relative;
+    top: 5%;
+  }
+
+  .rtl.swipe-block {
+    position: relative;
+    top: 0;
+    left: 22%;
+  }
+
+  .mobile-wrapper .mobile-container .first-enter .mobile-content .page_content .welcome-message .gestures .gesture-line .rtl.swipe-block .swipe {
+    text-align: right;
+    width: 294px;
+  }

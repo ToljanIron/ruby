@@ -12,6 +12,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   var VIEW;
   var USER_NAME = '';
   var TOKEN;
+  var IS_SNOWBALL;
   var CURRENT_QUESTION_INDEX = -1;
   var TOTAL_QUESTIONS = 0;
   var QUESTION_TYPE;
@@ -26,8 +27,9 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   var FINISH_VIEW = 2;
   var WELCOME_BACK_VIEW = 3;
   var FIRST_ENTER_VIEW = 4;
+  var FIRST_ENTER_SNOWBALL_VIEW = 7;
 
-  // var LANGUAGE_DIRECTION = 'rtl';
+  //var LANGUAGE_DIRECTION = 'rtl';
   var LANGUAGE_DIRECTION = 'ltr';
   var DICT = {};
   var AVATAR_COLORS = ['#4577A9','#92D050','#BF9000','#00B0F0','#4D4E4E','#FBB03B']
@@ -40,7 +42,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   // This is the state as we receive it from the server
   mobileAppService.setState = function(_state) {
     s = _.clone( _state );
-
+    IS_SNOWBALL = s.is_snowball_q
     s.num_replies_true  = _.filter(s.replies, function(e) {
       return  e.answer;
     }).length;
@@ -190,6 +192,10 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     return VIEW === FIRST_ENTER_VIEW;
   };
 
+  mobileAppService.inFirstEnterSnowballView = function () {
+    return VIEW === FIRST_ENTER_SNOWBALL_VIEW;
+  };
+
   mobileAppService.setQuestionnaireView = function () {
     VIEW = QUESTIONNARIE_VIEW;
   };
@@ -203,7 +209,7 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
   };
 
   mobileAppService.setFirstEnterView = function () {
-    VIEW = FIRST_ENTER_VIEW;
+    VIEW = IS_SNOWBALL ? FIRST_ENTER_SNOWBALL_VIEW : FIRST_ENTER_VIEW;
   };
 
   mobileAppService.setIndexOfCurrentQuestion = function (current_question_index) {
