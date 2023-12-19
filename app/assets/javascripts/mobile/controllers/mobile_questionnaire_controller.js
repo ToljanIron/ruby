@@ -258,13 +258,12 @@ angular.module('workships-mobile')
   };
 
   $scope.canFinish = function () {
-    if (mass.is_funnel_question && !mass.is_snowball_q) {
+    if (mass.is_funnel_question) {
       return mass.num_replies_true >= mass.client_min_replies &&
              mass.num_replies_true <= mass.client_max_replies;
     }
     var num_reps = mass.num_replies_true + mass.num_replies_false;
 
-    if (mass.is_snowball_q) return num_reps === mass.max;
     // console.log('&&&&&&&&&&&&&&&&&&&&&&&')
     // console.log(mass)
     // console.log('num_reps: ', num_reps, ', mass.client_max_replies: ', mass.client_max_replies)
