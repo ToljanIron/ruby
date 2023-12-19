@@ -4,3 +4,4 @@ production:
   :concurrency: 2
 :queues:
   - close_questionnaire
+  - alerts
