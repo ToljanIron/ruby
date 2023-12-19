@@ -18,7 +18,7 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
     function loadEmployeesFromServer(_params) {
       var method = 'GET';
       var url = '/get_questionnaire_employees';
-      var params = {token: _params.token};
+      var params = {token: _params.token, is_snowball : _params.is_snowball};
       return getPromise(method, url, params);
     }
 
@@ -62,6 +62,17 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       var url = '/keep_alive';
       var params = {counter : counter};
       return getPromise(method, url, params);
+    }
+
+    function getAutoCompleteData(_params){
+      var method = 'GET';
+      var url = 'participant_automcomplete';
+      var params = _params;
+      return getPromise(method, url, params);
+    }
+
+    ajaxService.getAutoCompleteData = function (params) {
+      return getAutoCompleteData(params);
     }
 
     function createUnverifiedEmployee(_params) {
