@@ -28,6 +28,7 @@ Workships::Application.routes.draw do
   post  'get_next_question',           to: 'questionnaire#get_next_question'
   post  'close_question',              to: 'questionnaire#close_question'
   post  'add_unverfied_participant',   to: 'questionnaire#add_unverfied_participant'
+  get   'participant_automcomplete',   to: 'questionnaire#participant_automcomplete'
 
   post  'update_replies',              to: 'questionnaire#update_question_replies'
   get   'keep_alive',                  to: 'questionnaire#keep_alive'
