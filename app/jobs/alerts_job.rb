@@ -1,5 +1,5 @@
-class AlertsJob
-  queue_as :alerts
+class AlertsJob  < ApplicationJob
+queue_as :alerts
 
   def perform
     puts 'create_alerts job started'
