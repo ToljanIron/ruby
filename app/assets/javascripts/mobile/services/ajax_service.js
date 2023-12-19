@@ -64,6 +64,17 @@ angular.module('workships-mobile.services').factory('ajaxService', ['$http', 'mo
       return getPromise(method, url, params);
     }
 
+    function getAutoCompleteData(_params){
+      var method = 'POST';
+      var url = '/questionnaiare/participant_automcomplete';
+      var params = _params;
+      return getPromise(method, url, params);
+    }
+
+    ajaxService.getAutoCompleteData = function (params) {
+      return getAutoCompleteData(params);
+    }
+
     function createUnverifiedEmployee(_params) {
       var method = 'POST';
       var url = '/add_unverfied_participant';

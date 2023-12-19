@@ -745,6 +745,11 @@ else
 
   //Departments dropdown part end
 
+  // Autcomplete data for first/lastnames
+  $scope.autocomplete = {};
+  $scope.autocomplete.firstname = [{name : 'Denis'},{ name : 'Ben'}]
+  $scope.autocomplete.lastnames = [{name : 'Kalinin'},{name : 'Keving'}]
+
   $scope.clearEmployeeObject = function () {
     $scope.employee.firstname = '';
     $scope.employee.lastname = '';
@@ -913,6 +918,7 @@ else
 
   $scope.init = function (next_question_params, options) {
     $scope._ = _;
+    console.log(mobileAppService.getIsSnowball())
     $scope.search_added_emps = [];
     options = options || {};
     $scope.undo_worker_stack = [];

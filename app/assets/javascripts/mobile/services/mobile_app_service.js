@@ -228,6 +228,10 @@ angular.module('workships-mobile.services').factory('mobileAppService', function
     return TOTAL_QUESTIONS;
   };
 
+  mobileAppService.getIsSnowball = function () {
+    return IS_SNOWBALL;
+  };
+
   mobileAppService.langDirection = function() {
     return LANGUAGE_DIRECTION;
   };

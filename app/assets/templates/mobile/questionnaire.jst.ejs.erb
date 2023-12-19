@@ -159,22 +159,22 @@
   </div>
 
   <!-- AutoComplete Snowball by Firstname and LastName -->
-  <div class= 'search-result' ng-if = "search_input.firstname != '' || search_input.lastname != ''">
-    <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>
-    <div class="search-item"
-         ng-click ="showConfirmBox(search_node,r.question_id)"
-         ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
-         ng-repeat="search_node in hhh | fullnameFilter:search_input as $results track by search_node.id">
-      <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>
-      <div class="search-emp-name">
-        <div class="emp-name">{{search_node.name}}</div>
-        <div>{{search_node.role}}</div>
-      </div>
-    </div>
-    <div class= "search-item no-results" ng-if="$results.length === 0">
-      {{mobile_app_service.t('no_results')}}
-    </div>
-  </div>
+<!--  <div class= 'search-result' ng-if = "search_input.firstname != '' || search_input.lastname != ''">-->
+<!--    <div class='close-btn close-q-container' ng-click = "closeSearchResult()"></div>-->
+<!--    <div class="search-item"-->
+<!--         ng-click ="showConfirmBox(search_node,r.question_id)"-->
+<!--         ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"-->
+<!--         ng-repeat="search_node in hhh | fullnameFilter:search_input as $results track by search_node.id">-->
+<!--      <div class="avatar-search" ng-style= 'getCiricleColor($index)'>{{shortName(search_node.name)}}</div>-->
+<!--      <div class="search-emp-name">-->
+<!--        <div class="emp-name">{{search_node.name}}</div>-->
+<!--        <div>{{search_node.role}}</div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <div class= "search-item no-results" ng-if="$results.length === 0">-->
+<!--      {{mobile_app_service.t('no_results')}}-->
+<!--    </div>-->
+<!--  </div>-->
   <!-- AutoComplete Snowball  -->
 
   <div ng-if="mobile_app_service.isLangRtl()"  class="mobile-footer">
@@ -256,7 +256,7 @@
       </div>
     </div>
 
-    <div class="modal-backdrop mobile" ng-click="closeModalFunc()" ng-show="showModal"></div>
+    <div class="modal-backdrop mobile" ng-show="showModal"></div>
     <div class="modal" ng-show="showModal">
       <div class="modal-content" >
 <!--        <span class="close-button" ng-click="closeModalFunc()">×</span>-->
@@ -267,9 +267,41 @@
           <div class="form-group mobile">
             <input type="text" id="firstname" ng-change="searchFunc()" ng-model="search_input.firstname" class="modal-input" name="firstname" placeholder="{{mobile_app_service.t('enter_first_name')}}" required>
           </div>
+          <!-- AutoComplete Snowball by Firstname and LastName -->
+          <div class= 'search-result snowball-firstname' ng-if = "search_input.firstname != '' && search_input.lastname == ''">
+            <div class="search-item"
+                 ng-click ="showConfirmBox(search_node,r.question_id)"
+                 ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+                 ng-repeat="search_node in hhh | filter:{name:search_input.firstname} as $results track by search_node.id">
+              <div class="search-emp-name">
+                <div class="emp-name">{{search_node.name}}</div>
+                <div>{{search_node.role}}</div>
+              </div>
+            </div>
+            <div class= "search-item no-results" ng-if="$results.length === 0">
+              {{mobile_app_service.t('no_results')}}
+            </div>
+          </div>
+          <!-- AutoComplete Snowball  -->
           <div class="form-group mobile">
             <input type="text" id="lastname" ng-change="searchFunc()" ng-model="search_input.lastname" class="modal-input" name="lastname" placeholder="{{mobile_app_service.t('enter_last_name')}}" required>
           </div>
+          <!-- AutoComplete Snowball by Firstname and LastName -->
+          <div class= 'search-result snowball-lastname' ng-if = "search_input.lastname != '' && search_input.firstname == ''">
+            <div class="search-item"
+                 ng-click ="showConfirmBox(search_node,r.question_id)"
+                 ng-class ="{'ltr': !mobile_app_service.isLangRtl()}"
+                 ng-repeat="search_node in hhh | filter:{name:search_input.lastname} as $results track by search_node.id">
+              <div class="search-emp-name">
+                <div class="emp-name">{{search_node.name}}</div>
+                <div>{{search_node.role}}</div>
+              </div>
+            </div>
+            <div class= "search-item no-results" ng-if="$results.length === 0">
+              {{mobile_app_service.t('no_results')}}
+            </div>
+          </div>
+          <!-- AutoComplete Snowball  -->
           <div class="form-group mobile">
             <select id="department" class="modal-input-select" name="department"
                     ng-model="employee.department"

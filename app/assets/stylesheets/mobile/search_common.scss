@@ -635,3 +635,35 @@
     text-align: right;
     width: 294px;
   }
+
+  // search and autocomplete for snowball
+
+  .mobile-wrapper .mobile-container .search-result.snowball-firstname {
+    position: fixed !important;
+    max-height: 800px;
+    height: fit-content;
+    padding-bottom: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    border-radius: 0 !important;
+    top: 42%;
+    background-color: white;
+    width: 94%;
+    left: 3% !important;
+    right: 0;
+    z-index: 200;
+  }
+
+  .mobile-wrapper .mobile-container .search-result.snowball-lastname {
+    position: fixed !important;
+    max-height: 800px;
+    height: fit-content;
+    padding-bottom: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    border-radius: 0 !important;
+    top: 52%;
+    background-color: white;
+    width: 94%;
+    left: 3% !important;
+    right: 0;
+    z-index: 200;
+  }
