@@ -286,8 +286,8 @@
       </div>
     </div>
 
-    <div class="modal-backdrop mobile" ng-show="showModal"></div>
-    <div class="modal" ng-show="showModal">
+    <div class="modal-backdrop mobile" ng-click="checkIfAutoCompleteListIsOpenAndCloseIt($event)" ng-show="showModal"></div>
+    <div class="modal" ng-click="checkIfAutoCompleteListIsOpenAndCloseIt($event)" ng-show="showModal">
       <div class="modal-content" >
 <!--        <span class="close-button" ng-click="closeModalFunc()">×</span>-->
         <form class="modal-form" ng-submit="submitUnverifiedEmployeeForm()">

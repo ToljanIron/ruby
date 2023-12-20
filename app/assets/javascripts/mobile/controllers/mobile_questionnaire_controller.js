@@ -747,6 +747,23 @@ else
     console.log($scope.showFirstNameList)
   }
 
+  $scope.checkIfAutoCompleteListIsOpenAndCloseIt = function (event) {
+    var clickedElement = event.target;
+
+    var hasClass = clickedElement.classList.contains('search-item') ||
+        clickedElement.classList.contains('search-emp-name') ||
+        clickedElement.classList.contains('emp-name') ||
+        clickedElement.closest('.search-item') ||
+        clickedElement.closest('.search-emp-name') ||
+        clickedElement.closest('.emp-name');
+
+    if (!hasClass) {
+      $scope.showFirstNameList = false;
+      $scope.showLastNameList = false;
+      //$scope.$apply();
+    }
+  }
+
   $scope.searchAutocompleteFunc = function (field) {
     console.log($scope.showFirstNameList)
     if (field == 'firstname') {
