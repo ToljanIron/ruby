@@ -115,14 +115,14 @@ class QuestionnaireController < ApplicationController
     
     @token = (sanitize_alphanumeric(params[:token]))
     qd = get_questionnaire_details(@token)
+     
+    qps_emp_ids=Questionnaire.find(qd[:questionnaire_id]).questionnaire_participant.where.not(employee_id: -1).pluck(:employee_id)
     
-    employee = Employee.find(QuestionnaireParticipant.find(qd[:qpid]).employee.id)
-    
-    if employee
-      #search all employees
+    if qps_emp_ids
+      #field name
       field=params[:field]=='l' ? :last_name   :  :first_name
       
-      res= Company.find(employee.company_id).employees.order(field).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
+      res= Employee.where(id:qps_emp_ids).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
       
       render json: { data: res}, status: 200
 
