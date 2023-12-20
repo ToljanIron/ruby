@@ -384,7 +384,7 @@ class Questionnaire < ActiveRecord::Base
 
   def self.create_unverified_participant_employee(permitted)
     
-    snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee.id
+    snowballed_by=QuestionnaireParticipant.find((permitted[:qpid])).employee
     company=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire.company
     questionnaire=QuestionnaireParticipant.find((permitted[:qpid])).questionnaire
     group=Group.find(permitted[:e_group])
@@ -392,11 +392,19 @@ class Questionnaire < ActiveRecord::Base
     raise "No such company" if company.nil?
     raise "No such questionnaire" if questionnaire.nil?
     temp_email=['unveified',Time.now.utc.strftime("%Y%m%d%H%M%S")].join('-')+'@stepahead.com' 
-    unverified_employee=Employee.create!(snapshot_id:questionnaire.snapshot_id,is_verified:false,group:group,email:temp_email,company_id:company.id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],external_id:Time.now.utc.strftime("%Y%m%d%H%M%S"))
-    unverified_participant=QuestionnaireParticipant.create!(snowballer_employee_id:snowballed_by,employee_id:unverified_employee.id,questionnaire_id:questionnaire.id,status:4,active:true)
-
-    msg=(unverified_employee.errors.full_messages+unverified_participant.errors.full_messages).flatten.join(',')
-    data={msg:msg,employee:unverified_employee,qpid:unverified_participant.try(:id)}
+    
+    employee=Employee.where(snapshot_id:snowballed_by.snapshot_id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],group:group).first
+    unless employee
+      employee=Employee.create!(snapshot_id:snowballed_by.snapshot_id,is_verified:false,group:group,email:temp_email,company_id:company.id,first_name:permitted[:e_first_name],last_name:permitted[:e_last_name],external_id:Time.now.utc.strftime("%Y%m%d%H%M%S"))
+    end  
+    participant=questionnaire.questionnaire_participant.where(employee_id:employee.id).first
+    unless participant
+      participant=QuestionnaireParticipant.create!(snowballer_employee_id:snowballed_by.id,employee_id:employee.id,questionnaire_id:questionnaire.id,status:4,active:true)
+    end
+    msg=(employee.errors.full_messages+participant.errors.full_messages).flatten.join(',')
+    data={msg:msg,employee:employee,qpid:participant.id}
+    
+    
     return data
   end
 end
