@@ -643,7 +643,7 @@
     max-height: 800px;
     height: fit-content;
     padding-bottom: 1.5rem !important;
-    margin-top: 1.5rem !important;
+    margin-top: 4.3rem !important;
     border-radius: 0 !important;
     top: 42%;
     background-color: white;
@@ -658,7 +658,7 @@
     max-height: 800px;
     height: fit-content;
     padding-bottom: 1.5rem !important;
-    margin-top: 1.5rem !important;
+    margin-top: 4.3rem !important;
     border-radius: 0 !important;
     top: 52%;
     background-color: white;
@@ -666,4 +666,14 @@
     left: 3% !important;
     right: 0;
     z-index: 200;
+  }
+
+  @media screen and (max-width: 700px) {
+    .mobile-wrapper .mobile-container .search-result.snowball-firstname {
+      margin-top: 1.4rem !important;
+    }
+
+    .mobile-wrapper .mobile-container .search-result.snowball-lastname {
+      margin-top: 1.4rem !important;
+    }
   }
