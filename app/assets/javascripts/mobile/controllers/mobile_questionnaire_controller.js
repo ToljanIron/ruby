@@ -867,11 +867,16 @@ else
         employee_details_id: response.data.e_id,
         response: null
       };
+
       // Here we modify all arrays and objects for display new employee
-      $scope.employees.push(newEmployeeObject)
-      $scope.tiny_array.push(newUserResponse)
-      $scope.responses.undefined.responses.push(newUserResponse);
-      $scope.original_data.replies.push(newUserDataRepliesResponse);
+      const hasEmployeeDetailsId = $scope.tiny_array.some(item => item.employee_details_id === response.data.e_id);
+      
+      if (!hasEmployeeDetailsId) {
+        $scope.employees.push(newEmployeeObject)
+        $scope.tiny_array.push(newUserResponse)
+        $scope.responses.undefined.responses.push(newUserResponse);
+        $scope.original_data.replies.push(newUserDataRepliesResponse);
+      }
 
       $scope.currentlyFocusedEmployeeId = $scope.nextEmployeeIdWithoutResponseForQuestion(undefined, response.data.qpid);
       $scope.clearEmployeeObject();
