@@ -962,7 +962,7 @@ module InteractBackofficeHelper
     qid = aq.id
     gids = gids.uniq
     gids = Group.where(questionnaire_id: nil)
-                .where(id: gids)
+                #.where(id: gids)
                 .pluck(:id)
     gids.each do |gid|
       update_questionnaire_id_in_groups_heirarchy(gid, qid)
