@@ -13,7 +13,7 @@ class QuestionnaireController < ApplicationController
                                              :update_question_replies,
                                              :keep_alive,
                                              :show_quest,
-                                             :autosave,:add_unverfied_participant,:participant_automcomplete]
+                                             :autosave,:add_unverfied_participant,:participant_automcomplete,:all_groups]
   # before_action :set_locale
 
 
