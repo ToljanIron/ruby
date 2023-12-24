@@ -122,7 +122,7 @@ class QuestionnaireController < ApplicationController
       #field name
       field=params[:field]=='l' ? :last_name   :  :first_name
       
-      res= Employee.where(id:qps_emp_ids).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
+      res= Employee.where(id:qps_emp_ids).where("LOWER(#{field}) like ? ","%#{params[:field].downcase}%").pluck(field).uniq
       
       render json: { data: res}, status: 200
 
