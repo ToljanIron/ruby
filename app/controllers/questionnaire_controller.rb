@@ -111,6 +111,7 @@ class QuestionnaireController < ApplicationController
   end
 
   def participant_automcomplete
+    puts('---------------------------'+(sanitize_alphanumeric(params[:token])))
     
     authorize :application, :passthrough
     puts('**********************************************')
