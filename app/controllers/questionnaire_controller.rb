@@ -4,7 +4,7 @@ require 'oj_mimic_json'
 include QuestionnaireHelper
 
 class QuestionnaireController < ApplicationController
-  protect_from_forgery with: :exception, except:[:add_unverfied_participant]
+  protect_from_forgery with: :exception, except:[:add_unverfied_participant,:participant_automcomplete]
   before_action :authenticate_user, except: [:show_mobile,
                                              :all_employees,
                                              :all_groups,
@@ -111,7 +111,7 @@ class QuestionnaireController < ApplicationController
   end
 
   def participant_automcomplete
-    authorize :application, :passthrough
+    #authorize :application, :passthrough
     
     @token = (sanitize_alphanumeric(params[:token]))
     qd = get_questionnaire_details(@token)
