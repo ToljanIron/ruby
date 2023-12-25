@@ -111,20 +111,20 @@ class QuestionnaireController < ApplicationController
   end
 
   def participant_automcomplete
-    puts('---------------------------'+(sanitize_alphanumeric(params[:token])))
     
     authorize :application, :passthrough
-    puts('**********************************************')
     @token = (sanitize_alphanumeric(params[:token]))
     qd = get_questionnaire_details(@token)
      
     qps_emp_ids=Questionnaire.find(qd[:questionnaire_id]).questionnaire_participant.where.not(employee_id: -1).pluck(:employee_id)
-    
+    puts('+_+_+_+_+_+_+_+_+_+_+_+_+__+_+_+_'+qps_emp_ids.to_s)
+
     if qps_emp_ids
       #field name
       field=params[:field]=='l' ? :last_name   :  :first_name
+      puts('+_+_+_+_+_+_+_+_+_+_+_+_+__+_+_+_'+qps_emp_ids.to_s)
       
-      res= Employee.where(id:qps_emp_ids).where("LOWER(#{field}) like ? ","%#{params[:field].downcase}%").pluck(field).uniq
+      res= Employee.where(id:qps_emp_ids).where("LOWER(#{field}) like ? ","%#{params[:term].downcase}%").pluck(field).uniq
       
       render json: { data: res}, status: 200
 
