@@ -111,7 +111,7 @@ class QuestionnaireController < ApplicationController
   end
 
   def participant_automcomplete
-    #authorize :application, :passthrough
+    authorize :application, :passthrough
     
     @token = (sanitize_alphanumeric(params[:token]))
     qd = get_questionnaire_details(@token)
