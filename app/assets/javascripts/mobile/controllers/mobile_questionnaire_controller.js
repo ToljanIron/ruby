@@ -504,6 +504,7 @@ else
 
     $scope.current_employee_id = response.data.current_employee_id;
     $scope.is_snowball_q = response.data.is_snowball_q;
+    $scope.snowball_enable_autocomplete = response.data.snowball_enable_autocomplete;
     //сonsole.log($scope.is_snowball_q);
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
@@ -737,8 +738,10 @@ else
   }
 
   $scope.showAutoCompleteList = function (field) {
-    if (field == 'firstname' && $scope.search_input.firstname.length > 0) $scope.showFirstNameList = !$scope.showFirstNameList
-    if (field == 'lastname' &&  $scope.search_input.lastname.length > 0) $scope.showLastNameList = !$scope.showLastNameList
+    if ($scope.snowball_enable_autocomplete){
+      if (field == 'firstname' && $scope.search_input.firstname.length > 0) $scope.showFirstNameList = !$scope.showFirstNameList
+      if (field == 'lastname' &&  $scope.search_input.lastname.length > 0) $scope.showLastNameList = !$scope.showLastNameList
+    }
   }
 
   $scope.chooseAndHide = function (name, field) {
@@ -765,22 +768,25 @@ else
   }
 
   $scope.searchAutocompleteFunc = function (field) {
-    console.log($scope.showFirstNameList)
-    if (field == 'firstname') {
-      $scope.paramsForAutoCompliteFirstName.term = $scope.search_input.firstname
-      $scope.getAutoCompleteList($scope.paramsForAutoCompliteFirstName).then(function(data) {
-        $scope.autocomplete.firstnames = data;
-        $scope.showFirstNameList = true;
-      });
-    } else {
-      $scope.paramsForAutoCompliteLastName.term = $scope.search_input.lastname
-      $scope.getAutoCompleteList($scope.paramsForAutoCompliteLastName).then(function(data) {
-        $scope.autocomplete.lastnames = data;
-        $scope.showLastNameList = true;
-        console.log($scope.autocomplete.lastnames);
+    if ($scope.snowball_enable_autocomplete) {
+      const isFirstName = field === 'firstname';
+      const params = isFirstName ? $scope.paramsForAutoCompliteFirstName : $scope.paramsForAutoCompliteLastName;
+      const searchTerm = isFirstName ? $scope.search_input.firstname : $scope.search_input.lastname;
+      const autocompleteListType = isFirstName ? 'firstnames' : 'lastnames';
+      const showListType = isFirstName ? 'showFirstNameList' : 'showLastNameList';
+
+      params.term = searchTerm;
+      $scope.getAutoCompleteList(params).then(function(data) {
+        $scope.autocomplete[autocompleteListType] = data;
+        $scope[showListType] = true;
+
+        if (!isFirstName) {
+          console.log($scope.autocomplete.lastnames);
+        } else {
+          console.log($scope.autocomplete.firstnames)
+        }
       });
     }
-
   }
 
   $scope.employee = {
@@ -870,7 +876,7 @@ else
 
       // Here we modify all arrays and objects for display new employee
       const hasEmployeeDetailsId = $scope.tiny_array.some(item => item.employee_details_id === response.data.e_id);
-      
+
       if (!hasEmployeeDetailsId) {
         $scope.employees.push(newEmployeeObject)
         $scope.tiny_array.push(newUserResponse)
