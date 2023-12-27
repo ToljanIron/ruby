@@ -28,9 +28,10 @@
       <div class='question-container' ng-class="{'question-container-display': show_full_question}">
         <div ng-if="mobile_app_service.isLangRtl()" class='question' dir='rtl'><bdi ng-bind-html='r.question' dir="rtl"></bdi></div>
         <div ng-if="!mobile_app_service.isLangRtl()" class='question'><bdi ng-bind-html='r.question'></bdi></div>
-        <div class='close-btn close-q-container'>
-          <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div> 
-        </div>
+        <div ng-if="show_full_question" class='close-btn close-q-container'>
+          <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div>
+        <div ng-if="!show_full_question" class='v-idle-btn v-idle-container'>
+          <!-- {{mobile_app_service.t('close_button')}}<%#= I18n.t('questionnaire.close_button') %>--></div>
         <div class="genericPopUp confirm-box" ng-class="{'genericPopUp-display': isChoseBySearch(),'genericPopUp-rtl': mobile_app_service.isLangRtl()}">
           <div class="subject">
             <span>{{mobile_app_service.t('are_you_sure')}}<%#= I18n.t('questionnaire.are_you_sure')%></span>

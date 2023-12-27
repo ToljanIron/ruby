@@ -398,8 +398,10 @@ else
   };
 
   $scope.toggleFullQuestionView = function () {
+    console.log('toggleFullQuestionView')
     $scope.show_full_question = !$scope.show_full_question;
     $scope.show_popup = !$scope.show_popup;
+    console.log($scope.show_full_question,$scope.show_popup)
   };
   $scope.hidePopup = function (event) {
     var clickedElement = event.target;
@@ -417,9 +419,10 @@ else
       $scope.show_popup = false;
       $scope.show_full_question = false;
     }
-    // else{
-    //   $scope.show_popup = true;
-    // }
+    else{
+      $scope.show_popup = true;
+      $scope.show_full_question = true;
+    }
   };
   $scope.logoSrc = function () {
     if(mass.logo_url)
