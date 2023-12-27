@@ -293,7 +293,7 @@ class Questionnaire < ActiveRecord::Base
       "SELECT count(*), qp.status, q.id, q.name, q.sent_date, q.delivery_method,
               q.sms_text, q.email_text, q.email_from, q.email_subject, q.test_user_name,
               q.test_user_phone, q.test_user_email, q.state, q.language_id,
-	      qp.participant_type, q.snapshot_id,#{q_level_select},is_snowball_q::int
+	      qp.participant_type, q.snapshot_id,#{q_level_select},is_snowball_q::int,snowball_enable_autocomplete::int
        FROM questionnaire_participants AS qp
        JOIN questionnaires AS q ON q.id = qp.questionnaire_id
        #{q_level_join}
@@ -324,6 +324,8 @@ class Questionnaire < ActiveRecord::Base
         quest['test_user_phone'] = sanitize(quest['test_user_phone'])
         quest['test_user_email'] = sanitize(quest['test_user_email'])
         quest['is_snowball_q'] = quest['is_snowball_q']
+        quest['snowball_enable_autocomplete'] = quest['snowball_enable_autocomplete']
+
         ret << quest
       end
       quest['stats'][r['status']] = r['count'] if (r['participant_type'] != 1)
