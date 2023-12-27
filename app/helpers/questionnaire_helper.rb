@@ -108,7 +108,8 @@ module QuestionnaireHelper
       referral_btn_color: aq.referral_btn_color,
       referral_btn_text: aq.referral_btn_text,
       language: language,
-      is_snowball_q:aq.is_snowball_q
+      is_snowball_q:aq.is_snowball_q,
+      snowball_enable_autocomplete:  aq.snowball_enable_autocomplete
     }
   end
 
