@@ -182,7 +182,8 @@ class InteractBackofficeController < ApplicationController
     smsText =      quest['sms_text']
     emailText =    quest['email_text']
     emailSubject = quest['email_subject']
-    isSnowball = quest['is_snowball_q']
+    isSnowball = quest['is_snowball_q'],
+    snowball_enable_autocomplete=quest['snowball_enable_autocomplete']
 
     language_id = sanitize_id(quest['language_id'])
     
@@ -194,7 +195,8 @@ class InteractBackofficeController < ApplicationController
       email_text: emailText,
       email_subject: emailSubject,
       language_id: language_id,
-      is_snowball_q: isSnowball
+      is_snowball_q: isSnowball,
+      snowball_enable_autocomplete: snowball_enable_autocomplete
     )
 
     ret = CompanyConfigurationTable.where(comp_id: @cid, key: CompanyConfigurationTable::HIDE_EMPLOYEES).last
