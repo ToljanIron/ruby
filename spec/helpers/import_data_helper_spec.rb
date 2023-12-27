@@ -21,7 +21,7 @@ describe 'ImportDataHelper' do
   it 'should create groups even if there are no question participant in this group' do
     expect(Group.count).to eq(0)
     
-    ImportDataHelper.load_excel_sheet(@c.id,File.open('spec/aux/empty_groups.xlsx'),@s.id,false)
+    ImportDataHelper.load_excel_sheet(@c.id,File.open('spec/aux_files/empty_groups.xlsx'),@s.id,false)
     expect(Group.count).to eq(3)
   end
 
