@@ -249,13 +249,22 @@ angular.module('workships-mobile')
 
   // If is a funnel question then only replies whose value is 'true' count.
   // Otherwise, we count both 'true' and 'false'
-  $scope.isFinished = function () {
-    if (mass.is_funnel_question) {
-      return mass.num_replies_true === mass.client_max_replies;
-    }
-    var num_reps = mass.num_replies_true + mass.num_replies_false;
-    return num_reps === mass.client_max_replies;
-  };
+      $scope.isFinished = function () {
+        var finished = false;
+
+        if (mass.is_funnel_question) {
+          finished = mass.num_replies_true === mass.client_max_replies;
+        } else {
+          var num_reps = mass.num_replies_true + mass.num_replies_false;
+          finished = num_reps === mass.client_max_replies;
+        }
+
+        if (finished) {
+          $scope.container.style.transform = 'translateY(0%)';
+        }
+
+        return finished;
+      };
 
   $scope.canFinish = function () {
     if (mass.is_funnel_question) {
@@ -405,6 +414,8 @@ else
   };
   $scope.hidePopup = function (event) {
     var clickedElement = event.target;
+    console.log('hidePopup call')
+    console.log(clickedElement)
     if (clickedElement)
     {
       var elementClasses = clickedElement.classList;
@@ -418,12 +429,40 @@ else
     if($scope.show_full_question){
       $scope.show_popup = false;
       $scope.show_full_question = false;
+      var height = $scope.container.offsetHeight;
+      // 267 - 235%
+      // 327 - 210%
+      // 387 - 205%
+      // 500+ - 75%
+      console.log($scope.show_popup,$scope.show_full_question);
+      var translateYValue = getTranslateYValue(height);
+      $scope.container.style.transform = 'translateY(' + translateYValue + ')';
     }
-    else{
+    // else{
+    //   $scope.show_popup = true;
+    //   $scope.show_full_question = true;
+    //   //container.style.transform = 'translateY(0%)';
+    // }
+  };
+
+  function getTranslateYValue(height) {
+    if (height > 600) return '75%';
+    if (height > 380) return '205%';
+    if (height > 320) return '230%';
+    if (height > 260) return '300%';
+  }
+
+  $scope.showPopup = function () {
+    //var container = $document[0].querySelector('.question-container');
+    console.log($scope.container)
+    if (!$scope.show_full_question) {
       $scope.show_popup = true;
       $scope.show_full_question = true;
+      $scope.container.style.transform = 'translateY(0%)';
+      console.log($scope.show_popup,$scope.show_full_question)
     }
-  };
+  }
+
   $scope.logoSrc = function () {
     if(mass.logo_url)
       return mass.logo_url;
@@ -509,6 +548,7 @@ else
     $scope.is_snowball_q = response.data.is_snowball_q;
     $scope.snowball_enable_autocomplete = response.data.snowball_enable_autocomplete;
     //сonsole.log($scope.is_snowball_q);
+    $scope.container = $document[0].querySelector('.question-container');
     $scope.questionnaire_id = response.data.questionnaire_id;
     $scope.original_data = response.data;
     var employee_ids_in_question =  _.pluck(response.data.replies, 'employee_details_id');
@@ -548,6 +588,7 @@ else
 
     if (response === undefined) { return; }
     var res = response.data;
+    $scope.container.style.transform = 'translateY(0%)';
     if (res && res.status === 'fail') {
       console.error('Question was not closed becuase: ', res.reason);
     }
