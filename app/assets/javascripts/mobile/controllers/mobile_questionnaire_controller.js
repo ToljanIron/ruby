@@ -446,7 +446,7 @@ else
   };
 
   function getTranslateYValue(height) {
-    if (height > 600) return '75%';
+    if (height > 600) return '65%';
     if (height > 380) return '205%';
     if (height > 320) return '230%';
     if (height > 260) return '300%';
